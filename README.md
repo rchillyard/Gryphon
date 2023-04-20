@@ -1,3 +1,10 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1dc65c7cf84e46bfbb0d3d9b16c0f382)](https://app.codacy.com/app/scalaprof/Gryphon?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Gryphon&utm_campaign=Badge_Grade_Settings)
+![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Gryphon)
+![GitHub](https://img.shields.io/github/license/rchillyard/Gryphon)
+![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Gryphon)
+![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Gryphon)
+![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Gryphon/bug)
+
 Gryphon Graph Library
 =====================
 Gryphon is a library for representing and traversing graphs.

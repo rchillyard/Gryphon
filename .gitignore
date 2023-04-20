@@ -1,0 +1,6 @@
+.idea/
+.bsp/
+project/target/
+target/
+FileWriterJournal.txt
+test.txt

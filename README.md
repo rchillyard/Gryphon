@@ -60,5 +60,6 @@ At present, there is only one application: the minimum spanning tree (MST).
 
 Versions
 ========
-The current version is 0.1.0
-This supports the Prim application, and provides dfs and bfs graph traversal.
+The current version is 0.1.1
+
+Version 0.1.0 supports the Prim application, and provides dfs and bfs graph traversal.

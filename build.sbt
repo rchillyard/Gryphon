@@ -1,4 +1,4 @@
-ThisBuild / version := "0.1.0"
+ThisBuild / version := "0.1.1-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.10"
 
@@ -10,10 +10,6 @@ lazy val root = (project in file("."))
 organization := "com.phasmidsoftware"
 
 scalacOptions += "-deprecation"
-
-// NOTE: if you reinstate these directories, you will need to manage the large crimes file (see code).
-//Test / unmanagedSourceDirectories += baseDirectory.value / "src/it/scala"
-//Test / unmanagedResourceDirectories += baseDirectory.value / "src/it/resources"
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 

@@ -57,3 +57,8 @@ It's best to see how it is used by looking at, for example, _GraphSpec_.
 Applications
 ============
 At present, there is only one application: the minimum spanning tree (MST).
+
+Versions
+========
+The current version is 0.1.0
+This supports the Prim application, and provides dfs and bfs graph traversal.

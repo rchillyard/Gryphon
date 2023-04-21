@@ -65,6 +65,16 @@ Applications
 ============
 At present, there is only one application: the minimum spanning tree (MST).
 
+GitHub History
+==============
+Why is there no GitHub history for version 0.1.0?
+Was the code stolen from somewhere?
+No. When I created the repository, GitHub placed it in a different organization from my normal organization (rchillyard).
+I forked that repository and continued working on developing version 0.1.0 without paying attention to the location of the repository.
+The fact that the repo was forked was not very satisfactory, however, and I decided to create a brand-new repository.
+The history is still (currently) available as Gryphon-forked (https://github.com/rchillyard/Gryphon-forked).
+The first commit took place 2023/04/11 and the last commit to the forked repo was pushed on 2023/04/19.
+
 Versions
 ========
 The current version is 0.1.1

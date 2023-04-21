@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.core._
@@ -8,7 +12,6 @@ import scala.compat.java8.OptionConverters.RichOptionForJava8
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Try
-
 
 /**
  * This GraphBuilder is intended to be called from Java.

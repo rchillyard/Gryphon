@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}

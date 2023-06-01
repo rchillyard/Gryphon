@@ -41,7 +41,7 @@ public class VisitorJavaTest {
     }
 
     private static Iterator<String> getVertices(VisitorJava<String> visitor) {
-        GraphBuilderJava<String, String, BoxedUnit> gb = GraphBuilderJava.create(w -> w, w -> w);
+        OrderedGraphBuilderJava<String, String, BoxedUnit> gb = OrderedGraphBuilderJava.create(w -> w, w -> w);
         Optional<List<UndirectedOrderedEdge<String, String>>> maybeEdges = gb.createUndirectedEdgeList("/prim.graph");
         assertTrue(maybeEdges.isPresent());
         UndirectedOrderedEdge<String, String> edge = maybeEdges.get().get(0);

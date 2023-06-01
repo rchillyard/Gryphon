@@ -14,11 +14,11 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertTrue;
 
-public class GraphBuilderTest {
+public class OrderedGraphBuilderTest {
 
     @Test
     public void createUndirectedEdgeList() {
-        GraphBuilderJava<String, String, BoxedUnit> gb = GraphBuilderJava.create(w -> w, w -> w);
+        OrderedGraphBuilderJava<String, String, BoxedUnit> gb = OrderedGraphBuilderJava.create(w -> w, w -> w);
         Optional<List<UndirectedOrderedEdge<String, String>>> maybeEdges = gb.createUndirectedEdgeList("/prim.graph");
         assertTrue(maybeEdges.isPresent());
         System.out.println(maybeEdges);

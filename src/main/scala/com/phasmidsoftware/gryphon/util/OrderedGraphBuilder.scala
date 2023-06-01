@@ -12,32 +12,30 @@ import scala.util.{Failure, Success, Try}
 
 /**
  * Utility class to help create graphs from edge lists, etc.
+ * The edges of this class support Ordering.
  */
-class GraphBuilder[V: Ordering : Parseable, E: Ordering : Parseable, P: HasZero]() {
+class OrderedGraphBuilder[V: Ordering : Parseable, E: Ordering : Parseable, P: HasZero]() {
 
     private type G = Graph[V, E, UndirectedOrderedEdge[V, E], P]
 
-    def createUndirectedEdgeList(uy: Try[URL]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
-        val eysy: Try[Iterator[Try[(V, V, E)]]] = for {
-            u <- uy
-            s = Source.fromURL(u)
-        } yield for {
-            string <- s.getLines()
-            Array(wV1, wV2, wE) = string.split(" ")
-        } yield for {
-            v1 <- implicitly[Parseable[V]].parse(wV1)
-            v2 <- implicitly[Parseable[V]].parse(wV2)
-            e <- implicitly[Parseable[E]].parse(wE)
-        } yield (v1, v2, e)
+    def createTripleList(uy: Try[URL]): Try[Iterator[Try[(V, V, E)]]] = for {
+        u <- uy
+        s = Source.fromURL(u)
+    } yield for {
+        string <- s.getLines()
+        Array(wV1, wV2, wE) = string.split(" ")
+    } yield for {
+        v1 <- implicitly[Parseable[V]].parse(wV1)
+        v2 <- implicitly[Parseable[V]].parse(wV2)
+        e <- implicitly[Parseable[E]].parse(wE)
+    } yield (v1, v2, e)
 
-        for {
-            eys <- eysy
-            es <- sequence(eys)
-        } yield for {
-            (v1, v2, e) <- es
-            edge = UndirectedOrderedEdgeCase(v1, v2, e)
-        } yield edge
-    }
+    def createUndirectedOrderedEdgeList[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
+        eys <- createTripleList(uy)
+        es <- sequence(eys)
+    } yield for {
+        (v1, v2, e) <- es
+    } yield f(v1, v2, e)
 
     def createGraphFromUndirectedOrderedEdges(esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedOrderedEdge[V, E], P]] =
         esy map {
@@ -51,12 +49,12 @@ class GraphBuilder[V: Ordering : Parseable, E: Ordering : Parseable, P: HasZero]
         eys.foldLeft(Try(List[(V, V, E)]())) { (xsy, ey) =>
             (xsy, ey) match {
                 case (Success(xs), Success(e)) => Success(xs :+ e)
-                case _ => Failure(GraphException("GraphBuilder: sequence error"))
+                case _ => Failure(GraphException("OrderedGraphBuilder: sequence error"))
             }
         }
 }
 
-object GraphBuilder {
+object OrderedGraphBuilder {
 
 }
 
@@ -64,7 +62,7 @@ object PrimDemo extends App {
 
     private val resourceName = "/prim.graph"
     private val uy = resource(resourceName)
-    private val gy = new GraphBuilder[Int, Double, Unit]().createUndirectedEdgeList(uy)
+    private val gy = new OrderedGraphBuilder[Int, Double, Unit]().createUndirectedOrderedEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
     gy match {
         case Success(g) =>
             println(s"read ${g.size} edges from $resourceName")

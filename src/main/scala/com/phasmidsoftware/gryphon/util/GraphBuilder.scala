@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.util
 
-import com.phasmidsoftware.gryphon.core.{GraphException, Parseable}
+import com.phasmidsoftware.gryphon.core._
 import java.net.URL
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
@@ -45,4 +45,24 @@ object GraphBuilder {
             }
         }
 
+}
+
+
+/**
+ * Utility class to help create graphs from edge lists, etc.
+ * The edges of this class support Ordering.
+ */
+case class UndirectedGraphBuilder[V: Ordering : Parseable, E: Parseable, P: HasZero]() extends GraphBuilder[V, E] {
+
+    def createEdgeList[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
+        eys <- createTripleList(uy)
+        es <- GraphBuilder.sequence(eys)
+    } yield for {
+        (v1, v2, e) <- es
+    } yield f(v1, v2, e)
+
+    def createGraphFromEdges[X <: Edge[V, E]](graph: Graph[V, E, X, P])(esy: Try[Iterable[X]]): Try[Graph[V, E, X, P]] =
+        esy map {
+            es => es.foldLeft(graph)((g, e) => g.addEdge(e))
+        }
 }

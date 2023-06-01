@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
-import com.phasmidsoftware.gryphon.util.{OrderedGraphBuilder, VertexDataParser, VertexDataTSP}
+import com.phasmidsoftware.gryphon.util.{UndirectedGraphBuilder, VertexDataParser, VertexDataTSP}
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
 import com.phasmidsoftware.table.Table
 import com.phasmidsoftware.util.FP.resource
@@ -28,10 +28,10 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
 
     it should "mst of Prim demo from Sedgewick & Wayne" in {
         val uy = resource("/prim.graph")
-        val graphBuilder = new OrderedGraphBuilder[Int, Double, Unit]()
+        val graphBuilder = new UndirectedGraphBuilder[Int, Double, Unit]()
 
         val esy = graphBuilder.createEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
-        graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
+        graphBuilder.createGraphFromEdges(UndirectedGraph[Int, Double, Unit]("no title"))(esy) match {
             case Success(graph) =>
                 val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
                 prim.edges.size shouldBe 7

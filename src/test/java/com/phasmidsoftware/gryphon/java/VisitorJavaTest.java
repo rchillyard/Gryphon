@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.java;
 
 import com.phasmidsoftware.gryphon.core.Graph;
-import com.phasmidsoftware.gryphon.core.UndirectedOrderedEdge;
+import com.phasmidsoftware.gryphon.core.UndirectedEdge;
 import org.junit.Test;
 import scala.runtime.BoxedUnit;
 
@@ -42,12 +42,12 @@ public class VisitorJavaTest {
 
     private static Iterator<String> getVertices(VisitorJava<String> visitor) {
         OrderedGraphBuilderJava<String, String, BoxedUnit> gb = OrderedGraphBuilderJava.create(w -> w, w -> w);
-        Optional<List<UndirectedOrderedEdge<String, String>>> maybeEdges = gb.createUndirectedEdgeList("/prim.graph");
+        Optional<List<UndirectedEdge<String, String>>> maybeEdges = gb.createUndirectedEdgeList("/prim.graph");
         assertTrue(maybeEdges.isPresent());
-        UndirectedOrderedEdge<String, String> edge = maybeEdges.get().get(0);
-        Optional<Graph<String, String, UndirectedOrderedEdge<String, String>, BoxedUnit>> maybeGraph = gb.createGraphFromUndirectedEdgeList(maybeEdges);
+        UndirectedEdge<String, String> edge = maybeEdges.get().get(0);
+        Optional<Graph<String, String, UndirectedEdge<String, String>, BoxedUnit>> maybeGraph = gb.createGraphFromUndirectedEdgeList(maybeEdges);
         assertTrue(maybeGraph.isPresent());
-        Graph<String, String, UndirectedOrderedEdge<String, String>, BoxedUnit> graph = maybeGraph.get();
+        Graph<String, String, UndirectedEdge<String, String>, BoxedUnit> graph = maybeGraph.get();
         Collection<String> strings = visitor.dfs(graph, edge.vertex());
         assertEquals(8, strings.size());
         System.out.println(strings);

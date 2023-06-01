@@ -14,19 +14,20 @@ import scala.jdk.OptionConverters.RichOptional
 import scala.util.Try
 
 /**
- * This OrderedGraphBuilder is intended to be called from Java.
+ * This UndirectedGraphBuilder is intended to be called from Java.
  */
-case class OrderedGraphBuilderJava[V: Ordering, E: Ordering, P: HasZero](gb: com.phasmidsoftware.gryphon.util.OrderedGraphBuilder[V, E, Unit]) {
+case class OrderedGraphBuilderJava[V: Ordering, E: Ordering, P: HasZero](gb: com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder[V, E, Unit]) {
 
-    def createUndirectedEdgeList(u: String): Optional[java.util.List[UndirectedOrderedEdge[V, E]]] = {
-        val z: Try[Iterable[UndirectedOrderedEdge[V, E]]] = gb.createEdgeList(resource(u))(UndirectedOrderedEdgeCase(_, _, _))
+    def createUndirectedEdgeList(u: String): Optional[java.util.List[UndirectedEdge[V, E]]] = {
+        val z: Try[Iterable[UndirectedEdge[V, E]]] = gb.createEdgeList(resource(u))(UndirectedEdgeCase(_, _, _))
         tryToOption(x => x.printStackTrace(System.err))(z).map(_.toSeq.asJava).asJava
     }
 
-    def createGraphFromUndirectedEdgeList(eso: Optional[java.util.List[UndirectedOrderedEdge[V, E]]]): Optional[Graph[V, E, UndirectedOrderedEdge[V, E], Unit]] = {
+    def createGraphFromUndirectedEdgeList(eso: Optional[java.util.List[UndirectedEdge[V, E]]]): Optional[Graph[V, E, UndirectedEdge[V, E], Unit]] = {
         val ely = optionToTry(eso.toScala, GraphException(s"OrderedGraphBuilderJava.createGraphFromUndirectedEdgeList: cannot get edge list: $eso"))
-        val esy = ely map (el => el.asScala)
-        gb.createGraphFromUndirectedOrderedEdges(esy).toOption.asJava
+        val esy = ely map (el => el.asScala.toSeq)
+        val graph: Graph[V, E, UndirectedEdge[V, E], Unit] = UndirectedGraph[V, E, Unit]("no title")
+        gb.createGraphFromEdges[UndirectedEdge[V, E]](graph)(esy).toOption.asJava
     }
 }
 
@@ -38,9 +39,9 @@ object OrderedGraphBuilderJava {
         implicit object ParseableE extends Parseable[E] {
             def parse(w: String): Try[E] = parseString(fE, "E")(w)
         }
-        OrderedGraphBuilderJava(new com.phasmidsoftware.gryphon.util.OrderedGraphBuilder[V, E, Unit])
+        OrderedGraphBuilderJava(new com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder[V, E, Unit])
     }
 
     private def parseString[T](f: function.Function[String, T], genericType: String)(w: String): Try[T] =
-        tryNonNull(f(w), GraphException(s"Java OrderedGraphBuilder.apply: cannot parse $w as a " + genericType))
+        tryNonNull(f(w), GraphException(s"Java UndirectedGraphBuilder.apply: cannot parse $w as a " + genericType))
 }

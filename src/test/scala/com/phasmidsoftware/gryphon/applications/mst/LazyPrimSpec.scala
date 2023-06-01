@@ -30,7 +30,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val uy = resource("/prim.graph")
         val graphBuilder = new OrderedGraphBuilder[Int, Double, Unit]()
 
-        val esy = graphBuilder.createUndirectedOrderedEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
+        val esy = graphBuilder.createEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
         graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(graph) =>
                 val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])

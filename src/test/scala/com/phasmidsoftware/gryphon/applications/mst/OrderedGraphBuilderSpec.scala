@@ -15,11 +15,11 @@ class OrderedGraphBuilderSpec extends AnyFlatSpec with should.Matchers {
 
     behavior of "OrderedGraphBuilder"
 
-    it should "createUndirectedOrderedEdgeList" in {
+    it should "createEdgeList" in {
         val primGraph = "/prim.graph"
         val uy = resource(primGraph)
         val graphBuilder = new OrderedGraphBuilder[Int, Double, Unit]()
-        val esy = graphBuilder.createUndirectedOrderedEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
+        val esy = graphBuilder.createEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
         graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
             case Success(g) =>
                 val edges = g.edges

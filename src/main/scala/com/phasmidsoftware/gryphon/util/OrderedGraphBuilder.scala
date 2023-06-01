@@ -30,7 +30,7 @@ class OrderedGraphBuilder[V: Ordering : Parseable, E: Ordering : Parseable, P: H
         e <- implicitly[Parseable[E]].parse(wE)
     } yield (v1, v2, e)
 
-    def createUndirectedOrderedEdgeList[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
+    def createEdgeList[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
         eys <- createTripleList(uy)
         es <- sequence(eys)
     } yield for {
@@ -62,7 +62,7 @@ object PrimDemo extends App {
 
     private val resourceName = "/prim.graph"
     private val uy = resource(resourceName)
-    private val gy = new OrderedGraphBuilder[Int, Double, Unit]().createUndirectedOrderedEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
+    private val gy = new OrderedGraphBuilder[Int, Double, Unit]().createEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
     gy match {
         case Success(g) =>
             println(s"read ${g.size} edges from $resourceName")

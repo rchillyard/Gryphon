@@ -18,7 +18,7 @@ class TreeSpec extends AnyFlatSpec with should.Matchers {
 
     it should "unit" in {
         val vertexMap: BaseVertexMap[String, UndirectedEdge[String, Int], Unit] = UnorderedVertexMap.empty[String, UndirectedEdge[String, Int], Unit].asInstanceOf[BaseVertexMap[String, UndirectedEdge[String, Int], Unit]]
-        val tree1: TreeCase[String, Int, UndirectedEdge[String, Int], Unit] = TreeCase("test1", vertexMap)
+        val tree1: UndirectedTreeCase[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedTreeCase("test1", vertexMap)
         val edge42: UndirectedEdge[String, Int] = UndirectedEdgeCase(red, blue, 42)
         val edge17: UndirectedEdge[String, Int] = UndirectedEdgeCase(red, green, 17)
         val vm2 = vertexMap.unit(buildUpVertexMap(vertexMap, edge42, edge17)).asInstanceOf[BaseVertexMap[String, UndirectedEdge[String, Int], Unit]]
@@ -32,7 +32,7 @@ class TreeSpec extends AnyFlatSpec with should.Matchers {
         val edge42: UndirectedEdge[String, Int] = UndirectedEdgeCase(red, blue, 42)
         val edge17: UndirectedEdge[String, Int] = UndirectedEdgeCase(red, green, 17)
         val vm2 = vertexMap.unit(buildUpVertexMap(vertexMap, edge42, edge17)).asInstanceOf[BaseVertexMap[String, UndirectedEdge[String, Int], Unit]]
-        val tree: TreeCase[String, Int, UndirectedEdge[String, Int], Unit] = TreeCase("test", vm2)
+        val tree: UndirectedTreeCase[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedTreeCase("test", vm2)
         tree.vertexMap shouldBe vm2
         tree.edges shouldBe Seq(edge42, edge17)
         tree.isCyclic shouldBe false

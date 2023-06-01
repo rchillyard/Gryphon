@@ -15,11 +15,11 @@ class UndirectedGraphBuilderSpec extends AnyFlatSpec with should.Matchers {
 
     behavior of "UndirectedGraphBuilder"
 
-    it should "createEdgeList" in {
+    it should "createEdgeListTriple" in {
         val primGraph = "/prim.graph"
         val uy = resource(primGraph)
         val graphBuilder = new UndirectedGraphBuilder[Int, Double, Unit]()
-        val esy = graphBuilder.createEdgeList(uy)(UndirectedOrderedEdgeCase(_, _, _))
+        val esy = graphBuilder.createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
         graphBuilder.createGraphFromEdges(UndirectedGraph[Int, Double, Unit]("no title"))(esy) match {
             case Success(g) =>
                 val edges = g.edges

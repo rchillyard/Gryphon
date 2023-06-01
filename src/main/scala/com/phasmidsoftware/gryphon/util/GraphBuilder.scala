@@ -11,6 +11,21 @@ import scala.util.{Failure, Success, Try}
 
 abstract class GraphBuilder[V: Parseable, E: Parseable] {
 
+    def createEdgeListTriple[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
+        eys <- createTripleList(uy)
+        es <- GraphBuilder.sequence(eys)
+    } yield for {
+        (v1, v2, e) <- es
+    } yield f(v1, v2, e)
+
+    def createEdgeListPair[X <: Edge[V, Unit]](uy: Try[URL])(f: (V, V) => X): Try[Iterable[X]] = for {
+        eys <- createPairList(uy)
+        es <- GraphBuilder.sequence(eys)
+    } yield for {
+        (v1, v2) <- es
+    } yield f(v1, v2)
+
+
     def createTripleList(uy: Try[URL]): Try[Iterator[Try[(V, V, E)]]] = for {
         u <- uy
         s = Source.fromURL(u)
@@ -53,13 +68,6 @@ object GraphBuilder {
  * The edges of this class support Ordering.
  */
 case class UndirectedGraphBuilder[V: Ordering : Parseable, E: Parseable, P: HasZero]() extends GraphBuilder[V, E] {
-
-    def createEdgeList[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
-        eys <- createTripleList(uy)
-        es <- GraphBuilder.sequence(eys)
-    } yield for {
-        (v1, v2, e) <- es
-    } yield f(v1, v2, e)
 
     def createGraphFromEdges[X <: Edge[V, E]](graph: Graph[V, E, X, P])(esy: Try[Iterable[X]]): Try[Graph[V, E, X, P]] =
         esy map {

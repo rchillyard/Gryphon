@@ -12,6 +12,12 @@ trait Parseable[T] {
 }
 
 object Parseable {
+    trait ParseableUnit extends Parseable[Unit] {
+        def parse(w: String): Try[Unit] = Success(())
+    }
+
+    implicit object ParseableUnit extends ParseableUnit
+
     trait ParseableString extends Parseable[String] {
         def parse(w: String): Try[String] = Success(w)
     }

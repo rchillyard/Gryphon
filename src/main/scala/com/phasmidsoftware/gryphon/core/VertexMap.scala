@@ -24,7 +24,7 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
  * @tparam V the (key) vertex-type of a graph.
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  */
-trait VertexMap[V, +X <: EdgeLike[V], P] extends Traversable[V] {
+trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] {
     self =>
 
     /**
@@ -42,7 +42,7 @@ trait VertexMap[V, +X <: EdgeLike[V], P] extends Traversable[V] {
      * @param x (Y >: X <: EdgeLike[V]) an edge.
      * @return true if this VertexMap contains the vertex at the other end of x from v.
      */
-    def containsOther[Y >: X <: EdgeLike[V]](v: V, x: Y): Boolean = contains(x.otherVertex(v))
+    def containsOther(v: V, x: X): Boolean = contains(x.otherVertex(v))
 
     /**
      * Method to yield the number of adjacency lists defined in this VertexMap.
@@ -85,7 +85,7 @@ trait VertexMap[V, +X <: EdgeLike[V], P] extends Traversable[V] {
     /**
      * the Vertex[V, X] values of this VertexMap.
      */
-    def values[Y >: X <: EdgeLike[V]]: Iterable[Vertex[V, Y, P]]
+    def values: Iterable[Vertex[V, X, P]]
 
     /**
      * the X values of this VertexMap.
@@ -105,13 +105,33 @@ trait VertexMap[V, +X <: EdgeLike[V], P] extends Traversable[V] {
      *
      * @param v the (key) value of the vertex whose adjacency list we are adding to.
      * @param y the edge to be added to the adjacency list.
-     * @tparam Y a super-type of X.
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
-    def addEdge[Y >: X <: EdgeLike[V]](v: V, y: Y): VertexMap[V, Y, P]
+    def addEdge(v: V, y: X): VertexMap[V, X, P]
 }
 
-trait OrderedVertexMap[V, +X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
+object VertexMap {
+    /**
+     * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
+     * and, if not, marks it as discovered then returns it, wrapped in Some.
+     *
+     * @return Option[V]: the (optional) vertex to run dfs on next.
+     */
+    private[core] def findAndMarkVertex[V, X <: EdgeLike[V], P: HasZero](vertexMap: Map[V, Vertex[V, X, P]], maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
+        case Some(z) =>
+            val vXvo: Option[Vertex[V, X, P]] = vertexMap.get(z)
+            val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
+            qo match {
+                case Some(q) =>
+                    Some(q) // CONSIDER check that q eq z
+                case None =>
+                    None
+            }
+        case None => throw GraphException(errorMessage)
+    }
+}
+
+trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
 
     /**
      * This method adds an edge y (Y) to this OrderedVertexMap and returns
@@ -119,10 +139,9 @@ trait OrderedVertexMap[V, +X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
      * This is particularly used in Prim's algorithm (and maybe Dijkstra's algorithm, too).
      *
      * @param y the edge to be added.
-     * @tparam Y the edge type.
      * @return a tuple as described above.
      */
-    def addEdgeWithVertex[Y >: X <: EdgeLike[V]](y: Y): (Some[V], OrderedVertexMap[V, Y, P]) = {
+    def addEdgeWithVertex(y: X): (Some[V], OrderedVertexMap[V, X, P]) = {
         val (v1, v2) = y.vertices
         val (in, out) = if (contains(v1)) (v1, v2) else (v2, v1)
         Some(out) -> addVertex(out).addEdge(in, y).asInstanceOf[OrderedVertexMap[V, X, P]]
@@ -148,9 +167,9 @@ case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V], P: HasZero](map: 
      * @param map a TreeMap. If it is not a TreeMap, it will be converted to one.
      * @return a new OrderedVertexMapCase[V, X].
      */
-    def unit[Y >: X <: EdgeLike[V]](map: Map[V, Vertex[V, Y, P]]): VertexMap[V, Y, P] = {
-        val zz: TreeMap[V, Vertex[V, Y, P]] = map.to(TreeMap)
-        OrderedVertexMapCase[V, Y, P](zz)
+    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P] = {
+        val zz: TreeMap[V, Vertex[V, X, P]] = map.to(TreeMap)
+        OrderedVertexMapCase[V, X, P](zz)
     }
 }
 
@@ -171,7 +190,7 @@ object OrderedVertexMap {
     def empty[V: Ordering, X <: EdgeLike[V], P: HasZero]: OrderedVertexMap[V, X, P] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X, P]])
 }
 
-trait UnorderedVertexMap[V, +X <: EdgeLike[V], P] extends VertexMap[V, X, P]
+trait UnorderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P]
 
 /**
  * Case class to represent an unordered VertexMap,
@@ -189,7 +208,7 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P: HasZero](map: HashMap[
      * @param map a HashMap. If it is not a HashMap, it will be converted to one.
      * @return a new UnorderedVertexMapCase[V, X].
      */
-    def unit[Y >: X <: EdgeLike[V]](map: Map[V, Vertex[V, Y, P]]): VertexMap[V, Y, P] = UnorderedVertexMapCase[V, Y, P](map.to(HashMap))
+    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P] = UnorderedVertexMapCase[V, X, P](map.to(HashMap))
 }
 
 /**
@@ -209,15 +228,99 @@ object UnorderedVertexMap {
 }
 
 /**
- * Abstract base class to define general VertexMap properties.
+ * VertexMap based on VertexPair.
  *
- * CONSIDER rename Base as Abstract
+ * CONSIDER do we really need this as a separate class hierarchy?
+ *
+ * @tparam V the (key) vertex-type of a graph.
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ */
+trait PairVertexMap[V, P] extends VertexMap[V, VertexPair[V], P]
+
+/**
+ * Case class to represent an unordered VertexMap,
+ * that's to say a VertexMap where V is unordered, typically used for a ConcreteDirectedGraph).
+ *
+ * @param map a HashMap of V -> Vertex[V, X].
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ */
+case class PairVertexMapCase[V, P: HasZero](map: HashMap[V, Vertex[V, VertexPair[V], P]]) extends AbstractVertexMap[V, VertexPair[V], P](map) with PairVertexMap[V, P] {
+
+    /**
+     * Method to add a vertex of (key) type V to this graph.
+     * The vertex will have degree of zero.
+     *
+     * @param v the (key) attribute of the result.
+     * @return a new AbstractGraph[V, E, X].
+     */
+    def addVertex(v: V): VertexMap[V, VertexPair[V], P] = unit(_map + (v -> (_map.get(v) match {
+        case Some(vv) => vv
+        case None => Vertex.empty(v)
+    })))
+
+    /**
+     * Method to add an edge to this VertexMap.
+     *
+     * @param v the (key) value of the vertex whose adjacency list we are adding to.
+     * @param y the edge to be added to the adjacency list.
+     * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
+     */
+    def addEdge(v: V, y: VertexPair[V]): VertexMap[V, VertexPair[V], P] = unit(
+        _map.get(v) match {
+            case Some(vv) => buildMap(_map - v, v, y, vv)
+            case None => buildMap(_map, v, y, Vertex.empty(v))
+        }
+    )
+
+    /**
+     * Build a VertexMap from the given map (m) and the edge y at vertex v.
+     * TODO revert to private.
+     *
+     * @param m  the existing Map.
+     * @param v  the vertex (key) at which to update the adjacency list.
+     * @param y  the edge to be added.
+     * @param vv the existing adjacency list for vertex v.
+     * @tparam Y the type of the ege to be added.
+     * @return a new Map.
+     */
+    def buildMap[Y >: VertexPair[V] <: EdgeLike[V]](m: Map[V, Vertex[V, Y, P]], v: V, y: Y, vv: Vertex[V, Y, P]): Map[V, Vertex[V, Y, P]] = m + (v -> (vv addEdge y))
+
+
+    /**
+     * Method to construct a new UnorderedVertexMapCase from the given map.
+     *
+     * @param map a HashMap. If it is not a HashMap, it will be converted to one.
+     * @return a new UnorderedVertexMapCase[V, X].
+     */
+    def unit(map: Map[V, Vertex[V, VertexPair[V], P]]): VertexMap[V, VertexPair[V], P] = PairVertexMapCase[V, P](map.to(HashMap))
+
+}
+
+/**
+ * Companion object to UnorderedVertexMapCase.
+ */
+object PairVertexMap {
+    def apply[V, P: HasZero](v: V): VertexMap[V, VertexPair[V], P] = empty[V, P].addVertex(v)
+
+    /**
+     * Method to yield an empty UnorderedVertexMapCase.
+     *
+     * @tparam V the (key) vertex-attribute type.
+     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     * @return an empty UnorderedVertexMapCase[V, X].
+     */
+    def empty[V, P: HasZero]: PairVertexMap[V, P] = PairVertexMapCase(HashMap.empty[V, Vertex[V, VertexPair[V], P]])
+}
+
+/**
+ * Abstract base class to define general VertexMap properties.
  *
  * @param _map a Map of V -> Vertex[V, X].
  * @tparam V the (key) vertex-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
-abstract class BaseVertexMap[V, +X <: EdgeLike[V], P: HasZero](val _map: Map[V, Vertex[V, X, P]]) extends VertexMap[V, X, P] {
+abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[V, Vertex[V, X, P]]) extends VertexMap[V, X, P] {
 
     require(_map != null, "BaseVertexMap: _map is null")
 
@@ -234,33 +337,6 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V], P: HasZero](val _map: Map[V, 
     def optAdjacencyList(v: V): Option[AdjacencyList[X]] = _map.get(v) map (_.adjacent)
 
     /**
-     * Method to add a vertex of (key) type V to this graph.
-     * The vertex will have degree of zero.
-     *
-     * @param v the (key) attribute of the result.
-     * @return a new AbstractGraph[V, E, X].
-     */
-    def addVertex(v: V): VertexMap[V, X, P] = unit(_map + (v -> (_map.get(v) match {
-        case Some(vv) => vv
-        case None => Vertex.empty(v)
-    })))
-
-    /**
-     * Method to add an edge to this VertexMap.
-     *
-     * @param v the (key) value of the vertex whose adjacency list we are adding to.
-     * @param y the edge to be added to the adjacency list.
-     * @tparam Y a super-type of X.
-     * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
-     */
-    def addEdge[Y >: X <: EdgeLike[V]](v: V, y: Y): VertexMap[V, Y, P] = unit(
-        _map.get(v) match {
-            case Some(vv) => buildMap(_map - v, v, y, vv)
-            case None => buildMap(_map, v, y, Vertex.empty(v))
-        }
-    )
-
-    /**
      * The map of V -> Vertex[V, X] elements.
      */
     val vertexMap: Map[V, Vertex[V, X, P]] = _map
@@ -273,7 +349,7 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V], P: HasZero](val _map: Map[V, 
     /**
      * the Vertex[V, X] values of this VertexMap.
      */
-    def values[Y >: X <: EdgeLike[V]]: Iterable[Vertex[V, Y, P]] = _map.values
+    def values: Iterable[Vertex[V, X, P]] = _map.values
 
     /**
      * the X values of this VertexMap.
@@ -327,14 +403,6 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V], P: HasZero](val _map: Map[V, 
         result.close()
         result
     }
-
-    /**
-     * (abstract) Method to construct a new VertexMap from the given map.
-     *
-     * @param map a Map (might be TreeMap or HashMap).
-     * @return a new VertexMap[V, X].
-     */
-    def unit[Y >: X <: EdgeLike[V]](map: Map[V, Vertex[V, Y, P]]): VertexMap[V, Y, P]
 
     /**
      * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
@@ -407,6 +475,54 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V], P: HasZero](val _map: Map[V, 
         vertexMap.values foreach (_.reset())
         VertexMap.findAndMarkVertex(vertexMap, Some(v), s"initializeVisits")
     }
+}
+
+/**
+ * Abstract base class to define general VertexMap properties.
+ *
+ * CONSIDER merge into AbstractVertexMap
+ *
+ * @param __map a Map of V -> Vertex[V, X].
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ */
+abstract class BaseVertexMap[V, X <: EdgeLike[V], P: HasZero](val __map: Map[V, Vertex[V, X, P]]) extends AbstractVertexMap[V, X, P](__map) {
+
+    require(_map != null, "BaseVertexMap: _map is null")
+
+    /**
+     * Method to add a vertex of (key) type V to this graph.
+     * The vertex will have degree of zero.
+     *
+     * @param v the (key) attribute of the result.
+     * @return a new AbstractGraph[V, E, X].
+     */
+    def addVertex(v: V): VertexMap[V, X, P] = unit(_map + (v -> (_map.get(v) match {
+        case Some(vv) => vv
+        case None => Vertex.empty(v)
+    })))
+
+    /**
+     * Method to add an edge to this VertexMap.
+     *
+     * @param v the (key) value of the vertex whose adjacency list we are adding to.
+     * @param y the edge to be added to the adjacency list.
+     * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
+     */
+    def addEdge(v: V, y: X): VertexMap[V, X, P] = unit(
+        _map.get(v) match {
+            case Some(vv) => buildMap(_map - v, v, y, vv)
+            case None => buildMap(_map, v, y, Vertex.empty(v))
+        }
+    )
+
+    /**
+     * (abstract) Method to construct a new VertexMap from the given map.
+     *
+     * @param map a Map (might be TreeMap or HashMap).
+     * @return a new VertexMap[V, X].
+     */
+    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P]
 
     /**
      * Build a VertexMap from the given map (m) and the edge y at vertex v.
@@ -416,29 +532,36 @@ abstract class BaseVertexMap[V, +X <: EdgeLike[V], P: HasZero](val _map: Map[V, 
      * @param v  the vertex (key) at which to update the adjacency list.
      * @param y  the edge to be added.
      * @param vv the existing adjacency list for vertex v.
-     * @tparam Y the type of the ege to be added.
      * @return a new Map.
      */
-    def buildMap[Y >: X <: EdgeLike[V]](m: Map[V, Vertex[V, Y, P]], v: V, y: Y, vv: Vertex[V, Y, P]): Map[V, Vertex[V, Y, P]] = m + (v -> (vv addEdge y))
-}
+    def buildMap(m: Map[V, Vertex[V, X, P]], v: V, y: X, vv: Vertex[V, X, P]): Map[V, Vertex[V, X, P]] = m + (v -> (vv addEdge y))
 
-object VertexMap {
     /**
-     * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
-     * and, if not, marks it as discovered then returns it, wrapped in Some.
+     * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
      *
-     * @return Option[V]: the (optional) vertex to run dfs on next.
+     * TESTME
+     *
+     * @param visitor the Visitor[V, J].
+     * @param v       the vertex at which we run depth-first-search.
+     * @tparam J the Journal type of the Visitor.
+     * @return a new Visitor[V, J].
      */
-    private[core] def findAndMarkVertex[V, X <: EdgeLike[V], P: HasZero](vertexMap: Map[V, Vertex[V, X, P]], maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
-        case Some(z) =>
-            val vXvo: Option[Vertex[V, X, P]] = vertexMap.get(z)
-            val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
-            qo match {
-                case Some(q) =>
-                    Some(q) // CONSIDER check that q eq z
-                case None =>
-                    None
-            }
-        case None => throw GraphException(errorMessage)
+    private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] =
+        recurseOnVertex(v, visitor.visitPre(v)).visitPost(v)
+
+    // TESTME
+    private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = optAdjacencyList(v) match {
+        case Some(xa) => xa.xs.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
+        case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
+
+    // TESTME
+    private def recurseOnEdgeX[J, Y >: X <: EdgeLike[V]](v: V, visitor: Visitor[V, J], y: Y) =
+        VertexMap.findAndMarkVertex(vertexMap, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
+            case Some(z) => recursiveDFS(visitor, z)
+            case None => visitor
+        }
+
+    // TESTME
+    private def getVertices[Y >: X <: EdgeLike[V]](v: V, y: Y): Seq[V] = findAndMarkVertex(vertexMap, y.other(v), "getVertices").toSeq
 }

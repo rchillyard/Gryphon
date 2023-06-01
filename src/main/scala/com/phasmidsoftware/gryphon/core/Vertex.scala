@@ -66,7 +66,6 @@ abstract class AbstractVertex[V, X <: EdgeLike[V], P: HasZero] extends Vertex[V,
         visited = false
     }
 
-
     /**
      * Method to yield the current value of this property.
      *

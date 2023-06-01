@@ -19,7 +19,7 @@ import scala.util.Try
 case class OrderedGraphBuilderJava[V: Ordering, E: Ordering, P: HasZero](gb: com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder[V, E, Unit]) {
 
     def createUndirectedEdgeList(u: String): Optional[java.util.List[UndirectedEdge[V, E]]] = {
-        val z: Try[Iterable[UndirectedEdge[V, E]]] = gb.createEdgeList(resource(u))(UndirectedEdgeCase(_, _, _))
+        val z: Try[Iterable[UndirectedEdge[V, E]]] = gb.createEdgeListTriple(resource(u))(UndirectedEdgeCase(_, _, _))
         tryToOption(x => x.printStackTrace(System.err))(z).map(_.toSeq.asJava).asJava
     }
 

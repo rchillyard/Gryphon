@@ -310,6 +310,15 @@ abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, ov
 }
 
 /**
+ * Trait to describe a vertex pair that has no explicit edge connecting them.
+ *
+ * CONSIDER redefining using EdgeLike.
+ *
+ * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
+ */
+trait VertexPair[+V] extends Edge[V, Unit]
+
+/**
  * Class to represent a vertex pair, for example, as a connection in the Union-Find problem.
  *
  * @param v1 a vertex.
@@ -326,7 +335,7 @@ case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
  * @param _v2 the other vertex.
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  */
-abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends Edge[V, Unit] {
+abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends VertexPair[V] {
     /**
      * @return ().
      */

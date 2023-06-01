@@ -12,6 +12,8 @@ import scala.collection.immutable.Queue
  * Most journals are also iterable so that they can be retrieved after DFS is complete.
  * However, it is perfectly possible to have a journal which simply writes to a file (or something similar).
  *
+ * CONSIDER do we need an edge-visitor?
+ *
  * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
  */

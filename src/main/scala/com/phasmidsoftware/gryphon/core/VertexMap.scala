@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.flog.Flog
 import com.phasmidsoftware.gryphon.core.Queueable.QueueableQueue
 import com.phasmidsoftware.gryphon.core.VertexMap.findAndMarkVertex
 import scala.annotation.tailrec
@@ -324,6 +325,10 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[
 
     require(_map != null, "BaseVertexMap: _map is null")
 
+    val flog = Flog[AbstractVertexMap[V, X, P]]
+
+    import flog._
+
     def contains(v: V): Boolean = _map.contains(v)
 
     def size: Int = _map.size
@@ -420,11 +425,13 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[
         case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
 
-    private def recurseOnEdgeX[J, Y >: X <: EdgeLike[V]](v: V, visitor: Visitor[V, J], y: Y) =
-        VertexMap.findAndMarkVertex(vertexMap, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
+    private def recurseOnEdgeX[J, Y >: X <: EdgeLike[V]](v: V, visitor: Visitor[V, J], y: Y) = {
+        s"recurseOnEdgeX: $v, $y" !!
+                VertexMap.findAndMarkVertex(vertexMap, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
             case Some(z) => recursiveDFS(visitor, z)
             case None => visitor
         }
+    }
 
     private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q = optAdjacencyList(v) match {
         case Some(xa) => xa.xs.foldLeft(queue)((q, x) => queueable.appendAll(q, getVertices(v, x)))

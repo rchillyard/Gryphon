@@ -16,8 +16,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
 
     behavior of "DFS"
 
-    // FIXME
-    ignore should "dfsTree" in {
+    it should "dfsTree" in {
         val uy = resource("/dfsu.graph")
         val graphBuilder = new UndirectedGraphBuilder[Int, Unit, Unit]()
         val z: Try[Iterable[VertexPair[Int]]] = graphBuilder.createEdgeListPair(uy)(VertexPairCase.apply)
@@ -27,7 +26,10 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
             case Success(g) =>
                 val helper = new DFSHelper[Int, UndirectedEdge[Int, Unit], Unit]
                 val start: Int = 0
-                helper.dfsTree[VertexPair[Int]](g, start)((w, m) => UndirectedTreeCase[Int, Unit, UndirectedEdge[Int, Unit], Unit](w, m))
+                val treeFunc: (String, VertexMap[Int, UndirectedEdge[Int, Unit], VertexProp]) => Tree[Int, Unit, UndirectedEdge[Int, Unit], VertexProp] =
+                    (w, m) => UndirectedTreeCase[Int, Unit, UndirectedEdge[Int, Unit], VertexProp](w, m)
+                val tree = helper.dfsTree[VertexPair[Int]](g, start)(treeFunc)
+                println(tree)
             case Failure(x) => throw x
         }
 

@@ -24,11 +24,9 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
         val gy: Try[Graph[Int, Unit, VertexPair[Int], Unit]] = graphBuilder.createGraphFromEdges[VertexPair[Int]](graph)(z)
         gy match {
             case Success(g) =>
-                val helper = new DFSHelper[Int, UndirectedEdge[Int, Unit], Unit]
+                val helper = new DFSHelper[Int, VertexPair[Int], DirectedEdge[Int, Unit], Unit]((v, w) => ())
                 val start: Int = 0
-                val treeFunc: (String, VertexMap[Int, UndirectedEdge[Int, Unit], VertexProp]) => Tree[Int, Unit, UndirectedEdge[Int, Unit], VertexProp] =
-                    (w, m) => UndirectedTreeCase[Int, Unit, UndirectedEdge[Int, Unit], VertexProp](w, m)
-                val tree = helper.dfsTree[VertexPair[Int]](g, start)(treeFunc)
+                val tree = helper.dfsTree(g, start)
                 println(tree)
             case Failure(x) => throw x
         }

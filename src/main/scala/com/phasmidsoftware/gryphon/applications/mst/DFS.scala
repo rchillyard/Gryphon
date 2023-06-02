@@ -46,35 +46,37 @@ object VertexProp {
 
     implicit object VertexPropHasZero extends HasZero[VertexProp] {
         def zero: VertexProp = VertexProp(None)
-
-//        def set[X](t: VertexProp, x: X): Unit = {
-//            t.maybeEdge = Some(x)
-//        }
     }
 }
 
-class DFSHelper[V, X <: Edge[V, E], E]() {
+class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, E], E](f: (V, V) => E) {
 
     /**
      * Method to yield the DFS tree for given <code>graph</code> starting at the given vertex <code>v</code>.
      *
      * @param g the graph to be traversed (Graph[V, E, Y, Unit]).
      * @param v the starting vertex (V).
-     * @param f a function of type (String,VertexMap[V,X,Unit]) => Tree[V,E,X,Unit] which will form a tree from a String and a VertexMap.
-     * @tparam Y the edge type of the given graph.
      * @return a TreeDFS[V, E, X].
      */
-    def dfsTree[Y <: Edge[V, E]](g: Graph[V, E, Y, Unit], v: V)(f: (String, VertexMap[V, X, VertexProp]) => Tree[V, E, X, VertexProp]): TreeDFS[V, E, X, VertexProp] = {
+    def dfsTree(g: Graph[V, Unit, Xin, Unit], v: V): TreeDFS[V, E, Xout, VertexProp] = {
         implicit val vj: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
-        //        implicit val vj: IterableJournalStack[V] = new IterableJournalStack[V] {}
-//        val visitor: Visitor[V, List[V]] = Visitor.preAndPost[V]
-val visitor: Visitor[V, Queue[V]] = Visitor.createPostQueue[V]
+        val visitor: Visitor[V, Queue[V]] = Visitor.createPostQueue[V]
         val z: Visitor[V, Queue[V]] = g.dfs(visitor)(v)
-        val i: Iterator[V] = z.journal.iterator
-        i foreach println
-        val map: HashMap[V, Vertex[V, X, VertexProp]] = HashMap()
-        val mv: UnorderedVertexMap[V, X, VertexProp] = UnorderedVertexMapCase[V, X, VertexProp](map)
-        val t: Tree[V, E, X, VertexProp] = f("DFS Tree", mv)
-        TreeDFS[V, E, X, VertexProp](t)
+        val map: HashMap[V, Vertex[V, Xout, VertexProp]] = HashMap()
+        val mv: UnorderedVertexMap[V, Xout, VertexProp] = UnorderedVertexMapCase[V, Xout, VertexProp](map)
+        val t: Tree[V, E, Xout, VertexProp] = treeGenerator("DFS Tree", mv)
+        // TODO why are we getting nothing from the iterator on the journal?
+        val es: Iterator[DirectedEdgeCase[V, E]] = for {
+            v <- z.journal.iterator
+            vv <- mv.asInstanceOf[AbstractVertexMap[V, Xout, VertexProp]].vertexMap.get(v).toSeq
+            p = vv.getProperty
+            z <- p.maybeEdge.toSeq
+            x = z.asInstanceOf[Xout]
+            _ = t.addEdge(x)
+        } yield DirectedEdgeCase[V, E](v, v, f(v, v))
+
+        TreeDFS[V, E, Xout, VertexProp](t)
     }
+
+    def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, VertexProp]): Tree[V, E, Xout, VertexProp] = DirectedTreeCase[V, E, Xout, VertexProp](label, vertexMap)
 }

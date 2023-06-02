@@ -24,6 +24,7 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
  *
  * @tparam V the (key) vertex-type of a graph.
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
 trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] {
     self =>
@@ -118,10 +119,11 @@ object VertexMap {
      *
      * @return Option[V]: the (optional) vertex to run dfs on next.
      */
-    private[core] def findAndMarkVertex[V, X <: EdgeLike[V], P: HasZero](vertexMap: Map[V, Vertex[V, X, P]], maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
+    private[core] def findAndMarkVertex[V, X <: EdgeLike[V], P: HasZero](vertexMap: Map[V, Vertex[V, X, P]], p: P, maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
         case Some(z) =>
-            val vXvo: Option[Vertex[V, X, P]] = vertexMap.get(z)
-            val qo: Option[V] = vXvo filterNot (_.discovered) map (_.attribute)
+            val xXvo: Option[Vertex[V, X, P]] = vertexMap.get(z) filterNot (_.discovered)
+            xXvo foreach (vertex => vertex.setProperty(p))
+            val qo: Option[V] = xXvo map (_.attribute)
             qo match {
                 case Some(q) =>
                     Some(q) // CONSIDER check that q eq z
@@ -132,6 +134,13 @@ object VertexMap {
     }
 }
 
+/**
+ * Trait to define the behavior of an OrderedVertexMap.
+ *
+ * @tparam V the (key) vertex-type of a graph.
+ * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ */
 trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
 
     /**
@@ -159,6 +168,8 @@ trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
  * @tparam V the (key) vertex-attribute type.
  *           Requires implicit evidence of type Ordering[V].
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ *           Requires implicit evidence of type HasZero[P].
  */
 case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V], P: HasZero](map: TreeMap[V, Vertex[V, X, P]]) extends BaseVertexMap(map) with OrderedVertexMap[V, X, P] {
 
@@ -178,6 +189,17 @@ case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V], P: HasZero](map: 
  * Companion object to OrderedVertexMapCase.
  */
 object OrderedVertexMap {
+    /**
+     * Method to create an OrderedVertexMap with exactly one vertex in it.
+     *
+     * @param v the V object to insert into an empty OrderedVertexMap.
+     * @tparam V the (key) vertex-attribute type.
+     *           Requires implicit evidence of type Ordering[V].
+     * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     *           Requires implicit evidence of type HasZero[P].
+     * @return a new OrderedVertexMap[V,X,P] with exactly one vertex (V) in it: the given value v.
+     */
     def apply[V: Ordering, X <: EdgeLike[V], P: HasZero](v: V): VertexMap[V, X, P] = empty[V, X, P].addVertex(v)
 
     /**
@@ -186,6 +208,8 @@ object OrderedVertexMap {
      * @tparam V the (key) vertex-attribute type.
      *           Requires implicit evidence of type Ordering[V].
      * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     *           Requires implicit evidence of type HasZero[P].
      * @return an empty OrderedVertexMapCase[V, X].
      */
     def empty[V: Ordering, X <: EdgeLike[V], P: HasZero]: OrderedVertexMap[V, X, P] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X, P]])
@@ -200,6 +224,8 @@ trait UnorderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P]
  * @param map a HashMap of V -> Vertex[V, X].
  * @tparam V the (key) vertex-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ *           Requires implicit evidence of type HasZero[P].
  */
 case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P: HasZero](map: HashMap[V, Vertex[V, X, P]]) extends BaseVertexMap[V, X, P](map) with UnorderedVertexMap[V, X, P] {
 
@@ -216,6 +242,16 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P: HasZero](map: HashMap[
  * Companion object to UnorderedVertexMapCase.
  */
 object UnorderedVertexMap {
+    /**
+     * Method to create an UnorderedVertexMap with exactly one vertex in it.
+     *
+     * @param v the V object to insert into an empty UnorderedVertexMap.
+     * @tparam V the (key) vertex-attribute type.
+     * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     *           Requires implicit evidence of type HasZero[P].
+     * @return a new OrderedVertexMap[V,X,P] with exactly one vertex (V) in it: the given value v.
+     */
     def apply[V, X <: EdgeLike[V], P: HasZero](v: V): VertexMap[V, X, P] = empty[V, X, P].addVertex(v)
 
     /**
@@ -223,6 +259,8 @@ object UnorderedVertexMap {
      *
      * @tparam V the (key) vertex-attribute type.
      * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     *           Requires implicit evidence of type HasZero[P].
      * @return an empty UnorderedVertexMapCase[V, X].
      */
     def empty[V, X <: EdgeLike[V], P: HasZero]: UnorderedVertexMap[V, X, P] = UnorderedVertexMapCase(HashMap.empty[V, Vertex[V, X, P]])
@@ -245,6 +283,7 @@ trait PairVertexMap[V, P] extends VertexMap[V, VertexPair[V], P]
  * @param map a HashMap of V -> Vertex[V, X].
  * @tparam V the (key) vertex-attribute type.
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ *           Requires implicit evidence of type HasZero[P].
  */
 case class PairVertexMapCase[V, P: HasZero](map: HashMap[V, Vertex[V, VertexPair[V], P]]) extends AbstractVertexMap[V, VertexPair[V], P](map) with PairVertexMap[V, P] {
 
@@ -287,7 +326,6 @@ case class PairVertexMapCase[V, P: HasZero](map: HashMap[V, Vertex[V, VertexPair
      */
     def buildMap[Y >: VertexPair[V] <: EdgeLike[V]](m: Map[V, Vertex[V, Y, P]], v: V, y: Y, vv: Vertex[V, Y, P]): Map[V, Vertex[V, Y, P]] = m + (v -> (vv addEdge y))
 
-
     /**
      * Method to construct a new UnorderedVertexMapCase from the given map.
      *
@@ -295,13 +333,21 @@ case class PairVertexMapCase[V, P: HasZero](map: HashMap[V, Vertex[V, VertexPair
      * @return a new UnorderedVertexMapCase[V, X].
      */
     def unit(map: Map[V, Vertex[V, VertexPair[V], P]]): VertexMap[V, VertexPair[V], P] = PairVertexMapCase[V, P](map.to(HashMap))
-
 }
 
 /**
  * Companion object to UnorderedVertexMapCase.
  */
 object PairVertexMap {
+    /**
+     * Method to create an PairVertexMap with exactly one vertex in it.
+     *
+     * @param v the V object to insert into an empty PairVertexMap.
+     * @tparam V the (key) vertex-attribute type.
+     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     *           Requires implicit evidence of type HasZero[P].
+     * @return a new PairVertexMap[V,P] with exactly one vertex (V) in it: the given value v.
+     */
     def apply[V, P: HasZero](v: V): VertexMap[V, VertexPair[V], P] = empty[V, P].addVertex(v)
 
     /**
@@ -309,6 +355,7 @@ object PairVertexMap {
      *
      * @tparam V the (key) vertex-attribute type.
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+     *           Requires implicit evidence of type HasZero[P].
      * @return an empty UnorderedVertexMapCase[V, X].
      */
     def empty[V, P: HasZero]: PairVertexMap[V, P] = PairVertexMapCase(HashMap.empty[V, Vertex[V, VertexPair[V], P]])
@@ -319,6 +366,8 @@ object PairVertexMap {
  *
  * @param _map a Map of V -> Vertex[V, X].
  * @tparam V the (key) vertex-attribute type.
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ *           Requires implicit evidence of type HasZero[P].
  * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
  */
 abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[V, Vertex[V, X, P]]) extends VertexMap[V, X, P] {
@@ -425,9 +474,9 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[
         case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
 
-    private def recurseOnEdgeX[J, Y >: X <: EdgeLike[V]](v: V, visitor: Visitor[V, J], y: Y) = {
+    private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X) = {
         s"recurseOnEdgeX: $v, $y" !!
-                VertexMap.findAndMarkVertex(vertexMap, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
+                VertexMap.findAndMarkVertex(vertexMap, Some(y).asInstanceOf[P], y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
             case Some(z) => recursiveDFS(visitor, z)
             case None => visitor
         }
@@ -438,7 +487,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[
         case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
     }
 
-    private def getVertices[Y >: X <: EdgeLike[V]](v: V, y: Y): Seq[V] = findAndMarkVertex(vertexMap, y.other(v), "getVertices").toSeq
+    private def getVertices(v: V, y: X): Seq[V] = findAndMarkVertex(vertexMap, Some(y).asInstanceOf[P], y.other(v), "getVertices").toSeq
 
     private def doBFSImmutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
         @tailrec
@@ -480,7 +529,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P: HasZero](val _map: Map[
 
     private def initializeVisits[J](v: V): Unit = {
         vertexMap.values foreach (_.reset())
-        VertexMap.findAndMarkVertex(vertexMap, Some(v), s"initializeVisits")
+        VertexMap.findAndMarkVertex(vertexMap, None.asInstanceOf[P], Some(v), s"initializeVisits")
     }
 }
 
@@ -563,12 +612,12 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V], P: HasZero](val __map: Map[V, 
     }
 
     // TESTME
-    private def recurseOnEdgeX[J, Y >: X <: EdgeLike[V]](v: V, visitor: Visitor[V, J], y: Y) =
-        VertexMap.findAndMarkVertex(vertexMap, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
+    private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X) =
+        VertexMap.findAndMarkVertex(vertexMap, Some(y).asInstanceOf[P], y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
             case Some(z) => recursiveDFS(visitor, z)
             case None => visitor
         }
 
     // TESTME
-    private def getVertices[Y >: X <: EdgeLike[V]](v: V, y: Y): Seq[V] = findAndMarkVertex(vertexMap, y.other(v), "getVertices").toSeq
+    private def getVertices(v: V, y: X): Seq[V] = findAndMarkVertex(vertexMap, Some(y).asInstanceOf[P], y.other(v), "getVertices").toSeq
 }

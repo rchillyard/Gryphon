@@ -53,7 +53,7 @@ trait DirectedTree[V, E, X <: DirectedEdge[V, E], P] extends Tree[V, E, X, P]
  * @tparam E the edge-attribute type.
  *
  */
-case class UndirectedTreeCase[V, E, X <: UndirectedEdge[V, E], P: HasZero](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractUndirectedGraph[V, E, X, P](description, vertexMap) with UndirectedTree[V, E, X, P] {
+case class UndirectedTreeCase[V, E, X <: UndirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractUndirectedGraph[V, E, X, P](description, vertexMap) with UndirectedTree[V, E, X, P] {
 
     /**
      * Method to createUndirectedOrderedGraph a new AbstractGraph from a given vertex map.
@@ -76,7 +76,7 @@ case class UndirectedTreeCase[V, E, X <: UndirectedEdge[V, E], P: HasZero](descr
  * @tparam E the edge-attribute type.
  *
  */
-case class DirectedTreeCase[V, E, X <: DirectedEdge[V, E], P: HasZero](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with Tree[V, E, X, P] {
+case class DirectedTreeCase[V, E, X <: DirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with Tree[V, E, X, P] {
 
     /**
      * Method to createUndirectedOrderedGraph a new AbstractGraph from a given vertex map.

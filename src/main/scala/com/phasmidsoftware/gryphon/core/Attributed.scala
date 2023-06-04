@@ -20,12 +20,12 @@ trait Property[P] {
      *
      * @return
      */
-    def getProperty: P
+    def getProperty: Option[P]
 
     /**
      * Mutating method to set the property.
      *
      * @param p the new value of the property.
      */
-    def setProperty(p: P): Unit
+    def setProperty(p: Option[P]): Unit
 }

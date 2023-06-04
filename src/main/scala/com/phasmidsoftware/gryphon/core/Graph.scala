@@ -146,10 +146,9 @@ trait VertexPairGraph[V, P] extends Graph[V, Unit, VertexPair[V], P]
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  *
  */
-abstract class AbstractGraph[V, E, X <: Edge[V, E], P: HasZero](val __description: String, val __vertexMap: VertexMap[V, X, P]) extends Graph[V, E, X, P] {
+abstract class AbstractGraph[V, E, X <: Edge[V, E], P](val __description: String, val __vertexMap: VertexMap[V, X, P]) extends Graph[V, E, X, P] {
 
     /**
      * Yields the description of this Graph.
@@ -191,10 +190,9 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E], P: HasZero](val __descriptio
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  *
  */
-abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P: HasZero](val _description: String, val _vertexMap: VertexMap[V, X, P]) extends AbstractGraph[V, E, X, P](_description, _vertexMap) with DirectedGraph[V, E, X, P] {
+abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P](val _description: String, val _vertexMap: VertexMap[V, X, P]) extends AbstractGraph[V, E, X, P](_description, _vertexMap) with DirectedGraph[V, E, X, P] {
     /**
      * Method to yield all edges of this AbstractDirectedGraph.
      *
@@ -232,9 +230,8 @@ abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P: HasZero](
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  */
-abstract class AbstractUndirectedGraph[V, E, X <: UndirectedEdge[V, E], P: HasZero](val _description: String, val _vertexMap: VertexMap[V, X, P]) extends AbstractGraph[V, E, X, P](_description, _vertexMap) with UndirectedGraph[V, E, X, P] {
+abstract class AbstractUndirectedGraph[V, E, X <: UndirectedEdge[V, E], P](val _description: String, val _vertexMap: VertexMap[V, X, P]) extends AbstractGraph[V, E, X, P](_description, _vertexMap) with UndirectedGraph[V, E, X, P] {
     /**
      * Method to yield all edges of this AbstractUndirectedGraph.
      *
@@ -262,9 +259,8 @@ abstract class AbstractUndirectedGraph[V, E, X <: UndirectedEdge[V, E], P: HasZe
  *
  * @tparam V the (key) vertex-attribute type.
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  */
-abstract class AbstractVertexPairGraph[V, P: HasZero](val _description: String, val _vertexMap: VertexMap[V, VertexPair[V], P]) extends AbstractGraph[V, Unit, VertexPair[V], P](_description, _vertexMap) with VertexPairGraph[V, P] {
+abstract class AbstractVertexPairGraph[V, P](val _description: String, val _vertexMap: VertexMap[V, VertexPair[V], P]) extends AbstractGraph[V, Unit, VertexPair[V], P](_description, _vertexMap) with VertexPairGraph[V, P] {
     /**
      * Method to yield all edges of this AbstractUndirectedGraph.
      *
@@ -293,9 +289,8 @@ abstract class AbstractVertexPairGraph[V, P: HasZero](val _description: String, 
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of DirectedEdge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  */
-case class DirectedGraphCase[V, E, X <: DirectedEdge[V, E], P: HasZero](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with DirectedGraph[V, E, X, P] {
+case class DirectedGraphCase[V, E, X <: DirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with DirectedGraph[V, E, X, P] {
 
     /**
      * Method to create a new DirectedGraphCase from a given vertex map.
@@ -314,9 +309,8 @@ case class DirectedGraphCase[V, E, X <: DirectedEdge[V, E], P: HasZero](descript
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of UndirectedEdge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  */
-case class UndirectedGraphCase[V, E, X <: UndirectedEdge[V, E], P: HasZero](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractUndirectedGraph[V, E, X, P](description, vertexMap) with UndirectedGraph[V, E, X, P] {
+case class UndirectedGraphCase[V, E, X <: UndirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractUndirectedGraph[V, E, X, P](description, vertexMap) with UndirectedGraph[V, E, X, P] {
 
     /**
      * Method to create a new UndirectedGraphCase from a given vertex map.
@@ -333,9 +327,8 @@ case class UndirectedGraphCase[V, E, X <: UndirectedEdge[V, E], P: HasZero](desc
  * @param vertexMap its vertex map, i.e. the map of adjacency lists.
  * @tparam V the (key) vertex-attribute type.
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
- *           Requires implicit evidence of HasZero[P].
  */
-case class VertexPairGraphCase[V, P: HasZero](description: String, vertexMap: VertexMap[V, VertexPair[V], P]) extends AbstractVertexPairGraph[V, P](description, vertexMap) with VertexPairGraph[V, P] {
+case class VertexPairGraphCase[V, P](description: String, vertexMap: VertexMap[V, VertexPair[V], P]) extends AbstractVertexPairGraph[V, P](description, vertexMap) with VertexPairGraph[V, P] {
 
     /**
      * Method to create a new UndirectedGraphCase from a given vertex map.
@@ -357,10 +350,9 @@ object DirectedGraph {
      * @tparam E the edge-attribute type.
      * @tparam X the type of edge which connects two vertices. A sub-type of DirectedEdge[V,E].
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     *           Requires implicit evidence of HasZero[P].
      * @return an empty DirectedGraphCase[V, E].
      */
-    def apply[V, E, X <: DirectedEdge[V, E], P: HasZero](description: String): DirectedGraph[V, E, X, P] = new DirectedGraphCase[V, E, X, P](description, UnorderedVertexMap.empty[V, X, P])
+    def apply[V, E, X <: DirectedEdge[V, E], P](description: String): DirectedGraph[V, E, X, P] = new DirectedGraphCase[V, E, X, P](description, UnorderedVertexMap.empty[V, X, P])
 
     /**
      * Method to construct a new empty directed graph with orderable vertex-type.
@@ -371,10 +363,9 @@ object DirectedGraph {
      *           Requires implicit evidence of Ordering[V].
      * @tparam E the edge-attribute type.
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     *           Requires implicit evidence of HasZero[P].
      * @return an empty UndirectedGraphCase[V, E].
      */
-    def createOrdered[V: Ordering, E, P: HasZero](description: String): DirectedGraph[V, E, DirectedEdge[V, E], P] = DirectedGraphCase(description, OrderedVertexMap.empty[V, DirectedEdge[V, E], P])
+    def createOrdered[V: Ordering, E, P](description: String): DirectedGraph[V, E, DirectedEdge[V, E], P] = DirectedGraphCase(description, OrderedVertexMap.empty[V, DirectedEdge[V, E], P])
 }
 
 /**
@@ -390,7 +381,7 @@ object UndirectedGraph {
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraphCase[V, E].
      */
-    def apply[V, E, P: HasZero](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, UnorderedVertexMap.empty)
+    def apply[V, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, UnorderedVertexMap.empty)
 
     /**
      * Method to construct a new empty undirected graph with orderable vertex-type.
@@ -399,10 +390,9 @@ object UndirectedGraph {
      *           Requires implicit evidence of Ordering[V].
      * @tparam E the edge-attribute type.
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     *           Requires implicit evidence of HasZero[P].
      * @return an empty UndirectedGraphCase[V, E].
      */
-    def createOrdered[V: Ordering, E, P: HasZero](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
+    def createOrdered[V: Ordering, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
 }
 
 /**
@@ -415,10 +405,9 @@ object VertexPairGraph {
      *
      * @tparam V the (key) vertex-attribute type.
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     *           Requires implicit evidence of HasZero[P].
      * @return an empty UndirectedGraphCase[V, E].
      */
-    def apply[V, P: HasZero](description: String): VertexPairGraph[V, P] = VertexPairGraphCase(description, UnorderedVertexMap.empty)
+    def apply[V, P](description: String): VertexPairGraph[V, P] = VertexPairGraphCase(description, UnorderedVertexMap.empty)
 
     /**
      * Method to construct a new empty undirected graph with orderable vertex-type.
@@ -427,10 +416,9 @@ object VertexPairGraph {
      *           Requires implicit evidence of Ordering[V].
      * @tparam E the edge-attribute type.
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     *           Requires implicit evidence of HasZero[P].
      * @return an empty UndirectedGraphCase[V, E].
      */
-    def createOrdered[V: Ordering, E, P: HasZero](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
+    def createOrdered[V: Ordering, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
 }
 
 

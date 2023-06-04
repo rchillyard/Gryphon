@@ -67,7 +67,7 @@ object GraphBuilder {
  * Utility class to help create graphs from edge lists, etc.
  * The edges of this class support Ordering.
  */
-case class UndirectedGraphBuilder[V: Ordering : Parseable, E: Parseable, P: HasZero]() extends GraphBuilder[V, E] {
+case class UndirectedGraphBuilder[V: Ordering : Parseable, E: Parseable, P]() extends GraphBuilder[V, E] {
 
     def createGraphFromEdges[X <: Edge[V, E]](graph: Graph[V, E, X, P])(esy: Try[Iterable[X]]): Try[Graph[V, E, X, P]] =
         esy map {

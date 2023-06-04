@@ -24,7 +24,6 @@ public class UndirectedGraphBuilderTest {
                 gb.createUndirectedEdgeList("/prim.graph");
         assertTrue(maybeEdges.isPresent());
         System.out.println(maybeEdges);
-//        UndirectedGraph<String, String, UndirectedEdge<String, String>, BoxedUnit> graph = UndirectedGraph$.MODULE$.apply("no title", HasZero.HasZeroUnit$.MODULE$);
         Optional<Graph<String, String, UndirectedEdge<String, String>, BoxedUnit>> maybeGraph =
                 gb.createGraphFromUndirectedEdgeList(maybeEdges);
         assertTrue(maybeGraph.isPresent());

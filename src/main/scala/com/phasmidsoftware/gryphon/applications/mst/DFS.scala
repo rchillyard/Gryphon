@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core._
-import scala.collection.immutable.{HashMap, Queue}
+import scala.collection.immutable.Queue
 
 /**
  * Trait to model the behavior of a minimum spanning tree.
@@ -37,19 +37,10 @@ abstract class BaseDFS[V, E, X <: Edge[V, E], P](_tree: Tree[V, E, X, P]) extend
     def isBipartite: Boolean = _tree.isBipartite
 }
 
-case class TreeDFS[V, E, X <: Edge[V, E], P: HasZero](tree: Tree[V, E, X, P]) extends BaseDFS[V, E, X, P](tree)
+case class TreeDFS[V, E, X <: Edge[V, E], P](tree: Tree[V, E, X, P]) extends BaseDFS[V, E, X, P](tree)
 
+class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
 
-case class VertexProp(var maybeEdge: Option[Any])
-
-object VertexProp {
-
-    implicit object VertexPropHasZero extends HasZero[VertexProp] {
-        def zero: VertexProp = VertexProp(None)
-    }
-}
-
-class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, E], E](f: (V, V) => E) {
 
     /**
      * Method to yield the DFS tree for given <code>graph</code> starting at the given vertex <code>v</code>.
@@ -58,25 +49,41 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, E], E](f: (V, V
      * @param v the starting vertex (V).
      * @return a TreeDFS[V, E, X].
      */
-    def dfsTree(g: Graph[V, Unit, Xin, Unit], v: V): TreeDFS[V, E, Xout, VertexProp] = {
+    def dfsTree(g: Graph[V, Unit, Xin, Xin], v: V): TreeDFS[V, Unit, Xout, Unit] = {
         implicit val vj: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
         val visitor: Visitor[V, Queue[V]] = Visitor.createPostQueue[V]
         val z: Visitor[V, Queue[V]] = g.dfs(visitor)(v)
-        val map: HashMap[V, Vertex[V, Xout, VertexProp]] = HashMap()
-        val mv: UnorderedVertexMap[V, Xout, VertexProp] = UnorderedVertexMapCase[V, Xout, VertexProp](map)
-        val t: Tree[V, E, Xout, VertexProp] = treeGenerator("DFS Tree", mv)
-        // TODO why are we getting nothing from the iterator on the journal?
-        val es: Iterator[DirectedEdgeCase[V, E]] = for {
-            v <- z.journal.iterator
-            vv <- mv.asInstanceOf[AbstractVertexMap[V, Xout, VertexProp]].vertexMap.get(v).toSeq
-            p = vv.getProperty
-            z <- p.maybeEdge.toSeq
-            x = z.asInstanceOf[Xout]
-            _ = t.addEdge(x)
-        } yield DirectedEdgeCase[V, E](v, v, f(v, v))
+        val mv1: VertexMap[V, Xin, Xin] = g.vertexMap
+        val mv2: VertexMap[V, Xout, Unit] =
+            g.vertices.foldLeft[VertexMap[V, Xout, Unit]](UnorderedVertexMap.empty[V, Xout, Unit]) {
+                (mv, v) => constructVertexMapFromOriginal(mv1, mv, v)
+            }
+        val t: Tree[V, Unit, Xout, Unit] = treeGenerator("DFS Tree", mv2)
+        // TODO what do we do with qq?
+        val qq: Iterator[Option[Xin]] = z.journal.iterator map {
+            v =>
+                for {
+                    q <- mv1.asInstanceOf[AbstractVertexMap[V, Xin, Xin]].vertexMap.get(v)
+                    property = q.getProperty
+                    x <- property
+                } yield x
+        }
 
-        TreeDFS[V, E, Xout, VertexProp](t)
+        TreeDFS[V, Unit, Xout, Unit](t)
     }
 
-    def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, VertexProp]): Tree[V, E, Xout, VertexProp] = DirectedTreeCase[V, E, Xout, VertexProp](label, vertexMap)
+    private def constructVertexMapFromOriginal(original: VertexMap[V, Xin, Xin], vertexMap: VertexMap[V, Xout, Unit], v: V) = {
+        val ao: Option[Vertex[V, Xin, Xin]] = original.get(v)
+        val bo: Option[Xin] = ao.flatMap {
+            vertex => vertex.getProperty
+        }
+        val maybeProperty: Option[Xin] = bo
+        val result: VertexMap[V, Xout, Unit] = vertexMap.addVertex(v)
+        val co: Option[Vertex[V, Xout, Unit]] = result.get(v)
+        // TODO this is where we actually construct an edge of type Xout
+//        co.foreach(_.setProperty(maybeProperty))
+        result
+    }
+
+    private def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, Unit]): Tree[V, Unit, Xout, Unit] = DirectedTreeCase[V, Unit, Xout, Unit](label, vertexMap)
 }

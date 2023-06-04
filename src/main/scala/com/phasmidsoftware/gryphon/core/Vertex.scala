@@ -51,10 +51,12 @@ trait VertexLike[+V] extends Attributed[V]
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
  */
-abstract class AbstractVertex[V, X <: EdgeLike[V], P: HasZero] extends Vertex[V, X, P] {
+abstract class AbstractVertex[V, X <: EdgeLike[V], P] extends Vertex[V, X, P] {
 
     private var visited: Boolean = false
-    private var property: P = implicitly[HasZero[P]].zero
+    private var property: Option[P] = None
+
+    override def toString: String = s"visited: $visited, property: $property"
 
     def discovered: Boolean = {
         val result = visited
@@ -71,14 +73,14 @@ abstract class AbstractVertex[V, X <: EdgeLike[V], P: HasZero] extends Vertex[V,
      *
      * @return property.
      */
-    def getProperty: P = property
+    def getProperty: Option[P] = property
 
     /**
      * Mutating method to set the property.
      *
      * @param p the new value of the property.
      */
-    def setProperty(p: P): Unit = {
+    def setProperty(p: Option[P]): Unit = {
         property = p
     }
 
@@ -110,7 +112,7 @@ abstract class AbstractVertex[V, X <: EdgeLike[V], P: HasZero] extends Vertex[V,
  * @tparam V the key (attribute) type of this Vertex.
  * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
  */
-case class VertexCase[V, X <: EdgeLike[V], P: HasZero](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X, P] {
+case class VertexCase[V, X <: EdgeLike[V], P](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X, P] {
 
     /**
      * Method to construct a new ConcreteVersion based on the types V and X.
@@ -121,6 +123,8 @@ case class VertexCase[V, X <: EdgeLike[V], P: HasZero](attribute: V, adjacent: A
      * @return a new VertexCase[W, Y].
      */
     def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y, P] = VertexCase(attribute, adjacent)
+
+    override def toString: String = s"VertexCase($attribute, $adjacent, ${super.toString}"
 }
 
 /**
@@ -135,5 +139,5 @@ object Vertex {
      * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
      * @return an empty VertexCase[V, X].
      */
-    def empty[V, X <: EdgeLike[V], P: HasZero](a: V): Vertex[V, X, P] = VertexCase(a, AdjacencyList.empty)
+    def empty[V, X <: EdgeLike[V], P](a: V): Vertex[V, X, P] = VertexCase(a, AdjacencyList.empty)
 }

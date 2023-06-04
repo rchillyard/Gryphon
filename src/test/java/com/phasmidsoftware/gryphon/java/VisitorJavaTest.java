@@ -7,6 +7,7 @@ package com.phasmidsoftware.gryphon.java;
 import com.phasmidsoftware.gryphon.core.Graph;
 import com.phasmidsoftware.gryphon.core.UndirectedEdge;
 import org.junit.Test;
+import scala.Tuple2;
 import scala.runtime.BoxedUnit;
 
 import java.util.Collection;
@@ -47,10 +48,10 @@ public class VisitorJavaTest {
                 gb.createUndirectedEdgeList("/prim.graph");
         assertTrue(maybeEdges.isPresent());
         UndirectedEdge<String, String> edge = maybeEdges.get().get(0);
-        Optional<Graph<String, String, UndirectedEdge<String, String>, BoxedUnit>> maybeGraph =
+        Optional<Graph<String, String, UndirectedEdge<String, String>, Tuple2<String, String>>> maybeGraph =
                 gb.createGraphFromUndirectedEdgeList(maybeEdges);
         assertTrue(maybeGraph.isPresent());
-        Graph<String, String, UndirectedEdge<String, String>, BoxedUnit> graph = maybeGraph.get();
+        Graph<String, String, UndirectedEdge<String, String>, Tuple2<String, String>> graph = maybeGraph.get();
         Collection<String> strings = visitor.dfs(graph, edge.vertex());
         assertEquals(8, strings.size());
         System.out.println(strings);

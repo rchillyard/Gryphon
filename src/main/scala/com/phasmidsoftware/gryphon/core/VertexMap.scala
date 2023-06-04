@@ -241,7 +241,7 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P](map: HashMap[V, Vertex
     def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P] = UnorderedVertexMapCase[V, X, P](map.to(HashMap))
 
     def deriveProperty(v: V, x: X): Option[P] = Some(x match {
-        case z: P => z // TESTME
+        case z: P => z // TESTME and NOTE that P is unchecked.
         case _ => throw GraphException(s"types P and X are not the same")
     })
 }
@@ -342,7 +342,7 @@ case class PairVertexMapCase[V, P](map: HashMap[V, Vertex[V, VertexPair[V], P]])
     def unit(map: Map[V, Vertex[V, VertexPair[V], P]]): VertexMap[V, VertexPair[V], P] = PairVertexMapCase[V, P](map.to(HashMap))
 
     def deriveProperty(v: V, x: VertexPair[V]): Option[P] = Some(x match {
-        case z: P => z // TESTME
+        case z: P => z // TESTME and NOTE that P is unchecked.
         case _ => throw GraphException(s"types P and X are not the same")
     })
 }
@@ -504,7 +504,6 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
     private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X) = {
         s"recurseOnEdgeX: $v, $y" !!
-                // TODO set property to Some(y)
                 VertexMap.findAndMarkVertex(vertexMap, { w: Vertex[V, X, P] => w.setProperty(deriveProperty(v, y)) }, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
             case Some(z) => recursiveDFS(visitor, z)
             case None => visitor

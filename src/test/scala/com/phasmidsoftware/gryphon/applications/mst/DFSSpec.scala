@@ -26,8 +26,9 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
             case Success(g) =>
                 val helper = new DFSHelper[Int, VertexPair[Int], DirectedEdge[Int, Unit]]
                 val start: Int = 0
-                val tree = helper.dfsTree(g, start)
-                println(tree)
+                val treeDFS: TreeDFS[Int, Unit, DirectedEdge[Int, Unit], Unit] = helper.dfsTree(g, start)(pair => DirectedEdgeCase(pair.vertices._1, pair.vertices._2, ()))
+                treeDFS.tree.edges.size shouldBe 6
+                treeDFS.tree.edges foreach println
             case Failure(x) => throw x
         }
 

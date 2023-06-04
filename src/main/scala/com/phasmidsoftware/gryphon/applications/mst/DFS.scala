@@ -49,35 +49,39 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
      * @param v the starting vertex (V).
      * @return a TreeDFS[V, E, X].
      */
-    def dfsTree(g: Graph[V, Unit, Xin, Xin], v: V): TreeDFS[V, Unit, Xout, Unit] = {
+    def dfsTree(g: Graph[V, Unit, Xin, VertexPair[V]], v: V)(createEdge: VertexPair[V] => Xout): TreeDFS[V, Unit, Xout, Unit] = {
         implicit val vj: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
         val visitor: Visitor[V, Queue[V]] = Visitor.createPostQueue[V]
         val z: Visitor[V, Queue[V]] = g.dfs(visitor)(v)
-        val mv1: VertexMap[V, Xin, Xin] = g.vertexMap
+        val mv1: VertexMap[V, Xin, VertexPair[V]] = g.vertexMap
         val mv2: VertexMap[V, Xout, Unit] =
             g.vertices.foldLeft[VertexMap[V, Xout, Unit]](UnorderedVertexMap.empty[V, Xout, Unit]) {
                 (mv, v) => constructVertexMapFromOriginal(mv1, mv, v)
             }
         val t: Tree[V, Unit, Xout, Unit] = treeGenerator("DFS Tree", mv2)
         // TODO what do we do with qq?
-        val qq: Iterator[Option[Xin]] = z.journal.iterator map {
+        val xos: Iterator[Option[VertexPair[V]]] = z.journal.iterator map {
             v =>
                 for {
-                    q <- mv1.asInstanceOf[AbstractVertexMap[V, Xin, Xin]].vertexMap.get(v)
+                    q <- mv1.asInstanceOf[AbstractVertexMap[V, Xin, VertexPair[V]]].vertexMap.get(v)
                     property = q.getProperty
                     x <- property
                 } yield x
         }
 
-        TreeDFS[V, Unit, Xout, Unit](t)
+        val result = xos.flatten.foldLeft(t) {
+            case (u, pair) => u.addEdge(createEdge(pair)).asInstanceOf[Tree[V, Unit, Xout, Unit]]
+        }
+
+        TreeDFS[V, Unit, Xout, Unit](result)
     }
 
-    private def constructVertexMapFromOriginal(original: VertexMap[V, Xin, Xin], vertexMap: VertexMap[V, Xout, Unit], v: V) = {
-        val ao: Option[Vertex[V, Xin, Xin]] = original.get(v)
-        val bo: Option[Xin] = ao.flatMap {
+    private def constructVertexMapFromOriginal(original: VertexMap[V, Xin, VertexPair[V]], vertexMap: VertexMap[V, Xout, Unit], v: V) = {
+        val ao: Option[Vertex[V, Xin, VertexPair[V]]] = original.get(v)
+        val bo: Option[VertexPair[V]] = ao.flatMap {
             vertex => vertex.getProperty
         }
-        val maybeProperty: Option[Xin] = bo
+        val maybeProperty: Option[VertexPair[V]] = bo
         val result: VertexMap[V, Xout, Unit] = vertexMap.addVertex(v)
         val co: Option[Vertex[V, Xout, Unit]] = result.get(v)
         // TODO this is where we actually construct an edge of type Xout

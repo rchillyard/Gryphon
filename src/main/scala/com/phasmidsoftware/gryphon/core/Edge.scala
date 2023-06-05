@@ -316,7 +316,11 @@ abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, ov
  *
  * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
  */
-trait VertexPair[+V] extends Edge[V, Unit]
+trait VertexPair[+V] extends Edge[V, Unit] {
+    def invert: VertexPair[V]
+
+    def unit[W >: V](v1: W, v2: W): VertexPair[W]
+}
 
 /**
  * Class to represent a vertex pair, for example, as a connection in the Union-Find problem.
@@ -325,7 +329,9 @@ trait VertexPair[+V] extends Edge[V, Unit]
  * @param v2 another vertex.
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  */
-case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2)
+case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2) {
+    def unit[W >: V](v1: W, v2: W): VertexPair[W] = VertexPairCase(v1, v2)
+}
 
 /**
  * Abstract base class to represent a connection between a pair of vertices that are not connected by an explicit edge object.
@@ -345,6 +351,9 @@ abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends VertexPair[V] {
      * The two vertices of this Edge as a tuple: (_v1, _v2)
      */
     val vertices: (V, V) = _v1 -> _v2
+
+
+    def invert: VertexPair[V] = unit(_v2, _v1)
 
     /**
      * Method to return the other end of this edge from the given vertex <code>v</code>.

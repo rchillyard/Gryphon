@@ -60,7 +60,7 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with Attributed[St
      * @param v the (key) attribute of the result.
      * @return a new AbstractGraph[V, E, X].
      */
-    def addVertex(v: V): AbstractGraph[V, E, X, P]
+    def addVertex(v: V): Graph[V, E, X, P]
 
     /**
      * Method to run depth-first-search on this Graph.

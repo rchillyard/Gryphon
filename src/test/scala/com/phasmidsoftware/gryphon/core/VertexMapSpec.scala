@@ -104,6 +104,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "buildMap" in {
+        // TODO eliminate this asInstanceOf
         val target: BaseVertexMap[Color, DirectedEdge[Color, Int], Unit] = UnorderedVertexMap.empty[Color, DirectedEdge[Color, Int], Unit].asInstanceOf[BaseVertexMap[Color, DirectedEdge[Color, Int], Unit]]
         val edge42: DirectedEdge[Color, Int] = DirectedEdgeCase(red, blue, 42)
         val edge17: DirectedEdge[Color, Int] = DirectedEdgeCase(red, green, 17)

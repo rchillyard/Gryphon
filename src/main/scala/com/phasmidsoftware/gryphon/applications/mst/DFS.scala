@@ -28,7 +28,9 @@ trait DFS[V, E, X <: Edge[V, E], P] {
  * Abstract class to implement DFS[V, E].
  *
  * @tparam V the vertex (key) attribute type.
- * @tparam E the edge type.
+ * @tparam E the edge attribute type.
+ * @tparam X the edge type.
+ * @tparam P the property type.
  */
 abstract class BaseDFS[V, E, X <: Edge[V, E], P](_tree: Tree[V, E, X, P]) extends DFS[V, E, X, P] {
 
@@ -37,10 +39,18 @@ abstract class BaseDFS[V, E, X <: Edge[V, E], P](_tree: Tree[V, E, X, P]) extend
     def isBipartite: Boolean = _tree.isBipartite
 }
 
+/**
+ * Concrete implementation of DFS that results in a Tree of edges emanating from the a particular start point.
+ *
+ * @param tree the directed-edge tree.
+ * @tparam V the vertex (key) attribute type.
+ * @tparam E the edge attribute type.
+ * @tparam X the edge type.
+ * @tparam P the property type.
+ */
 case class TreeDFS[V, E, X <: Edge[V, E], P](tree: Tree[V, E, X, P]) extends BaseDFS[V, E, X, P](tree)
 
 class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
-
 
     /**
      * Method to yield the DFS tree for given <code>graph</code> starting at the given vertex <code>v</code>.
@@ -53,20 +63,12 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
         implicit val vj: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
         val visited: Visitor[V, Queue[V]] = g.dfs(Visitor.createPostQueue[V])(v)
         val mv1: VertexMap[V, Xin, VertexPair[V]] = g.vertexMap
-        val mv2: VertexMap[V, Xout, Unit] =
-            g.vertices.foldLeft[VertexMap[V, Xout, Unit]](UnorderedVertexMap.empty[V, Xout, Unit]) {
-                (mv, v) => mv.addVertex(v)
-            }
-        val vvos: Iterator[Option[VertexPair[V]]] = visited.journal.iterator map {
-            v =>
-                for {
-                    vertex <- mv1.asInstanceOf[AbstractVertexMap[V, Xin, VertexPair[V]]].vertexMap.get(v)
-                    p <- vertex.getProperty
-                    vv = if (p.vertices._2 == v) p else p.invert
-                } yield vv
-        }
+        val mv2: VertexMap[V, Xout, Unit] = mv1.copyVertices(UnorderedVertexMap.empty[V, Xout, Unit])
+        val function: V => Option[VertexPair[V]] = mv1.processVertexProperty[VertexPair[V]](vv => if (vv.vertices._2 == v) vv else vv.invert)
+        val vvos: Iterator[Option[VertexPair[V]]] = visited.journal.iterator map function
 
         val result = vvos.flatten.foldLeft(treeGenerator("DFS Tree", mv2)) {
+            // TODO eliminate this asInstanceOf
             case (u, pair) => u.addEdge(createEdge(pair)).asInstanceOf[Tree[V, Unit, Xout, Unit]]
         }
 

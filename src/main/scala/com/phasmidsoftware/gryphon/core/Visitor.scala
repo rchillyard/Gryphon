@@ -359,6 +359,7 @@ abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val
      * @param v (V) the value of this node (vertex).
      * @return an updated IterableVisitor[V, J].
      */
+    // TODO eliminate this asInstanceOf
     override def visitPre(v: V): IterableVisitor[V, J] = super.visitPre(v).asInstanceOf[IterableVisitor[V, J]]
 
     /**
@@ -367,6 +368,7 @@ abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val
      * @param v (V) the value of this node (vertex).
      * @return an updated IterableVisitor[V, J].
      */
+    // TODO eliminate this asInstanceOf
     override def visitPost(v: V): IterableVisitor[V, J] = super.visitPost(v).asInstanceOf[IterableVisitor[V, J]]
 }
 

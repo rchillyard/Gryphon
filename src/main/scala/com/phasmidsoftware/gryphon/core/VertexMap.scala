@@ -103,6 +103,19 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] {
     val edges: Iterable[X]
 
     /**
+     * Method to get an optional value of type Q for a given vertex v, based on that vertex's property.
+     *
+     * @param f a function which transforms a P into a Q.
+     * @param v the vertex (attribute) whose property we need.
+     * @tparam Q the return type.
+     * @return an Option[Q].
+     */
+    def processVertexProperty[Q](f: P => Q)(v: V): Option[Q] = for {
+        vertex <- get(v)
+        p <- vertex.getProperty
+    } yield f(p)
+
+    /**
      * Method to add a vertex to this VertexMap.
      *
      * @param v the (key) value of the vertex to be added.
@@ -118,6 +131,17 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] {
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
     def addEdge(v: V, y: X): VertexMap[V, X, P]
+
+    /**
+     * Method to copy the Vertexs from this VertexMap to "to".
+     *
+     * @param to the VertexMap to which we will copy the vertices of this VertexMap.
+     * @tparam Xout the type of the edges in the resulting VertexMap.
+     * @return
+     */
+    def copyVertices[Xout <: EdgeLike[V]](to: VertexMap[V, Xout, Unit]): VertexMap[V, Xout, Unit] = keys.foldLeft(to) {
+        (mv, v) => mv.addVertex(v)
+    }
 }
 
 object VertexMap {
@@ -160,6 +184,7 @@ trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
     def addEdgeWithVertex(y: X): (Some[V], OrderedVertexMap[V, X, P]) = {
         val (v1, v2) = y.vertices
         val (in, out) = if (contains(v1)) (v1, v2) else (v2, v1)
+        // TODO eliminate this asInstanceOf
         Some(out) -> addVertex(out).addEdge(in, y).asInstanceOf[OrderedVertexMap[V, X, P]]
     }
 }

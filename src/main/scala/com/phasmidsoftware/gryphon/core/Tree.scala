@@ -64,7 +64,6 @@ case class UndirectedTreeCase[V, E, X <: UndirectedEdge[V, E], P](description: S
      * @return a new AbstractGraph[V, E].
      */
     def unit(vertexMap: VertexMap[V, X, P]): AbstractGraph[V, E, X, P] = UndirectedTreeCase("no description", vertexMap)
-
 }
 
 /**

@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.visit._
 import java.io.FileWriter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

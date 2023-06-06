@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.applications.mst
+package com.phasmidsoftware.gryphon.applications.sp
 
 import com.phasmidsoftware.gryphon.core.Edge
 

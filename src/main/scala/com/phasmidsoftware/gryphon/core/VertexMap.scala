@@ -5,8 +5,9 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.flog.Flog
-import com.phasmidsoftware.gryphon.core.Queueable.QueueableQueue
 import com.phasmidsoftware.gryphon.core.VertexMap.findAndMarkVertex
+import com.phasmidsoftware.gryphon.visit.Queueable.QueueableQueue
+import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Queueable, Visitor}
 import scala.annotation.tailrec
 import scala.collection.immutable.{HashMap, Queue, TreeMap}
 

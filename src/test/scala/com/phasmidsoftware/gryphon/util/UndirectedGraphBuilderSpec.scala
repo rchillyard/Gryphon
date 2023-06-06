@@ -2,10 +2,9 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.applications.mst
+package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdgeCase}
-import com.phasmidsoftware.gryphon.util.{EdgeDataParser, UndirectedGraphBuilder}
 import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

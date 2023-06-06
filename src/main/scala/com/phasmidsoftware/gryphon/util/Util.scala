@@ -4,12 +4,37 @@
 
 package com.phasmidsoftware.gryphon.util
 
-import scala.util.Try
+import com.phasmidsoftware.gryphon.core.GraphException
+import scala.util.{Failure, Success, Try}
 
 /**
  * Utilities: especially functional utilities.
  */
 object Util {
+
+    /**
+     * Method to sequence an Iterator of Try[X] into a Try of List[X].
+     *
+     * @param eys an Iterator of Try[X].
+     * @tparam X the underlying type.
+     * @return Try of List[X].
+     */
+    def sequence[X](eys: Iterator[Try[X]]): Try[List[X]] =
+        eys.foldLeft(Try(List[X]())) { (xsy, ey) =>
+            (xsy, ey) match {
+                case (Success(xs), Success(e)) => Success(xs :+ e)
+                case _ => Failure(GraphException("GraphBuilder: sequence error"))
+            }
+        }
+
+    /**
+     * Method to sequence an Iterator of Try[X] into a Try of List[X].
+     *
+     * @param eys an Iterator of Try[X].
+     * @tparam X the underlying type.
+     * @return Try of List[X].
+     */
+    def sequence[X](eys: Iterable[Try[X]]): Try[List[X]] = sequence(eys.iterator)
 
     /**
      * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.

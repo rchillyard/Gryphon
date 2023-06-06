@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.visit.{IterableVisitor, Visitor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.collection.immutable.{HashMap, Queue}
@@ -16,7 +17,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
     behavior of "VertexMap"
 
     it should "dfs" in {
-        import Journal._
+        import com.phasmidsoftware.gryphon.visit.Journal._
         val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
         val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addEdge("B", DirectedEdgeCase("B", "C", 2)).addVertex("C")
         val visitor = Visitor.createPre[String]
@@ -25,7 +26,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "bfs" in {
-        import Journal._
+        import com.phasmidsoftware.gryphon.visit.Journal._
         val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
         val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
         val visitor = Visitor.createPre[String]
@@ -34,7 +35,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "bfsMutable" in {
-        import Journal._
+        import com.phasmidsoftware.gryphon.visit.Journal._
         val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
         val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
         val visitor = Visitor.createPreQueue[String]

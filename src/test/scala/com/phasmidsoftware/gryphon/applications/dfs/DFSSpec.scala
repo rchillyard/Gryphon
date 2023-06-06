@@ -2,10 +2,10 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.applications.mst
+package com.phasmidsoftware.gryphon.applications.dfs
 
-import com.phasmidsoftware.gryphon.core.Parseable.ParseableUnit
 import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.parse.Parseable.ParseableUnit
 import com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder
 import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec

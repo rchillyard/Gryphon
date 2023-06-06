@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.visit
 
 import java.io.FileWriter
 import scala.collection.immutable.Queue

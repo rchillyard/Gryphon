@@ -5,27 +5,47 @@
 package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.parse.Parseable
 import java.net.URL
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 abstract class GraphBuilder[V: Parseable, E: Parseable] {
 
+    /**
+     * Method to create an edge list (edge from VVE triples).
+     *
+     * @param uy a Try[URL] yielding the resource containing the text document.
+     * @param f  function which takes two Vs and an E and returns an X (edge).
+     * @return a Try of Iterable of X.
+     */
     def createEdgeListTriple[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
         eys <- createTripleList(uy)
-        es <- GraphBuilder.sequence(eys)
+        es <- Util.sequence(eys)
     } yield for {
         (v1, v2, e) <- es
     } yield f(v1, v2, e)
 
+    /**
+     * Method to create an edge list (edge from vertex pairs).
+     *
+     * @param uy a Try[URL] yielding the resource containing the text document.
+     * @param f function which takes two vertices and returns an X (edge).
+     * @return a Try of Iterable of X.
+     */
     def createEdgeListPair[X <: Edge[V, Unit]](uy: Try[URL])(f: (V, V) => X): Try[Iterable[X]] = for {
         eys <- createPairList(uy)
-        es <- GraphBuilder.sequence(eys)
+        es <- Util.sequence(eys)
     } yield for {
         (v1, v2) <- es
     } yield f(v1, v2)
 
-
+    /**
+     * Method to create a list of triples (V, V, E) from a source document.
+     *
+     * @param uy a Try[URL] yielding the resource containing the text document.
+     * @return a Try of Iterator of Try of (V,V,E).
+     */
     def createTripleList(uy: Try[URL]): Try[Iterator[Try[(V, V, E)]]] = for {
         u <- uy
         s = Source.fromURL(u)
@@ -38,6 +58,12 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
         e <- implicitly[Parseable[E]].parse(wE)
     } yield (v1, v2, e)
 
+    /**
+     * Method to create a list of tuples (V, V) from a source document.
+     *
+     * @param uy a Try[URL] yielding the resource containing the text document.
+     * @return a Try of Iterator of Try of (V,V,E).
+     */
     def createPairList(uy: Try[URL]): Try[Iterator[Try[(V, V)]]] = for {
         u <- uy
         s = Source.fromURL(u)
@@ -49,19 +75,6 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
         v2 <- implicitly[Parseable[V]].parse(wV2)
     } yield (v1, v2)
 }
-
-object GraphBuilder {
-
-    def sequence[X](eys: Iterator[Try[X]]): Try[List[X]] =
-        eys.foldLeft(Try(List[X]())) { (xsy, ey) =>
-            (xsy, ey) match {
-                case (Success(xs), Success(e)) => Success(xs :+ e)
-                case _ => Failure(GraphException("GraphBuilder: sequence error"))
-            }
-        }
-
-}
-
 
 /**
  * Utility class to help create graphs from edge lists, etc.

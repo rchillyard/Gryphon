@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
+
 /**
  * Trait to model the behavior of a graph.
  *

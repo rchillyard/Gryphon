@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
+
 /**
  * Trait to define the behavior of a graph-like structure which can be traversed by dfs, bfs, etc.
  *

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.mst
 
-import com.phasmidsoftware.gryphon.applications.mst.TSP.createEdgeFromVertices
+import com.phasmidsoftware.gryphon.applications.tsp.TSP.createEdgeFromVertices
 import com.phasmidsoftware.gryphon.core._
 import com.phasmidsoftware.gryphon.util.LazyPriorityQueue
 

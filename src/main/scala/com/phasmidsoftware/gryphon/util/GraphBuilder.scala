@@ -1,70 +1,76 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.gryphon.core._
-import com.phasmidsoftware.util.FP.resource
 import java.net.URL
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-/**
- * Utility class to help create graphs from edge lists, etc.
- */
-class GraphBuilder[V: Ordering : Parseable, E: Ordering : Parseable, P: HasZero]() {
+abstract class GraphBuilder[V: Parseable, E: Parseable] {
 
-    private type G = Graph[V, E, UndirectedOrderedEdge[V, E], P]
+    def createEdgeListTriple[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
+        eys <- createTripleList(uy)
+        es <- GraphBuilder.sequence(eys)
+    } yield for {
+        (v1, v2, e) <- es
+    } yield f(v1, v2, e)
 
-    def createUndirectedEdgeList(uy: Try[URL]): Try[Iterable[UndirectedOrderedEdge[V, E]]] = {
-        val eysy: Try[Iterator[Try[(V, V, E)]]] = for {
-            u <- uy
-            s = Source.fromURL(u)
-        } yield for {
-            string <- s.getLines()
-            Array(wV1, wV2, wE) = string.split(" ")
-        } yield for {
-            v1 <- implicitly[Parseable[V]].parse(wV1)
-            v2 <- implicitly[Parseable[V]].parse(wV2)
-            e <- implicitly[Parseable[E]].parse(wE)
-        } yield (v1, v2, e)
+    def createEdgeListPair[X <: Edge[V, Unit]](uy: Try[URL])(f: (V, V) => X): Try[Iterable[X]] = for {
+        eys <- createPairList(uy)
+        es <- GraphBuilder.sequence(eys)
+    } yield for {
+        (v1, v2) <- es
+    } yield f(v1, v2)
 
-        for {
-            eys <- eysy
-            es <- sequence(eys)
-        } yield for {
-            (v1, v2, e) <- es
-            edge = UndirectedOrderedEdgeCase(v1, v2, e)
-        } yield edge
-    }
 
-    def createGraphFromUndirectedOrderedEdges(esy: Try[Iterable[UndirectedOrderedEdge[V, E]]]): Try[Graph[V, E, UndirectedOrderedEdge[V, E], P]] =
-        esy map {
-            es =>
-                // CONSIDER avoiding the two asInstanceOf calls
-                val graph: G = UndirectedGraph[V, E, P]("no title").asInstanceOf[G]
-                es.foldLeft(graph)((g, e) => g.addEdge(e))
-        }
+    def createTripleList(uy: Try[URL]): Try[Iterator[Try[(V, V, E)]]] = for {
+        u <- uy
+        s = Source.fromURL(u)
+    } yield for {
+        string <- s.getLines()
+        Array(wV1, wV2, wE) = string.split(" ")
+    } yield for {
+        v1 <- implicitly[Parseable[V]].parse(wV1)
+        v2 <- implicitly[Parseable[V]].parse(wV2)
+        e <- implicitly[Parseable[E]].parse(wE)
+    } yield (v1, v2, e)
 
-    private def sequence(eys: Iterator[Try[(V, V, E)]]): Try[List[(V, V, E)]] =
-        eys.foldLeft(Try(List[(V, V, E)]())) { (xsy, ey) =>
+    def createPairList(uy: Try[URL]): Try[Iterator[Try[(V, V)]]] = for {
+        u <- uy
+        s = Source.fromURL(u)
+    } yield for {
+        string <- s.getLines()
+        Array(wV1, wV2) = string.split(" ")
+    } yield for {
+        v1 <- implicitly[Parseable[V]].parse(wV1)
+        v2 <- implicitly[Parseable[V]].parse(wV2)
+    } yield (v1, v2)
+}
+
+object GraphBuilder {
+
+    def sequence[X](eys: Iterator[Try[X]]): Try[List[X]] =
+        eys.foldLeft(Try(List[X]())) { (xsy, ey) =>
             (xsy, ey) match {
                 case (Success(xs), Success(e)) => Success(xs :+ e)
                 case _ => Failure(GraphException("GraphBuilder: sequence error"))
             }
         }
-}
-
-object GraphBuilder {
 
 }
 
-object PrimDemo extends App {
 
-    private val resourceName = "/prim.graph"
-    private val uy = resource(resourceName)
-    private val gy = new GraphBuilder[Int, Double, Unit]().createUndirectedEdgeList(uy)
-    gy match {
-        case Success(g) =>
-            println(s"read ${g.size} edges from $resourceName")
-            println(g)
-        case Failure(x) => throw x
-    }
+/**
+ * Utility class to help create graphs from edge lists, etc.
+ * The edges of this class support Ordering.
+ */
+case class UndirectedGraphBuilder[V: Ordering : Parseable, E: Parseable, P]() extends GraphBuilder[V, E] {
+
+    def createGraphFromEdges[X <: Edge[V, E]](graph: Graph[V, E, X, P])(esy: Try[Iterable[X]]): Try[Graph[V, E, X, P]] =
+        esy map {
+            es => es.foldLeft(graph)((g, e) => g.addEdge(e))
+        }
 }

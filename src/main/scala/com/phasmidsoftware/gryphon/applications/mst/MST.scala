@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.applications.mst.TSP.createEdgeFromVertices
@@ -52,7 +56,7 @@ case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrde
     /**
      * (abstract) The vertex map.
      */
-    val vertexMap: VertexMap[V, UndirectedEdge[V, E], Unit] = mst.vertexMap
+    val vertexMap: VertexMap[V, UndirectedOrderedEdge[V, E], Unit] = mst.vertexMap
 
     /**
      * An attribute.
@@ -87,7 +91,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
         def candidateEdges(v: V, m: M): Iterable[X] =
             graph.vertexMap.adjacentEdgesWithFilter(v)(x => !m.containsOther(v, x))
 
-        LazyPrimCase(TreeCase[V, E, X, Unit](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
+        LazyPrimCase(UndirectedTreeCase[V, E, X, Unit](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
     }
 
     /**
@@ -114,7 +118,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
             } yield
                 x
 
-        LazyPrimCase(TreeCase[V, E, X, Unit](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
+        LazyPrimCase(UndirectedTreeCase[V, E, X, Unit](s"MST for graph from vertices", doLazyPrim(vertices, candidateEdges)))
     }
 
     private def doLazyPrim(vs: Iterable[V], candidateEdges: (V, M) => Iterable[X]): M = {
@@ -153,6 +157,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
         // gradually build up the VertexMap of the MST by invoking grow V-1 times where V is the number of vertices.
         val (_, vertexMapResult) = vs.headOption match {
             case Some(v) =>
+                // TODO eliminate this asInstanceOf
                 val start: (Option[V], M) = Some(v) -> OrderedVertexMap[V, X, Unit](v).asInstanceOf[M]
                 Range(0, vs.size).foldLeft(start) { (m, _) => grow(m) }
             case None => throw GraphException("doLazyPrim: empty vertex list")

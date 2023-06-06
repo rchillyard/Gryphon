@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.core
 
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,6 +14,32 @@ class VertexSpec extends AnyFlatSpec with should.Matchers {
     it should "attribute" in {
         Vertex.empty[String, Nothing, Unit]("A").attribute shouldBe "A"
     }
+
+//    it should "getProperty Unit" in {
+//        val vertex = Vertex.empty[String, Nothing, Unit]("A")
+//        vertex.getProperty shouldBe ()
+//        vertex.setProperty(())
+//        vertex.getProperty shouldBe ()
+//    }
+//    it should "getProperty VertexProp" in {
+//        val vertex = Vertex.empty[String, Nothing, VertexProp]("A")
+//        vertex.getProperty shouldBe VertexPropHasZero.zero
+//        vertex.setProperty(VertexProp(Some(1)))
+//        vertex.getProperty shouldBe VertexProp(Some(1))
+//    }
+//    it should "getProperty EdgeProperty" in {
+//        case class EdgeProperty[X <: Edge[String,Int]](maybeEdge: Option[X])
+//        object EdgeProperty {
+//            implicit object EdgePropertyHasZero extends HasZero[EdgeProperty[DirectedEdge[String,Int]]] {
+//                def zero: EdgeProperty[DirectedEdge[String, Int]] = EdgeProperty(None)
+//            }
+//        }
+//        import EdgeProperty._
+//        val vertex = Vertex.empty[String, DirectedEdge[String,Int], EdgeProperty[DirectedEdge[String,Int]]]("A")
+//        val edge = DirectedEdgeCase[String,Int]("A","B",1)
+//        vertex.setProperty(EdgeProperty(Some(edge)))
+//        vertex.getProperty shouldBe EdgeProperty(Some(edge))
+//    }
 
     it should "degree" in {
         Vertex.empty[String, Nothing, Unit]("A").degree shouldBe 0

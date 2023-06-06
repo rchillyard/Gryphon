@@ -1,3 +1,10 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1dc65c7cf84e46bfbb0d3d9b16c0f382)](https://app.codacy.com/app/scalaprof/Gryphon?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Gryphon&utm_campaign=Badge_Grade_Settings)
+![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Gryphon)
+![GitHub](https://img.shields.io/github/license/rchillyard/Gryphon)
+![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Gryphon)
+![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Gryphon)
+![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Gryphon/bug)
+
 Gryphon Graph Library
 =====================
 Gryphon is a library for representing and traversing graphs.
@@ -58,7 +65,18 @@ Applications
 ============
 At present, there is only one application: the minimum spanning tree (MST).
 
+GitHub History
+==============
+Why is there no GitHub history for version 0.1.0?
+Was the code stolen from somewhere?
+No. When I created the repository, GitHub placed it in a different organization from my normal organization (rchillyard).
+I forked that repository and continued working on developing version 0.1.0 without paying attention to the location of the repository.
+The fact that the repo was forked was not very satisfactory, however, and I decided to create a brand-new repository.
+The history is still (currently) available as Gryphon-forked (https://github.com/rchillyard/Gryphon-forked).
+The first commit took place 2023/04/11 and the last commit to the forked repo was pushed on 2023/04/19.
+
 Versions
 ========
-The current version is 0.1.0
-This supports the Prim application, and provides dfs and bfs graph traversal.
+The current version is 0.1.1
+
+Version 0.1.0 supports the Prim application, and provides dfs and bfs graph traversal.

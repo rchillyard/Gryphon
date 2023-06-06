@@ -1,9 +1,12 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.parse._
 import com.phasmidsoftware.table.{HeadedTable, Header, Table}
 import scala.util.Try
-
 
 /**
  * Trait to model the behavior of a transitional vertex, i.e. during the input (parsing) process.

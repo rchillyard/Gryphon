@@ -1,7 +1,11 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
-import com.phasmidsoftware.gryphon.util.{GraphBuilder, VertexDataParser, VertexDataTSP}
+import com.phasmidsoftware.gryphon.util.{UndirectedGraphBuilder, VertexDataParser, VertexDataTSP}
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
 import com.phasmidsoftware.table.Table
 import com.phasmidsoftware.util.FP.resource
@@ -17,6 +21,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val edge1 = UndirectedOrderedEdgeCase("A", "B", 1)
         val edge3 = UndirectedOrderedEdgeCase("A", "D", 3)
         val edge2 = UndirectedOrderedEdgeCase("A", "C", 2)
+        // TODO eliminate this asInstanceOf
         val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = UndirectedGraph[String, Int, Unit]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2).asInstanceOf[UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit]]
         val target: LazyPrimCase[String, Int] = new LazyPrimHelper[String, Int]().createFromGraph(graph)
         target.edges shouldBe List(edge3, edge2, edge1)
@@ -24,11 +29,12 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
 
     it should "mst of Prim demo from Sedgewick & Wayne" in {
         val uy = resource("/prim.graph")
-        val graphBuilder = new GraphBuilder[Int, Double, Unit]()
+        val graphBuilder = new UndirectedGraphBuilder[Int, Double, Unit]()
 
-        val esy = graphBuilder.createUndirectedEdgeList(uy)
-        graphBuilder.createGraphFromUndirectedOrderedEdges(esy) match {
+        val esy = graphBuilder.createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
+        graphBuilder.createGraphFromEdges(UndirectedGraph[Int, Double, Unit]("no title"))(esy) match {
             case Success(graph) =>
+                // TODO eliminate this asInstanceOf
                 val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
                 prim.edges.size shouldBe 7
                 prim.mst.vertices.size shouldBe 8

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
 package com.phasmidsoftware.gryphon.core
 
 import scala.collection.immutable.Queue
@@ -7,6 +11,8 @@ import scala.collection.immutable.Queue
  * The Visitor supports two journal entries: pre- and post- recursion.
  * Most journals are also iterable so that they can be retrieved after DFS is complete.
  * However, it is perfectly possible to have a journal which simply writes to a file (or something similar).
+ *
+ * CONSIDER do we need an edge-visitor?
  *
  * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
@@ -353,6 +359,7 @@ abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val
      * @param v (V) the value of this node (vertex).
      * @return an updated IterableVisitor[V, J].
      */
+    // TODO eliminate this asInstanceOf
     override def visitPre(v: V): IterableVisitor[V, J] = super.visitPre(v).asInstanceOf[IterableVisitor[V, J]]
 
     /**
@@ -361,6 +368,7 @@ abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val
      * @param v (V) the value of this node (vertex).
      * @return an updated IterableVisitor[V, J].
      */
+    // TODO eliminate this asInstanceOf
     override def visitPost(v: V): IterableVisitor[V, J] = super.visitPost(v).asInstanceOf[IterableVisitor[V, J]]
 }
 

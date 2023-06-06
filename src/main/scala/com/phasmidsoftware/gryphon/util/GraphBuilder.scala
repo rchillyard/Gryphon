@@ -6,9 +6,10 @@ package com.phasmidsoftware.gryphon.util
 
 import com.phasmidsoftware.gryphon.core._
 import com.phasmidsoftware.gryphon.parse.Parseable
+import com.phasmidsoftware.gryphon.util.Util.sequence
 import java.net.URL
-import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.io.{BufferedSource, Source}
+import scala.util.Try
 
 abstract class GraphBuilder[V: Parseable, E: Parseable] {
 
@@ -20,8 +21,7 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
      * @return a Try of Iterable of X.
      */
     def createEdgeListTriple[X <: Edge[V, E]](uy: Try[URL])(f: (V, V, E) => X): Try[Iterable[X]] = for {
-        eys <- createTripleList(uy)
-        es <- Util.sequence(eys)
+        es <- createTripleList(uy)
     } yield for {
         (v1, v2, e) <- es
     } yield f(v1, v2, e)
@@ -30,12 +30,11 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
      * Method to create an edge list (edge from vertex pairs).
      *
      * @param uy a Try[URL] yielding the resource containing the text document.
-     * @param f function which takes two vertices and returns an X (edge).
+     * @param f  function which takes two vertices and returns an X (edge).
      * @return a Try of Iterable of X.
      */
     def createEdgeListPair[X <: Edge[V, Unit]](uy: Try[URL])(f: (V, V) => X): Try[Iterable[X]] = for {
-        eys <- createPairList(uy)
-        es <- Util.sequence(eys)
+        es <- createPairList(uy)
     } yield for {
         (v1, v2) <- es
     } yield f(v1, v2)
@@ -46,10 +45,12 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
      * @param uy a Try[URL] yielding the resource containing the text document.
      * @return a Try of Iterator of Try of (V,V,E).
      */
-    def createTripleList(uy: Try[URL]): Try[Iterator[Try[(V, V, E)]]] = for {
+    private def createTripleList(uy: Try[URL]): Try[Iterable[(V, V, E)]] = for {
         u <- uy
-        s = Source.fromURL(u)
-    } yield for {
+        vVEs <- sequence(processTripleSource(Source.fromURL(u)))
+    } yield vVEs
+
+    private def processTripleSource(s: BufferedSource) = for {
         string <- s.getLines()
         Array(wV1, wV2, wE) = string.split(" ")
     } yield for {
@@ -64,10 +65,12 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
      * @param uy a Try[URL] yielding the resource containing the text document.
      * @return a Try of Iterator of Try of (V,V,E).
      */
-    def createPairList(uy: Try[URL]): Try[Iterator[Try[(V, V)]]] = for {
+    private def createPairList(uy: Try[URL]): Try[Iterable[(V, V)]] = for {
         u <- uy
-        s = Source.fromURL(u)
-    } yield for {
+        vVs <- sequence(processPairSource(Source.fromURL(u)))
+    } yield vVs
+
+    private def processPairSource(s: BufferedSource) = for {
         string <- s.getLines()
         Array(wV1, wV2) = string.split(" ")
     } yield for {

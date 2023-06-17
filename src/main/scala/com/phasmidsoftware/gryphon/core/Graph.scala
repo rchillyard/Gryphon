@@ -232,7 +232,7 @@ abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P](val _desc
      * (abstract) Method to create a new AbstractGraph from a given vertex map.
      *
      * @param vertexMap the vertex map.
-     * @return a new AbstractGraph[V, E].
+     * @return a new DirectedGraph[V, E, X, P].
      */
     def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P]
 }
@@ -264,8 +264,16 @@ abstract class AbstractUndirectedGraph[V, E, X <: UndirectedEdge[V, E], P](val _
      */
     def addEdge(x: X): UndirectedGraph[V, E, X, P] = {
         val (v, w) = x.vertices
-        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w)).asInstanceOf[UndirectedGraph[V, E, X, P]]
+        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
     }
+
+    /**
+     * (abstract) Method to create a new AbstractGraph from a given vertex map.
+     *
+     * @param vertexMap the vertex map.
+     * @return a new UndirectedGraph[V, E, X, P].
+     */
+    def unit(vertexMap: VertexMap[V, X, P]): UndirectedGraph[V, E, X, P]
 }
 
 /**
@@ -293,8 +301,16 @@ abstract class AbstractVertexPairGraph[V, P](val _description: String, val _vert
      */
     def addEdge(x: VertexPair[V]): VertexPairGraph[V, P] = {
         val (v, w) = x.vertices
-        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w)).asInstanceOf[VertexPairGraph[V, P]]
+        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
     }
+
+    /**
+     * (abstract) Method to create a new AbstractGraph from a given vertex map.
+     *
+     * @param vertexMap the vertex map.
+     * @return a new AbstractGraph[V, E].
+     */
+    def unit(vertexMap: VertexMap[V, VertexPair[V], P]): VertexPairGraph[V, P]
 }
 
 /**
@@ -353,7 +369,7 @@ case class VertexPairGraphCase[V, P](description: String, vertexMap: VertexMap[V
      * @param vertexMap the vertex map.
      * @return a new UndirectedGraphCase[V, E].
      */
-    def unit(vertexMap: VertexMap[V, VertexPair[V], P]): AbstractGraph[V, Unit, VertexPair[V], P] = VertexPairGraphCase(description, vertexMap)
+    def unit(vertexMap: VertexMap[V, VertexPair[V], P]): VertexPairGraph[V, P] = VertexPairGraphCase(description, vertexMap)
 }
 
 /**

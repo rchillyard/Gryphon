@@ -22,5 +22,5 @@ object TSP {
      * @return a Try of Iterable of UndirectedOrderedEdge.
      */
     def createEdgeFromVertices[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]](v1: V, v2: V)(implicit d: (V, V) => E): X =
-        UndirectedOrderedEdgeCase(v1, v2, d(v1, v2)).asInstanceOf[X]
+        UndirectedOrderedEdgeCase(v1, v2, d(v1, v2)).asInstanceOf[X] // TODO eliminate this cast.
 }

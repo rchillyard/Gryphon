@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.mst
 
-import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
+import com.phasmidsoftware.gryphon.core.{GraphException, UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
 import com.phasmidsoftware.gryphon.util.{UndirectedGraphBuilder, VertexDataParser, VertexDataTSP}
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
 import com.phasmidsoftware.table.Table
@@ -34,13 +34,13 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
 
         val esy = graphBuilder.createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
         graphBuilder.createGraphFromEdges(UndirectedGraph.createUnordered[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]("no title"))(esy) match {
-            case Success(graph) =>
-                // TODO eliminate this asInstanceOf
-                val prim = new LazyPrimHelper[Int, Double, UndirectedOrderedEdge[Int, Double]]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
+            case Success(graph: UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]) =>
+                val prim = new LazyPrimHelper[Int, Double, UndirectedOrderedEdge[Int, Double]]().createFromGraph(graph)
                 prim.edges.size shouldBe 7
                 prim.mst.vertices.size shouldBe 8
                 prim.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
             case Failure(x) => throw x
+            case x => throw GraphException(s"graph of wrong type: ${x.get.getClass}")
         }
     }
 

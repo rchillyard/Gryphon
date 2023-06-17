@@ -32,7 +32,7 @@ trait Tree[V, E, X <: Edge[V, E], P] extends Graph[V, E, X, P] {
  * @tparam X the type of edge which connects two vertices. A sub-type of UndirectedEdge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
-trait UndirectedTree[V, E, X <: UndirectedEdge[V, E], P] extends Tree[V, E, X, P]
+trait UndirectedTree[V, E, X <: UndirectedEdge[V, E], P] extends Tree[V, E, X, P] with UndirectedGraph[V, E, X, P]
 
 /**
  * Trait to define a directed Tree.
@@ -42,7 +42,7 @@ trait UndirectedTree[V, E, X <: UndirectedEdge[V, E], P] extends Tree[V, E, X, P
  * @tparam X the type of edge which connects two vertices. A sub-type of DirectedEdge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
-trait DirectedTree[V, E, X <: DirectedEdge[V, E], P] extends Tree[V, E, X, P]
+trait DirectedTree[V, E, X <: DirectedEdge[V, E], P] extends Tree[V, E, X, P] with DirectedGraph[V, E, X, P]
 
 /**
  * Case class to represent an undirected tree.
@@ -63,7 +63,7 @@ case class UndirectedTreeCase[V, E, X <: UndirectedEdge[V, E], P](description: S
      * @param vertexMap the vertex map.
      * @return a new AbstractGraph[V, E].
      */
-    def unit(vertexMap: VertexMap[V, X, P]): AbstractGraph[V, E, X, P] = UndirectedTreeCase("no description", vertexMap)
+    def unit(vertexMap: VertexMap[V, X, P]): UndirectedTree[V, E, X, P] = UndirectedTreeCase("no description", vertexMap)
 }
 
 /**
@@ -85,6 +85,6 @@ case class DirectedTreeCase[V, E, X <: DirectedEdge[V, E], P](description: Strin
      * @param vertexMap the vertex map.
      * @return a new AbstractGraph[V, E].
      */
-    def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P] = DirectedTreeCase("no description", vertexMap)
+    def unit(vertexMap: VertexMap[V, X, P]): DirectedTree[V, E, X, P] = DirectedTreeCase("no description", vertexMap)
 
 }

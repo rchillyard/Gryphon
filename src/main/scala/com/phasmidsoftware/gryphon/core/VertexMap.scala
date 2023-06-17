@@ -120,7 +120,7 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] {
      * Method to add a vertex to this VertexMap.
      *
      * @param v the (key) value of the vertex to be added.
-     * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v</code>.
+     * @return a new VertexMap[V, X, P] which includes all the original entries of <code>this</code> plus <code>v</code>.
      */
     def addVertex(v: V): VertexMap[V, X, P]
 
@@ -175,6 +175,15 @@ object VertexMap {
 trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends BaseVertexMap[V, X, P] {
 
     /**
+     * Method to add a vertex of (key) type V to this graph.
+     * The vertex will have degree of zero.
+     *
+     * @param v the (key) attribute of the result.
+     * @return a new OrderedVertexMap[V, X, P].
+     */
+    override def addVertex(v: V): OrderedVertexMap[V, X, P] = super.addVertex(v).asInstanceOf[OrderedVertexMap[V, X, P]]
+
+    /**
      * This method adds an edge y (Y) to this OrderedVertexMap and returns
      * a tuple formed from the new vertex and the new VertexMap.
      * This is particularly used in Prim's algorithm (and maybe Dijkstra's algorithm, too).
@@ -188,6 +197,14 @@ trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends BaseVertexMap[V, X, P] {
         // TODO eliminate this asInstanceOf
         Some(out) -> addVertex(out).addEdge(in, y).asInstanceOf[OrderedVertexMap[V, X, P]]
     }
+
+    /**
+     * (abstract) Method to construct a new VertexMap from the given map.
+     *
+     * @param map a Map (might be TreeMap or HashMap).
+     * @return a new VertexMap[V, X].
+     */
+    def unit(map: Map[V, Vertex[V, X, P]]): OrderedVertexMap[V, X, P]
 }
 
 /**
@@ -209,7 +226,7 @@ case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V], P](map: TreeMap[V
      * @param map a TreeMap. If it is not a TreeMap, it will be converted to one.
      * @return a new OrderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P] = {
+    def unit(map: Map[V, Vertex[V, X, P]]): OrderedVertexMap[V, X, P] = {
         val zz: TreeMap[V, Vertex[V, X, P]] = map.to(TreeMap)
         OrderedVertexMapCase[V, X, P](zz)
     }
@@ -242,7 +259,7 @@ object OrderedVertexMap {
      * @tparam P the property type (a mutable property currently only supported by the Vertex type).
      * @return a new OrderedVertexMap[V,X,P] with exactly one vertex (V) in it: the given value v.
      */
-    def apply[V: Ordering, X <: EdgeLike[V], P](v: V): VertexMap[V, X, P] = empty[V, X, P].addVertex(v)
+    def apply[V: Ordering, X <: EdgeLike[V], P](v: V): OrderedVertexMap[V, X, P] = empty[V, X, P].addVertex(v)
 
     /**
      * Method to yield an empty OrderedVertexMapCase.
@@ -256,7 +273,24 @@ object OrderedVertexMap {
     def empty[V: Ordering, X <: EdgeLike[V], P]: OrderedVertexMap[V, X, P] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X, P]])
 }
 
-trait UnorderedVertexMap[V, X <: EdgeLike[V], P] extends BaseVertexMap[V, X, P]
+trait UnorderedVertexMap[V, X <: EdgeLike[V], P] extends BaseVertexMap[V, X, P] {
+    /**
+     * Method to add a vertex of (key) type V to this graph.
+     * The vertex will have degree of zero.
+     *
+     * @param v the (key) attribute of the result.
+     * @return a new UnorderedVertexMap[V, X, P].
+     */
+    override def addVertex(v: V): UnorderedVertexMap[V, X, P] = super.addVertex(v).asInstanceOf[UnorderedVertexMap[V, X, P]]
+
+    /**
+     * (abstract) Method to construct a new VertexMap from the given map.
+     *
+     * @param map a Map (might be TreeMap or HashMap).
+     * @return a new VertexMap[V, X].
+     */
+    def unit(map: Map[V, Vertex[V, X, P]]): UnorderedVertexMap[V, X, P]
+}
 
 /**
  * Case class to represent an unordered VertexMap,
@@ -275,7 +309,7 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P](map: HashMap[V, Vertex
      * @param map a HashMap. If it is not a HashMap, it will be converted to one.
      * @return a new UnorderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P] = UnorderedVertexMapCase[V, X, P](map.to(HashMap))
+    def unit(map: Map[V, Vertex[V, X, P]]): UnorderedVertexMap[V, X, P] = UnorderedVertexMapCase[V, X, P](map.to(HashMap))
 
     /**
      * CONSIDER making this the default behavior for deriveProperty.
@@ -352,12 +386,12 @@ case class PairVertexMapCase[V, P](map: HashMap[V, Vertex[V, VertexPair[V], P]])
      * The vertex will have degree of zero.
      *
      * @param v the (key) attribute of the result.
-     * @return a new AbstractGraph[V, E, X].
+     * @return a new PairVertexMap[V, P].
      */
-    def addVertex(v: V): VertexMap[V, VertexPair[V], P] = unit(_map + (v -> (_map.get(v) match {
+    def addVertex(v: V): PairVertexMap[V, P] = unit(_map + (v -> (_map.get(v) match {
         case Some(vv) => vv
         case None => Vertex.empty(v)
-    })))
+    }))).asInstanceOf[PairVertexMap[V, P]]
 
     /**
      * Method to add an edge to this VertexMap.
@@ -631,8 +665,10 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V], P](val __map: Map[V, Vertex[V,
      * Method to add a vertex of (key) type V to this graph.
      * The vertex will have degree of zero.
      *
+     * CONSIDER not implementing this here but in sub-classes.
+     *
      * @param v the (key) attribute of the result.
-     * @return a new AbstractGraph[V, E, X].
+     * @return a new VertexMap[V, E, X].
      */
     def addVertex(v: V): VertexMap[V, X, P] = unit(_map + (v -> (_map.get(v) match {
         case Some(vv) => vv

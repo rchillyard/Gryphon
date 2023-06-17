@@ -35,7 +35,7 @@ class VertexDataParserSpec extends AnyFlatSpec with should.Matchers {
         val vertexDataParser: VertexDataParser[Crime] = new VertexDataParser[Crime]()
         implicit val tableParser: vertexDataParser.VertexDataTSPTableParser.type = vertexDataParser.VertexDataTSPTableParser
         val cvty: Try[Table[VertexDataTSP[Crime]]] = Table.parseResource[Table[VertexDataTSP[Crime]]](spring2023Project)
-        cvty should matchPattern { case Success(t) => }
+        cvty should matchPattern { case Success(_) => }
         val cvt = cvty.get
         cvt.rows.size shouldBe 585
         val firstId: BigInt = BigInt("447a81a19157c2f6ef97accacebaa66d8153e19ca43c16ca452e6d8d447823", 16)

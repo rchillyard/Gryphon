@@ -36,7 +36,7 @@ case class VertexDataTSP[V: Ordering : CellParser](attribute: V) extends VertexD
  */
 class VertexDataParser[V: Ordering : CellParser] {
 
-    object VertexDataTSPParser extends CellParsers {
+    private object VertexDataTSPParser extends CellParsers {
 
         implicit val columnHelper: ColumnHelper[V] = columnHelper()
 
@@ -68,7 +68,7 @@ class VertexDataParser[V: Ordering : CellParser] {
     /**
      * TESTME
      *
-     * @param resource the name of the resouce.
+     * @param resource the name of the resource.
      * @return a Try of Iterable[V].
      */
     def parseVerticesFromCsv(resource: String): Try[Iterable[V]] = {

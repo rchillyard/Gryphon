@@ -172,7 +172,7 @@ object VertexMap {
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
-trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P] {
+trait OrderedVertexMap[V, X <: EdgeLike[V], P] extends BaseVertexMap[V, X, P] {
 
     /**
      * This method adds an edge y (Y) to this OrderedVertexMap and returns
@@ -245,7 +245,7 @@ object OrderedVertexMap {
     def empty[V: Ordering, X <: EdgeLike[V], P]: OrderedVertexMap[V, X, P] = OrderedVertexMapCase(TreeMap.empty[V, Vertex[V, X, P]])
 }
 
-trait UnorderedVertexMap[V, X <: EdgeLike[V], P] extends VertexMap[V, X, P]
+trait UnorderedVertexMap[V, X <: EdgeLike[V], P] extends BaseVertexMap[V, X, P]
 
 /**
  * Case class to represent an unordered VertexMap,
@@ -411,7 +411,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
     require(_map != null, "BaseVertexMap: _map is null")
 
-    val flog: Flog = Flog[AbstractVertexMap[V, X, P]]
+    private val flog: Flog = Flog[AbstractVertexMap[V, X, P]]
 
     import flog._
 

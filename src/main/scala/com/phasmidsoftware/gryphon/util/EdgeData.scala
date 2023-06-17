@@ -54,7 +54,7 @@ case class EdgeDataMST[V: Ordering : CellParser, E: Ordering : CellParser](verte
  *           E: Ordering and CellParser
  */
 class EdgeDataParser[V: Ordering : CellParser, E: Ordering : CellParser] {
-    object EdgeDataMSTParser extends CellParsers {
+    private object EdgeDataMSTParser extends CellParsers {
 
         implicit val edgeDataMSTParser: CellParser[EdgeDataMST[V, E]] = cellParser3(EdgeDataMST[V, E])
 

@@ -56,25 +56,25 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
     /**
      * Method to yield the DFS tree for given <code>graph</code> starting at the given vertex <code>v</code>.
      *
-     * @param g the graph to be traversed (Graph[V, E, Y, Unit]).
-     * @param v the starting vertex (V).
+     * @param gin the graph to be traversed (Graph[V, E, Y, Unit]).
+     * @param v   the starting vertex (V).
      * @return a TreeDFS[V, E, X].
      */
-    def dfsTree(g: Graph[V, Unit, Xin, VertexPair[V]], v: V)(createEdge: VertexPair[V] => Xout): TreeDFS[V, Unit, Xout, Unit] = {
+    def dfsTree(gin: Graph[V, Unit, Xin, VertexPair[V]], v: V)(createEdge: VertexPair[V] => Xout): TreeDFS[V, Unit, Xout, Unit] = {
         implicit val vj: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
-        val visited: Visitor[V, Queue[V]] = g.dfs(Visitor.createPostQueue[V])(v)
-        val mv1: VertexMap[V, Xin, VertexPair[V]] = g.vertexMap
+        val visited: Visitor[V, Queue[V]] = gin.dfs(Visitor.createPostQueue[V])(v)
+        val mv1: VertexMap[V, Xin, VertexPair[V]] = gin.vertexMap
         val mv2: VertexMap[V, Xout, Unit] = mv1.copyVertices(UnorderedVertexMap.empty[V, Xout, Unit])
         val function: V => Option[VertexPair[V]] = mv1.processVertexProperty[VertexPair[V]](vv => if (vv.vertices._2 == v) vv else vv.invert)
         val vvos: Iterator[Option[VertexPair[V]]] = visited.journal.iterator map function
-
-        val result = vvos.flatten.foldLeft(treeGenerator("DFS Tree", mv2)) {
-            // TODO eliminate this asInstanceOf
-            case (u, pair) => u.addEdge(createEdge(pair)).asInstanceOf[Tree[V, Unit, Xout, Unit]]
+        val gout: Graph[V, Unit, Xout, Unit] = vvos.flatten.foldLeft(treeGenerator("DFS Tree", mv2)) {
+            case (u, pair) => u.addEdge(createEdge(pair))
         }
-
-        TreeDFS[V, Unit, Xout, Unit](result)
+        gout match {
+            case t: Tree[V, Unit, Xout, Unit] => TreeDFS[V, Unit, Xout, Unit](t)
+            case _ => throw GraphException("DFSHelper.dfsTree: logic error")
+        }
     }
 
-    private def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, Unit]): Tree[V, Unit, Xout, Unit] = DirectedTreeCase[V, Unit, Xout, Unit](label, vertexMap)
+    private def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, Unit]): Graph[V, Unit, Xout, Unit] = DirectedTreeCase[V, Unit, Xout, Unit](label, vertexMap)
 }

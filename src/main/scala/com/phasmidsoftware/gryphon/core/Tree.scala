@@ -75,7 +75,7 @@ case class UndirectedTreeCase[V, E, X <: UndirectedEdge[V, E], P](description: S
  * @tparam E the edge-attribute type.
  *
  */
-case class DirectedTreeCase[V, E, X <: DirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with Tree[V, E, X, P] {
+case class DirectedTreeCase[V, E, X <: DirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with DirectedTree[V, E, X, P] {
 
     /**
      * Method to createUndirectedOrderedGraph a new AbstractGraph from a given vertex map.
@@ -85,6 +85,6 @@ case class DirectedTreeCase[V, E, X <: DirectedEdge[V, E], P](description: Strin
      * @param vertexMap the vertex map.
      * @return a new AbstractGraph[V, E].
      */
-    def unit(vertexMap: VertexMap[V, X, P]): AbstractGraph[V, E, X, P] = DirectedTreeCase("no description", vertexMap)
+    def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P] = DirectedTreeCase("no description", vertexMap)
 
 }

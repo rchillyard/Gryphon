@@ -71,7 +71,7 @@ case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrde
 class LazyPrimHelper[V: Ordering, E: Ordering]() {
 
     type X = UndirectedOrderedEdge[V, E]
-    type M = OrderedVertexMap[V, X, Unit]
+    private type M = OrderedVertexMap[V, X, Unit]
 
     /**
      * Method to calculate the Minimum Spanning Tree of a graph using the LazyPrim algorithm.

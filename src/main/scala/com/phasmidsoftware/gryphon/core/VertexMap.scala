@@ -266,6 +266,13 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P](map: HashMap[V, Vertex
      */
     def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P] = UnorderedVertexMapCase[V, X, P](map.to(HashMap))
 
+    /**
+     * CONSIDER making this the default behavior for deriveProperty.
+     *
+     * @param v a vertex.
+     * @param x an edge.
+     * @return an Option[P].
+     */
     def deriveProperty(v: V, x: X): Option[P] = Some(x match {
         case z: P => z // TESTME and NOTE that P is unchecked.
         case _ => throw GraphException(s"types P and X are not the same")

@@ -21,6 +21,6 @@ object TSP {
      * @tparam E the Edge attribute type.
      * @return a Try of Iterable of UndirectedOrderedEdge.
      */
-    def createEdgeFromVertices[V: Ordering, E: Ordering](v1: V, v2: V)(implicit d: (V, V) => E): UndirectedOrderedEdge[V, E] =
-        UndirectedOrderedEdgeCase(v1, v2, d(v1, v2))
+    def createEdgeFromVertices[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]](v1: V, v2: V)(implicit d: (V, V) => E): X =
+        UndirectedOrderedEdgeCase(v1, v2, d(v1, v2)).asInstanceOf[X]
 }

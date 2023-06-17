@@ -398,7 +398,7 @@ object UndirectedGraph {
      * @tparam E the edge-attribute type.
      * @return an empty UndirectedGraphCase[V, E].
      */
-    def apply[V, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, UnorderedVertexMap.empty)
+    def createUnordered[V, E, X <: UndirectedEdge[V, E], P](description: String): UndirectedGraph[V, E, X, P] = UndirectedGraphCase(description, UnorderedVertexMap.empty)
 
     /**
      * Method to construct a new empty undirected graph with orderable vertex-type.

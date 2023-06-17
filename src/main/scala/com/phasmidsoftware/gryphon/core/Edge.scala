@@ -127,7 +127,7 @@ trait DirectedOrderedEdge[+V, E] extends DirectedEdge[V, E] with Ordering[E]
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-case class DirectedEdgeCase[V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute)
+case class DirectedEdgeCase[V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute) with DirectedEdge[V, E]
 
 /**
  * Class to represent a directed, ordered edge from <code>from</code> to <code>to</code>.
@@ -140,7 +140,7 @@ case class DirectedEdgeCase[V, E](from: V, to: V, attribute: E) extends BaseDire
  * @tparam E the Edge type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class DirectedOrderedEdgeCase[V, E: Ordering](from: V, to: V, attribute: E) extends BaseDirectedOrderedEdge[V, E](from, to, attribute)
+case class DirectedOrderedEdgeCase[V, E: Ordering](from: V, to: V, attribute: E) extends BaseDirectedOrderedEdge[V, E](from, to, attribute) with DirectedOrderedEdge[V, E]
 
 /**
  * Class to represent an undirected edge between <code>v1</code> and <code>v2</code>.
@@ -152,7 +152,7 @@ case class DirectedOrderedEdgeCase[V, E: Ordering](from: V, to: V, attribute: E)
  *           Requires implicit evidence of type Ordering[V].
  * @tparam E the Edge type, i.e. the type of its attribute.
  */
-case class UndirectedEdgeCase[V: Ordering, E](v1: V, v2: V, attribute: E) extends BaseUndirectedEdge[V, E](v1, v2, attribute)
+case class UndirectedEdgeCase[V: Ordering, E](v1: V, v2: V, attribute: E) extends BaseUndirectedEdge[V, E](v1, v2, attribute) with UndirectedEdge[V, E]
 
 /**
  * Class to represent an undirected, ordered edge between <code>v1</code> and <code>v2</code>.
@@ -165,7 +165,7 @@ case class UndirectedEdgeCase[V: Ordering, E](v1: V, v2: V, attribute: E) extend
  * @tparam E the Edge type, i.e. the type of its attribute.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute)
+case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute) with UndirectedOrderedEdge[V, E]
 
 /**
  * Abstract base class to represent an undirected edge.
@@ -329,7 +329,7 @@ trait VertexPair[+V] extends Edge[V, Unit] {
  * @param v2 another vertex.
  * @tparam V the Vertex key type, i.e. the type of its attribute.
  */
-case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2) {
+case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2) with VertexPair[V] {
     def unit[W >: V](v1: W, v2: W): VertexPair[W] = VertexPairCase(v1, v2)
 }
 

@@ -17,19 +17,19 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
     behavior of "UndirectedGraphCase"
 
     it should "create an empty graph" in {
-        val target: UndirectedGraph[String, String, UndirectedEdge[String, String], Unit] = UndirectedGraph("test")
+        val target: UndirectedGraph[String, String, UndirectedEdge[String, String], Unit] = UndirectedGraph.createUnordered("test")
         target.edges shouldBe Nil
         target.vertices shouldBe Set.empty
     }
 
     it should "create a graph with one empty vertex" in {
-        val graph: UndirectedGraph[String, String, UndirectedEdge[String, String], Unit] = UndirectedGraph("test")
+        val graph: UndirectedGraph[String, String, UndirectedEdge[String, String], Unit] = UndirectedGraph.createUnordered("test")
         val target = graph.addVertex(vertexA)
         target.vertices shouldBe Set(vertexA)
     }
 
     it should "create a graph with one edge" in {
-        val graph: UndirectedGraph[String, Color, UndirectedEdge[String, Color], Unit] = UndirectedGraph("test")
+        val graph: UndirectedGraph[String, Color, UndirectedEdge[String, Color], Unit] = UndirectedGraph.createUnordered("test")
         val edge: UndirectedEdgeCase[String, Color] = UndirectedEdgeCase(vertexA, vertexB, red)
         val target = graph.addEdge(edge)
         target.vertices.size shouldBe 2
@@ -46,7 +46,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
 
     it should "dfs" in {
         import com.phasmidsoftware.gryphon.visit.Journal._
-        val graph: UndirectedGraph[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedGraph("test")
+        val graph: UndirectedGraph[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedGraph.createUnordered("test")
         val target = graph.addEdge(UndirectedEdgeCase("A", "B", 1)).addEdge(UndirectedEdgeCase("B", "C", 2))
         val visitor = Visitor.createPostQueue[String]
         target.dfs(visitor)("A") match {
@@ -56,7 +56,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
 
     it should "bfs" in {
         import com.phasmidsoftware.gryphon.visit.Journal._
-        val graph: UndirectedGraph[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedGraph("test")
+        val graph: UndirectedGraph[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedGraph.createUnordered("test")
         val target = graph.addEdge(UndirectedEdgeCase("A", "B", 1)).addEdge(UndirectedEdgeCase("A", "D", 3)).addEdge(UndirectedEdgeCase("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         val result = target.bfs(visitor)("A")

@@ -21,9 +21,10 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val edge1 = UndirectedOrderedEdgeCase("A", "B", 1)
         val edge3 = UndirectedOrderedEdgeCase("A", "D", 3)
         val edge2 = UndirectedOrderedEdgeCase("A", "C", 2)
+        val value1: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = UndirectedGraph.createUnordered[String, Int, UndirectedOrderedEdge[String, Int], Unit]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2)
         // TODO eliminate this asInstanceOf
-        val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = UndirectedGraph[String, Int, Unit]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2).asInstanceOf[UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit]]
-        val target: LazyPrimCase[String, Int] = new LazyPrimHelper[String, Int]().createFromGraph(graph)
+        val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = value1
+        val target: LazyPrim[String, Int, UndirectedOrderedEdge[String, Int]] = new LazyPrimHelper[String, Int, UndirectedOrderedEdge[String, Int]]().createFromGraph(graph)
         target.edges shouldBe List(edge3, edge2, edge1)
     }
 
@@ -32,10 +33,10 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         val graphBuilder = new UndirectedGraphBuilder[Int, Double, Unit]()
 
         val esy = graphBuilder.createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
-        graphBuilder.createGraphFromEdges(UndirectedGraph[Int, Double, Unit]("no title"))(esy) match {
+        graphBuilder.createGraphFromEdges(UndirectedGraph.createUnordered[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]("no title"))(esy) match {
             case Success(graph) =>
                 // TODO eliminate this asInstanceOf
-                val prim = new LazyPrimHelper[Int, Double]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
+                val prim = new LazyPrimHelper[Int, Double, UndirectedOrderedEdge[Int, Double]]().createFromGraph(graph.asInstanceOf[UndirectedGraph[Int, Double, UndirectedOrderedEdge[Int, Double], Unit]])
                 prim.edges.size shouldBe 7
                 prim.mst.vertices.size shouldBe 8
                 prim.edges map (_.attribute) shouldBe List(0.26, 0.16, 0.4, 0.17, 0.35, 0.28, 0.19)
@@ -93,8 +94,8 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
         implicit val tableParser: vertexDataParser.VertexDataTSPTableParser.type = vertexDataParser.VertexDataTSPTableParser
         val cvty: Try[Table[VertexDataTSP[Crime]]] = Table.parseResource[Table[VertexDataTSP[Crime]]](spring2023Project)
         val csy: Try[Iterable[Crime]] = cvty map (cvt => for (r <- cvt.rows) yield r.attribute)
-        csy map (new LazyPrimHelper[Crime, Double]().createFromVertices(_)) match {
-            case Success(mst: MST[Crime, Double]) =>
+        csy map (new LazyPrimHelper[Crime, Double, UndirectedOrderedEdge[Crime, Double]]().createFromVertices(_)) match {
+            case Success(mst: MST[Crime, Double, UndirectedOrderedEdge[Crime, Double]]) =>
                 mst.edges.size shouldBe 584
                 val total = mst.total
                 println(total)

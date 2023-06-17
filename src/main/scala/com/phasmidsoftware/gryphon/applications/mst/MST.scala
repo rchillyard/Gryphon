@@ -15,9 +15,9 @@ import com.phasmidsoftware.gryphon.util.LazyPriorityQueue
  * @tparam V the vertex (key) attribute type.
  * @tparam E the edge type.
  */
-trait MST[V, E] {
+trait MST[V, E, X <: UndirectedOrderedEdge[V, E]] {
 
-    def mst: Tree[V, E, UndirectedOrderedEdge[V, E], Unit]
+    def mst: Tree[V, E, X, Unit]
 
     def total(implicit en: Numeric[E]): E
 }
@@ -30,11 +30,37 @@ trait MST[V, E] {
  * @tparam E the edge type.
  *           Requires implicit evidence of type Ordering[E].
  */
-abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E, UndirectedOrderedEdge[V, E], Unit]) extends MST[V, E] {
+abstract class BaseMST[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]](_mst: Tree[V, E, X, Unit]) extends MST[V, E, X] {
+
+    def mst: Tree[V, E, X, Unit] = _mst
 
     def isCyclic: Boolean = _mst.isCyclic
 
     def isBipartite: Boolean = _mst.isBipartite
+}
+
+trait LazyPrim[V, E, X <: UndirectedOrderedEdge[V, E]] extends MST[V, E, X] {
+
+    /**
+     * (abstract) Yield an iterable of edges, of type X.
+     *
+     * @return an Iterable[X].
+     */
+    val edges: Iterable[UndirectedEdge[V, E]]
+    /**
+     * (abstract) The vertex map.
+     */
+    val vertexMap: VertexMap[V, X, Unit]
+
+    /**
+     * An attribute.
+     *
+     * @return the value of the attribute, for example, a weight.
+     */
+    val attribute: String = "LazyPrim"
+
+    def total(implicit en: Numeric[E]): E
+
 }
 
 /**
@@ -45,7 +71,7 @@ abstract class BaseMST[V: Ordering, E: Ordering](_mst: Tree[V, E, UndirectedOrde
  * @tparam E the edge type.
  *           Requires implicit evidence of type Ordering[E].
  */
-case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrderedEdge[V, E], Unit]) extends BaseMST[V, E](mst) {
+case class LazyPrimCase[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]](_mst: Tree[V, E, X, Unit]) extends BaseMST[V, E, X](_mst) with LazyPrim[V, E, X] {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -56,21 +82,13 @@ case class LazyPrimCase[V: Ordering, E: Ordering](mst: Tree[V, E, UndirectedOrde
     /**
      * (abstract) The vertex map.
      */
-    val vertexMap: VertexMap[V, UndirectedOrderedEdge[V, E], Unit] = mst.vertexMap
-
-    /**
-     * An attribute.
-     *
-     * @return the value of the attribute, for example, a weight.
-     */
-    val attribute: String = "LazyPrim"
+    val vertexMap: VertexMap[V, X, Unit] = mst.vertexMap
 
     def total(implicit en: Numeric[E]): E = edges.map(_.attribute).sum
 }
 
-class LazyPrimHelper[V: Ordering, E: Ordering]() {
+class LazyPrimHelper[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]]() {
 
-    type X = UndirectedOrderedEdge[V, E]
     private type M = OrderedVertexMap[V, X, Unit]
 
     /**
@@ -79,7 +97,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
      * @param graph the graph whose MST is required.
      * @return the MST for graph.
      */
-    def createFromGraph(graph: UndirectedGraph[V, E, X, Unit]): LazyPrimCase[V, E] = {
+    def createFromGraph(graph: UndirectedGraph[V, E, X, Unit]): LazyPrim[V, E, X] = {
         /**
          * Method to yield the candidate edges from the given set of vertices.
          * TODO merge this method with candidateEdges in createFromVertices.
@@ -91,7 +109,8 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
         def candidateEdges(v: V, m: M): Iterable[X] =
             graph.vertexMap.adjacentEdgesWithFilter(v)(x => !m.containsOther(v, x))
 
-        LazyPrimCase(UndirectedTreeCase[V, E, X, Unit](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges)))
+        val z: UndirectedTreeCase[V, E, X, Unit] = UndirectedTreeCase[V, E, X, Unit](s"MST for graph ${graph.attribute}", doLazyPrim(graph.vertices, candidateEdges))
+        LazyPrimCase(z)
     }
 
     /**
@@ -101,7 +120,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
      *                 (potentially all edges between pairs of vertices are considered).
      * @return the MST for graph.
      */
-    def createFromVertices(vertices: Iterable[V])(implicit d: (V, V) => E): LazyPrimCase[V, E] = {
+    def createFromVertices(vertices: Iterable[V])(implicit d: (V, V) => E): LazyPrim[V, E, X] = {
         /**
          * Method to yield the candidate edges from the given set of vertices.
          *
@@ -114,7 +133,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering]() {
                 w <- vertices
                 vo = implicitly[Ordering[V]]
                 eo = implicitly[Ordering[E]]
-                x = createEdgeFromVertices(v, w)(vo, eo, d) if !m.containsOther(v, x)
+                x = createEdgeFromVertices[V, E, X](v, w)(vo, eo, d) if !m.containsOther(v, x)
             } yield
                 x
 

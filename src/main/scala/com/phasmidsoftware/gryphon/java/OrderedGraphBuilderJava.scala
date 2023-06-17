@@ -27,7 +27,7 @@ case class OrderedGraphBuilderJava[V: Ordering, E: Ordering, P](gb: com.phasmids
     def createGraphFromUndirectedEdgeList(eso: Optional[java.util.List[UndirectedEdge[V, E]]]): Optional[Graph[V, E, UndirectedEdge[V, E], (V, V)]] = {
         val ely = optionToTry(eso.toScala, GraphException(s"OrderedGraphBuilderJava.createGraphFromUndirectedEdgeList: cannot get edge list: $eso"))
         val esy = ely map (el => el.asScala.toSeq)
-        val graph: Graph[V, E, UndirectedEdge[V, E], (V, V)] = UndirectedGraph[V, E, (V, V)]("no title")
+        val graph: Graph[V, E, UndirectedEdge[V, E], (V, V)] = UndirectedGraph.createUnordered[V, E, UndirectedEdge[V, E], (V, V)]("no title")
         gb.createGraphFromEdges[UndirectedEdge[V, E]](graph)(esy).toOption.asJava
     }
 }

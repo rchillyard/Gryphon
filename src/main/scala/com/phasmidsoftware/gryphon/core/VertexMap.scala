@@ -215,6 +215,17 @@ case class OrderedVertexMapCase[V: Ordering, X <: EdgeLike[V], P](map: TreeMap[V
     }
 
     def deriveProperty(v: V, x: X): Option[P] = None
+
+    /**
+     * Method to add an edge to this VertexMap.
+     *
+     * CONSIDER re-writing this (without super implementation).
+     *
+     * @param v the (key) value of the vertex whose adjacency list we are adding to.
+     * @param y the edge to be added to the adjacency list.
+     * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
+     */
+    override def addEdge(v: V, y: X): OrderedVertexMap[V, X, P] = super.addEdge(v, y).asInstanceOf[OrderedVertexMap[V, X, P]]
 }
 
 /**
@@ -277,6 +288,15 @@ case class UnorderedVertexMapCase[V, X <: EdgeLike[V], P](map: HashMap[V, Vertex
         case z: P => z // TESTME and NOTE that P is unchecked.
         case _ => throw GraphException(s"types P and X are not the same")
     })
+
+    /**
+     * Method to add an edge to this VertexMap.
+     *
+     * @param v the (key) value of the vertex whose adjacency list we are adding to.
+     * @param y the edge to be added to the adjacency list.
+     * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
+     */
+    override def addEdge(v: V, y: X): UnorderedVertexMap[V, X, P] = super.addEdge(v, y).asInstanceOf[UnorderedVertexMap[V, X, P]]
 }
 
 /**
@@ -346,12 +366,12 @@ case class PairVertexMapCase[V, P](map: HashMap[V, Vertex[V, VertexPair[V], P]])
      * @param y the edge to be added to the adjacency list.
      * @return a new VertexMap which includes all the original entries of <code>this</code> plus <code>v -> x</code>.
      */
-    def addEdge(v: V, y: VertexPair[V]): VertexMap[V, VertexPair[V], P] = unit(
+    def addEdge(v: V, y: VertexPair[V]): PairVertexMap[V, P] = unit(
         _map.get(v) match {
             case Some(vv) => buildMap(_map - v, v, y, vv)
             case None => buildMap(_map, v, y, Vertex.empty(v))
         }
-    )
+    ).asInstanceOf[PairVertexMap[V, P]]
 
     /**
      * Build a VertexMap from the given map (m) and the edge y at vertex v.

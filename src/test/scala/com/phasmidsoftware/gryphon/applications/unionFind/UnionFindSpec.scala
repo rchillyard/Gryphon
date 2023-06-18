@@ -68,11 +68,17 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "unit" in {
-
+        val empty = UnionFind.create[Int]()
+        val target = empty.unit(Map(1 -> None, 2 -> None, 3 -> Some(1)))
+        target.size shouldBe 2
+        target.isConnected(1, 3) shouldBe true
     }
 
     it should "updated" in {
-
+        val target = UnionFind.create[Int](1, 2, 3)
+        target.isConnected(1, 3) shouldBe false
+        val update = target.unit(target.updated(1, Some(3)))
+        update.isConnected(1, 3) shouldBe true
     }
 
 }

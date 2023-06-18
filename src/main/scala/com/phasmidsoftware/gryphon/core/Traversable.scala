@@ -31,7 +31,7 @@ trait Traversable[V] {
      * @tparam J the journal type.
      * @return a new Visitor[V, J].
      */
-    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+    def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J]
 
     /**
      * Method to run breadth-first-search with a mutable queue on this Traversable.

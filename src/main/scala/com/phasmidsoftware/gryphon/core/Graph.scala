@@ -21,7 +21,7 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  *
  */
-trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with Attributed[String] with Traversable[V] {
+trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected[V] with Attributed[String] with Traversable[V] {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -83,7 +83,7 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with Attributed[St
      * @tparam J the journal type.
      * @return a new Visitor[V, J].
      */
-    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.bfs(visitor)(v)
+    def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = vertexMap.bfs(visitor)(v)(goal)
 
     /**
      * Method to run breadth-first-search with a mutable queue on this Graph.
@@ -190,6 +190,37 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E], P](val __description: String
      * @return AdjacencyList[X]
      */
     def allAdjacencies: AdjacencyList[X] = __vertexMap.values.foldLeft(AdjacencyList.empty[X])(_ ++ _.adjacent)
+
+
+    /**
+     * Method to determine if there is a path from v1 to v2.
+     *
+     * @param v1 the start of the possible path.
+     * @param v2 the end of the possible path.
+     * @return true if it is possible to follow a path from v1 to v2.
+     *         It may be possible that this implies a path from v2 to v1 but that information is not expressed by this method.
+     */
+    def isPath(v1: V, v2: V): Boolean = __vertexMap.isPath(v1, v2)
+
+    /**
+     * Method to get a path between v1 and v2.
+     * There is no implication that this is the shortest path.
+     *
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return the path from v1 to v2.
+     *         By convention, the path consists of v1, any intermediate nodes, and v2.
+     */
+    def path(v1: V, v2: V): Seq[V] = __vertexMap.path(v1, v2)
+
+    /**
+     * Method to make a connection between v1 and v2.
+     *
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return a new Connected object on which isConnected(v1, v2) will be true.
+     */
+    def connect(v1: V, v2: V): Graph[V, E, X, P] = ???  // TOEO implement me@
 
     /**
      * (abstract) Method to create a new AbstractGraph from a given vertex map.

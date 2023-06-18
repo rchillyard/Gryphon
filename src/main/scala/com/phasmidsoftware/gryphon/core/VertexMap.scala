@@ -27,7 +27,7 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
-trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] {
+trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] with PathConnected[V] {
     self =>
 
     /**
@@ -539,9 +539,10 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @tparam J the journal type.
      * @return a new Visitor[V, J].
      */
-    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+    def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = {
         initializeVisits(v)
         implicit object queuable extends QueueableQueue[V]
+        // TODO implement checking on goal in doBFSImmutable.
         val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)
         result.close()
         result
@@ -563,6 +564,37 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         result.close()
         result
     }
+
+
+    /**
+     * Method to determine if there is a path from v1 to v2.
+     *
+     * @param v1 the start of the possible path.
+     * @param v2 the end of the possible path.
+     * @return true if it is possible to follow a path from v1 to v2.
+     *         It may be possible that this implies a path from v2 to v1 but that information is not expressed by this method.
+     */
+    def isPath(v1: V, v2: V): Boolean = path(v1, v2).size >= 2
+
+    /**
+     * Method to get a path between v1 and v2.
+     * There is no implication that this is the shortest path.
+     *
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return the path from v1 to v2.
+     *         By convention, the path consists of v1, any intermediate nodes, and v2.
+     */
+    def path(v1: V, v2: V): Seq[V] = ??? // TODO implement me.
+
+    /**
+     * Method to make a connection between v1 and v2.
+     *
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return a new Connected object on which isConnected(v1, v2) will be true.
+     */
+    def connect(v1: V, v2: V): Connected[V] = ??? // TODO implement me,
 
     /**
      * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.

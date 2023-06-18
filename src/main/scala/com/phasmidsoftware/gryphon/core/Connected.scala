@@ -22,7 +22,6 @@ trait Connected[V] {
      */
     def isConnected(v1: V, v2: V): Boolean
 
-
     /**
      * Method to make a connection between v1 and v2.
      *

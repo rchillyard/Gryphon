@@ -544,17 +544,17 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
     }
 
     /**
-     * Method to run breadth-first-search on this VertexMap.
+     * Method to run goal-terminated breadth-first-search on this VertexMap.
      *
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
+     * @param goal    a function which will return true when the goal is reached.
      * @tparam J the journal type.
      * @return a new Visitor[V, J].
      */
     def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = {
         initializeVisits(v)
         implicit object queuable extends QueueableQueue[V]
-        // TODO implement checking on goal in doBFSImmutable.
         val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)(goal)
         result.close()
         result
@@ -562,6 +562,8 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
     /**
      * Method to run breadth-first-search with a mutable queue on this Traversable.
+     *
+     * TODO implement goal function.
      *
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
@@ -580,8 +582,8 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
     /**
      * Method to determine if there is a connection between v1 and v2.
      *
-     * @param v1 a node in a network.
-     * @param v2 another node in a network.
+     * @param v1 a node in a graph.
+     * @param v2 another node in the graph.
      * @return true if there is a connection between v1 and v2.
      */
     def isPathConnected(v1: V, v2: V): Boolean = path(v1, v2).nonEmpty
@@ -596,10 +598,8 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      *         By convention, the path consists of v1, any intermediate nodes, and v2.
      */
     def path(v1: V, v2: V): Seq[V] = {
-        implicit val vijq: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
-        val q: PreVisitorIterable[V, Queue[V]] = PreVisitorIterable[V, Queue[V]]()
-        val z: Visitor[V, Queue[V]] = bfs(q)(v1)(v => v == v2)
-        val result = z.journal.toList
+        val visitor: Visitor[V, Queue[V]] = bfs(PreVisitorIterable.create[V])(v1)(v => v == v2)
+        val result = visitor.journal.toList
         (result.headOption, result.lastOption) match {
             case (Some(`v1`), Some(`v2`)) => result
             case _ => Nil
@@ -655,7 +655,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
     private def getVertices(v: V, y: X): Seq[V] = findAndMarkVertex(vertexMap, { _: Vertex[V, X, P] => () }, y.other(v), "getVertices").toSeq
 
-    private def doBFSImmutableX[J, Q](visitor: Visitor[V, J], queue: Q)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
+    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
         @tailrec
         def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
             case Some((head, _)) if goal(head) => result.visitPre(head)
@@ -663,12 +663,8 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
             case _ => result
         }
 
-        inner(visitor, queue)
+        inner(visitor, queueable.append(queueable.empty, v))
     }
-
-    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
-    // CONSIDER inlining this method
-        doBFSImmutableX(visitor, queueable.append(queueable.empty, v))(goal)
 
     private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         @tailrec

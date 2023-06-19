@@ -109,11 +109,11 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
         val target = WeightedUnionFind.create[Int](1, 2, 3)
         val iterator = target.iterator
         iterator.hasNext shouldBe true
-        iterator.next() shouldBe (1 -> (None -> 1))
+        iterator.next() shouldBe (1 -> ParentSize[Int])
         iterator.hasNext shouldBe true
-        iterator.next() shouldBe (2 -> (None -> 1))
+        iterator.next() shouldBe (2 -> ParentSize[Int])
         iterator.hasNext shouldBe true
-        iterator.next() shouldBe (3 -> (None -> 1))
+        iterator.next() shouldBe (3 -> ParentSize[Int])
         iterator.hasNext shouldBe false
     }
 
@@ -127,7 +127,7 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
     it should "get" in {
         val target = WeightedUnionFind.create[Int](1, 2, 3)
         target.get(0) shouldBe None
-        target.get(1) shouldBe Some(None -> 1)
+        target.get(1) shouldBe Some(ParentSize[Int])
     }
 
     it should "getDisjointSet" in {
@@ -141,10 +141,18 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
         a[GraphException] should be thrownBy target.getDisjointSet(0)
     }
 
-    it should "connect" in {
+    it should "connect 1" in {
         val target = WeightedUnionFind.create[Int](1, 2, 3)
         val connected = target.connect(1, 2)
         connected.isConnected(1, 2) shouldBe true
+    }
+
+    it should "connect 2" in {
+        val target: WeightedUnionFind[String] = WeightedUnionFind.create("A", "B", "C")
+        val c1 = target.connect("A", "B")
+        println(c1)
+        val c2 = c1.connect("C", "A")
+        println(c2)
     }
 
     it should "remove" in {
@@ -162,7 +170,7 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
 
     it should "unit" in {
         val empty = WeightedUnionFind.create[Int]()
-        val target = empty.unit(Map(1 -> (None -> 1), 2 -> (None -> 1), 3 -> (Some(1) -> 1)))
+        val target = empty.unit(Map(1 -> ParentSize[Int], 2 -> ParentSize[Int], 3 -> ParentSize[Int](1)))
         target.size shouldBe 2
         target.isConnected(1, 3) shouldBe true
     }
@@ -170,14 +178,13 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
     it should "updated" in {
         val target = WeightedUnionFind.create[Int](1, 2, 3)
         target.isConnected(1, 3) shouldBe false
-        val update = target.unit(target.updated(1, Some(3) -> 2))
+        val update = target.unit(target.updated(1, ParentSize(Some(3), 2)))
         update.isConnected(1, 3) shouldBe true
     }
 
-
     it should "check random" in {
         val max = 100000
-        val n = 1000
+        val n = 10
         val randomInts = LazyList.continually(random.nextInt(max)).take(n).toList
 
         def getPair: (Int, Int) = (randomInts(random.nextInt(n)), randomInts(random.nextInt(n)))

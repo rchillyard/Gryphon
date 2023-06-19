@@ -23,8 +23,6 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
  * <li>Those that can't be ordered according to type V (these will use a HashMap)</li>
  * </ol>
  *
- * CONSIDER that we should create a type of VertexMap which does not require edges (lists will point directly to vertices).
- *
  * @tparam V the (key) vertex-type of a graph.
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
@@ -155,6 +153,13 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] with PathConnecte
      */
     def connect(v1: V, v2: V): VertexMap[V, X, P]
 
+    /**
+     * (abstract) Method to construct a new VertexMap from the given map.
+     *
+     * @param map a Map (might be TreeMap or HashMap).
+     * @return a new VertexMap[V, X].
+     */
+    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P]
 }
 
 object VertexMap {
@@ -379,7 +384,9 @@ object UnorderedVertexMap {
  * @tparam V the (key) vertex-type of a graph.
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
-trait PairVertexMap[V, P] extends VertexMap[V, VertexPair[V], P]
+trait PairVertexMap[V, P] extends VertexMap[V, VertexPair[V], P] {
+    def unit(map: Map[V, Vertex[V, VertexPair[V], P]]): PairVertexMap[V, P]
+}
 
 /**
  * Case class to represent an unordered VertexMap,
@@ -400,10 +407,10 @@ case class PairVertexMapCase[V, P](map: HashMap[V, Vertex[V, VertexPair[V], P]])
      * @param v the (key) attribute of the result.
      * @return a new PairVertexMap[V, P].
      */
-    def addVertex(v: V): PairVertexMap[V, P] = unit(_map + (v -> (_map.get(v) match {
+    override def addVertex(v: V): PairVertexMap[V, P] = unit(_map + (v -> (_map.get(v) match {
         case Some(vv) => vv
         case None => Vertex.empty(v)
-    }))).asInstanceOf[PairVertexMap[V, P]]
+    })))
 
     /**
      * Method to add an edge to this VertexMap.
@@ -417,7 +424,7 @@ case class PairVertexMapCase[V, P](map: HashMap[V, Vertex[V, VertexPair[V], P]])
             case Some(vv) => buildMap(_map - v, v, y, vv)
             case None => buildMap(_map, v, y, Vertex.empty(v))
         }
-    ).asInstanceOf[PairVertexMap[V, P]]
+    )
 
     /**
      * Build a VertexMap from the given map (m) and the edge y at vertex v.
@@ -438,7 +445,7 @@ case class PairVertexMapCase[V, P](map: HashMap[V, Vertex[V, VertexPair[V], P]])
      * @param map a HashMap. If it is not a HashMap, it will be converted to one.
      * @return a new UnorderedVertexMapCase[V, X].
      */
-    def unit(map: Map[V, Vertex[V, VertexPair[V], P]]): VertexMap[V, VertexPair[V], P] = PairVertexMapCase[V, P](map.to(HashMap))
+    def unit(map: Map[V, Vertex[V, VertexPair[V], P]]): PairVertexMap[V, P] = PairVertexMapCase[V, P](map.to(HashMap))
 
     def deriveProperty(v: V, x: VertexPair[V]): Option[P] = Some(x match {
         case z: P => z // TESTME and NOTE that P is unchecked.
@@ -504,6 +511,20 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * The map of V -> Vertex[V, X] elements.
      */
     val vertexMap: Map[V, Vertex[V, X, P]] = _map
+
+    /**
+     * Method to add a vertex of (key) type V to this graph.
+     * The vertex will have degree of zero.
+     *
+     * CONSIDER not implementing this here but in sub-classes.
+     *
+     * @param v the (key) attribute of the result.
+     * @return a new VertexMap[V, E, X].
+     */
+    def addVertex(v: V): VertexMap[V, X, P] = unit(vertexMap + (v -> (get(v) match {
+        case Some(vv) => vv
+        case None => Vertex.empty(v)
+    })))
 
     /**
      * Method to yield the Vertex at v.
@@ -710,20 +731,6 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V], P](val __map: Map[V, Vertex[V,
     require(_map != null, "BaseVertexMap: _map is null")
 
     /**
-     * Method to add a vertex of (key) type V to this graph.
-     * The vertex will have degree of zero.
-     *
-     * CONSIDER not implementing this here but in sub-classes.
-     *
-     * @param v the (key) attribute of the result.
-     * @return a new VertexMap[V, E, X].
-     */
-    def addVertex(v: V): VertexMap[V, X, P] = unit(_map + (v -> (_map.get(v) match {
-        case Some(vv) => vv
-        case None => Vertex.empty(v)
-    })))
-
-    /**
      * Method to add an edge to this VertexMap.
      *
      * @param v the (key) value of the vertex whose adjacency list we are adding to.
@@ -736,14 +743,6 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V], P](val __map: Map[V, Vertex[V,
             case None => buildMap(_map, v, y, Vertex.empty(v))
         }
     )
-
-    /**
-     * (abstract) Method to construct a new VertexMap from the given map.
-     *
-     * @param map a Map (might be TreeMap or HashMap).
-     * @return a new VertexMap[V, X].
-     */
-    def unit(map: Map[V, Vertex[V, X, P]]): VertexMap[V, X, P]
 
     /**
      * Build a VertexMap from the given map (m) and the edge y at vertex v.

@@ -122,4 +122,23 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
             case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "B", "D")
         }
     }
+
+    it should "path" in {
+        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty[String, DirectedEdgeCase[String, Int], Unit].addEdge("A", DirectedEdgeCase("A", "B", 1)).addEdge("B", DirectedEdgeCase("B", "C", 2)).addVertex("C")
+        val target = DirectedGraphCase[String, Int, DirectedEdgeCase[String, Int], Unit]("test", vertexMap)
+        target.path("A", "B") shouldBe List("A", "B")
+        target.path("B", "A") shouldBe Nil
+        target.path("A", "C") shouldBe List("A", "B", "C")
+        target.path("C", "A") shouldBe Nil
+    }
+
+    it should "isPath" in {
+        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty[String, DirectedEdgeCase[String, Int], Unit].addEdge("A", DirectedEdgeCase("A", "B", 1)).addEdge("B", DirectedEdgeCase("B", "C", 2)).addVertex("C")
+        val target = DirectedGraphCase[String, Int, DirectedEdgeCase[String, Int], Unit]("test", vertexMap)
+        target.isPath("A", "B") shouldBe true
+        target.isPath("B", "A") shouldBe false
+        target.isPath("A", "C") shouldBe true
+        target.isPath("C", "A") shouldBe false
+    }
+
 }

@@ -191,16 +191,14 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E], P](val __description: String
      */
     def allAdjacencies: AdjacencyList[X] = __vertexMap.values.foldLeft(AdjacencyList.empty[X])(_ ++ _.adjacent)
 
-
     /**
-     * Method to determine if there is a path from v1 to v2.
+     * Method to determine if there is a connection between v1 and v2.
      *
      * @param v1 the start of the possible path.
      * @param v2 the end of the possible path.
-     * @return true if it is possible to follow a path from v1 to v2.
-     *         It may be possible that this implies a path from v2 to v1 but that information is not expressed by this method.
+     * @return true if there is a connection between v1 and v2.
      */
-    def isPath(v1: V, v2: V): Boolean = __vertexMap.isPath(v1, v2)
+    def isPathConnected(v1: V, v2: V): Boolean = __vertexMap.isPathConnected(v1, v2)
 
     /**
      * Method to get a path between v1 and v2.
@@ -220,8 +218,7 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E], P](val __description: String
      * @param v2 another node in a network.
      * @return a new Connected object on which isConnected(v1, v2) will be true.
      */
-    def connect(v1: V, v2: V): Graph[V, E, X, P] = ???  // TOEO implement me@
-
+    def connect(v1: V, v2: V): Graph[V, E, X, P] = unit(vertexMap.connect(v1, v2))
     /**
      * (abstract) Method to create a new AbstractGraph from a given vertex map.
      *

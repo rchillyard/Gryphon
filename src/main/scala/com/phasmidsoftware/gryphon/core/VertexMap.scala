@@ -7,7 +7,7 @@ package com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.flog.Flog
 import com.phasmidsoftware.gryphon.core.VertexMap.findAndMarkVertex
 import com.phasmidsoftware.gryphon.visit.Queueable.QueueableQueue
-import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Queueable, Visitor}
+import com.phasmidsoftware.gryphon.visit._
 import scala.annotation.tailrec
 import scala.collection.immutable.{HashMap, Queue, TreeMap}
 
@@ -22,6 +22,8 @@ import scala.collection.immutable.{HashMap, Queue, TreeMap}
  * <li>Those that can be ordered according to type V (these will use a TreeMap)</li>
  * <li>Those that can't be ordered according to type V (these will use a HashMap)</li>
  * </ol>
+ *
+ * CONSIDER that we should create a type of VertexMap which does not require edges (lists will point directly to vertices).
  *
  * @tparam V the (key) vertex-type of a graph.
  * @tparam X the edge-type of a graph. A sub-type of EdgeLike[V].
@@ -143,6 +145,16 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] with PathConnecte
     def copyVertices[Xout <: EdgeLike[V]](to: VertexMap[V, Xout, Unit]): VertexMap[V, Xout, Unit] = keys.foldLeft(to) {
         (mv, v) => mv.addVertex(v)
     }
+
+    /**
+     * Method to make a connection between v1 and v2.
+     *
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return a new Connected object on which isConnected(v1, v2) will be true.
+     */
+    def connect(v1: V, v2: V): VertexMap[V, X, P]
+
 }
 
 object VertexMap {
@@ -543,7 +555,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         initializeVisits(v)
         implicit object queuable extends QueueableQueue[V]
         // TODO implement checking on goal in doBFSImmutable.
-        val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)
+        val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)(goal)
         result.close()
         result
     }
@@ -565,16 +577,14 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         result
     }
 
-
     /**
-     * Method to determine if there is a path from v1 to v2.
+     * Method to determine if there is a connection between v1 and v2.
      *
-     * @param v1 the start of the possible path.
-     * @param v2 the end of the possible path.
-     * @return true if it is possible to follow a path from v1 to v2.
-     *         It may be possible that this implies a path from v2 to v1 but that information is not expressed by this method.
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return true if there is a connection between v1 and v2.
      */
-    def isPath(v1: V, v2: V): Boolean = path(v1, v2).size >= 2
+    def isPathConnected(v1: V, v2: V): Boolean = path(v1, v2).nonEmpty
 
     /**
      * Method to get a path between v1 and v2.
@@ -585,7 +595,16 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @return the path from v1 to v2.
      *         By convention, the path consists of v1, any intermediate nodes, and v2.
      */
-    def path(v1: V, v2: V): Seq[V] = ??? // TODO implement me.
+    def path(v1: V, v2: V): Seq[V] = {
+        implicit val vijq: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
+        val q: PreVisitorIterable[V, Queue[V]] = PreVisitorIterable[V, Queue[V]]()
+        val z: Visitor[V, Queue[V]] = bfs(q)(v1)(v => v == v2)
+        val result = z.journal.toList
+        (result.headOption, result.lastOption) match {
+            case (Some(`v1`), Some(`v2`)) => result
+            case _ => Nil
+        }
+    }
 
     /**
      * Method to make a connection between v1 and v2.
@@ -594,7 +613,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @param v2 another node in a network.
      * @return a new Connected object on which isConnected(v1, v2) will be true.
      */
-    def connect(v1: V, v2: V): Connected[V] = ??? // TODO implement me,
+    def connect(v1: V, v2: V): VertexMap[V, X, P] = throw GraphException("connect not implemented for VertexMap") // TODO implement me,
 
     /**
      * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
@@ -636,9 +655,10 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
     private def getVertices(v: V, y: X): Seq[V] = findAndMarkVertex(vertexMap, { _: Vertex[V, X, P] => () }, y.other(v), "getVertices").toSeq
 
-    private def doBFSImmutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
+    private def doBFSImmutableX[J, Q](visitor: Visitor[V, J], queue: Q)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
         @tailrec
         def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
+            case Some((head, _)) if goal(head) => result.visitPre(head)
             case Some((head, tail)) => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
             case _ => result
         }
@@ -646,9 +666,9 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         inner(visitor, queue)
     }
 
-    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
+    private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] =
     // CONSIDER inlining this method
-        doBFSImmutableX(visitor, queueable.append(queueable.empty, v))
+        doBFSImmutableX(visitor, queueable.append(queueable.empty, v))(goal)
 
     private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         @tailrec

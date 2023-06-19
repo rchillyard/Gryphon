@@ -122,4 +122,22 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
         val m5: Map[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]] = target.buildMap(m4, green, edge17, vGreen)
         m5 shouldBe m4 + (green -> VertexCase[Color, DirectedEdge[Color, Int], Unit](green, AdjacencyList(List(edge17))))
     }
+
+    it should "path" in {
+        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
+        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addEdge("B", DirectedEdgeCase("B", "C", 2)).addVertex("C")
+        target.path("A", "B") shouldBe List("A", "B")
+        target.path("B", "A") shouldBe Nil
+        target.path("A", "C") shouldBe List("A", "B", "C")
+        target.path("C", "A") shouldBe Nil
+    }
+
+    it should "isPath" in {
+        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
+        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addEdge("B", DirectedEdgeCase("B", "C", 2)).addVertex("C")
+        target.isPath("A", "B") shouldBe true
+        target.isPath("B", "A") shouldBe false
+        target.isPath("A", "C") shouldBe true
+        target.isPath("C", "A") shouldBe false
+    }
 }

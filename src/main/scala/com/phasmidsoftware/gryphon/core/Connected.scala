@@ -49,7 +49,7 @@ trait PathConnected[V] extends Connected[V] {
      * @return true if it is possible to follow a path from v1 to v2.
      *         It may be possible that this implies a path from v2 to v1 but that information is not expressed by this method.
      */
-    def isPath(v1: V, v2: V): Boolean
+    def isPath(v1: V, v2: V): Boolean = isPathConnected(v1, v2)
 
     /**
      * Method to determine if there is a connection between v1 and v2.
@@ -59,6 +59,15 @@ trait PathConnected[V] extends Connected[V] {
      * @return true if there is a connection between v1 and v2.
      */
     def isConnected(v1: V, v2: V): Boolean = isPath(v1, v2)
+
+    /**
+     * Method to determine if there is a connection between v1 and v2.
+     *
+     * @param v1 a node in a network.
+     * @param v2 another node in a network.
+     * @return true if there is a connection between v1 and v2.
+     */
+    def isPathConnected(v1: V, v2: V): Boolean
 
     /**
      * Method to get a path between v1 and v2.

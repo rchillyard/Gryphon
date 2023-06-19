@@ -17,7 +17,7 @@ trait DisjointSet[V] extends Connected[V] {
      * Method to return the set to which the given key belongs.
      *
      * @param key a key.
-     * @return the key corresponding to the root of the tree to which key belongs.
+     * @return the key corresponding to the root of the tree to which <code>key</code> belongs.
      */
     def getDisjointSet(key: V): V
 
@@ -33,17 +33,19 @@ trait DisjointSet[V] extends Connected[V] {
      *
      * @param v1 an object in the first of the sets to be connected.
      * @param v2 an object in the second of the sets to be connected.
-     * @return a new DisjointSet on which isConnected(v1, v2) will be true.
+     * @return a new DisjointSet on which <code>isConnected(v1, v2)</code> will be true.
      */
     def connect(v1: V, v2: V): DisjointSet[V]
 }
 
 /**
  * An abstract class to model the behavior of a disjoint set.
- * Each object in the given Map is associated with an optional parent object which represents the disjoint set to which the object belongs.
+ * Each object in the given Map is associated with a W value.
+ * A parent function (f) is used to map the associated W with an Option[V] (the parent if there is one).
  * If the optional parent is None, then the object has no parent and is "root" of its own disjoint set.
  *
  * @param map a Map of V -> Option[V] which represents the component map for each object.
+ * @param f   a function which takes a W and returns an Option[V].
  * @tparam V the underlying type of the objects.
  * @tparam W the type of the key to the map (this may be the same as V or it might be compounded from V).
  */
@@ -66,6 +68,14 @@ abstract class AbstractDisjointSet[V, W](map: Map[V, W])(f: W => Option[V]) exte
     def parent(v: V): Option[V] = get(v) flatMap f
 
     /**
+     * Method to yield the depth of object v in the component hierarchy.
+     *
+     * @param v the object.
+     * @return its depth (where 1 indicates that v is the root of its own component).
+     */
+    def depth(v: V): Int = inner(v, 1)._2
+
+    /**
      * Get the number of disjoint sets.
      * Note that if you want the number of objects, just invoke map.size.
      *
@@ -82,6 +92,14 @@ abstract class AbstractDisjointSet[V, W](map: Map[V, W])(f: W => Option[V]) exte
     def unit(map: Map[V, W]): DisjointSet[V]
 
     /**
+     * Method to create a new DisjointSet from this by adding a new object which will be its own component.
+     *
+     * @param key a V.
+     * @return a new DisjointSet.
+     */
+    def put(key: V): DisjointSet[V]
+
+    /**
      * Method to remove a key from this disjoint set.
      *
      * @param key the key to be remove.
@@ -94,19 +112,16 @@ abstract class AbstractDisjointSet[V, W](map: Map[V, W])(f: W => Option[V]) exte
      *
      * @param key   the key (if the key already exists, then its value will be updated).
      * @param value the (new) value.
-     * @tparam W1 the underlying type of the value (basically an Option[W], but note that the value type in a Map is covariant).
+     * @tparam W1 the underlying type of the value (note that the value type in a Map is covariant).
      * @return a new Map[W, W1].
      */
     def updated[W1 >: W](key: V, value: W1): Map[V, W1] = map.updated(key, value)
 
     /**
-     * Method to get the value of a key.
+     * Method to get the value associated with a key.
      *
      * @param key the given key.
-     * @return an Option of Option[V].
-     *         If the result is None, then key is not in this disjoint set.
-     *         If the result is Some(None), then key represents the root node of a component.
-     *         If the result is Some(Some(w)), then the result is the parent node for the given key.
+     * @return an Option[W].
      */
     def get(key: V): Option[W] = map.get(key)
 
@@ -132,14 +147,14 @@ abstract class AbstractDisjointSet[V, W](map: Map[V, W])(f: W => Option[V]) exte
      * @param key a key.
      * @return the key corresponding to the root of the tree to which key belongs.
      */
-    def getDisjointSet(key: V): V = {
-        @tailrec
-        def inner(w: V): V = get(w) map f match {
-            case Some(None) => w
-            case Some(Some(x)) => inner(x)
-            case None => throw GraphException(s"DisjointSet: getDisjointSet: key $key does not exist in any set")
-        }
+    def getDisjointSet(key: V): V = inner(key, 0)._1
 
-        inner(key)
+    @tailrec
+    private def inner(w: V, d: Int): (V, Int) = get(w) map f match {
+        case Some(None) => (w, d)
+        case Some(Some(x)) if x != w => inner(x, d + 1)
+        case Some(Some(x)) =>
+            throw GraphException(s"DisjointSet: corrupted structure: key $x points to itself")
+        case None => throw GraphException(s"DisjointSet: inner: key $w does not exist")
     }
 }

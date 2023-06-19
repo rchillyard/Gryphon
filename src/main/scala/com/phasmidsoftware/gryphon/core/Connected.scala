@@ -6,6 +6,7 @@ package com.phasmidsoftware.gryphon.core
 
 /**
  * Trait to model the behavior of a set of V objects which can be connected (or not).
+ * Examples of Connected are: (1) Union-Find data structure, (2) any graph.
  *
  * @tparam V the underlying type.
  */
@@ -34,6 +35,7 @@ trait Connected[V] {
 
 /**
  * Trait to define the behavior of connected network that has paths.
+ * Example of PathConnected is: any graph.
  *
  * @tparam V the underlying type.
  */

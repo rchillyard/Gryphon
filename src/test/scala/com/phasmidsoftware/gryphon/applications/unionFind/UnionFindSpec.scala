@@ -7,8 +7,11 @@ package com.phasmidsoftware.gryphon.applications.unionFind
 import com.phasmidsoftware.gryphon.core.GraphException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.util.Random
 
 class UnionFindSpec extends AnyFlatSpec with should.Matchers {
+
+    val random: Random = new Random()
 
     behavior of "UnionFind"
 
@@ -81,6 +84,24 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
         update.isConnected(1, 3) shouldBe true
     }
 
+    it should "check random" in {
+        val max = 100000
+        val n = 1000
+        val randomInts = LazyList.continually(random.nextInt(max)).take(n).toList
+
+        def getPair: (Int, Int) = (randomInts(random.nextInt(n)), randomInts(random.nextInt(n)))
+
+        val target: UnionFind[Int] = UnionFind.create[Int](randomInts: _*)
+        val connections = 4 * n
+        val pairs: Seq[(Int, Int)] = LazyList.continually(getPair).take(connections).toList
+
+        def connect(u: UnionFind[Int], t: (Int, Int)): UnionFind[Int] = u.connect(t._1, t._2)
+
+        val result: UnionFind[Int] = pairs.foldLeft[UnionFind[Int]](target)(connect)
+        println(s"The number of components remaining from $n originally and with $connections connections is ${result.size}")
+        println(s"The maximum depth of the objects is ${result.maxDepth}")
+        println(s"The mean depth of the objects is ${result.meanDepth}")
+    }
 
     behavior of "WeightedUnionFind"
 
@@ -152,4 +173,25 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers {
         val update = target.unit(target.updated(1, Some(3) -> 2))
         update.isConnected(1, 3) shouldBe true
     }
+
+
+    it should "check random" in {
+        val max = 100000
+        val n = 1000
+        val randomInts = LazyList.continually(random.nextInt(max)).take(n).toList
+
+        def getPair: (Int, Int) = (randomInts(random.nextInt(n)), randomInts(random.nextInt(n)))
+
+        val target: WeightedUnionFind[Int] = WeightedUnionFind.create[Int](randomInts: _*)
+        val connections = 4 * n
+        val pairs: Seq[(Int, Int)] = LazyList.continually(getPair).take(connections).toList
+
+        def connect(u: WeightedUnionFind[Int], t: (Int, Int)): WeightedUnionFind[Int] = u.connect(t._1, t._2)
+
+        val result: WeightedUnionFind[Int] = pairs.foldLeft[WeightedUnionFind[Int]](target)(connect)
+        println(s"The number of components remaining from $n originally and with $connections connections is ${result.size}")
+        println(s"The maximum depth of the objects is ${result.maxDepth}")
+        println(s"The mean depth of the objects is ${result.meanDepth}")
+    }
+
 }

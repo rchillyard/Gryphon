@@ -162,21 +162,27 @@ case class WeightedUnionFind[V](map: Map[V, ParentSize[V]]) extends AbstractUnio
      * @param v2 another object (site).
      * @return a new Map of V -> ParentSize[V].
      */
-    protected def union(v1: V, v2: V): Map[V, ParentSize[V]] =
-        if (v1 != v2) {
-            def join(w1: V, w2: V, s: Int): Map[V, ParentSize[V]] = updated(w1, ParentSize(Some(w2), s)).updated(w1, ParentSize(Some(w2), s))
+    protected def union(v1: V, v2: V): Map[V, ParentSize[V]] = if (v1 != v2) {
+        /**
+         * This join method joins two components by making child be a child of parent.
+         *
+         * @param child  the object to be added into the parent.
+         * @param parent the parent which will have child added.
+         * @param size   the size of the new version of parent.
+         * @return a new Map.
+         */
+        def join(child: V, parent: V, size: Int) =
+            map.updatedWith(child)(vpo => vpo map (_.reparent(Some(parent)))).updatedWith(parent)(vpo => vpo map (_.resize(size)))
 
-            (get(v1), get(v2)) match {
-                case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) if s1 < s2 =>
-                    val joined = join(v1, v2, s1 + s2)
-                    joined
-                case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
-                    val joined = join(v2, v1, s1 + s2)
-                    joined
-                case _ => throw GraphException(s"UnionFind: logic error")
-            }
+        (get(v1), get(v2)) match {
+            case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) if s1 < s2 =>
+                join(v1, v2, s1 + s2)
+            case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
+                join(v2, v1, s1 + s2)
+            case _ => throw GraphException(s"UnionFind: logic error")
         }
-        else throw GraphException(s"WeightedUnionFind: union: objects are the same: $v1 and $v2")
+    }
+    else throw GraphException(s"WeightedUnionFind: union: objects are the same: $v1 and $v2")
 }
 
 /**
@@ -210,14 +216,50 @@ object WeightedUnionFind {
     def create[V](vs: V*): WeightedUnionFind[V] = WeightedUnionFind(vs.map(v => v -> ParentSize[V]))
 }
 
+/**
+ * Case class to represent an (optional) parent and a size.
+ * We use a case class rather than a tuple, because we need to use the copy method.
+ *
+ * @param parent the (optional) parent. If None, then this ParentSize is at the root of a component tree.
+ * @param size   the size.
+ * @tparam V the underlying object type.
+ */
 case class ParentSize[V](parent: Option[V], size: Int) {
+    /**
+     * Create a new ParentSize with the same size value as this but a different parent.
+     *
+     * @param vo the new (optional) parent object.
+     * @return a new ParentSize.
+     */
     def reparent(vo: Option[V]): ParentSize[V] = copy(parent = vo)
 
+    /**
+     * Create a new ParentSize with the same parent value as this but a different size.
+     *
+     * @param s the new size.
+     * @return a new ParentSize.
+     */
     def resize(s: Int): ParentSize[V] = copy(size = s)
 }
 
+/**
+ * Companion object to ParentSize.
+ */
 object ParentSize {
+    /**
+     * Method to construct a new ParentSize with parent is Some(v) and size = 1.
+     *
+     * @param v the object.
+     * @tparam V the underlying object type.
+     * @return a new ParentSize.
+     */
     def apply[V](v: V): ParentSize[V] = apply(Some(v), 1)
 
+    /**
+     * Method to construct a new ParentSize with parent is None and size = 1.
+     *
+     * @tparam V the underlying object type.
+     * @return a new ParentSize.
+     */
     def apply[V]: ParentSize[V] = apply(None, 1)
 }

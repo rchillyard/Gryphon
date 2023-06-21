@@ -66,6 +66,7 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected
 
     /**
      * Method to run depth-first-search on this Graph.
+     * Vertices will not be visited if they are not reachable from v.
      *
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
@@ -73,6 +74,15 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected
      * @return a new Visitor[V, J].
      */
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
+
+    /**
+     * Method to run depth-first-search on this Graph, ensuring that every vertex in the graph is visited..
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
 
     /**
      * Method to run breadth-first-search on this Graph.

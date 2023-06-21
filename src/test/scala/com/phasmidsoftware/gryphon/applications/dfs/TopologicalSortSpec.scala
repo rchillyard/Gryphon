@@ -15,7 +15,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
 
     behavior of "TopologicalSort"
 
-    ignore should "sort" in { // FIXME this isn't right.
+    it should "sort" in { // FIXME this isn't right.
         val uy = resource("/dag.graph")
         val graphBuilder: GraphBuilder[Int, Unit, Unit] = new GraphBuilder[Int, Unit, Unit]()
         val z: Try[Iterable[DirectedEdge[Int, Unit]]] = graphBuilder.createEdgeListPair(uy)(DirectedEdge.apply[Int])

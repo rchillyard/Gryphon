@@ -4,8 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
-import com.phasmidsoftware.gryphon.core.{DirectedEdge, Graph, GraphException}
-import com.phasmidsoftware.gryphon.util.Util.getOrThrow
+import com.phasmidsoftware.gryphon.core.{DirectedEdge, Graph}
 import com.phasmidsoftware.gryphon.visit.{IterableJournalStack, Visitor}
 
 object TopologicalSort {
@@ -22,8 +21,7 @@ object TopologicalSort {
      */
     def sort[V, E, X <: DirectedEdge[V, E], P](graph: Graph[V, E, X, P]): Seq[V] = {
         implicit val vj: IterableJournalStack[V] = new IterableJournalStack[V] {}
-        val start = getOrThrow(graph.vertices.headOption, GraphException("TopologicalSort: graph given has no vertices"))
-        val visited: Visitor[V, List[V]] = graph.dfs(Visitor.reversePostList[V])(start)
+        val visited: Visitor[V, List[V]] = graph.dfsAll(Visitor.reversePostList[V])
         visited.journal
     }
 }

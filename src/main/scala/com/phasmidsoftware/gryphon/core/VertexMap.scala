@@ -73,6 +73,8 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends Traversable[V] with PathConnecte
     /**
      * Method to get a sequence of the adjacent edges for vertex with key (attribute) v.
      *
+     * CONSIDER making this method private.
+     *
      * @param v the key (attribute) of the vertex whose adjacency list we require.
      * @return <code>optAdjacencyList(v).toSeq.flatMap(_.xs)</code>.
      */
@@ -178,7 +180,7 @@ object VertexMap {
             val xXvo: Option[Vertex[V, X, P]] = vertexMap.get(z) filterNot (_.discovered)
             xXvo foreach (vertex => f(vertex))
             xXvo map (_.attribute)
-        case None => throw GraphException(errorMessage)
+        case None => maybeV //  NOTE: this is not a problem. // throw GraphException(errorMessage)
     }
 }
 
@@ -558,8 +560,26 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @return a new Visitor[V, J].
      */
     def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
-        initializeVisits(v)
+        initializeVisits(Some(v))
         val result = recursiveDFS(visitor, v)
+        result.close()
+        result
+    }
+
+    /**
+     * Method to run depth-first-search on this VertexMap, ensuring that every vertex in the map is visited..
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = {
+        def doDFS(visitor: Visitor[V, J], vertex: V): Visitor[V, J] =
+            if (get(vertex).forall(_.discovered)) visitor
+            else recursiveDFS(visitor, vertex)
+
+        initializeVisits(None)
+        val result = keys.foldLeft(visitor)((visitor, vertex) => doDFS(visitor, vertex))
         result.close()
         result
     }
@@ -574,7 +594,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @return a new Visitor[V, J].
      */
     def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = {
-        initializeVisits(v)
+        initializeVisits(Some(v))
         implicit object queuable extends QueueableQueue[V]
         val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)(goal)
         result.close()
@@ -594,7 +614,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @return a new Visitor[V, J].
      */
     def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = {
-        initializeVisits(v)
+        initializeVisits(Some(v))
         val result: Visitor[V, J] = doBFSMutable[J, Q](visitor, v)
         result.close()
         result
@@ -647,10 +667,11 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
     private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] =
         recurseOnVertex(v, visitor.visitPre(v)).visitPost(v)
 
-    private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = optAdjacencyList(v) match {
-        case Some(xa) => xa.xs.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
-        case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
-    }
+    private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
+        optAdjacencyList(v) match {
+            case Some(xa) => xa.xs.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
+            case None => throw GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
+        }
 
     /**
      * This should not be a method of VertexMap but instead should be passed in to VertexMap (or maybe into GraphBuilderHelper).
@@ -711,9 +732,9 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
     }
 
-    private def initializeVisits[J](v: V): Unit = {
+    private def initializeVisits[J](vo: Option[V]): Unit = {
         vertexMap.values foreach (_.reset())
-        VertexMap.findAndMarkVertex(vertexMap, { _: Vertex[V, X, P] => () }, Some(v), s"initializeVisits")
+        VertexMap.findAndMarkVertex(vertexMap, { _: Vertex[V, X, P] => () }, vo, s"initializeVisits")
     }
 }
 

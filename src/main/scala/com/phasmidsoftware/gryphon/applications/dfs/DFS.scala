@@ -9,8 +9,7 @@ import com.phasmidsoftware.gryphon.visit.{IterableJournalQueue, Visitor}
 import scala.collection.immutable.Queue
 
 /**
- * Trait to model the behavior of a minimum spanning tree.
- * This works only for undirected graphs.
+ * Trait to model the behavior of a depth-first search.
  *
  * @tparam V the vertex (key) attribute type.
  * @tparam E the edge type.
@@ -41,7 +40,7 @@ abstract class BaseDFS[V, E, X <: Edge[V, E], P](_tree: Tree[V, E, X, P]) extend
 }
 
 /**
- * Concrete implementation of DFS that results in a Tree of edges emanating from the a particular start point.
+ * Concrete implementation of DFS that results in a Tree of edges emanating from a particular start point.
  *
  * @param tree the directed-edge tree.
  * @tparam V the vertex (key) attribute type.

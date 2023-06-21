@@ -103,6 +103,33 @@ trait UndirectedEdge[+V, +E] extends Edge[V, E] with Undirected[V]
 trait DirectedEdge[+V, +E] extends Edge[V, E] with Directed[V]
 
 /**
+ * DirectedEdge object, companion to the trait.
+ */
+object DirectedEdge {
+    /**
+     * Method to construct a DirectedEdge with no attribute type from two vertices.
+     *
+     * @param from (V) start vertex attribute (key).
+     * @param to   (V) the end vertex attribute (key).
+     * @tparam V the Vertex key type, i.e. the type of its attribute.
+     * @return a DirectedEdge[V, Unit]
+     */
+    def apply[V](from: V, to: V): DirectedEdge[V, Unit] = DirectedEdgeCase(from, to, ())
+
+    /**
+     * Method to construct a DirectedEdge from two vertices and an attribute.
+     *
+     * @param from      (V) start vertex attribute (key).
+     * @param to        (V) the end vertex attribute (key).
+     * @param attribute (E) the edge attribute
+     * @tparam V the Vertex key type, i.e. the type of its attribute.
+     * @tparam E the edge attribute type.
+     * @return a DirectedEdge[V, E]
+     */
+    def apply[V, E](from: V, to: V, attribute: E): DirectedEdge[V, E] = DirectedEdgeCase(from, to, attribute)
+}
+
+/**
  * Trait to represent an undirected ordered edge.
  *
  * @tparam V the Vertex key type, i.e. the type of its attribute.
@@ -117,6 +144,33 @@ trait UndirectedOrderedEdge[+V, E] extends UndirectedEdge[V, E] with Ordering[E]
  * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
  */
 trait DirectedOrderedEdge[+V, E] extends DirectedEdge[V, E] with Ordering[E]
+
+/**
+ * UndirectedEdge object, companion to the trait.
+ */
+object UndirectedEdge {
+    /**
+     * Method to construct a UndirectedEdge with no attribute type from two vertices.
+     *
+     * @param from (V) start vertex attribute (key).
+     * @param to   (V) the end vertex attribute (key).
+     * @tparam V the Vertex key type, i.e. the type of its attribute.
+     * @return a UndirectedEdge[V, Unit]
+     */
+    def apply[V: Ordering](from: V, to: V): UndirectedEdge[V, Unit] = UndirectedEdgeCase(from, to, ())
+
+    /**
+     * Method to construct a DirectedEdge from two vertices and an attribute.
+     *
+     * @param from      (V) start vertex attribute (key).
+     * @param to        (V) the end vertex attribute (key).
+     * @param attribute (E) the edge attribute
+     * @tparam V the Vertex key type, i.e. the type of its attribute.
+     * @tparam E the edge attribute type.
+     * @return a DirectedEdge[V, E]
+     */
+    def apply[V: Ordering, E](from: V, to: V, attribute: E): UndirectedEdge[V, E] = UndirectedEdgeCase(from, to, attribute)
+}
 
 /**
  * Class to represent a directed edge from <code>from</code> to <code>to</code>.

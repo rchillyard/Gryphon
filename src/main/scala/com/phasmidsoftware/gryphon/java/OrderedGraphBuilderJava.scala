@@ -15,9 +15,9 @@ import scala.jdk.OptionConverters.RichOptional
 import scala.util.Try
 
 /**
- * This UndirectedGraphBuilder is intended to be called from Java.
+ * This GraphBuilder is intended to be called from Java.
  */
-case class OrderedGraphBuilderJava[V: Ordering, E: Ordering, P](gb: com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder[V, E, (V, V)]) {
+case class OrderedGraphBuilderJava[V: Ordering, E: Ordering, P](gb: com.phasmidsoftware.gryphon.util.GraphBuilder[V, E, (V, V)]) {
 
     def createUndirectedEdgeList(u: String): Optional[java.util.List[UndirectedEdge[V, E]]] = {
         val z: Try[Iterable[UndirectedEdge[V, E]]] = gb.createEdgeListTriple(resource(u))(UndirectedEdgeCase(_, _, _))
@@ -40,9 +40,9 @@ object OrderedGraphBuilderJava {
         implicit object ParseableE extends Parseable[E] {
             def parse(w: String): Try[E] = parseString(fE, "E")(w)
         }
-        OrderedGraphBuilderJava(new com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder[V, E, (V, V)])
+        OrderedGraphBuilderJava(new com.phasmidsoftware.gryphon.util.GraphBuilder[V, E, (V, V)])
     }
 
     private def parseString[T](f: function.Function[String, T], genericType: String)(w: String): Try[T] =
-        tryNonNull(f(w), GraphException(s"Java UndirectedGraphBuilder.apply: cannot parse $w as a " + genericType))
+        tryNonNull(f(w), GraphException(s"Java GraphBuilder.apply: cannot parse $w as a " + genericType))
 }

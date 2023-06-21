@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.applications.dfs
 
 import com.phasmidsoftware.gryphon.core._
 import com.phasmidsoftware.gryphon.parse.Parseable.ParseableUnit
-import com.phasmidsoftware.gryphon.util.UndirectedGraphBuilder
+import com.phasmidsoftware.gryphon.util.GraphBuilder
 import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -18,7 +18,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
 
     it should "dfsTree" in {
         val uy = resource("/dfsu.graph")
-        val graphBuilder = new UndirectedGraphBuilder[Int, Unit, VertexPair[Int]]()
+        val graphBuilder = new GraphBuilder[Int, Unit, VertexPair[Int]]()
         val z: Try[Iterable[VertexPair[Int]]] = graphBuilder.createEdgeListPair(uy)(VertexPairCase.apply)
         val graph: Graph[Int, Unit, VertexPair[Int], VertexPair[Int]] = VertexPairGraph[Int, VertexPair[Int]]("DFSU")
         val gy: Try[Graph[Int, Unit, VertexPair[Int], VertexPair[Int]]] = graphBuilder.createGraphFromEdges[VertexPair[Int]](graph)(z)

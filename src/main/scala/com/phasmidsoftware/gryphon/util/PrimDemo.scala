@@ -13,7 +13,7 @@ object PrimDemo extends App {
 
     private val resourceName = "/prim.graph"
     private val uy = resource(resourceName)
-    private val gy = new UndirectedGraphBuilder[Int, Double, Unit]().createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
+    private val gy = new GraphBuilder[Int, Double, Unit]().createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
     gy match {
         case Success(g) =>
             println(s"read ${g.size} edges from $resourceName")

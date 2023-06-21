@@ -11,7 +11,7 @@ import java.net.URL
 import scala.io.{BufferedSource, Source}
 import scala.util.Try
 
-abstract class GraphBuilder[V: Parseable, E: Parseable] {
+abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] {
 
     /**
      * Method to create an edge list (edge from VVE triples).
@@ -80,11 +80,19 @@ abstract class GraphBuilder[V: Parseable, E: Parseable] {
 }
 
 /**
- * Utility class to help create graphs from edge lists, etc.
+ * Utility class to help create an undirected graph from an edge list, etc.
  * The edges of this class support Ordering.
  */
-case class UndirectedGraphBuilder[V: Ordering : Parseable, E: Parseable, P]() extends GraphBuilder[V, E] {
+case class GraphBuilder[V: Ordering : Parseable, E: Parseable, P]() extends AbstractGraphBuilder[V, E] {
 
+    /**
+     * Method to create a graph from a list of edges.
+     *
+     * @param graph an empty graph of the appropriate type.
+     * @param esy   a Try of Iterable[X].
+     * @tparam X the edge type.
+     * @return a Try of Graph[V, E, X, P].
+     */
     def createGraphFromEdges[X <: Edge[V, E]](graph: Graph[V, E, X, P])(esy: Try[Iterable[X]]): Try[Graph[V, E, X, P]] =
         esy map {
             es => es.foldLeft(graph)((g, e) => g.addEdge(e))

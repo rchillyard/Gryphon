@@ -23,7 +23,8 @@ object Util {
         eys.foldLeft(Try(List[X]())) { (xsy, ey) =>
             (xsy, ey) match {
                 case (Success(xs), Success(e)) => Success(xs :+ e)
-                case _ => Failure(GraphException("GraphBuilder: sequence error"))
+                case (Failure(x), _) => Failure(x)
+                case (_, Failure(x)) => Failure(x)
             }
         }
 

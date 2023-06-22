@@ -14,6 +14,8 @@ object TSP {
     /**
      * Method to create an edge from two vertices.
      *
+     * CONSIDER why is this in TSP?
+     *
      * @param v1 one vertex.
      * @param v2 the other vertex.
      * @param d  a function to get an E from a pair of Vs (usually this will be the distance).

@@ -5,6 +5,9 @@
 package com.phasmidsoftware.gryphon.applications.sp
 
 import com.phasmidsoftware.gryphon.core.{Edge, Graph, VertexMap}
+import com.phasmidsoftware.gryphon.visit.PriorityQueueable.QueueablePriorityQueue
+import com.phasmidsoftware.gryphon.visit.{PreVisitorIterable, Visitor}
+import scala.collection.immutable.Queue
 import scala.collection.mutable
 import scala.collection.mutable.PriorityQueue
 
@@ -26,7 +29,15 @@ abstract class BaseSP[V, E, X <: Edge[V, E]](graph: Graph[V, E, X, Double])(star
 
     val pq: mutable.PriorityQueue[V] = new PriorityQueue[V]()
 
-//    graph.bfsMutable()
+    implicit object z extends QueueablePriorityQueue[V] {
+        def compare(x: V, y: V): Int = ordering.compare(x, y)
+    }
+
+    implicit object q extends com.phasmidsoftware.gryphon.visit.IterableJournalQueue[V]
+
+    val visitor: PreVisitorIterable[V, Queue[V]] = Visitor.createPreQueue[V]
+
+    lazy val reachable: List[V] = graph.bfsMutable(visitor)(start).journal.iterator.toList
 
 //    def relax(x: X)
 

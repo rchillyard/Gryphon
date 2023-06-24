@@ -52,7 +52,7 @@ abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] {
 
     private def processTripleSource(s: BufferedSource) = for {
         string <- s.getLines()
-        Array(wV1, wV2, wE) = string.split(" ")
+        Array(wV1, wV2, wE) = string.split("""\s+""")
     } yield for {
         v1 <- implicitly[Parseable[V]].parse(wV1)
         v2 <- implicitly[Parseable[V]].parse(wV2)
@@ -72,7 +72,7 @@ abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] {
 
     private def processPairSource(s: BufferedSource) = for {
         string <- s.getLines()
-        Array(wV1, wV2) = string.split(" ")
+        Array(wV1, wV2) = string.split("""\s+""")
     } yield for {
         v1 <- implicitly[Parseable[V]].parse(wV1)
         v2 <- implicitly[Parseable[V]].parse(wV2)

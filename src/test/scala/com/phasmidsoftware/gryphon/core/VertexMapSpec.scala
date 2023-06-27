@@ -39,7 +39,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
         val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
         val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
         val visitor = Visitor.createPreQueue[String]
-        val result = target.bfsMutable(visitor)("A")
+        val result = target.bfsMutable(visitor)("A")(v => false)
         result match {
             case x: IterableVisitor[String, _] => x.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
         }

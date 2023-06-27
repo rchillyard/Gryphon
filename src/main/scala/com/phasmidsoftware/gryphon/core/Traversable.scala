@@ -53,5 +53,5 @@ trait Traversable[V] {
      *           Requires implicit evidence of MutableQueueable[Q, V].
      * @return a new Visitor[V, J].
      */
-    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
+    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
 }

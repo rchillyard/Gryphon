@@ -587,6 +587,8 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
     /**
      * Method to run goal-terminated breadth-first-search on this VertexMap.
      *
+     * CONSIDER add relax method as in bfsMutable.
+     *
      * @param visitor the visitor, of type Visitor[V, J].
      * @param v       the starting vertex.
      * @param goal    a function which will return true when the goal is reached.
@@ -613,9 +615,10 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      *           Requires implicit evidence of MutableQueueable[Q, V].
      * @return a new Visitor[V, J].
      */
-    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = {
+    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = {
         initializeVisits(Some(v))
-        val result: Visitor[V, J] = doBFSMutable[J, Q](visitor, v)
+        val relax: (V,X) => Unit = (v,x) => () // TODO implement relaxation
+        val result: Visitor[V, J] = doBFSMutable[J, Q](visitor, v)(goal)(relax)
         result.close()
         result
     }
@@ -708,7 +711,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         inner(visitor, queueable.append(queueable.empty, v))
     }
 
-    private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
+    private def doBFSMutableX[J, Q](visitor: Visitor[V, J], queue: Q)(goal: V => Boolean)(relax: (V,X) => Unit)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         @tailrec
         def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = {
             queueable.take(work) match {
@@ -720,11 +723,11 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
         inner(visitor, queue)
     }
 
-    private def doBFSMutable[J, Q](visitor: Visitor[V, J], v: V)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
+    private def doBFSMutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(relax: (V,X) => Unit)(implicit queueable: MutableQueueable[Q, V]): Visitor[V, J] = {
         val queue: Q = queueable.empty
         queueable.append(queue, v)
         // CONSIDER inlining this method
-        doBFSMutableX(visitor, queue)
+        doBFSMutableX(visitor, queue)(goal)(relax)
     }
 
     private def enqueueMutableUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: MutableQueueable[Q, V]): Q = optAdjacencyList(v) match {

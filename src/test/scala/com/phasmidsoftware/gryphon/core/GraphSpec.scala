@@ -117,7 +117,7 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "D", 3)).addEdge(DirectedEdgeCase("A", "C", 2))
         val visitor = Visitor.createPreQueue[String]
         import com.phasmidsoftware.gryphon.visit.PriorityQueueable._
-        val result = target.bfsMutable(visitor)("A")
+        val result = target.bfsMutable(visitor)("A")(v => false)
         result match {
             case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "B", "D")
         }

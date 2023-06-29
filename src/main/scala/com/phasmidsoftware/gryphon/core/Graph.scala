@@ -6,6 +6,51 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 
+trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] {
+
+    /**
+     * (abstract) The vertex map.
+     */
+    val vertexMap: VertexMap[V, X, P]
+
+    /**
+     * Yield an iterable of vertices of type V.
+     *
+     * @return an Iterable[V].
+     */
+    val vertices: Iterable[V] = vertexMap.keys
+
+    /**
+     * Method to add a vertex of (key) type V to this network.
+     * The vertex will have degree of zero.
+     *
+     * @param v the (key) attribute of the result.
+     * @return a new Network[V, X, P].
+     */
+    def addVertex(v: V): Network[V, X, P]
+
+    /**
+     * Method to run depth-first-search on this Graph.
+     * Vertices will not be visited if they are not reachable from v.
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @param v       the starting vertex.
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
+
+    /**
+     * Method to run depth-first-search on this Graph, ensuring that every vertex in the graph is visited..
+     *
+     * @param visitor the visitor, of type Visitor[V, J].
+     * @tparam J the journal type.
+     * @return a new Visitor[V, J].
+     */
+    def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
+
+}
+
 /**
  * Trait to model the behavior of a graph.
  *
@@ -21,7 +66,7 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  *
  */
-trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected[V] with Attributed[String] with Traversable[V] {
+trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnected[V] with Attributed[String] {
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
@@ -29,18 +74,6 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected
      * @return an Iterable[X].
      */
     val edges: Iterable[X]
-
-    /**
-     * (abstract) The vertex map.
-     */
-    val vertexMap: VertexMap[V, X, P]
-
-    /**
-     * Yield an iterable of vertices of type V.
-     *
-     * @return an Iterable[V].
-     */
-    val vertices: Iterable[V] = vertexMap.keys
 
     /**
      * Yield an iterable of edge attributes of type E.
@@ -63,26 +96,6 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected
      * @return a new AbstractGraph[V, E, X].
      */
     def addVertex(v: V): Graph[V, E, X, P]
-
-    /**
-     * Method to run depth-first-search on this Graph.
-     * Vertices will not be visited if they are not reachable from v.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
-
-    /**
-     * Method to run depth-first-search on this Graph, ensuring that every vertex in the graph is visited..
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
 
     /**
      * Method to run breadth-first-search on this Graph.
@@ -114,7 +127,7 @@ trait Graph[V, E, X <: Edge[V, E], P] extends GraphLike[V, E] with PathConnected
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  */
-trait GraphLike[V, E] {
+trait GraphLike {
     def isCyclic: Boolean = true
 
     def isBipartite: Boolean = false

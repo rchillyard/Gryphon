@@ -5,24 +5,27 @@
 package com.phasmidsoftware.gryphon.core
 
 /**
- * Trait to model the behavior of a Tree.
+ * Trait to model the behavior of the most basic tree, which is an acyclic network.
  *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ */
+trait AcyclicNetwork[V, X <: EdgeLike[V], P] extends Network[V, X, P] {
+    override def isCyclic: Boolean = false // TODO we should be able to assert this
+
+    override def isBipartite: Boolean = true
+}
 
 /**
- * Trait to define a Tree.
+ * Trait to model the behavior of a Tree.
  *
  * @tparam V the (key) vertex-attribute type.
  * @tparam E the edge-attribute type.
  * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
- */
-trait Tree[V, E, X <: Edge[V, E], P] extends Graph[V, E, X, P] {
-    override def isCyclic: Boolean = false // TODO we should be able to assert this
-
-    override def isBipartite: Boolean = true
-}
-
+trait Tree[V, E, X <: Edge[V, E], P] extends AcyclicNetwork[V, X, P] with Graph[V, E, X, P]
 
 /**
  * Trait to define an undirected Tree.

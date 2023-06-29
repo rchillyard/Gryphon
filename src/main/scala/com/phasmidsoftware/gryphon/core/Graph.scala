@@ -88,7 +88,7 @@ trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] with
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  *
  */
-trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnected[V] {
+trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnected[V] with EdgeGoalTraversable[V, E, X, P] {
 
     /**
      * Yield an iterable of edge attributes of type E.
@@ -112,16 +112,32 @@ trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnecte
      */
     def addVertex(v: V): Graph[V, E, X, P]
 
+
+//
+//    /**
+//     * Method to run breadth-first-search on this Graph.
+//     *
+//     * @param visitor the visitor, of type Visitor[V, J].
+//     *                Note that only "pre" events are recorded by this Visitor.
+//     * @param v       the starting vertex.
+//     * @tparam J the journal type.
+//     * @return a new Visitor[V, J].
+//     */
+//    def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = vertexMap.bfs(visitor)(v)(goal)
+
     /**
-     * Method to run breadth-first-search on this Graph.
+     * Method to run breadth-first-search on this Traversable.
      *
-     * @param visitor the visitor, of type Visitor[V, J].
-     *                Note that only "pre" events are recorded by this Visitor.
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
+     * NOTE in this method name, the F comes before the S. Important ;)
+     *
+     * @param v    the starting vertex.
+     * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
+     * @return a new Tree[V, E, X, Double] of shortest paths.
      */
-    def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = vertexMap.bfs(visitor)(v)(goal)
+    def bfse(v: V)(goal: V => Option[Boolean]): Tree[V, E, X, P] = vertexMap.bfs(v)(goal) match {
+        case t: Tree[V, E, X, P] => t
+        case _ => throw GraphException("bfse: logic error")
+    }
 
     /**
      * Method to run breadth-first-search with a mutable queue on this Graph.

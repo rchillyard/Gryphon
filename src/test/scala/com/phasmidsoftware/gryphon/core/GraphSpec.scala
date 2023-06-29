@@ -54,16 +54,16 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         }
     }
 
-    it should "bfs" in {
-        import com.phasmidsoftware.gryphon.visit.Journal._
-        val graph: UndirectedGraph[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedGraph.createUnordered("test")
-        val target = graph.addEdge(UndirectedEdgeCase("A", "B", 1)).addEdge(UndirectedEdgeCase("A", "D", 3)).addEdge(UndirectedEdgeCase("A", "C", 2))
-        val visitor = Visitor.createPreQueue[String]
-        val result = target.bfs(visitor)("A")(_ => false)
-        result match {
-            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
-        }
-    }
+//    it should "bfs" in {
+//        import com.phasmidsoftware.gryphon.visit.Journal._
+//        val graph: UndirectedGraph[String, Int, UndirectedEdge[String, Int], Unit] = UndirectedGraph.createUnordered("test")
+//        val target = graph.addEdge(UndirectedEdgeCase("A", "B", 1)).addEdge(UndirectedEdgeCase("A", "D", 3)).addEdge(UndirectedEdgeCase("A", "C", 2))
+//        val visitor = Visitor.createPreQueue[String]
+//        val result = target.bfs(visitor)("A")(_ => false)
+//        result match {
+//            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
+//        }
+//    }
 
 
     behavior of "DirectedGraphCase"
@@ -100,16 +100,16 @@ class GraphSpec extends AnyFlatSpec with should.Matchers {
         }
     }
 
-    it should "bfs" in {
-        import com.phasmidsoftware.gryphon.visit.Journal._
-        val graph: DirectedGraph[String, Int, DirectedEdge[String, Int], Unit] = DirectedGraph("test")
-        val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "D", 3)).addEdge(DirectedEdgeCase("A", "C", 2))
-        val visitor = Visitor.createPreQueue[String]
-        val result = target.bfs(visitor)("A")(_ => false)
-        result match {
-            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "B", "D")
-        }
-    }
+//    it should "bfs" in {
+//        import com.phasmidsoftware.gryphon.visit.Journal._
+//        val graph: DirectedGraph[String, Int, DirectedEdge[String, Int], Unit] = DirectedGraph("test")
+//        val target = graph.addEdge(DirectedEdgeCase("A", "B", 1)).addEdge(DirectedEdgeCase("B", "D", 3)).addEdge(DirectedEdgeCase("A", "C", 2))
+//        val visitor = Visitor.createPreQueue[String]
+//        val result = target.bfs(visitor)("A")(_ => false)
+//        result match {
+//            case v: IterableVisitor[String, _] => v.iterator.toSeq shouldBe Seq("A", "C", "B", "D")
+//        }
+//    }
 
     it should "bfs with PriorityQueue" in {
         import com.phasmidsoftware.gryphon.visit.Journal._

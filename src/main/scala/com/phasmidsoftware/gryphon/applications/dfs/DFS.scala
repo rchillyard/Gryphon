@@ -73,5 +73,5 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
         }
     }
 
-    private def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, Unit]): Graph[V, Unit, Xout, Unit] = DirectedTreeCase[V, Unit, Xout, Unit](label, vertexMap)
+    private def treeGenerator(label: String, vertexMap: VertexMap[V, Xout, Unit]): Network[V, Xout, Unit] = DirectedTreeCase[V, Unit, Xout, Unit](label, vertexMap)
 }

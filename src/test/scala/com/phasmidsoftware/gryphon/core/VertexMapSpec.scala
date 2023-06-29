@@ -25,21 +25,21 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
         result.journal shouldBe Queue("A", "B", "C")
     }
 
-    it should "bfs" in {
-        import com.phasmidsoftware.gryphon.visit.Journal._
-        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
-        val visitor = Visitor.createPre[String]
-        val result = target.bfs(visitor)("A")(_ => false)
-        result.journal shouldBe Queue("A", "C", "D", "B")
-    }
+//    it should "bfs" in {
+//        import com.phasmidsoftware.gryphon.visit.Journal._
+//        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
+//        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
+//        val visitor = Visitor.createPre[String]
+//        val result = target.bfs(visitor)("A")(_ => false)
+//        result.journal shouldBe Queue("A", "C", "D", "B")
+//    }
 
     it should "bfsMutable" in {
         import com.phasmidsoftware.gryphon.visit.Journal._
         val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
         val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
         val visitor = Visitor.createPreQueue[String]
-        val result = target.bfsMutable(visitor)("A")(v => false)
+        val result = target.bfsMutable(visitor)("A")(_ => false)
         result match {
             case x: IterableVisitor[String, _] => x.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
         }

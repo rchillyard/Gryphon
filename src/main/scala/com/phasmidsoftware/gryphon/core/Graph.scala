@@ -6,7 +6,14 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 
-trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] {
+/**
+ * Trait to model the behavior of a set of vertices connected by some type of edge-like object.
+ *
+ * @tparam V the (key) vertex-attribute type.
+ * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+ * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+ */
+trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] with Attributed[String] {
 
     /**
      * (abstract) The vertex map.
@@ -19,6 +26,21 @@ trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] {
      * @return an Iterable[V].
      */
     val vertices: Iterable[V] = vertexMap.keys
+
+    /**
+     * (abstract) Yield an iterable of edges, of type X.
+     *
+     * @return an Iterable[X].
+     */
+    val edges: Iterable[X]
+
+    /**
+     * (abstract) Method to create a new Network which includes the given edge.
+     *
+     * @param x the edge to add.
+     * @return Network[V, X, P].
+     */
+    def addEdge(x: X): Network[V, X, P]
 
     /**
      * Method to add a vertex of (key) type V to this network.
@@ -66,14 +88,7 @@ trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] {
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  *
  */
-trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnected[V] with Attributed[String] {
-
-    /**
-     * (abstract) Yield an iterable of edges, of type X.
-     *
-     * @return an Iterable[X].
-     */
-    val edges: Iterable[X]
+trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnected[V] {
 
     /**
      * Yield an iterable of edge attributes of type E.
@@ -124,8 +139,6 @@ trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnecte
 /**
  * Trait to define the behavior of a graph-like object.
  *
- * @tparam V the (key) vertex-attribute type.
- * @tparam E the edge-attribute type.
  */
 trait GraphLike {
     def isCyclic: Boolean = true

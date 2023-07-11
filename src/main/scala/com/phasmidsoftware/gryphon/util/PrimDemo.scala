@@ -11,13 +11,13 @@ import scala.util.{Failure, Success}
 // CONSIDER move this to applications package
 object PrimDemo extends App {
 
-    private val resourceName = "/prim.graph"
-    private val uy = resource(resourceName)
-    private val gy = new GraphBuilder[Int, Double, Unit]().createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
-    gy match {
-        case Success(g) =>
-            println(s"read ${g.size} edges from $resourceName")
-            println(g)
-        case Failure(x) => throw x
-    }
+  private val resourceName = "/prim.graph"
+  private val uy = resource(resourceName)
+  private val gy = new GraphBuilder[Int, Double, Unit]().createEdgeListTriple(uy)(UndirectedOrderedEdgeCase(_, _, _))
+  gy match {
+    case Success(g) =>
+      println(s"read ${g.size} edges from $resourceName")
+      println(g)
+    case Failure(x) => throw x
+  }
 }

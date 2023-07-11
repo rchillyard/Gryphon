@@ -16,7 +16,7 @@ import scala.util.Try
  * @tparam V the vertex attribute type.
  */
 trait VertexData[V] {
-    def attribute: V
+  def attribute: V
 }
 
 /**
@@ -36,44 +36,44 @@ case class VertexDataTSP[V: Ordering : CellParser](attribute: V) extends VertexD
  */
 class VertexDataParser[V: Ordering : CellParser] {
 
-    private object VertexDataTSPParser extends CellParsers {
+  private object VertexDataTSPParser extends CellParsers {
 
-        implicit val columnHelper: ColumnHelper[V] = columnHelper()
+    implicit val columnHelper: ColumnHelper[V] = columnHelper()
 
-        implicit val vertexDataMSTParser: CellParser[VertexDataTSP[V]] = cellParser1(VertexDataTSP[V])
+    implicit val vertexDataMSTParser: CellParser[VertexDataTSP[V]] = cellParser1(VertexDataTSP[V])
 
-        implicit object VertexDataTSPConfig extends DefaultRowConfig {
-            override val listEnclosure: String = ""
-        }
-
-        val parser: StandardRowParser[VertexDataTSP[V]] = StandardRowParser.create[VertexDataTSP[V]]
+    implicit object VertexDataTSPConfig extends DefaultRowConfig {
+      override val listEnclosure: String = ""
     }
 
-    trait VertexDataTSPTableParser extends StringTableParser[Table[VertexDataTSP[V]]] {
-        type Row = VertexDataTSP[V]
+    val parser: StandardRowParser[VertexDataTSP[V]] = StandardRowParser.create[VertexDataTSP[V]]
+  }
 
-        val maybeFixedHeader: Option[Header] = None
+  trait VertexDataTSPTableParser extends StringTableParser[Table[VertexDataTSP[V]]] {
+    type Row = VertexDataTSP[V]
 
-        val headerRowsToRead: Int = 1
+    val maybeFixedHeader: Option[Header] = None
 
-        override val forgiving: Boolean = false
+    val headerRowsToRead: Int = 1
 
-        val rowParser: RowParser[VertexDataTSP[V], String] = VertexDataTSPParser.parser
+    override val forgiving: Boolean = false
 
-        protected def builder(rows: Iterable[VertexDataTSP[V]], header: Header): Table[VertexDataTSP[V]] = HeadedTable(rows, header)
-    }
+    val rowParser: RowParser[VertexDataTSP[V], String] = VertexDataTSPParser.parser
 
-    implicit object VertexDataTSPTableParser extends VertexDataTSPTableParser
+    protected def builder(rows: Iterable[VertexDataTSP[V]], header: Header): Table[VertexDataTSP[V]] = HeadedTable(rows, header)
+  }
 
-    /**
-     * TESTME
-     *
-     * @param resource the name of the resource.
-     * @return a Try of Iterable[V].
-     */
-    def parseVerticesFromCsv(resource: String): Try[Iterable[V]] = {
-        val dty: Try[Table[VertexDataTSP[V]]] = Table.parseResource[Table[VertexDataTSP[V]]](resource)
+  implicit object VertexDataTSPTableParser extends VertexDataTSPTableParser
 
-        for (vt <- dty) yield vt.rows.map(d => d.attribute)
-    }
+  /**
+   * TESTME
+   *
+   * @param resource the name of the resource.
+   * @return a Try of Iterable[V].
+   */
+  def parseVerticesFromCsv(resource: String): Try[Iterable[V]] = {
+    val dty: Try[Table[VertexDataTSP[V]]] = Table.parseResource[Table[VertexDataTSP[V]]](resource)
+
+    for (vt <- dty) yield vt.rows.map(d => d.attribute)
+  }
 }

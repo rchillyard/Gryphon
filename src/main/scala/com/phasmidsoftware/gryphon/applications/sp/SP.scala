@@ -13,35 +13,35 @@ import scala.collection.mutable.PriorityQueue
 
 trait SP[V, E, X <: Edge[V, E]] {
 
-    def isReachable(v: V): Boolean
+  def isReachable(v: V): Boolean
 
-    def shortestPath(v: V): Seq[X]
+  def shortestPath(v: V): Seq[X]
 }
 
 abstract class BaseSP[V, E, X <: Edge[V, E]](graph: Graph[V, E, X, Double])(start: V) extends SP[V, E, X] {
 
-    val vertexMap: VertexMap[V, X, Double] = graph.vertexMap
+  val vertexMap: VertexMap[V, X, Double] = graph.vertexMap
 
-    // Initialize all the vertex distances to be infinite (except for the start point).
-    vertexMap.values.foreach(vertex => vertex.setProperty(Some(Double.MaxValue)))
-    vertexMap get(start) foreach (_.setProperty(Some(0)))
+  // Initialize all the vertex distances to be infinite (except for the start point).
+  vertexMap.values.foreach(vertex => vertex.setProperty(Some(Double.MaxValue)))
+  vertexMap get start foreach (_.setProperty(Some(0)))
 
-    implicit val ordering: Ordering[V] = (x: V, y: V) => (for {
-        xCost <- vertexMap.get(x).flatMap(vertex => vertex.getProperty)
-        yCost <- vertexMap.get(y).flatMap(vertex => vertex.getProperty)
-    } yield xCost.compareTo(yCost)).getOrElse(0)
+  implicit val ordering: Ordering[V] = (x: V, y: V) => (for {
+    xCost <- vertexMap.get(x).flatMap(vertex => vertex.getProperty)
+    yCost <- vertexMap.get(y).flatMap(vertex => vertex.getProperty)
+  } yield xCost.compareTo(yCost)).getOrElse(0)
 
-    val pq: mutable.PriorityQueue[V] = new PriorityQueue[V]()
+  val pq: mutable.PriorityQueue[V] = new PriorityQueue[V]()
 
-    implicit object z extends QueueablePriorityQueue[V] {
-        def compare(x: V, y: V): Int = ordering.compare(x, y)
-    }
+  implicit object z extends QueueablePriorityQueue[V] {
+    def compare(x: V, y: V): Int = ordering.compare(x, y)
+  }
 
-    implicit object q extends com.phasmidsoftware.gryphon.visit.IterableJournalQueue[V]
+  implicit object q extends com.phasmidsoftware.gryphon.visit.IterableJournalQueue[V]
 
-    val visitor: PreVisitorIterable[V, Queue[V]] = Visitor.createPreQueue[V]
+  val visitor: PreVisitorIterable[V, Queue[V]] = Visitor.createPreQueue[V]
 
-    lazy val reachable: List[V] = graph.bfsMutable(visitor)(start)(v => false).journal.iterator.toList
+  lazy val reachable: List[V] = graph.bfsMutable(visitor)(start)(v => false).journal.iterator.toList
 
 //    def relax(x: X)
 

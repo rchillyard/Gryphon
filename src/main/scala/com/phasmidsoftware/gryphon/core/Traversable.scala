@@ -13,37 +13,37 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  */
 trait Traversable[V] {
 
-    /**
-     * Method to run depth-first-search on this Traversable.
-     * Vertices will not be visited if they are not reachable from v.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+  /**
+   * Method to run depth-first-search on this Traversable.
+   * Vertices will not be visited if they are not reachable from v.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
 
-    /**
-     * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J]
+  /**
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J]
 
-    /**
-     * Method to run breadth-first-search with a mutable queue on this Traversable.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @tparam Q the type of the mutable queue for navigating this Traversable.
-     *           Requires implicit evidence of MutableQueueable[Q, V].
-     * @return a new Visitor[V, J].
-     */
-    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
+  /**
+   * Method to run breadth-first-search with a mutable queue on this Traversable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @tparam Q the type of the mutable queue for navigating this Traversable.
+   *           Requires implicit evidence of MutableQueueable[Q, V].
+   * @return a new Visitor[V, J].
+   */
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
 }
 
 /**
@@ -55,14 +55,14 @@ trait Traversable[V] {
  */
 trait GoalTraversable[V, X <: EdgeLike[V], P] extends Traversable[V] {
 
-    /**
-     * Method to run breadth-first-search on this Traversable.
-     *
-     * @param v    the starting vertex.
-     * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
-     * @return a new Tree[V, E, X, Double] of shortest paths.
-     */
-    def bfs(v: V)(goal: V => Option[Boolean]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P])
+  /**
+   * Method to run breadth-first-search on this Traversable.
+   *
+   * @param v    the starting vertex.
+   * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
+   * @return a new Tree[V, E, X, Double] of shortest paths.
+   */
+  def bfs(v: V)(goal: V => Option[Boolean]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P])
 }
 
 /**
@@ -75,14 +75,14 @@ trait GoalTraversable[V, X <: EdgeLike[V], P] extends Traversable[V] {
  */
 trait EdgeGoalTraversable[V, E, X <: Edge[V, E], P] extends Traversable[V] {
 
-    /**
-     * Method to run breadth-first-search on this Traversable.
-     *
-     * NOTE in this method name, the F comes before the S. Important ;)
-     *
-     * @param v    the starting vertex.
-     * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
-     * @return a new Tree[V, E, X, Double] of shortest paths.
-     */
-    def bfse(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, VertexPair[V], P]
+  /**
+   * Method to run breadth-first-search on this Traversable.
+   *
+   * NOTE in this method name, the F comes before the S. Important ;)
+   *
+   * @param v    the starting vertex.
+   * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
+   * @return a new Tree[V, E, X, Double] of shortest paths.
+   */
+  def bfse(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, VertexPair[V], P]
 }

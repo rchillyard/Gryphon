@@ -15,61 +15,61 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  */
 trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] with Attributed[String] {
 
-    /**
-     * (abstract) The vertex map.
-     */
-    val vertexMap: VertexMap[V, X, P]
+  /**
+   * (abstract) The vertex map.
+   */
+  val vertexMap: VertexMap[V, X, P]
 
-    /**
-     * Yield an iterable of vertices of type V.
-     *
-     * @return an Iterable[V].
-     */
-    def vertices: Iterable[V] = vertexMap.keys
+  /**
+   * Yield an iterable of vertices of type V.
+   *
+   * @return an Iterable[V].
+   */
+  def vertices: Iterable[V] = vertexMap.keys
 
-    /**
-     * (abstract) Yield an iterable of edges, of type X.
-     *
-     * @return an Iterable[X].
-     */
-    def edges: Iterable[X]
+  /**
+   * (abstract) Yield an iterable of edges, of type X.
+   *
+   * @return an Iterable[X].
+   */
+  def edges: Iterable[X]
 
-    /**
-     * (abstract) Method to create a new Network which includes the given edge.
-     *
-     * @param x the edge to add.
-     * @return Network[V, X, P].
-     */
-    def addEdge(x: X): Network[V, X, P]
+  /**
+   * (abstract) Method to create a new Network which includes the given edge.
+   *
+   * @param x the edge to add.
+   * @return Network[V, X, P].
+   */
+  def addEdge(x: X): Network[V, X, P]
 
-    /**
-     * Method to add a vertex of (key) type V to this network.
-     * The vertex will have degree of zero.
-     *
-     * @param v the (key) attribute of the result.
-     * @return a new Network[V, X, P].
-     */
-    def addVertex(v: V): Network[V, X, P]
+  /**
+   * Method to add a vertex of (key) type V to this network.
+   * The vertex will have degree of zero.
+   *
+   * @param v the (key) attribute of the result.
+   * @return a new Network[V, X, P].
+   */
+  def addVertex(v: V): Network[V, X, P]
 
-    /**
-     * Method to run depth-first-search on this Graph.
-     * Vertices will not be visited if they are not reachable from v.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
+  /**
+   * Method to run depth-first-search on this Graph.
+   * Vertices will not be visited if they are not reachable from v.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
 
-    /**
-     * Method to run depth-first-search on this Graph, ensuring that every vertex in the graph is visited..
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
+  /**
+   * Method to run depth-first-search on this Graph, ensuring that every vertex in the graph is visited..
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
 
 }
 
@@ -90,27 +90,27 @@ trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] with
  */
 trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnected[V] with EdgeGoalTraversable[V, E, X, P] {
 
-    /**
-     * Yield an iterable of edge attributes of type E.
-     */
-    lazy val edgeAttributes: Iterable[E] = edges.map(_.attribute)
+  /**
+   * Yield an iterable of edge attributes of type E.
+   */
+  lazy val edgeAttributes: Iterable[E] = edges.map(_.attribute)
 
-    /**
-     * (abstract) Method to create a new Graph which includes the given edge.
-     *
-     * @param x the edge to add.
-     * @return Graph[V, E, X].
-     */
-    def addEdge(x: X): Graph[V, E, X, P]
+  /**
+   * (abstract) Method to create a new Graph which includes the given edge.
+   *
+   * @param x the edge to add.
+   * @return Graph[V, E, X].
+   */
+  def addEdge(x: X): Graph[V, E, X, P]
 
-    /**
-     * Method to add a vertex of (key) type V to this graph.
-     * The vertex will have degree of zero.
-     *
-     * @param v the (key) attribute of the result.
-     * @return a new AbstractGraph[V, E, X].
-     */
-    def addVertex(v: V): Graph[V, E, X, P]
+  /**
+   * Method to add a vertex of (key) type V to this graph.
+   * The vertex will have degree of zero.
+   *
+   * @param v the (key) attribute of the result.
+   * @return a new AbstractGraph[V, E, X].
+   */
+  def addVertex(v: V): Graph[V, E, X, P]
 
 
 //
@@ -125,32 +125,32 @@ trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnecte
 //     */
 //    def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = vertexMap.bfs(visitor)(v)(goal)
 
-    /**
-     * Method to run breadth-first-search on this Traversable.
-     *
-     * NOTE in this method name, the F comes before the S. Important ;)
-     *
-     * @param v    the starting vertex.
-     * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
-     * @return a new Tree[V, E, X, Double] of shortest paths.
-     */
-    def bfse(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, VertexPair[V], P] = vertexMap.bfs(v)(goal) match {
-        // CONSIDER take notice of bo
-        case (bo, t: AcyclicNetwork[V, VertexPair[V], P]) => t
-        case _ => throw GraphException("bfse: logic error")
-    }
+  /**
+   * Method to run breadth-first-search on this Traversable.
+   *
+   * NOTE in this method name, the F comes before the S. Important ;)
+   *
+   * @param v    the starting vertex.
+   * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
+   * @return a new Tree[V, E, X, Double] of shortest paths.
+   */
+  def bfse(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, VertexPair[V], P] = vertexMap.bfs(v)(goal) match {
+    // CONSIDER take notice of bo
+    case (bo, t: AcyclicNetwork[V, VertexPair[V], P]) => t
+    case _ => throw GraphException("bfse: logic error")
+  }
 
-    /**
-     * Method to run breadth-first-search with a mutable queue on this Graph.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @tparam Q the type of the mutable queue for navigating this Traversable.
-     *           Requires implicit evidence of MutableQueueable[Q, V].
-     * @return a new Visitor[V, J].
-     */
-    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = vertexMap.bfsMutable[J, Q](visitor)(v)(goal)
+  /**
+   * Method to run breadth-first-search with a mutable queue on this Graph.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @tparam Q the type of the mutable queue for navigating this Traversable.
+   *           Requires implicit evidence of MutableQueueable[Q, V].
+   * @return a new Visitor[V, J].
+   */
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = vertexMap.bfsMutable[J, Q](visitor)(v)(goal)
 }
 
 /**
@@ -158,9 +158,9 @@ trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnecte
  *
  */
 trait GraphLike {
-    def isCyclic: Boolean = true
+  def isCyclic: Boolean = true
 
-    def isBipartite: Boolean = false
+  def isBipartite: Boolean = false
 }
 
 /**
@@ -173,13 +173,13 @@ trait GraphLike {
  */
 trait DirectedGraph[V, E, X <: DirectedEdge[V, E], P] extends Graph[V, E, X, P] {
 
-    /**
-     * (abstract) Method to create a new Graph which includes the given edge.
-     *
-     * @param x the edge to add.
-     * @return Graph[V, E, X].
-     */
-    def addEdge(x: X): DirectedGraph[V, E, X, P]
+  /**
+   * (abstract) Method to create a new Graph which includes the given edge.
+   *
+   * @param x the edge to add.
+   * @return Graph[V, E, X].
+   */
+  def addEdge(x: X): DirectedGraph[V, E, X, P]
 
 }
 
@@ -192,13 +192,13 @@ trait DirectedGraph[V, E, X <: DirectedEdge[V, E], P] extends Graph[V, E, X, P] 
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
 trait UndirectedGraph[V, E, X <: UndirectedEdge[V, E], P] extends Graph[V, E, X, P] {
-    /**
-     * (abstract) Method to create a new Graph which includes the given edge.
-     *
-     * @param x the edge to add.
-     * @return Graph[V, E, X].
-     */
-    def addEdge(x: X): UndirectedGraph[V, E, X, P]
+  /**
+   * (abstract) Method to create a new Graph which includes the given edge.
+   *
+   * @param x the edge to add.
+   * @return Graph[V, E, X].
+   */
+  def addEdge(x: X): UndirectedGraph[V, E, X, P]
 }
 
 /**
@@ -223,62 +223,63 @@ trait VertexPairGraph[V, P] extends Graph[V, Unit, VertexPair[V], P]
  */
 abstract class AbstractGraph[V, E, X <: Edge[V, E], P](val __description: String, val __vertexMap: VertexMap[V, X, P]) extends Graph[V, E, X, P] {
 
-    /**
-     * Yields the description of this Graph.
-     */
-    val attribute: String = __description
+  /**
+   * Yields the description of this Graph.
+   */
+  val attribute: String = __description
 
-    /**
-     * Method to add a vertex of (key) type V to this graph.
-     * The vertex will have degree of zero.
-     *
-     * @param v the (key) attribute of the result.
-     * @return a new AbstractGraph[V, E, X].
-     */
-    def addVertex(v: V): Graph[V, E, X, P] = unit(__vertexMap addVertex v)
+  /**
+   * Method to add a vertex of (key) type V to this graph.
+   * The vertex will have degree of zero.
+   *
+   * @param v the (key) attribute of the result.
+   * @return a new AbstractGraph[V, E, X].
+   */
+  def addVertex(v: V): Graph[V, E, X, P] = unit(__vertexMap addVertex v)
 
-    /**
-     * Method to yield the concatenation of the all the adjacency lists.
-     *
-     * @return AdjacencyList[X]
-     */
-    def allAdjacencies: AdjacencyList[X] = __vertexMap.values.foldLeft(AdjacencyList.empty[X])(_ ++ _.adjacent)
+  /**
+   * Method to yield the concatenation of the all the adjacency lists.
+   *
+   * @return AdjacencyList[X]
+   */
+  def allAdjacencies: AdjacencyList[X] = __vertexMap.values.foldLeft(AdjacencyList.empty[X])(_ ++ _.adjacent)
 
-    /**
-     * Method to determine if there is a connection between v1 and v2.
-     *
-     * @param v1 the start of the possible path.
-     * @param v2 the end of the possible path.
-     * @return true if there is a connection between v1 and v2.
-     */
-    def isPathConnected(v1: V, v2: V): Boolean = __vertexMap.isPathConnected(v1, v2)
+  /**
+   * Method to determine if there is a connection between v1 and v2.
+   *
+   * @param v1 the start of the possible path.
+   * @param v2 the end of the possible path.
+   * @return true if there is a connection between v1 and v2.
+   */
+  def isPathConnected(v1: V, v2: V): Boolean = __vertexMap.isPathConnected(v1, v2)
 
-    /**
-     * Method to get a path between v1 and v2.
-     * There is no implication that this is the shortest path.
-     *
-     * @param v1 a node in a network.
-     * @param v2 another node in a network.
-     * @return the path from v1 to v2.
-     *         By convention, the path consists of v1, any intermediate nodes, and v2.
-     */
-    def path(v1: V, v2: V): Seq[V] = __vertexMap.path(v1, v2)
+  /**
+   * Method to get a path between v1 and v2.
+   * There is no implication that this is the shortest path.
+   *
+   * @param v1 a node in a network.
+   * @param v2 another node in a network.
+   * @return the path from v1 to v2.
+   *         By convention, the path consists of v1, any intermediate nodes, and v2.
+   */
+  def path(v1: V, v2: V): Seq[V] = __vertexMap.path(v1, v2)
 
-    /**
-     * Method to make a connection between v1 and v2.
-     *
-     * @param v1 a node in a network.
-     * @param v2 another node in a network.
-     * @return a new Connected object on which isConnected(v1, v2) will be true.
-     */
-    def connect(v1: V, v2: V): Graph[V, E, X, P] = unit(vertexMap.connect(v1, v2))
-    /**
-     * (abstract) Method to create a new AbstractGraph from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new AbstractGraph[V, E].
-     */
-    def unit(vertexMap: VertexMap[V, X, P]): Graph[V, E, X, P]
+  /**
+   * Method to make a connection between v1 and v2.
+   *
+   * @param v1 a node in a network.
+   * @param v2 another node in a network.
+   * @return a new Connected object on which isConnected(v1, v2) will be true.
+   */
+  def connect(v1: V, v2: V): Graph[V, E, X, P] = unit(vertexMap.connect(v1, v2))
+
+  /**
+   * (abstract) Method to create a new AbstractGraph from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new AbstractGraph[V, E].
+   */
+  def unit(vertexMap: VertexMap[V, X, P]): Graph[V, E, X, P]
 }
 
 /**
@@ -294,28 +295,28 @@ abstract class AbstractGraph[V, E, X <: Edge[V, E], P](val __description: String
  *
  */
 abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P](val _description: String, val _vertexMap: VertexMap[V, X, P]) extends AbstractGraph[V, E, X, P](_description, _vertexMap) with DirectedGraph[V, E, X, P] {
-    /**
-     * Method to yield all edges of this AbstractDirectedGraph.
-     *
-     * @return an Iterable of DirectedEdgeCase[V, E].
-     */
-    def edges: Iterable[X] = allAdjacencies.xs.distinct
+  /**
+   * Method to yield all edges of this AbstractDirectedGraph.
+   *
+   * @return an Iterable of DirectedEdgeCase[V, E].
+   */
+  def edges: Iterable[X] = allAdjacencies.xs.distinct
 
-    /**
-     * Method to create a new AbstractGraph which includes the edge x.
-     *
-     * @param x an edge to be added to this AbstractDirectedGraph.
-     * @return a new AbstractGraph which also includes x.
-     */
-    def addEdge(x: X): DirectedGraph[V, E, X, P] = unit(_vertexMap.addEdge(x.from, x).addVertex(x.to))
+  /**
+   * Method to create a new AbstractGraph which includes the edge x.
+   *
+   * @param x an edge to be added to this AbstractDirectedGraph.
+   * @return a new AbstractGraph which also includes x.
+   */
+  def addEdge(x: X): DirectedGraph[V, E, X, P] = unit(_vertexMap.addEdge(x.from, x).addVertex(x.to))
 
-    /**
-     * (abstract) Method to create a new AbstractGraph from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new DirectedGraph[V, E, X, P].
-     */
-    def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P]
+  /**
+   * (abstract) Method to create a new AbstractGraph from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new DirectedGraph[V, E, X, P].
+   */
+  def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P]
 }
 
 /**
@@ -330,31 +331,31 @@ abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P](val _desc
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
 abstract class AbstractUndirectedGraph[V, E, X <: UndirectedEdge[V, E], P](val _description: String, val _vertexMap: VertexMap[V, X, P]) extends AbstractGraph[V, E, X, P](_description, _vertexMap) with UndirectedGraph[V, E, X, P] {
-    /**
-     * Method to yield all edges of this AbstractUndirectedGraph.
-     *
-     * @return an Iterable of UndirectedEdgeCase[V, E].
-     */
-    val edges: Iterable[X] = allAdjacencies.xs.distinct
+  /**
+   * Method to yield all edges of this AbstractUndirectedGraph.
+   *
+   * @return an Iterable of UndirectedEdgeCase[V, E].
+   */
+  val edges: Iterable[X] = allAdjacencies.xs.distinct
 
-    /**
-     * Method to create a new AbstractGraph which includes the edge x.
-     *
-     * @param x an edge to be added to this AbstractDirectedGraph.
-     * @return a new AbstractGraph which also includes x.
-     */
-    def addEdge(x: X): UndirectedGraph[V, E, X, P] = {
-        val (v, w) = x.vertices
-        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
-    }
+  /**
+   * Method to create a new AbstractGraph which includes the edge x.
+   *
+   * @param x an edge to be added to this AbstractDirectedGraph.
+   * @return a new AbstractGraph which also includes x.
+   */
+  def addEdge(x: X): UndirectedGraph[V, E, X, P] = {
+    val (v, w) = x.vertices
+    unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
+  }
 
-    /**
-     * (abstract) Method to create a new AbstractGraph from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new UndirectedGraph[V, E, X, P].
-     */
-    def unit(vertexMap: VertexMap[V, X, P]): UndirectedGraph[V, E, X, P]
+  /**
+   * (abstract) Method to create a new AbstractGraph from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new UndirectedGraph[V, E, X, P].
+   */
+  def unit(vertexMap: VertexMap[V, X, P]): UndirectedGraph[V, E, X, P]
 }
 
 /**
@@ -367,31 +368,31 @@ abstract class AbstractUndirectedGraph[V, E, X <: UndirectedEdge[V, E], P](val _
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
 abstract class AbstractVertexPairGraph[V, P](val _description: String, val _vertexMap: VertexMap[V, VertexPair[V], P]) extends AbstractGraph[V, Unit, VertexPair[V], P](_description, _vertexMap) with VertexPairGraph[V, P] {
-    /**
-     * Method to yield all edges of this AbstractUndirectedGraph.
-     *
-     * @return an Iterable of UndirectedEdgeCase[V, E].
-     */
-    val edges: Iterable[VertexPair[V]] = allAdjacencies.xs.distinct
+  /**
+   * Method to yield all edges of this AbstractUndirectedGraph.
+   *
+   * @return an Iterable of UndirectedEdgeCase[V, E].
+   */
+  val edges: Iterable[VertexPair[V]] = allAdjacencies.xs.distinct
 
-    /**
-     * Method to create a new AbstractGraph which includes the edge x.
-     *
-     * @param x an edge to be added to this AbstractDirectedGraph.
-     * @return a new AbstractGraph which also includes x.
-     */
-    def addEdge(x: VertexPair[V]): VertexPairGraph[V, P] = {
-        val (v, w) = x.vertices
-        unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
-    }
+  /**
+   * Method to create a new AbstractGraph which includes the edge x.
+   *
+   * @param x an edge to be added to this AbstractDirectedGraph.
+   * @return a new AbstractGraph which also includes x.
+   */
+  def addEdge(x: VertexPair[V]): VertexPairGraph[V, P] = {
+    val (v, w) = x.vertices
+    unit(_vertexMap.addEdge(v, x).addEdge(w, x).addVertex(w))
+  }
 
-    /**
-     * (abstract) Method to create a new AbstractGraph from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new AbstractGraph[V, E].
-     */
-    def unit(vertexMap: VertexMap[V, VertexPair[V], P]): VertexPairGraph[V, P]
+  /**
+   * (abstract) Method to create a new AbstractGraph from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new AbstractGraph[V, E].
+   */
+  def unit(vertexMap: VertexMap[V, VertexPair[V], P]): VertexPairGraph[V, P]
 }
 
 /**
@@ -406,13 +407,13 @@ abstract class AbstractVertexPairGraph[V, P](val _description: String, val _vert
  */
 case class DirectedGraphCase[V, E, X <: DirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractDirectedGraph[V, E, X, P](description, vertexMap) with DirectedGraph[V, E, X, P] {
 
-    /**
-     * Method to create a new DirectedGraphCase from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new DirectedGraphCase[V, E].
-     */
-    def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P] = DirectedGraphCase(description, vertexMap)
+  /**
+   * Method to create a new DirectedGraphCase from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new DirectedGraphCase[V, E].
+   */
+  def unit(vertexMap: VertexMap[V, X, P]): DirectedGraph[V, E, X, P] = DirectedGraphCase(description, vertexMap)
 }
 
 /**
@@ -426,13 +427,13 @@ case class DirectedGraphCase[V, E, X <: DirectedEdge[V, E], P](description: Stri
  */
 case class UndirectedGraphCase[V, E, X <: UndirectedEdge[V, E], P](description: String, vertexMap: VertexMap[V, X, P]) extends AbstractUndirectedGraph[V, E, X, P](description, vertexMap) with UndirectedGraph[V, E, X, P] {
 
-    /**
-     * Method to create a new UndirectedGraphCase from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new UndirectedGraphCase[V, E].
-     */
-    def unit(vertexMap: VertexMap[V, X, P]): UndirectedGraph[V, E, X, P] = UndirectedGraphCase(description, vertexMap)
+  /**
+   * Method to create a new UndirectedGraphCase from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new UndirectedGraphCase[V, E].
+   */
+  def unit(vertexMap: VertexMap[V, X, P]): UndirectedGraph[V, E, X, P] = UndirectedGraphCase(description, vertexMap)
 }
 
 /**
@@ -444,42 +445,42 @@ case class UndirectedGraphCase[V, E, X <: UndirectedEdge[V, E], P](description: 
  */
 case class VertexPairGraphCase[V, P](description: String, vertexMap: VertexMap[V, VertexPair[V], P]) extends AbstractVertexPairGraph[V, P](description, vertexMap) with VertexPairGraph[V, P] {
 
-    /**
-     * Method to create a new UndirectedGraphCase from a given vertex map.
-     *
-     * @param vertexMap the vertex map.
-     * @return a new UndirectedGraphCase[V, E].
-     */
-    def unit(vertexMap: VertexMap[V, VertexPair[V], P]): VertexPairGraph[V, P] = VertexPairGraphCase(description, vertexMap)
+  /**
+   * Method to create a new UndirectedGraphCase from a given vertex map.
+   *
+   * @param vertexMap the vertex map.
+   * @return a new UndirectedGraphCase[V, E].
+   */
+  def unit(vertexMap: VertexMap[V, VertexPair[V], P]): VertexPairGraph[V, P] = VertexPairGraphCase(description, vertexMap)
 }
 
 /**
  * Object to provide non-instance directed graph properties.
  */
 object DirectedGraph {
-    /**
-     * Method to construct a new empty directed graph.
-     *
-     * @tparam V the (key) vertex-attribute type.
-     * @tparam E the edge-attribute type.
-     * @tparam X the type of edge which connects two vertices. A sub-type of DirectedEdge[V,E].
-     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     * @return an empty DirectedGraphCase[V, E].
-     */
-    def apply[V, E, X <: DirectedEdge[V, E], P](description: String): DirectedGraph[V, E, X, P] = new DirectedGraphCase[V, E, X, P](description, UnorderedVertexMap.empty[V, X, P])
+  /**
+   * Method to construct a new empty directed graph.
+   *
+   * @tparam V the (key) vertex-attribute type.
+   * @tparam E the edge-attribute type.
+   * @tparam X the type of edge which connects two vertices. A sub-type of DirectedEdge[V,E].
+   * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+   * @return an empty DirectedGraphCase[V, E].
+   */
+  def apply[V, E, X <: DirectedEdge[V, E], P](description: String): DirectedGraph[V, E, X, P] = new DirectedGraphCase[V, E, X, P](description, UnorderedVertexMap.empty[V, X, P])
 
-    /**
-     * Method to construct a new empty directed graph with orderable vertex-type.
-     *
-     * TESTME
-     *
-     * @tparam V the (key) vertex-attribute type.
-     *           Requires implicit evidence of Ordering[V].
-     * @tparam E the edge-attribute type.
-     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     * @return an empty UndirectedGraphCase[V, E].
-     */
-    def createOrdered[V: Ordering, E, P](description: String): DirectedGraph[V, E, DirectedEdge[V, E], P] = DirectedGraphCase(description, OrderedVertexMap.empty[V, DirectedEdge[V, E], P])
+  /**
+   * Method to construct a new empty directed graph with orderable vertex-type.
+   *
+   * TESTME
+   *
+   * @tparam V the (key) vertex-attribute type.
+   *           Requires implicit evidence of Ordering[V].
+   * @tparam E the edge-attribute type.
+   * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+   * @return an empty UndirectedGraphCase[V, E].
+   */
+  def createOrdered[V: Ordering, E, P](description: String): DirectedGraph[V, E, DirectedEdge[V, E], P] = DirectedGraphCase(description, OrderedVertexMap.empty[V, DirectedEdge[V, E], P])
 }
 
 /**
@@ -488,25 +489,25 @@ object DirectedGraph {
  * TODO undirected graphs always have orderable vertices.
  */
 object UndirectedGraph {
-    /**
-     * Method to construct a new empty undirected graph.
-     *
-     * @tparam V the (key) vertex-attribute type.
-     * @tparam E the edge-attribute type.
-     * @return an empty UndirectedGraphCase[V, E].
-     */
-    def createUnordered[V, E, X <: UndirectedEdge[V, E], P](description: String): UndirectedGraph[V, E, X, P] = UndirectedGraphCase(description, UnorderedVertexMap.empty)
+  /**
+   * Method to construct a new empty undirected graph.
+   *
+   * @tparam V the (key) vertex-attribute type.
+   * @tparam E the edge-attribute type.
+   * @return an empty UndirectedGraphCase[V, E].
+   */
+  def createUnordered[V, E, X <: UndirectedEdge[V, E], P](description: String): UndirectedGraph[V, E, X, P] = UndirectedGraphCase(description, UnorderedVertexMap.empty)
 
-    /**
-     * Method to construct a new empty undirected graph with orderable vertex-type.
-     *
-     * @tparam V the (key) vertex-attribute type.
-     *           Requires implicit evidence of Ordering[V].
-     * @tparam E the edge-attribute type.
-     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     * @return an empty UndirectedGraphCase[V, E].
-     */
-    def createOrdered[V: Ordering, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
+  /**
+   * Method to construct a new empty undirected graph with orderable vertex-type.
+   *
+   * @tparam V the (key) vertex-attribute type.
+   *           Requires implicit evidence of Ordering[V].
+   * @tparam E the edge-attribute type.
+   * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+   * @return an empty UndirectedGraphCase[V, E].
+   */
+  def createOrdered[V: Ordering, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
 }
 
 /**
@@ -514,25 +515,25 @@ object UndirectedGraph {
  *
  */
 object VertexPairGraph {
-    /**
-     * Method to construct a new empty undirected graph.
-     *
-     * @tparam V the (key) vertex-attribute type.
-     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     * @return an empty UndirectedGraphCase[V, E].
-     */
-    def apply[V, P](description: String): VertexPairGraph[V, P] = VertexPairGraphCase(description, UnorderedVertexMap.empty)
+  /**
+   * Method to construct a new empty undirected graph.
+   *
+   * @tparam V the (key) vertex-attribute type.
+   * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+   * @return an empty UndirectedGraphCase[V, E].
+   */
+  def apply[V, P](description: String): VertexPairGraph[V, P] = VertexPairGraphCase(description, UnorderedVertexMap.empty)
 
-    /**
-     * Method to construct a new empty undirected graph with orderable vertex-type.
-     *
-     * @tparam V the (key) vertex-attribute type.
-     *           Requires implicit evidence of Ordering[V].
-     * @tparam E the edge-attribute type.
-     * @tparam P the property type (a mutable property currently only supported by the Vertex type).
-     * @return an empty UndirectedGraphCase[V, E].
-     */
-    def createOrdered[V: Ordering, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
+  /**
+   * Method to construct a new empty undirected graph with orderable vertex-type.
+   *
+   * @tparam V the (key) vertex-attribute type.
+   *           Requires implicit evidence of Ordering[V].
+   * @tparam E the edge-attribute type.
+   * @tparam P the property type (a mutable property currently only supported by the Vertex type).
+   * @return an empty UndirectedGraphCase[V, E].
+   */
+  def createOrdered[V: Ordering, E, P](description: String): UndirectedGraph[V, E, UndirectedEdge[V, E], P] = UndirectedGraphCase(description, OrderedVertexMap.empty)
 }
 
 

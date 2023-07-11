@@ -103,7 +103,7 @@ trait VertexMap[V, X <: EdgeLike[V], P] extends GoalTraversable[V, X, P] with Pa
     /**
      * the X values of this VertexMap.
      */
-    val edges: Iterable[X]
+    def edges: Iterable[X]
 
     /**
      * Method to get an optional value of type Q for a given vertex v, based on that vertex's property.
@@ -549,7 +549,8 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
     /**
      * the X values of this VertexMap.
      */
-    val edges: Iterable[X] = _map.values.flatMap(_.adjacent.xs)
+    def edges: Iterable[X] =
+        _map.values.flatMap(_.adjacent.xs).toList.distinct
 
     /**
      * Method to run depth-first-search on this VertexMap.
@@ -591,7 +592,28 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
      * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
      * @return a new Tree[V, E, X, Double] of shortest paths.
      */
-    def bfs(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, X, P] = ??? // FIXME implement
+    def bfs(v: V)(goal: V => Option[Boolean]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P]) = {
+
+        @tailrec
+        def inner(result: AcyclicNetwork[V, VertexPair[V], P], work: Queue[V]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P]) = work match {
+            case v +: vs =>
+                val g = goal(v)
+                if (g.isDefined) g -> result
+                else {
+                    val ys = for {
+                        z <- vertexMap.get(v).toList
+                        r = z.adjacent if z.discovered
+                        x <- r.xs
+                    } yield x.otherVertex(v)
+                    val qqq: AcyclicNetwork[V, VertexPair[V], P] = ys.foldLeft(result)((r, y) => r.addEdge(VertexPairCase(v, y)))
+                    val zzz: Queue[V] = ys.foldLeft(vs)((q, v) => q :+ v)
+                    inner(qqq, zzz)
+                }
+            case _ => None -> result
+        }
+
+        inner(AcyclicNetworkCase.apply, Queue[V](v))
+    }
 
     /**
      * Method to run goal-terminated breadth-first-search on this VertexMap.
@@ -779,13 +801,18 @@ abstract class BaseVertexMap[V, X <: EdgeLike[V], P](val __map: Map[V, Vertex[V,
 
     /**
      * Build a VertexMap from the given map (m) and the edge y at vertex v.
-     * TODO revert to private.
+     * NOTE that the value of m which is normally passed in has already had the entry for vertex v deleted (in method addEdge).
      *
-     * @param m  the existing Map.
+     * CONSIDER do we really need to do it that way?
+     *
+     * CONSIDER revert to private.
+     *
+     * @param m  the existing Map, WITHOUT an adjacency list for vertex v.
      * @param v  the vertex (key) at which to update the adjacency list.
      * @param y  the edge to be added.
      * @param vv the existing adjacency list for vertex v.
      * @return a new Map.
      */
-    def buildMap(m: Map[V, Vertex[V, X, P]], v: V, y: X, vv: Vertex[V, X, P]): Map[V, Vertex[V, X, P]] = m + (v -> (vv addEdge y))
+    def buildMap(m: Map[V, Vertex[V, X, P]], v: V, y: X, vv: Vertex[V, X, P]): Map[V, Vertex[V, X, P]] =
+        m + (v -> (vv addEdge y))
 }

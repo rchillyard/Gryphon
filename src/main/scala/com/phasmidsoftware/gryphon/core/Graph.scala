@@ -25,14 +25,14 @@ trait Network[V, X <: EdgeLike[V], P] extends GraphLike with Traversable[V] with
      *
      * @return an Iterable[V].
      */
-    val vertices: Iterable[V] = vertexMap.keys
+    def vertices: Iterable[V] = vertexMap.keys
 
     /**
      * (abstract) Yield an iterable of edges, of type X.
      *
      * @return an Iterable[X].
      */
-    val edges: Iterable[X]
+    def edges: Iterable[X]
 
     /**
      * (abstract) Method to create a new Network which includes the given edge.
@@ -134,8 +134,9 @@ trait Graph[V, E, X <: Edge[V, E], P] extends Network[V, X, P] with PathConnecte
      * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
      * @return a new Tree[V, E, X, Double] of shortest paths.
      */
-    def bfse(v: V)(goal: V => Option[Boolean]): Tree[V, E, X, P] = vertexMap.bfs(v)(goal) match {
-        case t: Tree[V, E, X, P] => t
+    def bfse(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, VertexPair[V], P] = vertexMap.bfs(v)(goal) match {
+        // CONSIDER take notice of bo
+        case (bo, t: AcyclicNetwork[V, VertexPair[V], P]) => t
         case _ => throw GraphException("bfse: logic error")
     }
 
@@ -298,7 +299,7 @@ abstract class AbstractDirectedGraph[V, E, X <: DirectedEdge[V, E], P](val _desc
      *
      * @return an Iterable of DirectedEdgeCase[V, E].
      */
-    val edges: Iterable[X] = allAdjacencies.xs
+    def edges: Iterable[X] = allAdjacencies.xs.distinct
 
     /**
      * Method to create a new AbstractGraph which includes the edge x.

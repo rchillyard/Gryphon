@@ -62,7 +62,7 @@ trait GoalTraversable[V, X <: EdgeLike[V], P] extends Traversable[V] {
      * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
      * @return a new Tree[V, E, X, Double] of shortest paths.
      */
-    def bfs(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, X, P]
+    def bfs(v: V)(goal: V => Option[Boolean]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P])
 }
 
 /**
@@ -84,5 +84,5 @@ trait EdgeGoalTraversable[V, E, X <: Edge[V, E], P] extends Traversable[V] {
      * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
      * @return a new Tree[V, E, X, Double] of shortest paths.
      */
-    def bfse(v: V)(goal: V => Option[Boolean]): Tree[V, E, X, P]
+    def bfse(v: V)(goal: V => Option[Boolean]): AcyclicNetwork[V, VertexPair[V], P]
 }

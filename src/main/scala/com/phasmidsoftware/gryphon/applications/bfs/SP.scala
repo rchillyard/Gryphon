@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.applications.sp
+package com.phasmidsoftware.gryphon.applications.bfs
 
 import com.phasmidsoftware.gryphon.core.{Edge, Graph, VertexMap}
 import com.phasmidsoftware.gryphon.visit.PriorityQueueable.QueueablePriorityQueue

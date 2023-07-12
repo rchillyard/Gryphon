@@ -110,5 +110,7 @@ case class AcyclicNetworkCase[V, X <: EdgeLike[V], P](vertexMap: VertexMap[V, X,
 }
 
 object AcyclicNetworkCase {
-  def apply[V, P]: AcyclicNetwork[V, VertexPair[V], P] = new AcyclicNetworkCase[V, VertexPair[V], P](PairVertexMap.empty[V, P], false)
+  def apply[V, P](vertexMap: PairVertexMap[V, P]): AcyclicNetwork[V, VertexPair[V], P] = new AcyclicNetworkCase[V, VertexPair[V], P](vertexMap, false)
+
+  def empty[V, P]: AcyclicNetwork[V, VertexPair[V], P] = AcyclicNetworkCase(PairVertexMap.empty[V, P])
 }

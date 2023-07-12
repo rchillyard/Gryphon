@@ -15,7 +15,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertTrue;
 
-public class UndirectedGraphBuilderTest {
+public class GraphBuilderTest {
 
     @Test
     public void createUndirectedEdgeList() {

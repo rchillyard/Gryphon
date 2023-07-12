@@ -13,7 +13,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam P the property type (a mutable property currently only supported by the Vertex type).
  */
 trait DAG[V, E, X <: DirectedEdge[V, E], P] extends DirectedGraph[V, E, X, P] {
-    override def isCyclic: Boolean = false // TODO we should be able to assert this
+  override def isCyclic: Boolean = false // TODO we should be able to assert this
 
-    override def isBipartite: Boolean = false
+  override def isBipartite: Boolean = false
 }

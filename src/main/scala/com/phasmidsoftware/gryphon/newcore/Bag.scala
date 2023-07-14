@@ -34,7 +34,7 @@ case class Bag[Item](xs: Seq[Item])(implicit random: Random) extends Iterable[It
 }
 
 object Bag {
-  private implicit val defaultRandom: Random = new Random()
+  implicit val defaultRandom: Random = new Random()
 
   /**
    * Method to construct a new Bag with a (comma-separated) list of Items.

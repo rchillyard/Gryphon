@@ -11,15 +11,18 @@ class AdjacencySpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Adjacency"
 
-  it should "adjacent" in {
+  it should "ordered adjacent" in {
 
-    val a = new Adjacency[Int, Connection[Int]] {
-      def adjacent(v: Int): Seq[Connection[Int]] = v match {
-        case 0 => List(DirectedConnection(0, 1)) // The connection between 0 and 1 is directed.
-        case _ => Nil
-      }
-    }
-    a.adjacent(0) shouldBe List(DirectedConnection(0, 1))
+    val a: Adjacency[Int, Connection[Int]] = OrderedAdjacency.empty[Int, Connection[Int]] + (0 -> Bag.create(DirectedConnection(0, 1)))
+
+    a.adjacent(0).iterator.next() shouldBe DirectedConnection(0, 1)
+  }
+
+  it should "unordered adjacent" in {
+
+    val a: Adjacency[Int, Connection[Int]] = UnorderedAdjacency.empty[Int, Connection[Int]] + (0 -> Bag.create(DirectedConnection(0, 1)))
+
+    a.adjacent(0).iterator.next() shouldBe DirectedConnection(0, 1)
   }
 
 }

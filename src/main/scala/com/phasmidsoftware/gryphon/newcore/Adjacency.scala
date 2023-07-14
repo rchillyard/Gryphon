@@ -15,11 +15,11 @@ import scala.collection.immutable.{HashMap, TreeMap}
  * See [[https://en.wikipedia.org/wiki/Erdős–Rényi_model]].
  *
  * @tparam V the attribute type of a vertex (node).
- * @tparam X the edge (connection) type.
+ * @tparam X the edge (connexion) type.
  */
-trait Adjacency[V, X <: Connection[V]] {
+trait Adjacency[V, X <: Connexion[V]] {
   /**
-   * Method to yield all the connections (as a Bag) from the vertex (node) identified by v.
+   * Method to yield all the connexions (as a Bag) from the vertex (node) identified by v.
    *
    * @param v a V.
    * @return a Bag[X].
@@ -35,11 +35,11 @@ trait Adjacency[V, X <: Connection[V]] {
   def +(vx: (V, Bag[X])): Adjacency[V, X]
 
   /**
-   * Method to add a new connection X at V.
+   * Method to add a new connexion X at V.
    *
    * @param v a node (vertex) identifier [V].
-   * @param x a connection [X].
-   * @return a new Adjacency which includes the connection x at v.
+   * @param x a connexion [X].
+   * @return a new Adjacency which includes the connexion x at v.
    */
   def connect(v: V, x: X): Adjacency[V, X]
 
@@ -52,9 +52,9 @@ trait Adjacency[V, X <: Connection[V]] {
   def unit(map: Map[V, Bag[X]]): Adjacency[V, X]
 }
 
-abstract class AbstractAdjacency[V, X <: Connection[V]](map: Map[V, Bag[X]]) extends Adjacency[V, X] {
+abstract class AbstractAdjacency[V, X <: Connexion[V]](map: Map[V, Bag[X]]) extends Adjacency[V, X] {
   /**
-   * Method to yield all the connections from the vertex (node) identified by v.
+   * Method to yield all the connexions from the vertex (node) identified by v.
    *
    * @param v a V.
    * @return a Bag[X].
@@ -75,14 +75,14 @@ abstract class AbstractAdjacency[V, X <: Connection[V]](map: Map[V, Bag[X]]) ext
    * Note that if the key value exists in this, its current bag will not be present in the result.
    *
    * @param v a node (vertex) identifier [V].
-   * @param x a connection X.
+   * @param x a connexion X.
    * @return a new Adjacency which includes the new key-value pair (vBx).
    */
   def connect(v: V, x: X): Adjacency[V, X] = this + (v -> (map.getOrElse(v, Bag.empty) + x))
 
 }
 
-case class OrderedAdjacency[V: Ordering, X <: Connection[V]](map: TreeMap[V, Bag[X]]) extends AbstractAdjacency[V, X](map) {
+case class OrderedAdjacency[V: Ordering, X <: Connexion[V]](map: TreeMap[V, Bag[X]]) extends AbstractAdjacency[V, X](map) {
   def unit(map: Map[V, Bag[X]]): OrderedAdjacency[V, X] = map match {
     case m: TreeMap[V, Bag[X]] => OrderedAdjacency(m)
     case _ => throw CoreException(s"OrderedAdjacency: unit: map must be a TreeMap")
@@ -90,10 +90,10 @@ case class OrderedAdjacency[V: Ordering, X <: Connection[V]](map: TreeMap[V, Bag
 }
 
 object OrderedAdjacency {
-  def empty[V: Ordering, X <: Connection[V]]: OrderedAdjacency[V, X] = OrderedAdjacency(TreeMap.empty)
+  def empty[V: Ordering, X <: Connexion[V]]: OrderedAdjacency[V, X] = OrderedAdjacency(TreeMap.empty)
 }
 
-case class UnorderedAdjacency[V, X <: Connection[V]](map: HashMap[V, Bag[X]]) extends AbstractAdjacency[V, X](map) {
+case class UnorderedAdjacency[V, X <: Connexion[V]](map: HashMap[V, Bag[X]]) extends AbstractAdjacency[V, X](map) {
   def unit(map: Map[V, Bag[X]]): UnorderedAdjacency[V, X] = map match {
     case m: HashMap[V, Bag[X]] => UnorderedAdjacency(m)
     case _ => throw CoreException(s"UnorderedAdjacency: unit: map must be a HashMap")
@@ -102,5 +102,5 @@ case class UnorderedAdjacency[V, X <: Connection[V]](map: HashMap[V, Bag[X]]) ex
 }
 
 object UnorderedAdjacency {
-  def empty[V, X <: Connection[V]]: UnorderedAdjacency[V, X] = UnorderedAdjacency(HashMap.empty)
+  def empty[V, X <: Connexion[V]]: UnorderedAdjacency[V, X] = UnorderedAdjacency(HashMap.empty)
 }

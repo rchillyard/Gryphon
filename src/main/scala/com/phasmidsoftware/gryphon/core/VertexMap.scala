@@ -497,8 +497,6 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
   private val flog: Flog = Flog[AbstractVertexMap[V, X, P]]
 
-  import flog._
-
   def contains(v: V): Boolean = _map.contains(v)
 
   def size: Int = _map.size
@@ -721,7 +719,7 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
   def deriveProperty(v: V, x: X): Option[P]
 
   private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X) = {
-    s"recurseOnEdgeX: $v, $y" !!
+//    s"recurseOnEdgeX: $v, $y" !!
             VertexMap.findAndMarkVertex(vertexMap, { w: Vertex[V, X, P] => w.setProperty(deriveProperty(v, y)) }, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
       case Some(z) => recursiveDFS(visitor, z)
       case None => visitor

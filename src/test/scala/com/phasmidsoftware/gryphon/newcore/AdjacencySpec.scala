@@ -13,13 +13,13 @@ class AdjacencySpec extends AnyFlatSpec with should.Matchers {
 
   it should "adjacent" in {
 
-    val a = new Adjacency[Int, Relation[Int]] {
-      def adjacent(v: Int): Seq[Relation[Int]] = v match {
-        case 0 => List(Connection(0, 1)) // The relation between 0 and 1 is directed.
+    val a = new Adjacency[Int, Connection[Int]] {
+      def adjacent(v: Int): Seq[Connection[Int]] = v match {
+        case 0 => List(DirectedConnection(0, 1)) // The connection between 0 and 1 is directed.
         case _ => Nil
       }
     }
-    a.adjacent(0) shouldBe List(Connection(0, 1))
+    a.adjacent(0) shouldBe List(DirectedConnection(0, 1))
   }
 
 }

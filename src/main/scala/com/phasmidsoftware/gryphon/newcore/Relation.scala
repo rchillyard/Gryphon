@@ -23,7 +23,7 @@ trait Relation[V] {
  * Case class to represent a Relation from start to end.
  *
  * @param start the origin of the relationship.
- * @param end the target of the relationship.
+ * @param end   the target of the relationship.
  * @tparam V the type of elements to be related.
  */
 case class Connection[V](start: V, end: V) extends Relation[V] {

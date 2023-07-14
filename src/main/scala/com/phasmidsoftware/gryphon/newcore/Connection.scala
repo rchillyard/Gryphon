@@ -43,3 +43,12 @@ abstract class AbstractConnection[V](start: V, end: V, twoWay: Boolean) extends 
  */
 case class DirectedConnection[V](start: V, end: V) extends AbstractConnection[V](start, end, false)
 
+/**
+ * Case class to represent a Connection from start to end.
+ *
+ * @param start the origin of the relationship.
+ * @param end   the target of the relationship.
+ * @tparam V the type of elements to be related.
+ */
+case class UndirectedConnection[V](start: V, end: V) extends AbstractConnection[V](start, end, true)
+

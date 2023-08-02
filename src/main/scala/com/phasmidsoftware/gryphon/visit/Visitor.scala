@@ -246,7 +246,7 @@ object PreVisitorIterable {
    */
   def create[V]: PreVisitorIterable[V, Queue[V]] = {
     implicit val vijq: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
-    apply
+    apply()
   }
 }
 
@@ -294,7 +294,7 @@ object PostVisitorIterable {
    */
   def create[V]: PostVisitorIterable[V, Queue[V]] = {
     implicit val vijq: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
-    apply
+    apply()
   }
 }
 

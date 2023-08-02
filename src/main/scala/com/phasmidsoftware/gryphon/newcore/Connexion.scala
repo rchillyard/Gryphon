@@ -37,14 +37,9 @@ abstract class AbstractConnexion[V](start: V, end: V, twoWay: Boolean) extends C
   }
 }
 
-/**
- * Case class to represent a Connexion from start to end.
- *
- * @param start the origin of the connexion.
- * @param end   the target of the connexion.
- * @tparam V the type of elements to be connected.
- */
-case class DirectedConnexion[V](start: V, end: V) extends AbstractConnexion[V](start, end, false)
+trait DirectedConnexion[V] extends Connexion[V]
+
+trait UndirectedConnexion[V] extends Connexion[V]
 
 /**
  * Case class to represent a Connexion from start to end.
@@ -53,5 +48,14 @@ case class DirectedConnexion[V](start: V, end: V) extends AbstractConnexion[V](s
  * @param end   the target of the connexion.
  * @tparam V the type of elements to be connected.
  */
-case class UndirectedConnexion[V](start: V, end: V) extends AbstractConnexion[V](start, end, true)
+case class DirectedConnexionCase[V](start: V, end: V) extends AbstractConnexion[V](start, end, false) with DirectedConnexion[V]
+
+/**
+ * Case class to represent a Connexion from start to end.
+ *
+ * @param start the origin of the connexion.
+ * @param end   the target of the connexion.
+ * @tparam V the type of elements to be connected.
+ */
+case class UndirectedConnexionCase[V](start: V, end: V) extends AbstractConnexion[V](start, end, true) with UndirectedConnexion[V]
 

@@ -13,7 +13,7 @@ import scala.util.Random
  * @param random (implicit) Random source.
  * @tparam Item the underlying type of the Bag.
  */
-case class Bag[Item](xs: Seq[Item])(implicit random: Random) extends Iterable[Item] {
+case class Bag[+Item](xs: Seq[Item])(implicit random: Random) extends Iterable[Item] {
   /**
    * Iterator method, as required by Iterable.
    * NOTE: do NOT assume that each invocation will return the same sequence of items.

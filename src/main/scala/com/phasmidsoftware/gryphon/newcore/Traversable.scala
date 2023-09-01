@@ -11,7 +11,7 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  *
  * @tparam V the underlying key (attribute) type for a vertex.
  */
-trait Traversable[V] {
+trait Traversable[V, P] {
 
   /**
    * Method to run depth-first-search on this Traversable.
@@ -22,7 +22,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+  def dfs[J](visitor: Visitor[V, J])(v: V)(implicit evP: Properties[V, P]): Visitor[V, J]
 
   /**
    * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..

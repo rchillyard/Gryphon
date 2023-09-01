@@ -6,6 +6,7 @@ package com.phasmidsoftware.gryphon.newcore
 
 
 trait Connexions[V, +X <: Connexion[V], P] {
+
   /**
    * Method to return the connexions.
    *
@@ -27,6 +28,7 @@ trait Connexions[V, +X <: Connexion[V], P] {
  * @tparam X the underlying connexion type.
  */
 trait BaseConnexions[V, +X <: Connexion[V]] extends Connexions[V, X, Unit] {
+  def toConnexions[P](p: Unit => P): Connexions[V, X, P] = ConnexionsCase(connexions, p(property))
 
   def unit[Y >: X <: Connexion[V]](connexions: Bag[Y]): BaseConnexions[V, Y]
 

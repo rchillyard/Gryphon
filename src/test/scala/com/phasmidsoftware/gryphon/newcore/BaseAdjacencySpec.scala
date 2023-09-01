@@ -4,8 +4,10 @@
 
 package com.phasmidsoftware.gryphon.newcore
 
+import com.phasmidsoftware.gryphon.visit.{PostVisitor, Visitor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.collection.immutable.Queue
 
 class BaseAdjacencySpec extends AnyFlatSpec with should.Matchers {
 
@@ -21,24 +23,42 @@ class BaseAdjacencySpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "unordered adjacent" in {
-    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int]] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
+    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int], Unit] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
     a.adjacent(0).connexions.iterator.next() shouldBe DirectedConnexionCase(0, 1)
   }
 
   it should "+" in {
-    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int]] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
+    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int], Unit] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
     a.adjacent(0).connexions.iterator.next() shouldBe DirectedConnexionCase(0, 1)
     val b = a + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 2))))
     b.adjacent(0).connexions.iterator.toList shouldBe List(DirectedConnexionCase(0, 2))
   }
 
   it should "connect" in {
-    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int]] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
+    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int], Unit] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
     a.adjacent(0).connexions.iterator.next() shouldBe DirectedConnexionCase(0, 1)
     val b = a connect(0, DirectedConnexionCase(0, 2))
     val connexions = b.adjacent(0).connexions.iterator.toList
     connexions.contains(DirectedConnexionCase(0, 2)) shouldBe true
     connexions.contains(DirectedConnexionCase(0, 1)) shouldBe true
+  }
+
+
+  it should "dfs" in {
+    val a: Adjacency[Int, Connexion[Int], Unit] = UnorderedAdjacency.empty[Int, Connexion[Int], Unit] + (0 -> BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase(0, 1))))
+    a.adjacent(0).connexions.iterator.next() shouldBe DirectedConnexionCase(0, 1)
+    val b = a connect(0, DirectedConnexionCase(0, 2))
+    val connexions = b.adjacent(0).connexions.iterator.toList
+    connexions.contains(DirectedConnexionCase(0, 2)) shouldBe true
+    connexions.contains(DirectedConnexionCase(0, 1)) shouldBe true
+    val visitor: PostVisitor[Int, Queue[Int]] = Visitor.createPost
+    implicit val uIp: Properties[Int, Unit] = new com.phasmidsoftware.gryphon.newcore.Properties[Int, Unit] {
+      def getProperties(v: Int): Unit = ()
+
+      def setProperties(v: Int)(p: Unit): Unit = ()
+    }
+    val visited = b.dfs(visitor)(0)
+    visited.journal.head shouldBe 0
   }
 
 }

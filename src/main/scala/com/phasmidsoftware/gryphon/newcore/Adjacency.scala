@@ -19,7 +19,7 @@ import scala.collection.immutable.{HashMap, TreeMap}
  * @tparam V the attribute type of a vertex (node).
  * @tparam X the edge (connexion) type.
  */
-trait Adjacency[V, X <: Connexion[V], P] extends Traversable[V] {
+trait Adjacency[V, X <: Connexion[V], P] extends Traversable[V, P] {
   /**
    * Method to yield all the connexions (as a Bag) from the vertex (node) identified by v.
    *
@@ -105,7 +105,7 @@ trait BaseAdjacency[V, X <: Connexion[V]] extends Adjacency[V, X, Unit] {
    *
    * @param v the vertex/node identifier.
    * @param p the property.
-   * @tparam P
+   * @tparam P the property type.
    * @return
    */
   def adjacency[P](v: V, p: Unit => P): Adjacency[V, X, P]
@@ -113,21 +113,20 @@ trait BaseAdjacency[V, X <: Connexion[V]] extends Adjacency[V, X, Unit] {
 }
 
 abstract class AbstractBaseAdjacency[V, X <: Connexion[V]](map: Map[V, BaseConnexions[V, X]]) extends AbstractAdjacency[V, X, Unit](map) {
-
-  /**
-   * Method to run depth-first-search on this Traversable.
-   * Vertices will not be visited if they are not reachable from v.
-   *
-   * @param visitor the visitor, of type Visitor[V, J].
-   * @param v       the starting vertex.
-   * @tparam J the journal type.
-   * @return a new Visitor[V, J].
-   */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
-    val z: Adjacency[V, X, Nothing] = adjacency(v, null) // TODO get this right
-    z.dfs(visitor)(v)
-  }
-
+//
+//  /**
+//   * Method to run depth-first-search on this Traversable.
+//   * Vertices will not be visited if they are not reachable from v.
+//   *
+//   * @param visitor the visitor, of type Visitor[V, J].
+//   * @param v       the starting vertex.
+//   * @tparam J the journal type.
+//   * @return a new Visitor[V, J].
+//   */
+//  def dfs[J](visitor: Visitor[V, J])(v: V)(implicit evP: Properties[V, Unit]): Visitor[V, J] = {
+//    val z: Adjacency[V, X, Unit] = adjacency(v, null) // TODO get this right
+//    z.dfs(visitor)(v)
+//  }
 
   /**
    * Method to yield all the connexions from the vertex (node) identified by v.
@@ -142,11 +141,12 @@ abstract class AbstractBaseAdjacency[V, X <: Connexion[V]](map: Map[V, BaseConne
    *
    * @param v the vertex/node identifier.
    * @param p the property.
-   * @tparam P
+   * @tparam P the property type.
    * @return
    */
-  def adjacency[P](v: V, p: Unit => P): Adjacency[V, X, P] = ???
+  def adjacency[P: Initializable : Discoverable](v: V, p: Unit => P): Adjacency[V, X, P]
 
+  // TESTME
   def adjacencyDFS[P: Initializable : Discoverable](v: V): Adjacency[V, X, Unit] =
     Adjacency(for ((v, c) <- map) yield v -> Vertex(v, c.connexions, implicitly[Initializable[P]].initialize))
 
@@ -186,6 +186,7 @@ abstract class AbstractAdjacency[V, X <: Connexion[V], P: Initializable : Discov
    *
    * @param visitor the visitor, of type Visitor[V, J].
    * @param v       the starting vertex.
+   * @param evP     (implicit) evidence of Properties[V,P].
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
@@ -194,6 +195,14 @@ abstract class AbstractAdjacency[V, X <: Connexion[V], P: Initializable : Discov
     result.close()
     result
   }
+
+  /**
+   * Method to get the AdjacencyList for vertex with key (attribute) v, if there is one.
+   *
+   * @param v the key (attribute) of the vertex whose adjacency list we require.
+   * @return an Option of AdjacencyList[X].
+   */
+  def maybeConnexions(v: V): Option[Connexions[V, X, P]] = map.get(v)
 
   /**
    * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
@@ -206,18 +215,13 @@ abstract class AbstractAdjacency[V, X <: Connexion[V], P: Initializable : Discov
   private def recursiveDFS[J](visitor: Visitor[V, J], v: V)(implicit evP: Properties[V, P]): Visitor[V, J] =
     recurseOnVertex(v, visitor.visitPre(v)).visitPost(v)
 
-  /**
-   * Method to get the AdjacencyList for vertex with key (attribute) v, if there is one.
-   *
-   * @param v the key (attribute) of the vertex whose adjacency list we require.
-   * @return an Option of AdjacencyList[X].
-   */
-  def maybeConnexions(v: V): Option[Connexions[V, X, P]] = map.get(v)
-
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J])(implicit evP: Properties[V, P]): Visitor[V, J] =
     maybeConnexions(v) match {
-      case Some(xa) => xa.connexions.iterator.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
-      case None => throw CoreException(s"DFS logic error 0: recursiveDFS(v = $v)")
+      case Some(xa) =>
+        xa.connexions.iterator.foldLeft(visitor)((q, x) => recurseOnEdgeX(v, q, x))
+      case None =>
+        visitor
+//        throw CoreException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
 
   private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X)(implicit evP: Properties[V, P]): Visitor[V, J] = {
@@ -230,12 +234,14 @@ abstract class AbstractAdjacency[V, X <: Connexion[V], P: Initializable : Discov
 //      case Some(z) => recursiveDFS(visitor, z)
 //      case None => visitor
 //    }
+val pd = implicitly[Discoverable[P]]
 
     val vo = for {
       z <- y.connexion(v)
-      p = evP.getProperties(z) if !implicitly[Discoverable[P]].isDiscovered(p)
-      _ = implicitly[Discoverable[P]].setDiscovered(p, b = true)
-    } yield v
+      p = evP.getProperties(z)
+      if !pd.isDiscovered(p)
+      _ = pd.setDiscovered(p, b = true)
+    } yield z
 
     vo match {
       case Some(v) => recurseOnVertex(v, visitor)
@@ -266,36 +272,51 @@ abstract class AbstractAdjacency[V, X <: Connexion[V], P: Initializable : Discov
 //def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ???
 //}
 
+// TESTME
 object AbstractBaseAdjacency {
-  /**
-   * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
-   * and, if not, marks it as discovered then returns it, wrapped in Some.
-   *
-   * @param connexionsMap the Map of V -> BaseConnexions[V, X, P] which represents the adjacencies of a graph.
-   * @param f             a Unit-function to be applied to the BaseConnexions corresponding to maybeV (if it exists).
-   * @param maybeV        an optional V value which is the attribute of the BaseConnexions to be found and marked.
-   * @param errorMessage  an error message which will be the message for the exception that arises when maybeV is None.
-   * @return Option[V]: the (optional) vertex to run dfs on next.
-   */
-  private[newcore] def findAndMarkVertex[V, X <: Connexion[V], P <: Discovered](connexionsMap: Map[V, Connexions[V, X, P]], f: Connexions[V, X, P] => Unit, maybeV: Option[V], errorMessage: String)(implicit evP: Properties[V, P]): Option[V] = maybeV match {
-    case Some(z) =>
-      val cs: Seq[Connexions[V, X, P]] = for {
-        q <- connexionsMap.get(z).toSeq
-        x <- q.connexions
-        v <- x.connexion(z).toSeq
-        t = evP.getProperties(v) if !t.isDiscovered
-      } yield q
-      cs foreach (c => f(c))
-      maybeV
-    case None => maybeV //  NOTE: this is not a problem. // throw GraphException(errorMessage)
-  }
+//  /**
+//   * This method finds the vertex at the other end of x from v, checks to see if it is already discovered
+//   * and, if not, marks it as discovered then returns it, wrapped in Some.
+//   *
+//   * @param connexionsMap the Map of V -> BaseConnexions[V, X, P] which represents the adjacencies of a graph.
+//   * @param f             a Unit-function to be applied to the BaseConnexions corresponding to maybeV (if it exists).
+//   * @param maybeV        an optional V value which is the attribute of the BaseConnexions to be found and marked.
+//   * @param errorMessage  an error message which will be the message for the exception that arises when maybeV is None.
+//   * @return Option[V]: the (optional) vertex to run dfs on next.
+//   */
+//  private[newcore] def findAndMarkVertex[V, X <: Connexion[V], P <: Discovered](connexionsMap: Map[V, Connexions[V, X, P]], f: Connexions[V, X, P] => Unit, maybeV: Option[V], errorMessage: String)(implicit evP: Properties[V, P]): Option[V] = maybeV match {
+//    case Some(z) =>
+//      val cs: Seq[Connexions[V, X, P]] = for {
+//        q <- connexionsMap.get(z).toSeq
+//        x <- q.connexions
+//        v <- x.connexion(z).toSeq
+//        t = evP.getProperties(v) if !t.isDiscovered
+//      } yield q
+//      cs foreach (c => f(c))
+//      maybeV
+//    case None => maybeV //  NOTE: this is not a problem. // throw GraphException(errorMessage)
+//  }
 }
 
 object Adjacency {
-  def apply[V, X <: Connexion[V], P](value: Map[V, Vertex[V, X, P]]): Adjacency[V, X, P] = ???
+  def apply[V, X <: Connexion[V], P](value: Map[V, Vertex[V, X, P]]): Adjacency[V, X, P] = ??? // TODO implement me
 }
 
 case class OrderedBaseAdjacency[V: Ordering, X <: Connexion[V]](map: TreeMap[V, BaseConnexions[V, X]]) extends AbstractBaseAdjacency[V, X](map) {
+
+  /**
+   * Method to decorate this BaseAdjacency as a Adjacency.
+   *
+   * @param v the vertex/node identifier.
+   * @param p the property.
+   * @tparam P the property type.
+   *           Required to be Initializable and Discoverable.
+   * @return
+   */
+  def adjacency[P: Initializable : Discoverable](v: V, p: Unit => P): Adjacency[V, X, P] = {
+    val mm: TreeMap[V, Connexions[V, X, P]] = for ((k, v) <- map) yield k -> v.toConnexions(p)
+    OrderedAdjacency(mm)
+  }
 
   /**
    * Method to construct a new BaseAdjacency based on this.
@@ -315,7 +336,7 @@ case class OrderedBaseAdjacency[V: Ordering, X <: Connexion[V]](map: TreeMap[V, 
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ???
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ??? // TODO implement me
 
   /**
    * Method to run breadth-first-search with a mutable queue on this Traversable.
@@ -327,14 +348,79 @@ case class OrderedBaseAdjacency[V: Ordering, X <: Connexion[V]](map: TreeMap[V, 
    *           Requires implicit evidence of MutableQueueable[Q, V].
    * @return a new Visitor[V, J].
    */
-  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ???
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ??? // TODO implement me
 }
 
 object OrderedBaseAdjacency {
   def empty[V: Ordering, X <: Connexion[V]]: OrderedBaseAdjacency[V, X] = OrderedBaseAdjacency(TreeMap.empty)
 }
 
-case class UnorderedAdjacency[V, X <: Connexion[V]](map: HashMap[V, BaseConnexions[V, X]]) extends AbstractBaseAdjacency[V, X](map) {
+case class OrderedAdjacency[V, X <: Connexion[V], P: Initializable : Discoverable](map: TreeMap[V, Connexions[V, X, P]]) extends AbstractAdjacency[V, X, P](map) {
+
+  /**
+   * Method to construct a new BaseAdjacency based on this.
+   *
+   * @param map the map to be used.
+   * @return an BaseAdjacency[V, X].
+   */
+  def unit(map: Map[V, Connexions[V, X, P]]): Adjacency[V, X, P] = map match {
+    case m: TreeMap[V, Connexions[V, X, P]] => OrderedAdjacency(m)
+    case _ => throw CoreException(s"OrderedAdjacency: unit: map must be a TreeMap")
+  }
+
+//
+//  /**
+//   * Method to run depth-first-search on this Traversable.
+//   * Vertices will not be visited if they are not reachable from v.
+//   *
+//   * @param visitor the visitor, of type Visitor[V, J].
+//   * @param v       the starting vertex.
+//   * @tparam J the journal type.
+//   * @return a new Visitor[V, J].
+//   */
+//  def dfs[J](visitor: Visitor[V, J])(v: V)(implicit evP: Properties[V, P]): Visitor[V, J] = ???
+
+  /**
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ??? // TODO implement me
+
+  /**
+   * Method to run breadth-first-search with a mutable queue on this Traversable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @tparam Q the type of the mutable queue for navigating this Traversable.
+   *           Requires implicit evidence of MutableQueueable[Q, V].
+   * @return a new Visitor[V, J].
+   */
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ??? // TODO implement me
+
+}
+
+object OrderedAdjacency {
+  def empty[V: Ordering, X <: Connexion[V], P: Initializable : Discoverable]: OrderedAdjacency[V, X, P] = OrderedAdjacency[V, X, P](TreeMap.empty[V, Connexions[V, X, P]])
+}
+
+case class UnorderedBaseAdjacency[V: Ordering, X <: Connexion[V]](map: HashMap[V, BaseConnexions[V, X]]) extends AbstractBaseAdjacency[V, X](map) {
+
+  /**
+   * Method to decorate this BaseAdjacency as a Adjacency.
+   *
+   * @param v the vertex/node identifier.
+   * @param p the property.
+   * @tparam P the property type.
+   * @return an Adjacency[V, X, P].
+   */
+  def adjacency[P: Initializable : Discoverable](v: V, p: Unit => P): Adjacency[V, X, P] = {
+    val mm: HashMap[V, Connexions[V, X, P]] = for ((k, v) <- map) yield k -> v.toConnexions(p)
+    UnorderedAdjacency(mm)
+  }
 
   /**
    * Method to construct a new BaseAdjacency based on this.
@@ -343,8 +429,8 @@ case class UnorderedAdjacency[V, X <: Connexion[V]](map: HashMap[V, BaseConnexio
    * @return an BaseAdjacency[V, X].
    */
   def unit(map: Map[V, Connexions[V, X, Unit]]): Adjacency[V, X, Unit] = map match {
-    case m: HashMap[V, BaseConnexions[V, X]] => UnorderedAdjacency(m)
-    case _ => throw CoreException(s"UnorderedAdjacency: unit: map must be a HashMap")
+    case m: TreeMap[V, BaseConnexions[V, X]] => OrderedBaseAdjacency(m)
+    case _ => throw CoreException(s"OrderedBaseAdjacency: unit: map must be a TreeMap")
   }
 
   /**
@@ -354,7 +440,7 @@ case class UnorderedAdjacency[V, X <: Connexion[V]](map: HashMap[V, BaseConnexio
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ???
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ??? // TODO implement me
 
   /**
    * Method to run breadth-first-search with a mutable queue on this Traversable.
@@ -366,10 +452,57 @@ case class UnorderedAdjacency[V, X <: Connexion[V]](map: HashMap[V, BaseConnexio
    *           Requires implicit evidence of MutableQueueable[Q, V].
    * @return a new Visitor[V, J].
    */
-  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ???
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ??? // TODO implement me
+}
+
+
+case class UnorderedAdjacency[V, X <: Connexion[V], P: Initializable : Discoverable](map: HashMap[V, Connexions[V, X, P]]) extends AbstractAdjacency[V, X, P](map) {
+
+  /**
+   * Method to construct a new BaseAdjacency based on this.
+   *
+   * @param map the map to be used.
+   * @return an BaseAdjacency[V, X].
+   */
+  def unit(map: Map[V, Connexions[V, X, P]]): Adjacency[V, X, P] = map match {
+    case m: HashMap[V, Connexions[V, X, P]] => UnorderedAdjacency(m)
+    case _ => throw CoreException(s"OrderedAdjacency: unit: map must be a HashMap")
+  }
+
+  /**
+   * Method to run depth-first-search on this Traversable.
+   * Vertices will not be visited if they are not reachable from v.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = ??? // TODO implement me
+
+  /**
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ??? // TODO implement me
+
+  /**
+   * Method to run breadth-first-search with a mutable queue on this Traversable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @tparam Q the type of the mutable queue for navigating this Traversable.
+   *           Requires implicit evidence of MutableQueueable[Q, V].
+   * @return a new Visitor[V, J].
+   */
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ??? // TODO implement me
 
 }
 
 object UnorderedAdjacency {
-  def empty[V, X <: Connexion[V]]: UnorderedAdjacency[V, X] = UnorderedAdjacency(HashMap.empty)
+  def empty[V: Ordering, X <: Connexion[V], P: Initializable : Discoverable]: UnorderedAdjacency[V, X, P] = UnorderedAdjacency[V, X, P](HashMap.empty[V, Connexions[V, X, P]])
 }

@@ -31,7 +31,7 @@ class ConnexionsSpec extends AnyFlatSpec with should.Matchers {
     updated.property shouldBe property
     val iterator = connexions.iterator
     iterator.hasNext shouldBe true
-    iterator.next shouldBe t
+    iterator.next() shouldBe t
     iterator.hasNext shouldBe false
   }
 

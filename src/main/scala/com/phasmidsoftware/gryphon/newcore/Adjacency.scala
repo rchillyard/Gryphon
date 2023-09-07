@@ -7,17 +7,19 @@ package com.phasmidsoftware.gryphon.newcore
 import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 import scala.collection.immutable.{HashMap, TreeMap}
 
-
 /**
- * Trait to model the concept of adjacency.
- * BaseAdjacency is central to the representation of graphs and trees.
+ * Trait to model the concept of adjacency by extending the trait Traversable[V, P].
+ * The concept of Adjacency is central to the representation of graphs and trees.
  * By using adjacency lists (bags), we can traverse a graph in time O(|E|) where E is the number of edges.
  * In terms of the number (n) of vertices, traversal takes O(nx) where x is the mean degree.
  * By referring to the Erdös-Rényi model, we can show that x ~ log(n), thus graph traversal becomes O(n log(n)).
  * See [[https://en.wikipedia.org/wiki/Erdős–Rényi_model]].
  *
- * @tparam V the attribute type of a vertex (node).
- * @tparam X the edge (connexion) type.
+ * @tparam V the underlying key (attribute) type of the nodes (vertices) of this Adjacency.
+ * @tparam X the underlying type of the connexion which connects two vertices. Required to be a sub-type of Connexion[V].
+ * @tparam P the property type of this Traversable object.
+ *           Theoretically, this property can be anything at all.
+ *           However, the dfs and bfs mechanisms use a field of type P in a node (vertex) to aid in traversal (graph navigation).
  */
 trait Adjacency[V, X <: Connexion[V], P] extends Traversable[V, P] {
   /**
@@ -63,8 +65,8 @@ trait Adjacency[V, X <: Connexion[V], P] extends Traversable[V, P] {
  * By referring to the Erdös-Rényi model, we can show that x ~ log(n), thus graph traversal becomes O(n log(n)).
  * See [[https://en.wikipedia.org/wiki/Erdős–Rényi_model]].
  *
- * @tparam V the attribute type of a vertex (node).
- * @tparam X the edge (connexion) type.
+ * @tparam V the underlying key (attribute) type of the nodes (vertices) of this BaseAdjacency.
+ * @tparam X the underlying type of the connexion which connects two vertices. Required to be a sub-type of Connexion[V].
  */
 trait BaseAdjacency[V, X <: Connexion[V]] extends Adjacency[V, X, Unit] {
   /**
@@ -112,7 +114,15 @@ trait BaseAdjacency[V, X <: Connexion[V]] extends Adjacency[V, X, Unit] {
 
 }
 
-abstract class AbstractBaseAdjacency[V, X <: Connexion[V]](map: Map[V, BaseConnexions[V, X]]) extends AbstractAdjacency[V, X, Unit](map) {
+/**
+ * Abstract sub-class of AbstractAdjacency[V, X, Unit].
+ *
+ * @param map The "adjacency map" representing this BaseAdjacency, i.e. a Map of V -> Connexions[V, X, Unit].
+ * @tparam V the underlying key (attribute) type of the nodes (vertices) of this AbstractBaseAdjacency.
+ * @tparam X the underlying type of the connexion which connects two vertices. Required to be a sub-type of Connexion[V].
+ */
+abstract class AbstractBaseAdjacency[V, X <: Connexion[V]](map: Map[V, BaseConnexions[V, X]]) extends AbstractAdjacency[V, X, Unit](map) {//  with BaseAdjacency[V, X] {
+  // CONSIDER why is this definition not an implementation of BaseAdjacency[V, X] ??
 //
 //  /**
 //   * Method to run depth-first-search on this Traversable.
@@ -141,7 +151,9 @@ abstract class AbstractBaseAdjacency[V, X <: Connexion[V]](map: Map[V, BaseConne
    *
    * @param v the vertex/node identifier.
    * @param p the property.
-   * @tparam P the property type.
+   * @tparam P the property type of this Traversable object.
+   *           Theoretically, this property can be anything at all.
+   *           However, the dfs and bfs mechanisms use a field of type P in a node (vertex) to aid in traversal (graph navigation).
    * @return
    */
   def adjacency[P: Initializable : Discoverable](v: V, p: Unit => P): Adjacency[V, X, P]
@@ -152,6 +164,16 @@ abstract class AbstractBaseAdjacency[V, X <: Connexion[V]](map: Map[V, BaseConne
 
 }
 
+/**
+ *
+ * @param map The "adjacency map" representing this Adjacency, i.e. a Map of V -> Connexions[V, X, P].
+ * @tparam V the underlying key (attribute) type of the nodes (vertices) of this AbstractAdjacency.
+ * @tparam X the underlying type of the connexion which connects two vertices. Required to be a sub-type of Connexion[V].
+ * @tparam P the property type of this Traversable object.
+ *           Theoretically, this property can be anything at all.
+ *           However, the dfs and bfs mechanisms use a field of type P in a node (vertex) to aid in traversal (graph navigation).
+ *           It is required to provide evidence of Initializable[P] and Discoverable[P].
+ */
 abstract class AbstractAdjacency[V, X <: Connexion[V], P: Initializable : Discoverable](map: Map[V, Connexions[V, X, P]]) extends Adjacency[V, X, P] {
   /**
    * Method to yield all the connexions from the vertex (node) identified by v.
@@ -309,7 +331,9 @@ case class OrderedBaseAdjacency[V: Ordering, X <: Connexion[V]](map: TreeMap[V, 
    *
    * @param v the vertex/node identifier.
    * @param p the property.
-   * @tparam P the property type.
+   * @tparam P the property type of this Traversable object.
+   *           Theoretically, this property can be anything at all.
+   *           However, the dfs and bfs mechanisms use a field of type P in a node (vertex) to aid in traversal (graph navigation).
    *           Required to be Initializable and Discoverable.
    * @return
    */
@@ -414,7 +438,9 @@ case class UnorderedBaseAdjacency[V: Ordering, X <: Connexion[V]](map: HashMap[V
    *
    * @param v the vertex/node identifier.
    * @param p the property.
-   * @tparam P the property type.
+   * @tparam P the property type of this Traversable object.
+   *           Theoretically, this property can be anything at all.
+   *           However, the dfs and bfs mechanisms use a field of type P in a node (vertex) to aid in traversal (graph navigation).
    * @return an Adjacency[V, X, P].
    */
   def adjacency[P: Initializable : Discoverable](v: V, p: Unit => P): Adjacency[V, X, P] = {

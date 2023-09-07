@@ -9,7 +9,10 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 /**
  * Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfsMutable.
  *
- * @tparam V the underlying key (attribute) type for a vertex.
+ * @tparam V the underlying key (attribute) type of the nodes (vertices) of this Traversable.
+ * @tparam P the property type of this Traversable object.
+ *           Theoretically, this property can be anything at all.
+ *           However, the dfs and bfs mechanisms use a field of type P in a node (vertex) to aid in traversal (graph navigation).
  */
 trait Traversable[V, P] {
 
@@ -50,7 +53,7 @@ trait Traversable[V, P] {
 // * Trait to define the behavior of a graph-like structure which can be traversed by BFS in search of a goal.
 // *
 // * @tparam V the underlying key (attribute) type for a vertex.
-// * @tparam X the type of edge which connects two vertices. A sub-type of EdgeLike[V].
+// * @tparam X the underlying type of the connexion which connects two vertices. A sub-type of EdgeLike[V].
 // * @tparam P the property type (a mutable property currently only supported by the BaseConnexions type).
 // */
 //trait GoalTraversable[V, X <: Connexion[V], P] extends Traversable[V] {
@@ -70,7 +73,7 @@ trait Traversable[V, P] {
 // *
 // * @tparam V the underlying key (attribute) type for a vertex.
 // * @tparam E the edge-attribute type.
-// * @tparam X the type of edge which connects two vertices. A sub-type of Edge[V,E].
+// * @tparam X the underlying type of the connexion which connects two vertices. A sub-type of Edge[V,E].
 // * @tparam P the property type (a mutable property currently only supported by the BaseConnexions type).
 // */
 //trait EdgeGoalTraversable[V, E, X <: Edge[V, E], P] extends Traversable[V] {

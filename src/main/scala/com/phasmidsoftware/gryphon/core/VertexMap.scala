@@ -497,8 +497,6 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
 
   private val flog: Flog = Flog[AbstractVertexMap[V, X, P]]
 
-  import flog._
-
   def contains(v: V): Boolean = _map.contains(v)
 
   def size: Int = _map.size
@@ -594,31 +592,33 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
    * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
    * @return a new Tree[V, E, X, Double] of shortest paths.
    */
-  def bfs(v: V)(goal: V => Option[Boolean]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P]) = {
+  def bfs(v: V)(goal: V => Option[Boolean]): (Option[V], AcyclicNetwork[V, VertexPair[V], P]) = {
 
     @tailrec
-    def inner(result: AcyclicNetwork[V, VertexPair[V], P], work: Queue[V]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P]) = work match {
+    def inner(result: AcyclicNetwork[V, VertexPair[V], P], work: Queue[V]): (Option[V], AcyclicNetwork[V, VertexPair[V], P]) = work match {
       case v +: vs =>
-        val g = goal(v)
-        if (g.isDefined) g -> result
-        else {
-          val ys = for {
-            z <- vertexMap.get(v).toList
-            r = z.adjacent if z.discovered
-            x <- r.xs
-          } yield x.otherVertex(v)
-          val qqq: AcyclicNetwork[V, VertexPair[V], P] = ys.foldLeft(result)((r, y) => r.addEdge(VertexPairCase(v, y)))
-          val zzz: Queue[V] = ys.foldLeft(vs)((q, v) => q :+ v)
-          inner(qqq, zzz)
+        goal(v) match {
+          case Some(true) => Some(v) -> result
+          case Some(false) => None -> result
+          case _ =>
+            val ys = for {
+              z <- vertexMap.get(v).toList
+              r = z.adjacent if !z.discovered
+              x <- r.xs
+            } yield x.otherVertex(v)
+            inner(ys.foldLeft(result)((r, y) => r.addEdge(VertexPairCase(v, y))), ys.foldLeft(vs)((q, v) => q :+ v))
         }
       case _ => None -> result
     }
 
-    inner(AcyclicNetworkCase.apply, Queue[V](v))
+    inner(AcyclicNetworkCase.empty, Queue[V](v))
   }
 
   /**
    * Method to run goal-terminated breadth-first-search on this VertexMap.
+   *
+   * This version of bfs is NOT defined in Traversable.
+   * It is used by path (at least for the time being).
    *
    * CONSIDER add relax method as in bfsMutable.
    *
@@ -718,9 +718,9 @@ abstract class AbstractVertexMap[V, X <: EdgeLike[V], P](val _map: Map[V, Vertex
    */
   def deriveProperty(v: V, x: X): Option[P]
 
-  private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X) = {
-    s"recurseOnEdgeX: $v, $y" !!
-            VertexMap.findAndMarkVertex(vertexMap, { w: Vertex[V, X, P] => w.setProperty(deriveProperty(v, y)) }, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
+  private def recurseOnEdgeX[J](v: V, visitor: Visitor[V, J], y: X): Visitor[V, J] = {
+//    s"recurseOnEdgeX: $v, $y" !!
+    VertexMap.findAndMarkVertex(vertexMap, { w: Vertex[V, X, P] => w.setProperty(deriveProperty(v, y)) }, y.other(v), s"DFS logic error 1: findAndMarkVertex(v = $v, x = $y") match {
       case Some(z) => recursiveDFS(visitor, z)
       case None => visitor
     }

@@ -11,7 +11,15 @@ import java.net.URL
 import scala.io.{BufferedSource, Source}
 import scala.util.Try
 
-abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] {
+/**
+ * Base class for building graphs.
+ *
+ * CONSIDER: the entire parsing mechanism could be replaced by using TableParser.
+ *
+ * @tparam V the vertex type (must have evidence of Parseable).
+ * @tparam E the edge type (must have evidence of Parseable).
+ */
+abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] extends StringsParser {
 
   /**
    * Method to create an edge list (edge from VVE triples).
@@ -52,11 +60,11 @@ abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] {
 
   private def processTripleSource(s: BufferedSource) = for {
     string <- s.getLines()
-    Array(wV1, wV2, wE) = string.split("""\s+""")
+    t3 <- parse3(string).toOption
   } yield for {
-    v1 <- implicitly[Parseable[V]].parse(wV1)
-    v2 <- implicitly[Parseable[V]].parse(wV2)
-    e <- implicitly[Parseable[E]].parse(wE)
+    v1 <- implicitly[Parseable[V]].parse(t3._1)
+    v2 <- implicitly[Parseable[V]].parse(t3._2)
+    e <- implicitly[Parseable[E]].parse(t3._3)
   } yield (v1, v2, e)
 
   /**
@@ -70,12 +78,12 @@ abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] {
     vVs <- sequence(processPairSource(Source.fromURL(u)))
   } yield vVs
 
-  private def processPairSource(s: BufferedSource) = for {
+  private def processPairSource(s: BufferedSource): Iterator[Try[(V, V)]] = for {
     string <- s.getLines()
-    Array(wV1, wV2) = string.split("""\s+""")
+    t2 <- parse2(string).toOption
   } yield for {
-    v1 <- implicitly[Parseable[V]].parse(wV1)
-    v2 <- implicitly[Parseable[V]].parse(wV2)
+    v1 <- implicitly[Parseable[V]].parse(t2._1)
+    v2 <- implicitly[Parseable[V]].parse(t2._2)
   } yield (v1, v2)
 }
 

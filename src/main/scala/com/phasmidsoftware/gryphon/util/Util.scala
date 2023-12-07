@@ -8,6 +8,7 @@ import scala.util.{Failure, Success, Try}
 
 /**
  * Utilities: especially functional utilities.
+ * CONSIDER renaming this FP for consistency with my other libraries.
  */
 object Util {
 
@@ -67,4 +68,14 @@ object Util {
    * @return the value of <code>optionToTry(Option(x), t)</code>.
    */
   def tryNonNull[X](x: => X, t: => Throwable): Try[X] = optionToTry(Option(x), t)
+
+  /**
+   * Method to yield an Option of T according to whether the predicate p yields true.
+   *
+   * @param p a predicate on T.
+   * @param t an actual value of T.
+   * @tparam T the type of t (and the underlying type of the result).
+   * @return Some(t) if p(t) is true, otherwise None.
+   */
+  def optional[T](p: T => Boolean)(t: T): Option[T] = Some(t).filter(p)
 }

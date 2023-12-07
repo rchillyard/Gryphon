@@ -62,7 +62,7 @@ trait GoalTraversable[V, X <: EdgeLike[V], P] extends Traversable[V] {
    * @param goal the goal function: None means "no decision;" Some(x) means the decision (win/lose) is true/false.
    * @return a new Tree[V, E, X, Double] of shortest paths.
    */
-  def bfs(v: V)(goal: V => Option[Boolean]): (Option[Boolean], AcyclicNetwork[V, VertexPair[V], P])
+  def bfs(v: V)(goal: V => Option[Boolean]): (Option[V], AcyclicNetwork[V, VertexPair[V], P])
 }
 
 /**

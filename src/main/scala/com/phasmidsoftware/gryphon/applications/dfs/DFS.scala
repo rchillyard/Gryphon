@@ -63,7 +63,7 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
     val mv1: VertexMap[V, Xin, VertexPair[V]] = gin.vertexMap
     val mv2: VertexMap[V, Xout, Unit] = mv1.copyVertices(UnorderedVertexMap.empty[V, Xout, Unit])
     val function: V => Option[VertexPair[V]] = mv1.processVertexProperty[VertexPair[V]](vv => if (vv.vertices._2 == v) vv else vv.invert)
-    val vvos: Iterator[Option[VertexPair[V]]] = visited.journal.iterator map function
+    val vvos: Iterator[Option[VertexPair[V]]] = visited.journal.iterator map function pipe println
     val gout: Network[V, Xout, Unit] = vvos.flatten.foldLeft(treeGenerator("DFS Tree", mv2)) {
       case (u, pair) => u.addEdge(createEdge(pair))
     }

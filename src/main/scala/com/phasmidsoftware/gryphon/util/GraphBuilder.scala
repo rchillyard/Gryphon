@@ -11,6 +11,14 @@ import java.net.URL
 import scala.io.{BufferedSource, Source}
 import scala.util.Try
 
+/**
+ * Base class for building graphs.
+ *
+ * CONSIDER: the entire parsing mechanism could be replaced by using TableParser.
+ *
+ * @tparam V the vertex type (must have evidence of Parseable).
+ * @tparam E the edge type (must have evidence of Parseable).
+ */
 abstract class AbstractGraphBuilder[V: Parseable, E: Parseable] extends StringsParser {
 
   /**

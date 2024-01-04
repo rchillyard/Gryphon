@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
     "com.phasmidsoftware" %% "tableparser" % "1.1.1",
     "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     "org.typelevel" %% "cats-effect" % "3.4.8",
-    "com.phasmidsoftware" %% "flog" % "1.0.8",
+    "com.phasmidsoftware" %% "flog" % "1.0.10-SNAPSHOT",
     "ch.qos.logback" % "logback-classic" % "1.4.7" % "runtime",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
     "junit" % "junit" % "4.13.2" % "test",

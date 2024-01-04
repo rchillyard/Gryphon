@@ -36,8 +36,8 @@ public class ListTest {
     @Test
     public void size() {
         assertEquals(0, List.<Integer>empty().size());
-        assertEquals(1, List.<Integer>of(1).size());
-        assertEquals(2, List.<Integer>of(1, 2).size());
+        assertEquals(1, List.of(1).size());
+        assertEquals(2, List.of(1, 2).size());
     }
 
     @Test

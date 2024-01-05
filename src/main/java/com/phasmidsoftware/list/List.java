@@ -21,7 +21,7 @@ public class List<T> implements java.lang.Iterable<T> {
      * @param <U>  the underlying type of the new List.
      * @return a new List of U whose head is u and whose tail is <code>tail</code>.
      */
-    public static <U> List<U> cons(U u, List<U> tail) {
+    public static <U> List<U> cons(final U u, final List<U> tail) {
         return tail.prepend(u);
     }
 
@@ -44,7 +44,7 @@ public class List<T> implements java.lang.Iterable<T> {
      * @return a new List of U which with the elements in the same order as the elements of us.
      */
     @SafeVarargs
-    public static <U> List<U> of(U... us) {
+    public static <U> List<U> of(final U... us) {
         List<U> result = new List<>();
         for (int i = us.length; i > 0; i--)
             result = result.prepend(us[i - 1]);
@@ -101,8 +101,12 @@ public class List<T> implements java.lang.Iterable<T> {
      * @param t an element of type T.
      * @return a new List of T whose head is t and whose tail is this.
      */
-    public List<T> prepend(T t) {
+    public List<T> prepend(final T t) {
         return new List<>(new Node(t, list));
+    }
+
+    public boolean isEmpty() {
+        return list == null;
     }
 
     /**
@@ -110,7 +114,7 @@ public class List<T> implements java.lang.Iterable<T> {
      *
      * @param list the list, as a Node.
      */
-    public List(Node list) {
+    public List(final Node list) {
         this.list = list;
     }
 
@@ -132,7 +136,7 @@ public class List<T> implements java.lang.Iterable<T> {
     }
 
     static class Split<X> {
-        public Split(X head, List<X> tail) {
+        public Split(final X head, final List<X> tail) {
             this.head = head;
             this.tail = tail;
         }

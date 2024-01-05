@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
+import com.phasmidsoftware.flog.Flog
 import com.phasmidsoftware.gryphon.core._
 import com.phasmidsoftware.gryphon.visit.{IterableJournalQueue, Visitor}
 import scala.collection.immutable.Queue
@@ -50,6 +51,10 @@ case class TreeDFS[V, X <: EdgeLike[V], P](tree: AcyclicNetwork[V, X, P]) extend
 
 class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
 
+  val flog: Flog = Flog[DFSHelper[V,Xin,Xout]]
+
+  import flog._
+
   /**
    * Method to yield the DFS tree for given <code>graph</code> starting at the given vertex <code>v</code>.
    *
@@ -63,7 +68,7 @@ class DFSHelper[V, Xin <: Edge[V, Unit], Xout <: DirectedEdge[V, Unit]] {
     val mv1: VertexMap[V, Xin, VertexPair[V]] = gin.vertexMap
     val mv2: VertexMap[V, Xout, Unit] = mv1.copyVertices(UnorderedVertexMap.empty[V, Xout, Unit])
     val function: V => Option[VertexPair[V]] = mv1.processVertexProperty[VertexPair[V]](vv => if (vv.vertices._2 == v) vv else vv.invert)
-    val vvos: Iterator[Option[VertexPair[V]]] = visited.journal.iterator map function pipe println
+    val vvos: Iterator[Option[VertexPair[V]]] = "vvos" !! (visited.journal.iterator map function)
     val gout: Network[V, Xout, Unit] = vvos.flatten.foldLeft(treeGenerator("DFS Tree", mv2)) {
       case (u, pair) => u.addEdge(createEdge(pair))
     }

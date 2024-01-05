@@ -97,4 +97,10 @@ public class ListTest {
         assertEquals(Integer.valueOf(3), iterator.next());
         assertFalse(iterator.hasNext());
     }
+
+    @Test
+    public void isEmpty() {
+        assertTrue(List.<Integer>empty().isEmpty());
+        assertFalse(List.of(1).isEmpty());
+    }
 }

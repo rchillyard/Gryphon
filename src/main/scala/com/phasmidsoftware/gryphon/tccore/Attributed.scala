@@ -2,16 +2,16 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.tccore
 
-trait Attributed[+A] {
+trait Attributed[X, +A] {
 
   /**
    * An attribute.
    *
-   * @return the value of the attribute, for example, a weight.
+   * @return the value of the x's attribute, for example, a weight.
    */
-  val attribute: A
+  def attribute(x: X): A
 }
 
 trait Property[P] {

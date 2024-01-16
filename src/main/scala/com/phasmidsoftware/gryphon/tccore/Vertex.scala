@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.tccore
 
 /**
  * Trait to model the behavior of a Vertex.
@@ -43,7 +43,7 @@ trait Vertex[V, +X <: EdgeLike[V], P] extends VertexLike[V] with Property[P] {
  *
  * @tparam V the (covariant) attribute type.
  */
-trait VertexLike[+V] extends Attributed[V]
+trait VertexLike[+V] extends Attributed[VertexLike[V], V]
 
 /**
  * Abstract base class to represent an vertex.

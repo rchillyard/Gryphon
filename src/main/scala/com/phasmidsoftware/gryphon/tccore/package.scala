@@ -1,5 +1,5 @@
 package com.phasmidsoftware.gryphon
 
-package object core {
+package object tccore {
 
 }

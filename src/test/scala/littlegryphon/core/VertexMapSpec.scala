@@ -11,14 +11,23 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "VertexMap"
 
-  private val red = Vertex.create[Int](0)
+  private val red = "R"
+  private val blue = "B"
+  private val vRed = Vertex.create(red)
+  private val vBlue = Vertex.create(blue)
+
+  it should "+" in {
+    val m_ = VertexMap.empty[String]
+    val mRB = m_ + Pair(red, blue)
+    mRB.get(red) map (_.attribute) shouldBe Some(red)
+    mRB.get(blue) map (_.attribute) shouldBe Some(blue)
+  }
 
   it should "get" in {
-    val m_ = VertexMap.empty[Int]
-    m_.get(0) shouldBe None
-    val m0 = m_.+(0 -> red)
-    m0.get(0) shouldBe Some(red)
-
+    val m_ = VertexMap.empty[String]
+    m_.get(red) shouldBe None
+    val m0 = m_ + (red, vRed)
+    m0.get(red) shouldBe Some(vRed)
   }
 
   it should "apply" in {
@@ -30,7 +39,7 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "empty" in {
-    VertexMap.empty[Int].map shouldBe Map.empty
+    VertexMap.empty[String].map shouldBe Map.empty
   }
 
 }

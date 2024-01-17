@@ -3,6 +3,38 @@ package littlegryphon.core
 import littlegryphon.visit.Visitor
 
 case class VertexMap[V](map: Map[V, Vertex[V]]) {
+  def +(connexion: Connexion[V]): VertexMap[V] = {
+    val v1: V = connexion.v1
+    val v2: V = connexion.v2
+
+    val xo1: Option[Vertex[V]] = map.get(v1)
+    val x2: Vertex[V] = map.getOrElse(v2, Vertex.create[V](v2))
+
+    val m: Map[V, Vertex[V]] = xo1 match {
+      case Some(vw) =>
+        val v = vw.attribute
+        val q: Map[V, Vertex[V]] = map - v
+        val p: Vertex[V] = vw + VertexPair[V](vw, x2)
+        q + (v -> p) + (v2 -> x2)
+      case None =>
+        val x1: Vertex[V] = Vertex.create[V](v1)
+        val p: Vertex[V] = x1 + VertexPair[V](x1, x2)
+        map + (x1.attribute -> p) + (v2 -> x2)
+    }
+
+    copy(map = m)
+  }
+
+//  def addEdge(v: V, y: X): VertexMap[V, X, P] = unit(
+//    _map.get(v) match {
+//      case Some(vv) => buildMap(_map - v, v, y, vv)
+//      case None => buildMap(_map, v, y, Vertex.empty(v))
+//    }
+//  )
+
+
+//  def buildMap(m: Map[V, Vertex[V]], v: V, y: X, vv: Vertex[V]): Map[V, Vertex[V]] =
+//    m + (v -> (vv addEdge y))
 
   /**
    * Method to run depth-first-search on this VertexMap.
@@ -78,13 +110,18 @@ object VertexMap {
   def empty[V]: VertexMap[V] = new VertexMap[V](Map.empty)
 }
 
-trait Bag[+X] extends Iterable[X]
+trait Bag[+X] extends Iterable[X] {
+  def +[Y >: X](y: Y): Bag[Y]
+}
 
 object Bag {
   def empty: Bag[Nothing] = ListBag.apply
 }
 
 case class ListBag[+X](xs: Seq[X]) extends Bag[X] {
+
+  def +[Y >: X](y: Y): Bag[Y] = ListBag[Y](xs :+ y)
+
   def iterator: Iterator[X] = xs.iterator
 }
 

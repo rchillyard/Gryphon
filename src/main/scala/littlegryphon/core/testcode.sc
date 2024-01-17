@@ -1,9 +1,17 @@
-import littlegryphon.core.{Vertex, VertexMap, VertexPair}
+import littlegryphon.core._
 
-val v0: Vertex[Int] = Vertex.create(0)
-val v1: Vertex[Int] = Vertex.create(1)
+val u0 = 0
+val u1 = 1
+val w0: Vertex[Int] = Vertex.create(u0)
+val w1: Vertex[Int] = Vertex.create(u1)
 
+val c01: Connexion[Int] = Pair(u0, u1)
 
-new VertexPair[Int](v0, v1)
+val e01: VertexPair[Int] = new VertexPair[Int](w0, w1)
 
-VertexMap.empty()
+val m_ : VertexMap[Int] = VertexMap.empty[Int]
+
+val m01: VertexMap[Int] = m_ + c01
+
+m01
+

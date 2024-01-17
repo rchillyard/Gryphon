@@ -11,6 +11,8 @@ trait Connexion[V] {
   def v2: V
 }
 
+case class Pair[V](v1: V, v2: V) extends Connexion[V]
+
 case class VertexPair[V](v1: Vertex[V], v2: Vertex[V]) extends Connexion[Vertex[V]]
 
 //

@@ -3,15 +3,15 @@ package littlegryphon.core
 /**
  * Hierarchical trait defining the behavior of a connexion.
  *
- * @tparam V the underlying vertex attribute type.
+ * @tparam V the underlying type.
  */
 trait Connexion[V] {
-  def v1: Vertex[V]
+  def v1: V
 
-  def v2: Vertex[V]
+  def v2: V
 }
 
-case class VertexPair[V](v1: Vertex[V], v2: Vertex[V]) extends Connexion[V]
+case class VertexPair[V](v1: Vertex[V], v2: Vertex[V]) extends Connexion[Vertex[V]]
 
 //
 //case class DirectedEdge[V](v1: Vertex[V], v2: Vertex[V]) extends Connexion[V]

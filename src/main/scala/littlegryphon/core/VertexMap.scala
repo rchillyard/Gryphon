@@ -103,7 +103,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) {
     }
 
   private def markUndiscoveredVertex(f: Vertex[V] => Unit, vw: Vertex[V]) = {
-    val vwo: Option[Vertex[V]] = Option.when(vw.discovered)(vw)
+    val vwo: Option[Vertex[V]] = Option.when(!vw.discovered)(vw)
     vwo foreach f
     vwo
   }

@@ -19,4 +19,14 @@ case class Vertex[V](attribute: V)(val connexions: Bag[Connexion[Vertex[V]]])(va
 
 object Vertex {
   def create[V](attribute: V, connexions: Bag[Connexion[Vertex[V]]] = Bag.empty): Vertex[V] = new Vertex[V](attribute)(connexions)()
+
+  trait DiscoverableVertex[V] extends Discoverable[Vertex[V]] {
+    def isDiscovered(t: Vertex[V]): Boolean = t.discovered
+
+    def setDiscovered(t: Vertex[V], b: Boolean): Unit = t.discovered = b
+  }
+
+  implicit object DiscoverableVertexString extends DiscoverableVertex[String]
+
+  implicit object DiscoverableVertexInt extends DiscoverableVertex[Int]
 }

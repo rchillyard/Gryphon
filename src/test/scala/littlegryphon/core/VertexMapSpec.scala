@@ -4,8 +4,10 @@
 
 package littlegryphon.core
 
+import littlegryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.collection.immutable.Queue
 
 class VertexMapSpec extends AnyFlatSpec with should.Matchers {
 
@@ -39,11 +41,15 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
 
   it should "dfs1" in {
     val m_ = VertexMap.empty[String]
-    val mRB = m_ + Pair(red, blue) + Pair(red, green) + Pair(blue, green)
+    val target: VertexMap[String] = m_ + Pair(red, blue) + Pair(red, green) + Pair(blue, green)
     val bag1 = ListBag.create(VertexPair(vRed, vBlue), VertexPair(vRed, vGreen))
     val bag2 = ListBag.create(VertexPair(vBlue, vGreen))
-    mRB.get(red) map (_.connexions) shouldBe Some(bag1)
-    mRB.get(blue) map (_.connexions) shouldBe Some(bag2)
+    target.get(red) map (_.connexions) shouldBe Some(bag1)
+    target.get(blue) map (_.connexions) shouldBe Some(bag2)
+    val visitor = Visitor.createPre[String]
+    val result = target.dfs(visitor)(red)
+    result.journal shouldBe Queue(red, blue, green)
+
   }
 
   it should "empty" in {

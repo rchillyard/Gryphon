@@ -1,8 +1,18 @@
 package littlegryphon.core
 
-case class Vertex[V](attribute: V)(val connexions: Bag[Connexion[Vertex[V]]])(var discovered: Boolean = false) extends Attribute[V] {
+/**
+ * Case Class to represent a Vertex[V].
+ *
+ * @param attribute  the (unique) attribute for this Vertex.
+ * @param connexions a bag of Connexions.
+ * @param discovered a mutable state to aid with graph traversal.
+ * @tparam V the underlying attribute type.
+ */
+case class Vertex[V](attribute: V)(val connexions: Bag[Connexion[V, Vertex]])(var discovered: Boolean = false) extends Attribute[V] {
 
-  def +(connexion: Connexion[Vertex[V]]): Vertex[V] = Vertex(attribute)(connexions + connexion)(discovered)
+  def +(connexion: Connexion[V, Vertex]): Vertex[V] = Vertex(attribute)(connexions + connexion)(discovered)
+
+  def keyValue: (V, Vertex[V]) = attribute -> this
 
   /**
    * Method to perform strict equality between this and another Vertex.
@@ -18,7 +28,7 @@ case class Vertex[V](attribute: V)(val connexions: Bag[Connexion[Vertex[V]]])(va
 }
 
 object Vertex {
-  def create[V](attribute: V, connexions: Bag[Connexion[Vertex[V]]] = Bag.empty): Vertex[V] = new Vertex[V](attribute)(connexions)()
+  def create[V](attribute: V, connexions: Bag[Connexion[V, Vertex]] = Bag.empty): Vertex[V] = new Vertex[V](attribute)(connexions)()
 
   trait DiscoverableVertex[V] extends Discoverable[Vertex[V]] {
     def isDiscovered(t: Vertex[V]): Boolean = t.discovered

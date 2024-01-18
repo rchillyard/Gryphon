@@ -30,7 +30,7 @@ object Bag {
 }
 
 /**
- * Concrete case class which implements Bag.
+ * Concrete case class which implements Bag that behaves rather more like a Set.
  *
  * @param xs a sequence of X. The order of this sequence is immaterial.
  * @tparam X the underlying type of this Bag (covariant).
@@ -39,12 +39,16 @@ case class ListBag[+X](xs: Seq[X]) extends Bag[X] {
 
   /**
    * Method to insert a new value of type Y (a super-type of X) into this ListBag.
+   * If <code>y</code> is essentially the same as an existing member of this Bag, then that member will be replaced by <code>y</code>.
+   * The consequence of this, in the context of a Vertex (which has a Bag of Connexions) is that a simple Pair cannot
+   * be duplicated in the bag.
+   * If you want to have two edges between the same vertices, then you would need to give them a (different) Edge attribute.
    *
    * @param y the element to add.
    * @tparam Y the underlying type of the result and of <code>y</code> (must be a super-type of X).
    * @return a Bag[Y].
    */
-  def +[Y >: X](y: Y): Bag[Y] = ListBag[Y](xs :+ y)
+  def +[Y >: X](y: Y): Bag[Y] = ListBag[Y]((xs filterNot (_ == y)) :+ y)
 
   override def toString(): String = s"ListBag($xs)"
 

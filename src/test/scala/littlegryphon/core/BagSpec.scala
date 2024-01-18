@@ -38,7 +38,9 @@ class BagSpec extends AnyFlatSpec with should.Matchers {
     val bag1 = Bag.empty + 1 + 2
     bag1.size shouldBe 2
     val bag2 = Bag.empty + 2 + 1 + 2
-    bag2.size shouldBe 3
-    bag1 should not be bag2
+    bag2.size shouldBe 2
+    bag1 shouldBe bag2
+    val bag3 = Bag.empty + 2 + 1 + 3
+    bag3.size shouldBe 3
   }
 }

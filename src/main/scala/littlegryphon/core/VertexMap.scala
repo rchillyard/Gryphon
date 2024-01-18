@@ -1,40 +1,57 @@
 package littlegryphon.core
 
+import littlegryphon.core.VertexMap.addVertexPair
+import littlegryphon.util.GraphException
 import littlegryphon.visit.Visitor
+import scala.util.Using
 
-case class VertexMap[V](map: Map[V, Vertex[V]]) {
-  def +(connexion: Connexion[V]): VertexMap[V] = {
-    val v1: V = connexion.v1
-    val v2: V = connexion.v2
+sealed trait Connectible[V] {
 
-    val xo1: Option[Vertex[V]] = map.get(v1)
-    val x2: Vertex[V] = map.getOrElse(v2, Vertex.create[V](v2))
+  /**
+   * Method to add a connexion to this VertexMap.
+   *
+   * @param pair a Pair[V]
+   * @return the updated Connectible[V].
+   */
+  def +(pair: Pair[V]): Connectible[V]
+
+//  def +(vertexPair: VertexPair[V]): VertexMap[V]
+}
+
+case class VertexMap[V](map: Map[V, Vertex[V]]) extends Connectible[V] {
+//  /**
+//   * Method to add a VertexPair to this VertexMap.
+//   *
+//   * @param vertexPair a VertexPair[V].
+//   * @return the updated VertexMap[V]
+//   */
+//  def +(vertexPair: VertexPair[V]): VertexMap[V] = copy(map = addVertexPair(map, vertexPair.v1, vertexPair.v2))
+
+  /**
+   * Method to add a connexion to this VertexMap.
+   *
+   * @param pair a Pair[V]
+   * @return the updated VertexMap[V].
+   */
+  def +(pair: Pair[V]): VertexMap[V] = {
+
+    val xo1: Option[Vertex[V]] = map.get(pair.v1)
+    val x2: Vertex[V] = pair.v2
 
     val m: Map[V, Vertex[V]] = xo1 match {
-      case Some(vw) =>
-        val v = vw.attribute
-        val q: Map[V, Vertex[V]] = map - v
-        val p: Vertex[V] = vw + VertexPair[V](vw, x2)
-        q + (v -> p) + (v2 -> x2)
+      case Some(x1) =>
+        addVertexPair(map, x1, x2)
       case None =>
-        val x1: Vertex[V] = Vertex.create[V](v1)
-        val p: Vertex[V] = x1 + VertexPair[V](x1, x2)
-        map + (x1.attribute -> p) + (v2 -> x2)
+        val x1: Vertex[V] = Vertex.create[V](pair.v1)
+        addVertexPair(map, x1 + Pair[V](x1.attribute, x2), x2)
+
+//        map + (x1 + VertexPair[V](x1, x2)).keyValue + x2.keyValue
     }
 
     copy(map = m)
   }
 
-//  def addEdge(v: V, y: X): VertexMap[V, X, P] = unit(
-//    _map.get(v) match {
-//      case Some(vv) => buildMap(_map - v, v, y, vv)
-//      case None => buildMap(_map, v, y, Vertex.empty(v))
-//    }
-//  )
-
-
-//  def buildMap(m: Map[V, Vertex[V]], v: V, y: X, vv: Vertex[V]): Map[V, Vertex[V]] =
-//    m + (v -> (vv addEdge y))
+  private def keyValue(x: Vertex[V]): (V, Vertex[V]) = x.attribute -> x
 
   /**
    * Method to run depth-first-search on this VertexMap.
@@ -45,39 +62,25 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) {
    * @return a new Visitor[V, J].
    */
   def dfs[J](visitor: Visitor[V, J])(v: V)(implicit discoverable: Discoverable[Vertex[V]]): Visitor[V, J] = {
-    val vertex: Option[Vertex[V]] = initializeVisits(Some(v))
-    vertex match {
-      case None => println(s"dfs: v=$v unknown"); visitor
-      case Some(x) =>
-        val result = recursiveDFS(visitor, x)
-        result.close()
-        result
+    initializeVisits(Some(v)) match {
+      case None => throw GraphException(s"dfs: starting vertex $v unknown")
+      case Some(x) => Using.resource(recursiveDFS(visitor, x))(identity)
     }
   }
 
   def get(key: V): Option[Vertex[V]] = map.get(key)
 
-//  def getOrElse[V1 >: Bag[Connexion[V]]](key: V, default: => V1): V1 = connexions.getOrElse(key, default)
-
   @throws[NoSuchElementException]
-  def apply(key: V): Vertex[V] =
-    map.apply(key)
+  def apply(key: V): Vertex[V] = map.apply(key)
 
-//  def applyOrElse[K1 <: V, V1 >: Bag[Connexion[V]]](x: K1, default: K1 => V1): V1 = connexions.applyOrElse(x, default)
-
-  def +[V1 >: V](kv: (V1, Vertex[V1])): VertexMap[V1] = {
-    val value: Map[V1, Vertex[V1]] = map.asInstanceOf[Map[V1, Vertex[V1]]] + kv
-    VertexMap[V1](value)
-  }
-
-//  def keySet: Set[V] = connexions.keySet
+  def +[V1 >: V](kv: (V1, Vertex[V1])): VertexMap[V1] = VertexMap[V1](map.asInstanceOf[Map[V1, Vertex[V1]]] + kv)
 
   private def initializeVisits[J](vo: Option[V])(implicit discoverable: Discoverable[Vertex[V]]): Option[Vertex[V]] = {
-    map.values foreach (discoverable.setDiscovered(_, b = false))
-    val result: Option[Vertex[V]] = for {v <- vo; vertex <- map.get(v)} yield vertex
-    result foreach (vertex => discoverable.setDiscovered(vertex, b = true))
+    val f: Boolean => Vertex[V] => Unit = b => v => discoverable.setDiscovered(v, b)
+    map.values foreach f(false)
+    val result = for {v <- vo; vertex <- map.get(v)} yield vertex
+    result foreach f(true)
     result
-//    VertexMap.findAndMarkVertex(vertexMap, { _: Vertex[V, X, P] => () }, vo, s"initializeVisits")
   }
 
   /**
@@ -95,20 +98,33 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) {
     v.connexions.foldLeft(visitor)((q, x) => recurseOnConnexion(v, q, x))
 
 
-  private def recurseOnConnexion[J](v: Vertex[V], visitor: Visitor[V, J], vwx: Connexion[Vertex[V]]): Visitor[V, J] =
-//    s"recurseOnEdgeX: $v, $x" !!
+  private def recurseOnConnexion[J](v: Vertex[V], visitor: Visitor[V, J], vwx: Connexion[V, Vertex]): Visitor[V, J] =
     markUndiscoveredVertex({ w => w.discovered = true }, vwx.v2) match {
       case Some(z) => recursiveDFS(visitor, z)
       case None => visitor
     }
 
-  private def markUndiscoveredVertex(f: Vertex[V] => Unit, vw: Vertex[V]) = {
-    val vwo: Option[Vertex[V]] = Option.when(!vw.discovered)(vw)
+  private def markUndiscoveredVertex(f: Vertex[V] => Unit, vx: Vertex[V]) = {
+    val vwo: Option[Vertex[V]] = Option.when(!vx.discovered)(vx)
     vwo foreach f
     vwo
   }
+
 }
 
 object VertexMap {
   def empty[V]: VertexMap[V] = new VertexMap[V](Map.empty)
+
+  /**
+   * Method to add a VertexPair to the given map.
+   *
+   * @param map a Map[V, Vertex of V].
+   * @param x1  the first Vertex.
+   * @param x2  the second Vertex.
+   * @tparam V the underlying type.
+   * @return an updated version of map.
+   */
+  def addVertexPair[V](map: Map[V, Vertex[V]], x1: Vertex[V], x2: Vertex[V]): Map[V, Vertex[V]] =
+    map + (x1 + Pair[V](x1.attribute, x2)).keyValue + x2.keyValue
+
 }

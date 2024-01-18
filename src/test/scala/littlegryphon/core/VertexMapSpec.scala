@@ -20,12 +20,22 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
   private val vBlue = Vertex.create(blue)
   private val vGreen = Vertex.create(green)
 
-  it should "+" in {
+  private val rb: Pair[String] = Pair(red, vBlue)
+  it should "+ Pair" in {
     val m_ = VertexMap.empty[String]
-    val mRB = m_ + Pair(red, blue)
-    mRB.get(red) map (_.attribute) shouldBe Some(red)
-    mRB.get(blue) map (_.attribute) shouldBe Some(blue)
+    val target = m_ + rb
+    target.get(red) map (_.attribute) shouldBe Some(red)
+    target.get(blue) map (_.attribute) shouldBe Some(blue)
   }
+
+//  it should "+ VertexPair" in {
+//    val m_ = VertexMap.empty[String]
+//    val target = m_ + Pair(vRed, vBlue)
+//    target.get(red) map (_.attribute) shouldBe Some(red)
+//    target.get(blue) map (_.attribute) shouldBe Some(blue)
+//    target.get(red) map (_.connexions) shouldBe Some(ListBag.create(VertexPair(vRed, vBlue)))
+//    target.get(blue) map (_.connexions) shouldBe Some(Bag.empty)
+//  }
 
   it should "get" in {
     val m_ = VertexMap.empty[String]
@@ -41,9 +51,11 @@ class VertexMapSpec extends AnyFlatSpec with should.Matchers {
 
   it should "dfs1" in {
     val m_ = VertexMap.empty[String]
-    val target: VertexMap[String] = m_ + Pair(red, blue) + Pair(red, green) + Pair(blue, green)
-    val bag1 = ListBag.create(VertexPair(vRed, vBlue), VertexPair(vRed, vGreen))
-    val bag2 = ListBag.create(VertexPair(vBlue, vGreen))
+    val rg = Pair(red, vGreen)
+    val bg = Pair(blue, vGreen)
+    val target: VertexMap[String] = m_ + rb + rg + bg
+    val bag1 = ListBag.create(rb, rg)
+    val bag2 = ListBag.create(bg)
     target.get(red) map (_.connexions) shouldBe Some(bag1)
     target.get(blue) map (_.connexions) shouldBe Some(bag2)
     val visitor = Visitor.createPre[String]

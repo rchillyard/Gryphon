@@ -65,7 +65,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) {
 
 //  def applyOrElse[K1 <: V, V1 >: Bag[Connexion[V]]](x: K1, default: K1 => V1): V1 = connexions.applyOrElse(x, default)
 
-  def +[V1 >: Vertex[V]](kv: (V, V1)): Map[V, V1] = map.+(kv)
+  def +[V1 >: V](kv: (V1, Vertex[V1])): VertexMap[V1] = {
+    val value: Map[V1, Vertex[V1]] = map.asInstanceOf[Map[V1, Vertex[V1]]] + kv
+    VertexMap[V1](value)
+  }
 
 //  def keySet: Set[V] = connexions.keySet
 
@@ -108,23 +111,4 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) {
 
 object VertexMap {
   def empty[V]: VertexMap[V] = new VertexMap[V](Map.empty)
-}
-
-trait Bag[+X] extends Iterable[X] {
-  def +[Y >: X](y: Y): Bag[Y]
-}
-
-object Bag {
-  def empty: Bag[Nothing] = ListBag.apply
-}
-
-case class ListBag[+X](xs: Seq[X]) extends Bag[X] {
-
-  def +[Y >: X](y: Y): Bag[Y] = ListBag[Y](xs :+ y)
-
-  def iterator: Iterator[X] = xs.iterator
-}
-
-object ListBag {
-  def apply: ListBag[Nothing] = apply(Nil)
 }

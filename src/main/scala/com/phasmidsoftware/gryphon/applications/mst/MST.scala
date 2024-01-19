@@ -157,7 +157,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]]
      * Method to grow the tree according to Prim's algorithm.
      * CONSIDER using bfs for this.
      *
-     * @param t a tuple consisting of (the vertex most recently added to the tree, the current VertexMap).
+     * @param t a tuple consisting of (the vertex most recently added to the tree, the current NodeMap).
      * @return a tuple of (most recently added vertex, new vertex map).
      */
     def grow(t: (Option[V], M)): (Option[V], M) =
@@ -173,7 +173,7 @@ class LazyPrimHelper[V: Ordering, E: Ordering, X <: UndirectedOrderedEdge[V, E]]
       }
 
     // Starting at an arbitrary vertex of the graph (we pick the head of the vertices list),
-    // gradually build up the VertexMap of the MST by invoking grow V-1 times where V is the number of vertices.
+    // gradually build up the NodeMap of the MST by invoking grow V-1 times where V is the number of vertices.
     val (_, vertexMapResult) = vs.headOption match {
       case Some(v) =>
         val start: (Option[V], M) = Some(v) -> OrderedVertexMap[V, X, Unit](v)

@@ -4,14 +4,14 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.core.VertexMap.addVertexPair
-import com.phasmidsoftware.gryphon.visit.Visitor
+import com.phasmidsoftware.gryphon.core.NodeMap.addVertexPair
+import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 import scala.util.Using
 
 sealed trait Connectible[V] {
 
   /**
-   * Method to add a connexion to this VertexMap.
+   * Method to add a connexion to this NodeMap.
    *
    * @param connexion a Connexion[V, Node].
    * @return the updated Connectible[V].
@@ -19,21 +19,40 @@ sealed trait Connectible[V] {
   def +(connexion: Connexion[V, Node]): Connectible[V]
 }
 
+trait Network[V] extends Connectible[V] {
+  /**
+   * Method to add a V->Node key-value pair.
+   *
+   * @param vx a tuple of V1, Node[V1]
+   * @tparam V1 the underlying type of vx: must be super-type of V.
+   * @return NodeMap[V1].
+   */
+  def +[V1 >: V](vx: (V1, Node[V1])): NodeMap[V1]
+
+  /**
+   * Method to yield the (optional) Node[V] corresponding to the given key.
+   *
+   * @param key the attribute which we seek.
+   * @return Option[Node of V].
+   */
+  def get(key: V): Option[Node[V]]
+}
+
 /**
- * Class to represent a VertexMap and thus all of the adjacencies of a graph.
+ * Class to represent a NodeMap and thus all of the adjacencies of a graph.
  *
  * @param map a Map of V -> Node[V].
  * @tparam V the underlying Node attribute type.
  */
-case class VertexMap[V](map: Map[V, Node[V]]) extends Connectible[V] {
+case class NodeMap[V](map: Map[V, Node[V]]) extends Network[V] with Traversable[V] {
 
   /**
-   * Method to add a connexion to this VertexMap.
+   * Method to add a connexion to this NodeMap.
    *
    * @param connexion a Connexion[V, Node].
-   * @return the updated VertexMap[V].
+   * @return the updated NodeMap[V].
    */
-  def +(connexion: Connexion[V, Node]): VertexMap[V] = connexion match {
+  def +(connexion: Connexion[V, Node]): NodeMap[V] = connexion match {
     case pair: Pair[V] =>
       val x2: Node[V] = pair.v2
       val m = map.get(pair.v1) match {
@@ -44,7 +63,7 @@ case class VertexMap[V](map: Map[V, Node[V]]) extends Connectible[V] {
           addVertexPair(map, x1 + Pair(x1.attribute, x2), x2)
       }
       copy(map = m)
-    case _ => throw GraphException("VertexMap.+: not a Pair")
+    case _ => throw GraphException("NodeMap.+: not a Pair")
   }
 
   /**
@@ -52,12 +71,12 @@ case class VertexMap[V](map: Map[V, Node[V]]) extends Connectible[V] {
    *
    * @param vx a tuple of V1, Node[V1]
    * @tparam V1 the underlying type of vx: must be super-type of V.
-   * @return VertexMap[V1].
+   * @return NodeMap[V1].
    */
-  def +[V1 >: V](vx: (V1, Node[V1])): VertexMap[V1] = VertexMap[V1](map.asInstanceOf[Map[V1, Node[V1]]] + vx)
+  def +[V1 >: V](vx: (V1, Node[V1])): NodeMap[V1] = NodeMap[V1](map.asInstanceOf[Map[V1, Node[V1]]] + vx)
 
   /**
-   * Method to run depth-first-search on this VertexMap.
+   * Method to run depth-first-search on this NodeMap.
    *
    * @param visitor the visitor, of type Visitor[V, J].
    * @param v       the starting vertex.
@@ -70,6 +89,27 @@ case class VertexMap[V](map: Map[V, Node[V]]) extends Connectible[V] {
       case Some(x) => Using.resource(recursiveDFS(visitor, x))(identity)
     }
   }
+
+  /**
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = ???
+
+  /**
+   * Method to run breadth-first-search with a mutable queue on this Traversable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @tparam Q the type of the mutable queue for navigating this Traversable.
+   *           Requires implicit evidence of MutableQueueable[Q, V].
+   * @return a new Visitor[V, J].
+   */
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ???
 
   /**
    * Method to yield the (optional) Node[V] corresponding to the given key.
@@ -115,14 +155,14 @@ case class VertexMap[V](map: Map[V, Node[V]]) extends Connectible[V] {
 
 }
 
-object VertexMap {
+object NodeMap {
   /**
-   * Method to yield an empty VertexMap.
+   * Method to yield an empty NodeMap.
    *
    * @tparam V the underlying node attribute type.
-   * @return an empty VertexMap[V].
+   * @return an empty NodeMap[V].
    */
-  def empty[V]: VertexMap[V] = VertexMap[V](Map.empty)
+  def empty[V]: NodeMap[V] = NodeMap[V](Map.empty)
 
   /**
    * Method to add a VertexPair to the given map.

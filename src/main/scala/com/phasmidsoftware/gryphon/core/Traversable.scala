@@ -12,17 +12,16 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  * @tparam V the underlying key (attribute) type for a vertex.
  */
 trait Traversable[V] {
-
   /**
-   * Method to run depth-first-search on this Traversable.
-   * Vertices will not be visited if they are not reachable from v.
+   * Method to run depth-first-search on this NodeMap.
    *
-   * @param visitor the visitor, of type Visitor[V, J].
-   * @param v       the starting vertex.
+   * @param visitor      the visitor, of type Visitor[V, J].
+   * @param v            the starting vertex.
+   * @param discoverable (implicit) instance of Discoverable of Node[V].
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+  def dfs[J](visitor: Visitor[V, J])(v: V)(implicit discoverable: Discoverable[Node[V]]): Visitor[V, J]
 
   /**
    * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..

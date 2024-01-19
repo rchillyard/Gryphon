@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Success, Try}
 
-class VertexDataParserSpec extends AnyFlatSpec with should.Matchers {
+class NodeDataParserSpec extends AnyFlatSpec with should.Matchers {
 
   case class Crime(id: BigInt, longitude: Double, latitude: Double)
 

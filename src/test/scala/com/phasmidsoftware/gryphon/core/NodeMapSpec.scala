@@ -9,16 +9,16 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.collection.immutable.Queue
 
-class VertexMapSpec extends AnyFlatSpec with should.Matchers {
+class NodeMapSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "VertexMap"
 
   private val red = "R"
   private val blue = "B"
   private val green = "G"
-  private val vRed = Vertex.create(red)
-  private val vBlue = Vertex.create(blue)
-  private val vGreen = Vertex.create(green)
+  private val vRed = Node.create(red)
+  private val vBlue = Node.create(blue)
+  private val vGreen = Node.create(green)
 
   private val rb: Pair[String] = Pair(red, vBlue)
   it should "+ Pair" in {

@@ -36,10 +36,10 @@ object DirectedEdge {
  * NOTE when comparing vertices (v2) for equality for example, we do not consider connexions nor discovered.
  *
  * @param v1 the attribute of the starting node.
- * @param v2 the container (Vertex) of the ending node.
+ * @param v2 the container (Node) of the ending node.
  * @tparam V the underlying node attribute type.
  */
-case class Pair[V](v1: V, v2: Vertex[V]) extends Connexion[V, Vertex]
+case class Pair[V](v1: V, v2: Node[V]) extends Connexion[V, Node]
 
 /**
  * Concrete Connexion type that connects two nodes (directed) with an additional attributes.
@@ -47,8 +47,8 @@ case class Pair[V](v1: V, v2: Vertex[V]) extends Connexion[V, Vertex]
  * NOTE when comparing vertices (v2) for equality for example, we do not consider connexions nor discovered.
  *
  * @param v1        the attribute of the starting node.
- * @param v2        the container (Vertex) of the ending node.
+ * @param v2        the container (Node) of the ending node.
  * @param attribute the edge attribute, for example, a weight or cost of traversal.
  * @tparam V the underlying node attribute type.
  */
-case class Edge[V, E](v1: V, v2: Vertex[V], attribute: E) extends Connexion[V, Vertex] with Attribute[E]
+case class Edge[V, E](v1: V, v2: Node[V], attribute: E) extends Connexion[V, Node] with Attribute[E]

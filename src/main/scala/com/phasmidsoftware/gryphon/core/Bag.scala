@@ -44,7 +44,7 @@ case class ListBag[+X](xs: Seq[X]) extends Bag[X] {
   /**
    * Method to insert a new value of type Y (a super-type of X) into this ListBag.
    * If <code>y</code> is essentially the same as an existing member of this Bag, then that member will be replaced by <code>y</code>.
-   * The consequence of this, in the context of a Vertex (which has a Bag of Connexions) is that a simple Pair cannot
+   * The consequence of this, in the context of a Node (which has a Bag of Connexions) is that a simple Pair cannot
    * be duplicated in the bag.
    * If you want to have two edges between the same vertices, then you would need to give them a (different) Edge attribute.
    *

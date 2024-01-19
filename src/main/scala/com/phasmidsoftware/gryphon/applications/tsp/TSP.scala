@@ -19,7 +19,7 @@ object TSP {
    * @param v1 one vertex.
    * @param v2 the other vertex.
    * @param d  a function to get an E from a pair of Vs (usually this will be the distance).
-   * @tparam V the Vertex attribute type.
+   * @tparam V the Node attribute type.
    * @tparam E the Edge attribute type.
    * @return a Try of Iterable of UndirectedOrderedEdge.
    */

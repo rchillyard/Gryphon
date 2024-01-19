@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.newcore
+package com.phasmidsoftware.gryphon.expcore
 
 /**
  * A trait to model the concept of a connexion between two objects of type V.

@@ -20,6 +20,12 @@ trait Connexion[V, X[_]] {
   def v2: X[V]
 }
 
+case class DirectedEdge[V](v1: V, v2: Tuple1[V]) extends Connexion[V, Tuple1]
+
+object DirectedEdge {
+  def apply[V](from: V, to: V): DirectedEdge[V] = DirectedEdge(from, (to))
+}
+
 /**
  * Concrete Connexion type that simply connects two nodes (directed) without any additional attributes.
  *

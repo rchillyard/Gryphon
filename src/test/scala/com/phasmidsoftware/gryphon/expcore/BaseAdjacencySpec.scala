@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.newcore
+package com.phasmidsoftware.gryphon.expcore
 
 import com.phasmidsoftware.gryphon.visit.{PostVisitor, Visitor}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -52,7 +52,7 @@ class BaseAdjacencySpec extends AnyFlatSpec with should.Matchers {
     connexions.contains(DirectedConnexionCase(0, 2)) shouldBe true
     connexions.contains(DirectedConnexionCase(0, 1)) shouldBe true
     val visitor: PostVisitor[Int, Queue[Int]] = Visitor.createPost
-    implicit val uIp: Properties[Int, Unit] = new com.phasmidsoftware.gryphon.newcore.Properties[Int, Unit] {
+    implicit val uIp: Properties[Int, Unit] = new com.phasmidsoftware.gryphon.expcore.Properties[Int, Unit] {
       def getProperties(v: Int): Unit = ()
 
       def setProperties(v: Int)(p: Unit): Unit = ()

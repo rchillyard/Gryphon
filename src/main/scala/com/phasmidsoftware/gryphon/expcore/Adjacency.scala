@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.newcore
+package com.phasmidsoftware.gryphon.expcore
 
 import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 import scala.collection.immutable.{HashMap, TreeMap}
@@ -306,7 +306,7 @@ object AbstractBaseAdjacency {
 //   * @param errorMessage  an error message which will be the message for the exception that arises when maybeV is None.
 //   * @return Option[V]: the (optional) vertex to run dfs on next.
 //   */
-//  private[newcore] def findAndMarkVertex[V, X <: Connexion[V], P <: Discovered](connexionsMap: Map[V, Connexions[V, X, P]], f: Connexions[V, X, P] => Unit, maybeV: Option[V], errorMessage: String)(implicit evP: Properties[V, P]): Option[V] = maybeV match {
+//  private[expcore] def findAndMarkVertex[V, X <: Connexion[V], P <: Discovered](connexionsMap: Map[V, Connexions[V, X, P]], f: Connexions[V, X, P] => Unit, maybeV: Option[V], errorMessage: String)(implicit evP: Properties[V, P]): Option[V] = maybeV match {
 //    case Some(z) =>
 //      val cs: Seq[Connexions[V, X, P]] = for {
 //        q <- connexionsMap.get(z).toSeq

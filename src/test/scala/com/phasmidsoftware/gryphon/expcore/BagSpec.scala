@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.newcore
+package com.phasmidsoftware.gryphon.expcore
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

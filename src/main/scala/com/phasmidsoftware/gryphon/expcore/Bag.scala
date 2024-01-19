@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.newcore
+package com.phasmidsoftware.gryphon.expcore
 
 import scala.util.Random
 

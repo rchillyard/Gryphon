@@ -1,4 +1,4 @@
-import littlegryphon.core._
+import com.phasmidsoftware.gryphon.core.{Connexion, Vertex, VertexMap}
 
 val u0 = 0
 val u1 = 1

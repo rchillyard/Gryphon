@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Phasmid Software
  */
 
-package littlegryphon.core
+package com.phasmidsoftware.gryphon.core
 
 import littlegryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec

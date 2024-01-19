@@ -1,7 +1,10 @@
-package littlegryphon.core
+/*
+ * Copyright (c) 2024. Phasmid Software
+ */
 
-import littlegryphon.core.VertexMap.addVertexPair
-import littlegryphon.util.GraphException
+package com.phasmidsoftware.gryphon.core
+
+import com.phasmidsoftware.gryphon.core.VertexMap.addVertexPair
 import littlegryphon.visit.Visitor
 import scala.util.Using
 

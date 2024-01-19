@@ -1,4 +1,8 @@
-package littlegryphon.core
+/*
+ * Copyright (c) 2024. Phasmid Software
+ */
+
+package com.phasmidsoftware.gryphon.core
 
 /**
  * Case Class to represent a Vertex[V].

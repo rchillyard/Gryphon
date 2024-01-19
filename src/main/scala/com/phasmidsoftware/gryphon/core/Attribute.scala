@@ -1,4 +1,8 @@
-package littlegryphon.core
+/*
+ * Copyright (c) 2024. Phasmid Software
+ */
+
+package com.phasmidsoftware.gryphon.core
 
 /**
  * Hierarchical trait defining a (single) attribute of type A.

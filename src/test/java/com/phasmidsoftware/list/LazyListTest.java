@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class LazyListTest extends Object {
+public class LazyListTest {
 
     @Test
     public void of() {

@@ -135,6 +135,7 @@ public class List<T> implements java.lang.Iterable<T> {
         private final Node next;
     }
 
+    // CONSIDER making this a record
     static class Split<X> {
         public Split(final X head, final List<X> tail) {
             this.head = head;

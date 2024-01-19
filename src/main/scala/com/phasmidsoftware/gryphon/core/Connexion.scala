@@ -27,7 +27,7 @@ trait Connexion[V, X[_]] {
 case class DirectedEdge[V](v1: V, v2: Tuple1[V]) extends Connexion[V, Tuple1]
 
 object DirectedEdge {
-  def apply[V](from: V, to: V): DirectedEdge[V] = DirectedEdge(from, (to))
+  def apply[V](from: V, to: V): DirectedEdge[V] = new DirectedEdge(from, Tuple1(to))
 }
 
 /**

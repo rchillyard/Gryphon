@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2024. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.oldcore
+package com.phasmidsoftware.gryphon.visit
 
-import com.phasmidsoftware.gryphon.visit._
 import java.io.FileWriter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

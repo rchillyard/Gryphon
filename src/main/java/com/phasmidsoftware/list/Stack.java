@@ -52,6 +52,7 @@ public class Stack<E> {
         this(new List<>());
     }
 
+    // CONSIDER making this a record
     static class Popped<X> {
         public Popped(final X x, final Stack<X> stack) {
             this.x = x;

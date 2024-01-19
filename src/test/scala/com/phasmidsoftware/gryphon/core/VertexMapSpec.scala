@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import littlegryphon.visit.Visitor
+import com.phasmidsoftware.gryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.collection.immutable.Queue

@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.core.VertexMap.addVertexPair
-import littlegryphon.visit.Visitor
+import com.phasmidsoftware.gryphon.visit.Visitor
 import scala.util.Using
 
 sealed trait Connectible[V] {

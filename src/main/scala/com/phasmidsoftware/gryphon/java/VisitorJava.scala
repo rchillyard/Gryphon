@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.java
 
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 import com.phasmidsoftware.gryphon.visit.{Journal, PostVisitor, PreVisitor, Visitor}
 import java.util
 import java.util.concurrent.LinkedBlockingQueue

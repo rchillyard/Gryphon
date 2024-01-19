@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.oldcore
 
 import com.phasmidsoftware.gryphon.visit._
 import java.io.FileWriter

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.bfs
 
-import com.phasmidsoftware.gryphon.core.{Edge, Graph, VertexMap}
+import com.phasmidsoftware.gryphon.oldcore.{Edge, Graph, VertexMap}
 import com.phasmidsoftware.gryphon.visit.PriorityQueueable.QueueablePriorityQueue
 import com.phasmidsoftware.gryphon.visit.{PreVisitorIterable, Visitor}
 import scala.collection.immutable.Queue

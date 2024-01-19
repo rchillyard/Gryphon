@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.tsp
 
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 
 /**
  * Object to help with the Traveling Salesman Problem.

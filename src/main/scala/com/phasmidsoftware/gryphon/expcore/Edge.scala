@@ -2,7 +2,7 @@
 // * Copyright (c) 2023. Phasmid Software
 // */
 //
-//package com.phasmidsoftware.gryphon.expcore
+//oldcore com.phasmidsoftware.gryphon.expcore
 //
 //import com.phasmidsoftware.gryphon.util.Util
 //

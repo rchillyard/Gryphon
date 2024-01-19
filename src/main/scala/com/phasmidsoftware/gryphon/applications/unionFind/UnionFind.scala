@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.unionFind
 
-import com.phasmidsoftware.gryphon.core.{AbstractDisjointSet, DisjointSet, GraphException}
+import com.phasmidsoftware.gryphon.oldcore.{AbstractDisjointSet, DisjointSet, GraphException}
 
 /**
  * An abstract class to represent a solution to the Union-Find problem.

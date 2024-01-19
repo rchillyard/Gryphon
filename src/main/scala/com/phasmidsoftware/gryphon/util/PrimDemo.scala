@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.gryphon.util
 
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 import com.phasmidsoftware.util.FP.resource
 import scala.util.{Failure, Success}
 
-// CONSIDER move this to applications package
+// CONSIDER move this to applications oldcore
 object PrimDemo extends App {
 
   private val resourceName = "/prim.graph"

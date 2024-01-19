@@ -2,10 +2,10 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.oldcore
 
 import com.phasmidsoftware.flog.Flog
-import com.phasmidsoftware.gryphon.core.VertexMap.findAndMarkVertex
+import com.phasmidsoftware.gryphon.oldcore.VertexMap.findAndMarkVertex
 import com.phasmidsoftware.gryphon.visit.Queueable.QueueableQueue
 import com.phasmidsoftware.gryphon.visit._
 import scala.annotation.tailrec
@@ -175,7 +175,7 @@ object VertexMap {
    * @param errorMessage an error message which will be the message for the exception that arises when maybeV is None.
    * @return Option[V]: the (optional) vertex to run dfs on next.
    */
-  private[core] def findAndMarkVertex[V, X <: EdgeLike[V], P](vertexMap: Map[V, Vertex[V, X, P]], f: Vertex[V, X, P] => Unit, maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
+  private[oldcore] def findAndMarkVertex[V, X <: EdgeLike[V], P](vertexMap: Map[V, Vertex[V, X, P]], f: Vertex[V, X, P] => Unit, maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
     case Some(z) =>
       val xXvo: Option[Vertex[V, X, P]] = vertexMap.get(z) filterNot (_.discovered)
       xXvo foreach (vertex => f(vertex))

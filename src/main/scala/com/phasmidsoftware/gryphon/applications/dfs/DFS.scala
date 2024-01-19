@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.applications.dfs
 
 import com.phasmidsoftware.flog.Flog
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 import com.phasmidsoftware.gryphon.visit.{IterableJournalQueue, Visitor}
 import scala.collection.immutable.Queue
 

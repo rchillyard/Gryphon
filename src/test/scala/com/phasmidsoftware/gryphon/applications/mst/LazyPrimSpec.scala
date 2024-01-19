@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.mst
 
-import com.phasmidsoftware.gryphon.core.{GraphException, UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
+import com.phasmidsoftware.gryphon.oldcore.{GraphException, UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
 import com.phasmidsoftware.gryphon.util.{GraphBuilder, VertexDataParser, VertexDataTSP}
 import com.phasmidsoftware.parse.{CellParser, CellParsers, SingleCellParser}
 import com.phasmidsoftware.table.Table

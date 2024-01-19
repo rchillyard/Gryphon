@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.util
 
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util.Util.sequence
 import java.net.URL

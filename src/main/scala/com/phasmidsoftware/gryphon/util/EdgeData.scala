@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.util
 
-import com.phasmidsoftware.gryphon.core.{UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
+import com.phasmidsoftware.gryphon.oldcore.{UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
 import com.phasmidsoftware.parse._
 import com.phasmidsoftware.table.{HeadedTable, Header, Table}
 import scala.util.Try

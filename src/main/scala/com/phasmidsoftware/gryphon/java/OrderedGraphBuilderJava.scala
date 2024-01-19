@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.java
 
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util.Util.{optionToTry, tryNonNull}
 import com.phasmidsoftware.util.FP.{resource, tryToOption}

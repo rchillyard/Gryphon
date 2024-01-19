@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
-import com.phasmidsoftware.gryphon.core.{DirectedEdge, DirectedGraph, Graph}
+import com.phasmidsoftware.gryphon.oldcore.{DirectedEdge, DirectedGraph, Graph}
 import com.phasmidsoftware.gryphon.util.GraphBuilder
 import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec

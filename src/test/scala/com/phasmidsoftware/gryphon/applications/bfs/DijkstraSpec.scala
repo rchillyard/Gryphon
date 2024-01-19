@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.bfs
 
-import com.phasmidsoftware.gryphon.core.{DirectedGraph, DirectedOrderedEdge, DirectedOrderedEdgeCase}
+import com.phasmidsoftware.gryphon.oldcore.{DirectedGraph, DirectedOrderedEdge, DirectedOrderedEdgeCase}
 import com.phasmidsoftware.gryphon.util.GraphBuilder
 import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec

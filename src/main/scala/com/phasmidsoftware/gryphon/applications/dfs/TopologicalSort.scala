@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
-import com.phasmidsoftware.gryphon.core.{DirectedEdge, EdgeLike, Graph}
+import com.phasmidsoftware.gryphon.oldcore.{DirectedEdge, EdgeLike, Graph}
 import com.phasmidsoftware.gryphon.visit.{IterableJournalStack, Visitor}
 
 object TopologicalSort {

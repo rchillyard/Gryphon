@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.util
 
-import com.phasmidsoftware.gryphon.core.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
+import com.phasmidsoftware.gryphon.oldcore.{UndirectedGraph, UndirectedOrderedEdge, UndirectedOrderedEdgeCase}
 import com.phasmidsoftware.util.FP.resource
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

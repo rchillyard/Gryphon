@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
-import com.phasmidsoftware.gryphon.core._
+import com.phasmidsoftware.gryphon.oldcore._
 import com.phasmidsoftware.gryphon.parse.Parseable.ParseableUnit
 import com.phasmidsoftware.gryphon.util.GraphBuilder
 import com.phasmidsoftware.util.FP.resource

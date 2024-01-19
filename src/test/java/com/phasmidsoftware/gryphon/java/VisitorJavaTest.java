@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.gryphon.java;
 
-import com.phasmidsoftware.gryphon.core.Graph;
-import com.phasmidsoftware.gryphon.core.UndirectedEdge;
+import com.phasmidsoftware.gryphon.oldcore.Graph;
+import com.phasmidsoftware.gryphon.oldcore.UndirectedEdge;
 import org.junit.Test;
 import scala.Tuple2;
 import scala.runtime.BoxedUnit;

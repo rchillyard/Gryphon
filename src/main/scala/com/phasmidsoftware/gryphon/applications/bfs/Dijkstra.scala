@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.bfs
 
-import com.phasmidsoftware.gryphon.core.{DirectedOrderedEdge, Graph}
+import com.phasmidsoftware.gryphon.oldcore.{DirectedOrderedEdge, Graph}
 
 case class Dijkstra[V, E, X <: DirectedOrderedEdge[V, E]](graph: Graph[V, E, X, Double])(start: V) extends BaseSP[V, E, X](graph)(start: V) {
 

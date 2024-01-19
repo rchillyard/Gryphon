@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.oldcore
 
 /**
  * Trait to model the behavior of a set of V objects which can be connected (or not).

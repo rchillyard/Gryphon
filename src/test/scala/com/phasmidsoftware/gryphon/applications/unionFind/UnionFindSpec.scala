@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.applications.unionFind
 
-import com.phasmidsoftware.gryphon.core.GraphException
+import com.phasmidsoftware.gryphon.oldcore.GraphException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.Random

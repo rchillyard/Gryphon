@@ -24,10 +24,20 @@ trait Connexion[V, X[_]] {
   def v2: X[V]
 }
 
-case class DirectedEdge[V](v1: V, v2: Tuple1[V]) extends Connexion[V, Tuple1]
-
-object DirectedEdge {
-  def apply[V](from: V, to: V): DirectedEdge[V] = new DirectedEdge(from, Tuple1(to))
+/**
+ * Typeclass trait to define behavior of having Connexions.
+ *
+ * @tparam T underlying attribute type.
+ * @tparam X container type.
+ */
+trait HasConnexions[T, X[_]] {
+  /**
+   * Method to yield the connexions of an object of type X[T].
+   *
+   * @param tx the object with the connexions.
+   * @return an Iterable of Connexion[T, X]
+   */
+  def connexions(tx: X[T]): Iterable[Connexion[T, X]]
 }
 
 /**
@@ -51,4 +61,10 @@ case class Pair[V](v1: V, v2: Node[V]) extends Connexion[V, Node]
  * @param attribute the edge attribute, for example, a weight or cost of traversal.
  * @tparam V the underlying node attribute type.
  */
-case class Edge[V, E](v1: V, v2: Node[V], attribute: E) extends Connexion[V, Node] with Attribute[E]
+abstract class Edge[V, E](v1: V, v2: Tuple1[V], attribute: E) extends Connexion[V, Tuple1] with Attribute[E]
+
+case class DirectedEdge[V, E](v1: V, v2: Tuple1[V], attribute: E) extends Edge[V, E](v1, v2, attribute)
+
+object DirectedEdge {
+  def apply[V, E](from: V, to: V, e: E): DirectedEdge[V, E] = new DirectedEdge(from, Tuple1(to), e)
+}

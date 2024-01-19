@@ -12,7 +12,7 @@ package com.phasmidsoftware.gryphon.core
  * @param discovered a mutable state to aid with graph traversal.
  * @tparam V the underlying attribute type.
  */
-case class Node[V](attribute: V)(val connexions: Bag[Connexion[V, Node]])(var discovered: Boolean = false) extends Attribute[V] {
+case class Node[V](attribute: V)(val connexions: Bag[Connexion[V, Node]])(var discovered: Boolean = false)(implicit hasConnexions: HasConnexions[V, Node]) extends Attribute[V] {
 
   /**
    * Method to add a connexion to this Node.
@@ -41,7 +41,7 @@ case class Node[V](attribute: V)(val connexions: Bag[Connexion[V, Node]])(var di
 }
 
 object Node {
-  def create[V](attribute: V, connexions: Bag[Connexion[V, Node]] = Bag.empty): Node[V] = new Node[V](attribute)(connexions)()
+  def create[V](attribute: V, connexions: Bag[Connexion[V, Node]] = Bag.empty)(implicit hasConnexions: HasConnexions[V, Node]): Node[V] = new Node[V](attribute)(connexions)()
 
   trait DiscoverableVertex[V] extends Discoverable[Node[V]] {
     def isDiscovered(t: Node[V]): Boolean = t.discovered
@@ -52,4 +52,17 @@ object Node {
   implicit object DiscoverableVertexString extends DiscoverableVertex[String]
 
   implicit object DiscoverableVertexInt extends DiscoverableVertex[Int]
+
+
+  trait NodeHasConnexions[V] extends HasConnexions[V, Node]
+
+  implicit object NodeHasConnexionsString extends NodeHasConnexions[String] {
+    def connexions(tx: Node[String]): Iterable[Connexion[String, Node]] = tx.connexions
+  }
+
+  trait NodeAttributed[V] extends Attributed[Node[V], V] {
+    def attribute(t: Node[V]): V = t.attribute
+  }
+
+  implicit object NodeAttributedString extends NodeAttributed[String]
 }

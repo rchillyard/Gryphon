@@ -80,10 +80,10 @@ case class NodeMap[V, X[_]](map: Map[V, X[V]]) extends Network[V, X] with Traver
    * @param connexion a Connexion[V, Node].
    * @return the updated NodeMap[V].
    */
-//noinspection Annotator
 def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): NodeMap[V, X] = connexion match {
-    case c: Connexion[V, Node] =>
-      // TODO Match on c
+  case c: Connexion[_, _] =>
+    // CONSIDER Match on c (but it isn't going to be easy)
+    if (c.isInstanceOf[Pair[_]]) {
       val pair = c.asInstanceOf[Pair[V]]
       val m = map.asInstanceOf[Map[V, Node[V]]]
       val x2: Node[V] = pair.v2
@@ -95,7 +95,9 @@ def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]
           addVertexPair(m, x1 + Pair(x1.attribute, x2), x2)
       }
       copy(map = result.asInstanceOf[Map[V, X[V]]])
-    case _ => throw GraphException("NodeMap.+: not a Pair")
+    }
+    else throw GraphException("NodeMap.+: not a Pair")
+  case _ => throw GraphException("NodeMap.+: not a Connexion")
   }
 
   /**

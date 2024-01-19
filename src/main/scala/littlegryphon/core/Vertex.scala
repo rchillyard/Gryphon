@@ -10,9 +10,18 @@ package littlegryphon.core
  */
 case class Vertex[V](attribute: V)(val connexions: Bag[Connexion[V, Vertex]])(var discovered: Boolean = false) extends Attribute[V] {
 
+  /**
+   * Method to add a connexion to this Vertex.
+   *
+   * @param connexion a Connexion[V, Vertex].
+   * @return a new Vertex[V] based with the additional connexion.
+   */
   def +(connexion: Connexion[V, Vertex]): Vertex[V] = Vertex(attribute)(connexions + connexion)(discovered)
 
-  def keyValue: (V, Vertex[V]) = attribute -> this
+  /**
+   * Value of V->Vertex[V] tuple for this Vertex.
+   */
+  lazy val keyValue: (V, Vertex[V]) = attribute -> this
 
   /**
    * Method to perform strict equality between this and another Vertex.

@@ -31,19 +31,14 @@ trait Connexion[V, X[_]] {
  */
 case class Pair[V](v1: V, v2: Vertex[V]) extends Connexion[V, Vertex]
 
+/**
+ * Concrete Connexion type that connects two nodes (directed) with an additional attributes.
+ *
+ * NOTE when comparing vertices (v2) for equality for example, we do not consider connexions nor discovered.
+ *
+ * @param v1        the attribute of the starting node.
+ * @param v2        the container (Vertex) of the ending node.
+ * @param attribute the edge attribute, for example, a weight or cost of traversal.
+ * @tparam V the underlying node attribute type.
+ */
 case class Edge[V, E](v1: V, v2: Vertex[V], attribute: E) extends Connexion[V, Vertex] with Attribute[E]
-
-//case class VertexPair[V](v1: Vertex[V], v2: Vertex[V]) extends Connexion[Vertex[V]]
-
-//
-//case class DirectedEdge[V](v1: Vertex[V], v2: Vertex[V]) extends Connexion[V]
-//
-//case class DirectedAttributedEdge[V,E](v1: Vertex[V], v2: Vertex[V], attribute: E) extends Connexion[V]
-//
-//trait AttributedConnexion[V, E] extends Attributed[Connexion[V], E] {
-//  extension (e: Connexion[V]) def attribute: E
-//}
-//
-//given Attributed[DirectedAttributedEdge[V,E], E] with
-//  extension (c: Connexion[V]) def attribute: E = c.
-////given given_AttributedEdge_Int_String

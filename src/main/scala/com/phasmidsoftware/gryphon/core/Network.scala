@@ -25,7 +25,7 @@ sealed trait Connectible[V, X[_]] {
    * @param hasConnexions (implicit).
    * @return the updated Connectible[V].
    */
-  def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, X]
+  def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, X]): XMap[V, X]
 }
 
 trait Network[V, X[_]] extends Connectible[V, X] {
@@ -72,33 +72,14 @@ abstract class XMap[V, X[_]](val map: Map[V, X[V]]) extends Network[V, X] with T
     }
   }
 
-  def unit[W](map: Map[W, X[W]]): XMap[W, X]
-
   /**
-   * Method to add a connexion to this XMap.
+   * Method to yield an XMap, given a map of W -> X[W].
    *
-   * @param connexion a Connexion[V, Node].
-   * @return the updated XMap[V].
+   * @param map the given map.
+   * @tparam W the underlying type of the result.
+   * @return an XMap[W, X].
    */
-  def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, X] = connexion match {
-    case c: Connexion[_, _] =>
-      // CONSIDER Match on c (but it isn't going to be easy)
-      if (c.isInstanceOf[Pair[_]]) {
-        val pair = c.asInstanceOf[Pair[V]]
-        val m = map.asInstanceOf[Map[V, Node[V]]]
-        val x2: Node[V] = pair.v2
-        val result = m.get(pair.v1) match {
-          case Some(x1) =>
-            addVertexPair(m, x1, x2)
-          case None =>
-            val x1: Node[V] = Node.create[V](pair.v1)
-            addVertexPair(m, x1 + Pair(x1.attribute, x2), x2)
-        }
-        unit(result.asInstanceOf[Map[V, X[V]]])
-      }
-      else throw GraphException("NodeMap.+: not a Pair")
-    case _ => throw GraphException("NodeMap.+: not a Connexion")
-  }
+  def unit[W](map: Map[W, X[W]]): XMap[W, X]
 
   /**
    * Method to add a V->X[V] key-value pair.
@@ -190,11 +171,49 @@ object XMap {
     map + (x1 + Pair[V](x1.attribute, x2)).keyValue + x2.keyValue
 }
 
+/**
+ * Case class to represent a NodeMap, that's to say an adjacency map of V -> Node[V].
+ *
+ * @param m a Map of V -> Node[V].
+ * @tparam V the underlying Node attribute type.
+ */
 case class NodeMap[V](m: Map[V, Node[V]]) extends XMap[V, Node](m: Map[V, Node[V]]) {
 
+  /**
+   * Method to add a connexion to this XMap.
+   *
+   * @param connexion a Connexion[V, Node].
+   * @return the updated XMap[V].
+   */
+  def +(connexion: Connexion[V, Node])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, Node] =
+  // CONSIDER Match on c (but it isn't going to be easy)
+    if (connexion.isInstanceOf[Pair[_]]) {
+      val pair = connexion.asInstanceOf[Pair[V]]
+      val x2: Node[V] = pair.v2
+      val result = map.get(connexion.v1) match {
+        case Some(x1) =>
+          addVertexPair(map, x1, x2)
+        case None =>
+          val x1: Node[V] = Node.create[V](connexion.v1)
+          addVertexPair(map, x1 + Pair(x1.attribute, x2), x2)
+      }
+      unit(result)
+    }
+    else throw GraphException("NodeMap.+: not a Pair")
+
+  /**
+   * Method to return a new NodeMap[W, Node] based on the given <code>map</code>.
+   *
+   * @param map the given map.
+   * @tparam W the underlying type of the result.
+   * @return an XMap[W, X].
+   */
   def unit[W](map: Map[W, Node[W]]): XMap[W, Node] = NodeMap(map)
 }
 
+/**
+ * Companion object for NodeMap.
+ */
 object NodeMap {
   /**
    * Method to yield an empty XMap.

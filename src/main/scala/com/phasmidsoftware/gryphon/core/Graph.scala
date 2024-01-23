@@ -8,34 +8,34 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 
 /**
  * Case class to represent a graph of nodes and edges.
- * For a network of connections, only a NodeMap is required.
+ * For a network of connections, only a XMap is required.
  *
  * @param nodeMap the node map, i.e. the adjacency model.
- * @param edges   the edges of the graph (edges are redundantly available via the NodeMap).
+ * @param edges   the edges of the graph (edges are redundantly available via the XMap).
  * @tparam V the node (vertex) attribute type.
  * @tparam E the edge attribute type.
  */
-case class Graph[V, E](nodeMap: NodeMap[V, Node], edges: Seq[Edge[V, E]]) extends Network[V, Node] with Traversable[V, Node] {
+case class Graph[V, E](nodeMap: XMap[V, Node], edges: Seq[Edge[V, E]]) extends Network[V, Node] with Traversable[V, Node] {
 
   /**
-   * Method to add a connexion to this NodeMap.
+   * Method to add a connexion to this XMap.
    *
    * @param connexion a Connexion[V, Node].
    * @return the updated Connectible[V].
    */
-  def +(connexion: Connexion[V, Node])(implicit hasConnexions: HasConnexions[V, Node]): NodeMap[V, Node] = nodeMap.+(connexion)
+  def +(connexion: Connexion[V, Node])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, Node] = nodeMap.+(connexion)
 
   /**
    * Method to add a V->Node key-value pair.
    *
    * @param vx a tuple of V1, Node[V1]
    * @tparam V1 the underlying type of vx: must be super-type of V.
-   * @return NodeMap[V1].
+   * @return XMap[V1].
    */
-  def +[V1 >: V](vx: (V1, Node[V1])): NodeMap[V1, Node] = nodeMap.+(vx)
+  def +[V1 >: V](vx: (V1, Node[V1])): XMap[V1, Node] = nodeMap.+(vx)
 
   /**
-   * Method to run depth-first-search on this NodeMap.
+   * Method to run depth-first-search on this XMap.
    *
    * @param visitor      the visitor, of type Visitor[V, J].
    * @param v            the starting vertex.

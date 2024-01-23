@@ -13,7 +13,7 @@ import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
  */
 trait Traversable[V, X[_]] {
   /**
-   * Method to run depth-first-search on this NodeMap.
+   * Method to run depth-first-search on this Traversable.
    *
    * @param visitor      the visitor, of type Visitor[V, J].
    * @param v            the starting vertex.

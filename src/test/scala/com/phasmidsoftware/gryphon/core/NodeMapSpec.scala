@@ -29,7 +29,7 @@ class NodeMapSpec extends AnyFlatSpec with should.Matchers {
   }
 
 //  it should "+ VertexPair" in {
-//    val m_ = NodeMap.empty[String]
+//    val m_ = XMap.empty[String]
 //    val target = m_ + Pair(vRed, vBlue)
 //    target.get(red) map (_.attribute) shouldBe Some(red)
 //    target.get(blue) map (_.attribute) shouldBe Some(blue)
@@ -40,7 +40,7 @@ class NodeMapSpec extends AnyFlatSpec with should.Matchers {
   it should "get" in {
     val m_ = NodeMap.empty[String]
     m_.get(red) shouldBe None
-    val m0: NodeMap[String, Node] = m_ + (red, vRed) + (blue, vBlue)
+    val m0: XMap[String, Node] = m_ + (red, vRed) + (blue, vBlue)
     m0.get(red) shouldBe Some(vRed)
   }
 
@@ -53,7 +53,7 @@ class NodeMapSpec extends AnyFlatSpec with should.Matchers {
     val m_ = NodeMap.empty[String]
     val rg = Pair(red, vGreen)
     val bg = Pair(blue, vGreen)
-    val target: NodeMap[String, Node] = m_ + rb + rg + bg
+    val target: XMap[String, Node] = m_ + rb + rg + bg
     val bag1 = ListBag.create(rb, rg)
     val bag2 = ListBag.create(bg)
     target.get(red) map (_.connexions) shouldBe Some(bag1)

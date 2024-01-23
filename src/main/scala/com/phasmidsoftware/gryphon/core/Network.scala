@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.core.NodeMap.addVertexPair
+import com.phasmidsoftware.gryphon.core.XMap.addVertexPair
 import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Visitor}
 import scala.util.Using
 
@@ -19,13 +19,13 @@ import scala.util.Using
 sealed trait Connectible[V, X[_]] {
 
   /**
-   * Method to add a connexion to this NodeMap.
+   * Method to add a connexion to this XMap.
    *
    * @param connexion     a Connexion[V, Node].
    * @param hasConnexions (implicit).
    * @return the updated Connectible[V].
    */
-  def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): NodeMap[V, X]
+  def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, X]
 }
 
 trait Network[V, X[_]] extends Connectible[V, X] {
@@ -36,9 +36,9 @@ trait Network[V, X[_]] extends Connectible[V, X] {
    *
    * @param vx a tuple of V1, Node[V1]
    * @tparam V1 the underlying type of vx: must be super-type of V.
-   * @return NodeMap[V1].
+   * @return XMap[V1].
    */
-  def +[V1 >: V](vx: (V1, X[V1])): NodeMap[V1, X]
+  def +[V1 >: V](vx: (V1, X[V1])): XMap[V1, X]
 
   /**
    * Method to yield the (optional) X[V] corresponding to the given key.
@@ -50,17 +50,15 @@ trait Network[V, X[_]] extends Connectible[V, X] {
 }
 
 /**
- * Class to represent a NodeMap and thus all of the adjacencies of a graph.
- *
- * CONSIDER renaming to XMap
+ * Class to represent a XMap and thus all of the adjacencies of a graph.
  *
  * @param map a Map of V -> Node[V].
  * @tparam V the underlying Node attribute type.
  */
-case class NodeMap[V, X[_]](map: Map[V, X[V]]) extends Network[V, X] with Traversable[V, X] {
+abstract class XMap[V, X[_]](val map: Map[V, X[V]]) extends Network[V, X] with Traversable[V, X] {
 
   /**
-   * Method to run depth-first-search on this NodeMap.
+   * Method to run depth-first-search on this XMap.
    *
    * @param visitor the visitor, of type Visitor[V, J].
    * @param v       the starting vertex.
@@ -74,30 +72,32 @@ case class NodeMap[V, X[_]](map: Map[V, X[V]]) extends Network[V, X] with Traver
     }
   }
 
+  def unit[W](map: Map[W, X[W]]): XMap[W, X]
+
   /**
-   * Method to add a connexion to this NodeMap.
+   * Method to add a connexion to this XMap.
    *
    * @param connexion a Connexion[V, Node].
-   * @return the updated NodeMap[V].
+   * @return the updated XMap[V].
    */
-def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): NodeMap[V, X] = connexion match {
-  case c: Connexion[_, _] =>
-    // CONSIDER Match on c (but it isn't going to be easy)
-    if (c.isInstanceOf[Pair[_]]) {
-      val pair = c.asInstanceOf[Pair[V]]
-      val m = map.asInstanceOf[Map[V, Node[V]]]
-      val x2: Node[V] = pair.v2
-      val result = m.get(pair.v1) match {
-        case Some(x1) =>
-          addVertexPair(m, x1, x2)
-        case None =>
-          val x1: Node[V] = Node.create[V](pair.v1)
-          addVertexPair(m, x1 + Pair(x1.attribute, x2), x2)
+  def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, X] = connexion match {
+    case c: Connexion[_, _] =>
+      // CONSIDER Match on c (but it isn't going to be easy)
+      if (c.isInstanceOf[Pair[_]]) {
+        val pair = c.asInstanceOf[Pair[V]]
+        val m = map.asInstanceOf[Map[V, Node[V]]]
+        val x2: Node[V] = pair.v2
+        val result = m.get(pair.v1) match {
+          case Some(x1) =>
+            addVertexPair(m, x1, x2)
+          case None =>
+            val x1: Node[V] = Node.create[V](pair.v1)
+            addVertexPair(m, x1 + Pair(x1.attribute, x2), x2)
+        }
+        unit(result.asInstanceOf[Map[V, X[V]]])
       }
-      copy(map = result.asInstanceOf[Map[V, X[V]]])
-    }
-    else throw GraphException("NodeMap.+: not a Pair")
-  case _ => throw GraphException("NodeMap.+: not a Connexion")
+      else throw GraphException("NodeMap.+: not a Pair")
+    case _ => throw GraphException("NodeMap.+: not a Connexion")
   }
 
   /**
@@ -105,10 +105,10 @@ def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]
    *
    * @param vx a tuple of V1, Node[V1]
    * @tparam V1 the underlying type of vx: must be super-type of V.
-   * @return NodeMap[V1].
+   * @return XMap[V1].
    */
-  def +[V1 >: V](vx: (V1, X[V1])): NodeMap[V1, X] =
-    NodeMap[V1, X](map.asInstanceOf[Map[V1, X[V1]]] + vx)
+  def +[V1 >: V](vx: (V1, X[V1])): XMap[V1, X] =
+    unit(map.asInstanceOf[Map[V1, X[V1]]] + vx)
 
   /**
    * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
@@ -175,14 +175,7 @@ def +(connexion: Connexion[V, X])(implicit hasConnexions: HasConnexions[V, Node]
 
 }
 
-object NodeMap {
-  /**
-   * Method to yield an empty NodeMap.
-   *
-   * @tparam V the underlying node attribute type.
-   * @return an empty NodeMap[V].
-   */
-  def empty[V]: NodeMap[V, Node] = NodeMap[V, Node](Map.empty)
+object XMap {
 
   /**
    * Method to add a VertexPair to the given map.
@@ -195,4 +188,20 @@ object NodeMap {
    */
   def addVertexPair[V](map: Map[V, Node[V]], x1: Node[V], x2: Node[V]): Map[V, Node[V]] =
     map + (x1 + Pair[V](x1.attribute, x2)).keyValue + x2.keyValue
+}
+
+case class NodeMap[V](m: Map[V, Node[V]]) extends XMap[V, Node](m: Map[V, Node[V]]) {
+
+  def unit[W](map: Map[W, Node[W]]): XMap[W, Node] = NodeMap(map)
+}
+
+object NodeMap {
+  /**
+   * Method to yield an empty XMap.
+   *
+   * @tparam V the underlying node attribute type.
+   * @return an empty XMap[V].
+   */
+  def empty[V]: NodeMap[V] = NodeMap(Map.empty)
+
 }

@@ -60,9 +60,15 @@ object Node {
     def connexions(tx: Node[String]): Iterable[Connexion[String, Node]] = tx.connexions
   }
 
+  implicit object NodeHasConnexionsInt extends NodeHasConnexions[Int] {
+    def connexions(tx: Node[Int]): Iterable[Connexion[Int, Node]] = tx.connexions
+  }
+
   trait NodeAttributed[V] extends Attributed[Node[V], V] {
     def attribute(t: Node[V]): V = t.attribute
   }
 
   implicit object NodeAttributedString extends NodeAttributed[String]
+
+  implicit object NodeAttributedInt extends NodeAttributed[Int]
 }

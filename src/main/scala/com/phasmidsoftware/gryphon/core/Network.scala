@@ -186,20 +186,19 @@ case class NodeMap[V](m: Map[V, Node[V]]) extends XMap[V, Node](m: Map[V, Node[V
    * @return the updated XMap[V].
    */
   def +(connexion: Connexion[V, Node])(implicit hasConnexions: HasConnexions[V, Node]): XMap[V, Node] =
-  // CONSIDER Match on c (but it isn't going to be easy)
-    if (connexion.isInstanceOf[Pair[_]]) {
-      val pair = connexion.asInstanceOf[Pair[V]]
-      val x2: Node[V] = pair.v2
-      val result = map.get(connexion.v1) match {
-        case Some(x1) =>
-          addVertexPair(map, x1, x2)
-        case None =>
-          val x1: Node[V] = Node.create[V](connexion.v1)
-          addVertexPair(map, x1 + Pair(x1.attribute, x2), x2)
-      }
-      unit(result)
+    connexion match {
+      case pair: Pair[V] =>
+        val x2: Node[V] = pair.v2
+        val result = map.get(connexion.v1) match {
+          case Some(x1) =>
+            addVertexPair(map, x1, x2)
+          case None =>
+            val x1: Node[V] = Node.create[V](connexion.v1)
+            addVertexPair(map, x1 + Pair(x1.attribute, x2), x2)
+        }
+        unit(result)
+      case _ => throw GraphException("NodeMap.+: not a Pair")
     }
-    else throw GraphException("NodeMap.+: not a Pair")
 
   /**
    * Method to return a new NodeMap[W, Node] based on the given <code>map</code>.

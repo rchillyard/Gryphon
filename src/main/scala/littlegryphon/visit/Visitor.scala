@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package visit
+package littlegryphon.visit
 
 import scala.collection.immutable.Queue
 
@@ -14,7 +14,7 @@ import scala.collection.immutable.Queue
  *
  * CONSIDER do we need an edge-visitor?
  *
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam V the type to be visited, typically the (key) attribute type of vertex.
  * @tparam J the type of the journal for this visitor.
  */
 trait Visitor[V, J] extends AutoCloseable {
@@ -48,7 +48,7 @@ trait Visitor[V, J] extends AutoCloseable {
   val postFunc: V => J => Option[J]
 
   /**
-   * The journal of all of the pre- and post- invocations.
+   * The journal of all of the pre- and post-invocations.
    */
   val journal: J
 
@@ -66,7 +66,7 @@ object Visitor {
    *
    * TODO generalize this so that it doesn't require a Queue.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
    *           requires evidence of a Journal...
    * @return a PreVisitor of V and Queue[V]
    */
@@ -77,7 +77,7 @@ object Visitor {
    *
    * TODO generalize this so that it doesn't require a List.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
    *           Requires implicit evidence of type Journal...
    * @return a PreVisitor of V and List[V]
    */
@@ -88,7 +88,7 @@ object Visitor {
    *
    * TODO generalize this so that it doesn't require a Queue.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
    *           Requires implicit evidence of type Journal...
    * @return a PostVisitor of V and Queue[V]
    */
@@ -99,7 +99,7 @@ object Visitor {
    *
    * TODO generalize this so that it doesn't require a List.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
    *           Requires implicit evidence of type Journal...
    * @return a PostVisitor of V and List[V]
    */
@@ -108,7 +108,7 @@ object Visitor {
   /**
    * Method to create a PreVisitorIterable based on a Queue[V].
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
    *           Requires evidence of type IterableJournal[Queue[V], V].
    * @return a PreVisitorIterable of V and Queue[V]
    */
@@ -117,7 +117,7 @@ object Visitor {
   /**
    * Method to create a reverse PreVisitorIterable based on a List[V].
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
    *           Requires evidence of a IterableJournal[List[V], V].
    * @return a PreVisitorIterable of V and List[V]
    */

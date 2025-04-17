@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package visit
+package littlegryphon.visit
 
 import scala.collection.immutable.Queue
 import scala.collection.mutable
@@ -104,11 +104,11 @@ trait PriorityQueueable[Q, V] extends MutableQueueable[Q, V] with Ordering[V]
 object PriorityQueueable {
   trait QueueablePriorityQueue[V] extends PriorityQueueable[mutable.PriorityQueue[V], V] {
 
-    def take(q: PriorityQueue[V]): Option[V] = Option.when(q.nonEmpty)(q.dequeue())
+    def take(q: mutable.PriorityQueue[V]): Option[V] = Option.when(q.nonEmpty)(q.dequeue())
 
-    def empty: PriorityQueue[V] = PriorityQueue.empty(this)
+    def empty: mutable.PriorityQueue[V] = mutable.PriorityQueue.empty(this)
 
-    def append(vq: PriorityQueue[V], v: V): Unit = vq.enqueue(v)
+    def append(vq: mutable.PriorityQueue[V], v: V): Unit = vq.enqueue(v)
   }
 
   implicit object QueueableDoublePriorityQueue extends QueueablePriorityQueue[Double] {

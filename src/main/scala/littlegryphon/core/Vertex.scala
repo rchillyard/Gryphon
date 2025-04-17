@@ -3,7 +3,7 @@ package littlegryphon.core
 /**
  * Represents a vertex in a graph structure with an associated attribute and a collection
  * of adjacencies.
- * Each vertex can optionally be marked as discovered during traversal, 
+ * Each vertex can optionally be marked as discovered during traversal,
  * which is useful for graph algorithms.
  *
  * @tparam V the type representing the attribute of the vertex (invariant).
@@ -26,6 +26,10 @@ case class Vertex[V](attribute: V, adjacencies: Unordered[Adjacency[V]])(var dis
  * Designed to construct a vertex with an associated attribute
  * and a dynamically initialized collection of adjacencies.
  */
-object Vertex {
-        def create[V](f: () => Unordered[Adjacency[V]])(attribute: V): Vertex[V] = new Vertex[V](attribute, f())()
-}
+object Vertex:
+  def create[V](f: () => Unordered[Adjacency[V]])(attribute: V): Vertex[V] = new Vertex[V](attribute, f())()
+
+  def createByVertex[V](attribute: V): Vertex[V] = create(() => Unordered_Bag.empty[AdjacencyVertex[V]])(attribute)
+
+  def createByEdge[V, E](attribute: V): Vertex[V] = create(() => Unordered_Bag.empty[AdjacencyEdge[V, E]])(attribute)
+

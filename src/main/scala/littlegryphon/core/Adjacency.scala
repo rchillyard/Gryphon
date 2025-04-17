@@ -6,9 +6,25 @@ package littlegryphon.core
  * @tparam V the underlying vertex attribute type.
  */
 trait Adjacency[V] {
+  /**
+   * Retrieves the vertex associated with this adjacency.
+   *
+   * @return the vertex of type `Vertex[V]` linked to this adjacency.
+   */
   def vertex: Vertex[V]
 }
 
+/**
+ * Represents an adjacency relationship in a graph structure, where the relationship
+ * is defined by a direct reference to a vertex.
+ *
+ * This case class is a concrete implementation of the `Adjacency` trait,
+ * encapsulating a single vertex as the adjacency.
+ * Instances of this class are typically used to define graph connections between vertices.
+ *
+ * @param vertex the vertex that this adjacency directly connects to.
+ * @tparam V the type representing the attribute of the vertex.
+ */
 case class AdjacencyVertex[V](vertex: Vertex[V]) extends Adjacency[V]
 
 /**

@@ -20,6 +20,14 @@ class VertexMap[V](map: Map[V, Vertex[V]]):
   def vertices: Iterable[Vertex[V]] = map.values
 
   /**
+   * Checks if the specified key is present in the VertexMap.
+   *
+   * @param key the key to be checked for existence in the map.
+   * @return true if the key exists, false otherwise.
+   */
+  def contains(key: V): Boolean = map.contains(key)
+
+  /**
    * Adds a vertex to the current VertexMap, associating it with its attribute as the key.
    *
    * @param vertex the vertex to be added to the VertexMap.
@@ -53,7 +61,7 @@ class VertexMap[V](map: Map[V, Vertex[V]]):
 
   /**
    * Returns the value associated with the given key in the map if it exists.
-   * If the key is not present in the map, 
+   * If the key is not present in the map,
    * the provided default value is returned instead.
    *
    * @param key     the key whose associated value is to be returned.
@@ -107,7 +115,8 @@ class VertexMap[V](map: Map[V, Vertex[V]]):
 
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
     get(v) match {
-      case Some(vv) => vv.adjacencies.iterator.foldLeft(visitor)((q, x) => recurseOnConnexion(v, q, x))
+      case Some(vv) =>
+        vv.adjacencies.iterator.foldLeft(visitor)((q, x) => recurseOnConnexion(v, q, x))
       case None => throw littlegryphon.util.GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
 
@@ -119,8 +128,51 @@ class VertexMap[V](map: Map[V, Vertex[V]]):
     }
   }
 
+  /**
+   * Finds a vertex in the graph, applies a given function to it if discovered, and extracts its attribute.
+   *
+   * @param f            a function to apply to the vertex if it is marked as discovered.
+   * @param z            the vertex to check and process.
+   * @param errorMessage a message describing an error, unused in current logic.
+   * @return an `Option` containing the attribute of the vertex if it is discovered, or `None` otherwise.
+   */
   private def findAndMarkVertex(f: Vertex[V] => Unit, z: Vertex[V], errorMessage: String): Option[V] = {
+    // CONSIDER should the following be when NOT discovered?
     val xXvo: Option[Vertex[V]] = Option.when(z.discovered)(z)
     xXvo foreach f
     xXvo map (_.attribute)
+  }
+
+/**
+ * Companion object for creating instances of `VertexMap` and providing
+ * related utility methods for graph data structure management.
+ */
+object VertexMap:
+  /**
+   * Creates a new instance of `VertexMap` using the provided mapping of vertex attributes
+   * to their corresponding vertices.
+   *
+   * @param map a mapping from attributes of type `V` to their associated `Vertex[V]` instances.
+   * @tparam V the type of the vertex attributes.
+   * @return a new `VertexMap` containing the specified mapping of vertex attributes to vertices.
+   */
+  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
+
+  /**
+   * Creates a `VertexMap` from the given `EdgeList` by extracting vertices
+   * from the edges and constructing a mapping of vertex attributes to their
+   * corresponding `Vertex` objects.
+   *
+   * @param edgeList the list of edges representing the graph structure,
+   *                 where each edge contains `from` and `to` vertices.
+   * @tparam E the type of the edge attribute.
+   * @tparam V the type of the vertex attribute.
+   * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
+   */
+  def create[E, V](edgeList: EdgeList[V, E]): VertexMap[V] = {
+    val vvVm: Map[V, Vertex[V]] = edgeList.edges.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
+      (vm, e) =>
+        vm + (e.from.attribute -> e.from) + (e.to.attribute -> e.to)
+    }
+    VertexMap(vvVm)
   }

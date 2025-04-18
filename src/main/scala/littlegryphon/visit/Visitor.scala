@@ -48,10 +48,18 @@ trait Visitor[V, J] extends AutoCloseable {
   val postFunc: V => J => Option[J]
 
   /**
-   * The journal of all of the pre- and post-invocations.
+   * The journal of all the pre- and post-invocations.
    */
   val journal: J
 
+  /**
+   * Closes any resources held by the implementing Visitor instance.
+   *
+   * This method is intended to release or clean up resources such as file writers,
+   * journals, or other external dependencies associated with the Visitor object.
+   *
+   * @return Unit, indicating that the method performs a side effect without returning a value.
+   */
   def close(): Unit
 }
 

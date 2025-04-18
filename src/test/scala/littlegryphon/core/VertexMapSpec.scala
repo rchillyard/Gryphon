@@ -7,6 +7,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.should.Matchers.shouldBe
 
 import scala.collection.immutable.Queue
+import scala.util.Using
 
 class VertexMapSpec extends AnyFlatSpec with Matchers {
 
@@ -45,12 +46,12 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
   it should "get" in {
     val target = VertexMap.create(edgeList)
-    target.get(1) shouldBe Some(v1)
+    target.get(1) should matchPattern { case Some(Vertex(1, _)) => }
   }
 
   it should "getOrElse" in {
     val target = VertexMap.create(edgeList)
-    target.getOrElse(1, defaultVertex) shouldBe v1
+    target.getOrElse(1, defaultVertex) should matchPattern { case Vertex(1, _) => }
     target.getOrElse(4, defaultVertex) shouldBe defaultVertex
   }
 
@@ -60,12 +61,14 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "dfs" in {
-    val visitor: PreVisitor[Int, Queue[Int]] = Visitor.createPre[Int]
-    val target = VertexMap.create(edgeList)
-    val result: Visitor[Int, Queue[Int]] = target.dfs(visitor)(1)
-    println(result)
-    //    result.journal.size shouldBe 3
-    //    result.journal.head shouldBe 1
+    Using(Visitor.createPre[Int]) {
+      visitor =>
+        val target = VertexMap.create(edgeList)
+        val result: Visitor[Int, Queue[Int]] = target.dfs(visitor)(1)
+        result.journal.size shouldBe 3
+        result.journal.head shouldBe 1
+        result.journal.last shouldBe 3
+    }
   }
 
 

@@ -10,7 +10,7 @@ import littlegryphon.visit.Visitor
  * @tparam V the type representing the vertex attributes (`V` is invariant).
  * @param map a mapping from vertex attributes to their associated Vertex instances.
  */
-class VertexMap[V](map: Map[V, Vertex[V]]):
+case class VertexMap[V](map: Map[V, Vertex[V]]):
 
   /**
    * Retrieves an iterable collection of all vertices present in the `VertexMap`.
@@ -34,7 +34,7 @@ class VertexMap[V](map: Map[V, Vertex[V]]):
    * @return a new VertexMap containing the existing vertices and the newly added vertex.
    */
   def +(vertex: Vertex[V]): VertexMap[V] =
-    VertexMap(map + (vertex.attribute -> vertex))
+    copy(map = map + (vertex.attribute -> vertex))
 
   /**
    * Method to run depth-first-search on this `VertexMap`.
@@ -155,7 +155,7 @@ class VertexMap[V](map: Map[V, Vertex[V]]):
         recursiveDFS(visitor, z)
       case None =>
         visitor
-  }
+    }
 
   /**
    * Searches for the given vertex to check if it is undiscovered, marks it as discovered,
@@ -213,6 +213,23 @@ object VertexMap:
   def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
 
   /**
+   * Creates a `VertexMap` from the given `SerializableGraph` by matching the input
+   * to its specific implementation and invoking the appropriate method for vertex map creation.
+   *
+   * @param serializableGraph the input graph structure, which can be an `EdgeList`,
+   *                          a `VertexPairList`, or another type of serializable graph.
+   *                          Its implementation determines how the `VertexMap` will be created.
+   * @tparam E the type of the edge attributes in the graph.
+   * @tparam V the type of the vertex attributes in the graph.
+   * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
+   *         Throws an `IllegalArgumentException` if the input graph is not a supported type.
+   */
+  def create[E, V](serializableGraph: SerializableGraph[V, E]): VertexMap[V] = serializableGraph match {
+    case edgeList: EdgeList[V, E] => createFromEdgeList(edgeList)
+    case x => createFromVertexPairList(x.asInstanceOf[VertexPairList[V]])
+  }
+
+  /**
    * Creates a `VertexMap` from the given `EdgeList` by extracting vertices
    * from the edges and constructing a mapping of vertex attributes to their
    * corresponding `Vertex` objects.
@@ -223,14 +240,65 @@ object VertexMap:
    * @tparam V the type of the vertex attribute.
    * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
    */
-  def create[E, V](edgeList: EdgeList[V, E]): VertexMap[V] = {
+  def createFromEdgeList[E, V](edgeList: EdgeList[V, E]): VertexMap[V] = {
     val vvVm: Map[V, Vertex[V]] = edgeList.edges.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
       (vm, e) =>
-        // TODO we need to add the appropriate form of Adjacency here.
-        // This time, it's an AdjacencyEdge, but other times it might be an AdjacencyVertex.
-        val from = e.from + AdjacencyEdge(e)
-        val to = e.to
-        vm + (from.attribute -> from) + (to.attribute -> to)
+        addEdgeToMap(vm)(e)
     }
     VertexMap(vvVm)
   }
+
+  /**
+   * Creates a `VertexMap` from the given `EdgeList` by extracting vertices
+   * from the edges and constructing a mapping of vertex attributes to their
+   * corresponding `Vertex` objects.
+   *
+   * @param vertexPairList the list of vertex pairs representing the graph structure,
+   *                       where each vertex pair contains `from` and `to` vertices.
+   * @tparam V the type of the vertex attribute.
+   * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
+   */
+  def createFromVertexPairList[V](vertexPairList: VertexPairList[V]): VertexMap[V] = {
+    val vvVm: Map[V, Vertex[V]] = vertexPairList.pairs.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
+      (vm, pair) =>
+        val function = addVertexPairToMap(vm)
+        function.tupled(pair)
+    }
+    VertexMap(vvVm)
+  }
+
+  /**
+   * Adds an edge to the given map of vertices by updating the adjacency list
+   * of the vertices at both ends of the edge.
+   * If the vertices at the ends of the edge already exist in the map,
+   * their adjacencies are updated.
+   * Otherwise, new vertices are added to the map with updated adjacency information.
+   *
+   * @param map the current mapping of vertex attributes to their corresponding `Vertex` instances.
+   *            Represents the existing vertices and their connections.
+   * @param e   the edge to be added to the map. The edge connects two vertices, `from` and `to`.
+   * @tparam V the type of the vertex attributes.
+   * @tparam E the type of the edge attributes.
+   * @return an updated map of vertex attributes to `Vertex` instances, including the added edge.
+   */
+  private def addEdgeToMap[V, E](map: Map[V, Vertex[V]])(e: Edge[E, V]): Map[V, Vertex[V]] =
+    map + (e.from.attribute -> (e.from + AdjacencyEdge(e))) + (e.to.attribute -> e.to)
+
+  /**
+   * Adds a pair of vertices to the given map of vertices, updating their adjacency information.
+   * If the vertices already exist in the map, the adjacency list of the `from` vertex is updated
+   * to include a connection to the `to` vertex.
+   * Otherwise, new vertices are added to the map.
+   *
+   * @param map  the current mapping of vertex attributes to their corresponding `Vertex[V]` instances.
+   *             Represents the existing vertices and their connections.
+   * @param from the starting vertex of the edge to be added.
+   *             Its adjacency list will be updated to include a connection to the `to` vertex.
+   * @param to   the destination vertex of the edge to be added.
+   *             It is added to the map if it does not already exist.
+   * @tparam V the type of the vertex attributes.
+   * @return an updated map of vertex attributes to `Vertex[V]` instances, including the updated
+   *         adjacency information for the `from` vertex and the `to` vertex.
+   */
+  private def addVertexPairToMap[V](map: Map[V, Vertex[V]])(from: Vertex[V], to: Vertex[V]): Map[V, Vertex[V]] =
+    map + (from.attribute -> (from + AdjacencyVertex(to))) + (to.attribute -> to)

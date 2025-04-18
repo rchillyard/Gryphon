@@ -1,7 +1,7 @@
 package littlegryphon.core
 
 import littlegryphon.adjunct.DirectedEdge
-import littlegryphon.visit.{PreVisitor, Visitor}
+import littlegryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.should.Matchers.shouldBe
@@ -17,10 +17,22 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val v2: Vertex[Int] = Vertex.createByVertex(2)
   private val v3: Vertex[Int] = Vertex.createByVertex(3)
   private val edgeList: EdgeList[Int, String] = EdgeList(Seq(DirectedEdge("A", v1, v2), DirectedEdge("B", v2, v3)))
+  private val vertexPairList: VertexPairList[Int] = VertexPairList(Seq(v1 -> v2, v2 -> v3))
   private val defaultVertex: Vertex[Int] = Vertex.createByVertex(0)
 
-  it should "implement contains, apply, and vertices" in {
+  it should "implement createFromEdgeList, contains, apply, and vertices" in {
     val target = VertexMap.create(edgeList)
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    target.apply(1).attribute shouldBe 1
+    target.apply(2).attribute shouldBe 2
+    target.apply(3).attribute shouldBe 3
+  }
+
+  it should "implement createFromVertexPairList, contains, apply, and vertices" in {
+    val target = VertexMap.create(vertexPairList)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true

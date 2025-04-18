@@ -57,10 +57,42 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
    */
   def +[U >: T](u: U): Unordered[U] = copy(elements = elements.asInstanceOf[Set[U]] + u)
 
+/**
+ * A companion object for `Unordered_Set`, providing factory methods to create instances of
+ * unordered collections.
+ */
 object Unordered_Set {
+  /**
+   * Creates an empty unordered collection.
+   *
+   * The method initializes and returns an instance of `Unordered[X]` with no elements.
+   * This serves as a starting point for creating immutable, unordered collections without any content.
+   *
+   * @return an empty instance of `Unordered[X]`.
+   */
   def empty[X]: Unordered[X] = Unordered_Set(Set.empty)
 
+  /**
+   * Creates an instance of `Unordered` from a sequence of elements.
+   *
+   * The elements in the provided sequence are converted into a `Set`, ensuring the resulting
+   * unordered collection contains unique elements with no particular order.
+   *
+   * @param xs the sequence of elements to be converted into an unordered collection
+   * @tparam X the type of elements contained in the input sequence and resulting `Unordered`
+   *           collection
+   * @return an instance of `Unordered` containing the unique elements from the input sequence
+   */
   def apply[X](xs: Seq[X]): Unordered[X] = new Unordered_Set(xs.toSet)
 
+  /**
+   * Creates a new instance of `Unordered[X]` populated with the provided elements.
+   *
+   * @param xs the elements to include in the unordered collection.
+   *           These elements are provided as a variable-length argument list, 
+   *           allowing the creation of an unordered collection containing one or more elements.
+   * @tparam X the type of the elements contained within the unordered collection.
+   * @return an instance of `Unordered[X]` containing the provided elements.
+   */
   def create[X](xs: X*): Unordered[X] = apply(xs)
 }

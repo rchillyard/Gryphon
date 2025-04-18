@@ -13,12 +13,12 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
 
   behavior of "VertexMap"
 
-  private val v1: Vertex[Int] = Vertex.createByVertex(1)
-  private val v2: Vertex[Int] = Vertex.createByVertex(2)
-  private val v3: Vertex[Int] = Vertex.createByVertex(3)
+  private val v1: Vertex[Int] = Vertex.createWithBag(1)
+  private val v2: Vertex[Int] = Vertex.createWithBag(2)
+  private val v3: Vertex[Int] = Vertex.createWithBag(3)
   private val edgeList: EdgeList[Int, String] = EdgeList(Seq(DirectedEdge("A", v1, v2), DirectedEdge("B", v2, v3)))
   private val vertexPairList: VertexPairList[Int] = VertexPairList(Seq(v1 -> v2, v2 -> v3))
-  private val defaultVertex: Vertex[Int] = Vertex.createByVertex(0)
+  private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
   it should "implement createFromEdgeList, contains, apply, and vertices" in {
     val target = VertexMap.create(edgeList)
@@ -44,7 +44,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
 
   it should "$plus" in {
     val target = VertexMap.create(edgeList)
-    val updated = target + Vertex.createByVertex(4)
+    val updated = target + Vertex.createWithBag(4)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
   }

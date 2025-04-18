@@ -1,6 +1,10 @@
 package littlegryphon.core
 
+import littlegryphon.util.RandomIterator
+import littlegryphon.util.RandomIterator.*
 import littlegryphon.visit.Visitor
+
+import scala.util.Random
 
 /**
  * Represents a mapping of vertex attributes to their corresponding vertices within
@@ -10,7 +14,7 @@ import littlegryphon.visit.Visitor
  * @tparam V the type representing the vertex attributes (`V` is invariant).
  * @param map a mapping from vertex attributes to their associated Vertex instances.
  */
-case class VertexMap[V](map: Map[V, Vertex[V]]):
+case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Random()):
 
   /**
    * Retrieves an iterable collection of all vertices present in the `VertexMap`.
@@ -134,7 +138,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]):
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
     get(v) match {
       case Some(vv) =>
-        vv.adjacencies.iterator.foldLeft(visitor)(recurseOnAdjacency(v))
+        // CONSIDER just using `iterator` because the iterator of `adjacencies` may already be randomized.
+        val iterator: Iterator[Adjacency[V]] = RandomIterator(vv.adjacencies.iterator)(random)
+        iterator.foldLeft(visitor)(recurseOnAdjacency(v))
       case None =>
         throw littlegryphon.util.GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
@@ -173,29 +179,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]]):
     vxo foreach f
     vxo map (_.attribute)
   }
-
-//  /**
-//   * Attempts to find a vertex in the given `vertexMap` using the key provided in `maybeV`.
-//   * If the vertex is found and has not been previously marked as discovered, it is marked
-//   * as such by applying the function `f`. The method then returns the attribute of the vertex
-//   * if it was undiscovered. If `maybeV` is `None`, the method simply returns `None`.
-//   *
-//   * @param vertexMap    a map where keys represent vertex attributes, and values are the
-//   *                     corresponding `Vertex` instances.
-//   * @param f            a function to apply to the vertex if it is found and not yet marked as discovered.
-//   * @param maybeV       an optional attribute used to find the vertex within the map.
-//   * @param errorMessage a placeholder string for error messages (unused in the current implementation).
-//   * @return an `Option` containing the attribute of the vertex if it was found and undiscovered,
-//   *         or the input `maybeV` if it was `None`.
-//   */
-//  private def findAndMarkVertex(vertexMap: Map[V, Vertex[V]], f: Vertex[V] => Unit, maybeV: Option[V], errorMessage: String): Option[V] = maybeV match {
-//    case Some(z) =>
-//      val xXvo: Option[Vertex[V]] = vertexMap.get(z) filterNot (_.discovered)
-//      xXvo foreach (vertex => f(vertex))
-//      xXvo map (_.attribute)
-//    case None => maybeV //  NOTE: this is not a problem. // throw GraphException(errorMessage)
-//  }
-
 
 /**
  * Companion object for creating instances of `VertexMap` and providing

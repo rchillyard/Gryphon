@@ -1,15 +1,22 @@
 package littlegryphon.core
 
+import littlegryphon.util.RandomIterator
+
+import scala.util.Random
+
 /**
- * A generic trait representing a collection of items with support for common operations.
- * The `Bag` provides functionalities such as iteration, membership testing, addition, and size retrieval.
+ * A trait representing a collection of elements in an unordered bag-like structure,
+ * a multi-set in other words.
+ * This collection allows duplicates and provides operations for adding elements, checking
+ * membership, and querying its properties such as size and emptiness.
  *
- * @tparam X the type of elements contained within the bag. It is covariant, meaning a `Bag[A]` can
- *           be used as a `Bag[B]` if `A` is a subtype of `B`.
+ * @tparam X the type of elements contained in the bag.
+ *           As a covariant type parameter, `X` allows subtypes of the specified type to be used in the bag.
  */
 trait Bag[+X] {
   /**
    * Returns an iterator over the elements in this collection.
+   * NOTE that you should not expect the iterator to have any particular order.
    *
    * @return an iterator of type `Iterator[X]` that provides sequential access to the elements in the collection.
    */
@@ -70,12 +77,15 @@ trait Bag[+X] {
 case class ListBag[X](xs: Seq[X]) extends Bag[X] {
 
   /**
-   * Returns an iterator over the elements of type `X` contained within the collection.
-   * NOTE: ideally, this iterator should be random.
+   * Returns an iterator over the elements contained in this `ListBag`.
+   * The elements are iterated in a randomized order.
    *
-   * @return an `Iterator[X]` providing sequential access to the elements in this collection.
+   * @return an `Iterator[X]` that provides a randomized traversal of the elements in the bag.
    */
-  def iterator: Iterator[X] = xs.iterator
+  def iterator: Iterator[X] = {
+    import Bag.*
+    RandomIterator(xs)
+  }
 
   /**
    * Adds a new element to the bag, creating a new bag instance that includes the added element.
@@ -114,4 +124,6 @@ object Bag {
    * @return a new `Bag[X]` instance containing the provided elements.
    */
   def create[X](xs: X*): Bag[X] = ListBag(xs)
+
+  implicit val random: Random = new scala.util.Random
 }

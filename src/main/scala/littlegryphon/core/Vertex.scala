@@ -14,7 +14,7 @@ package littlegryphon.core
  *                    in a traversal.
  *                    Defaults to `false`.
  */
-case class Vertex[V](attribute: V, adjacencies: Unordered[Adjacency[V]])(var discovered: Boolean = false) extends Attribute[V] {
+case class Vertex[V](attribute: V, adjacencies: Unordered[Adjacency[V]])(var discovered: Boolean = false) extends Attribute[V]:
   /**
    * Adds a new adjacency to the current vertex and returns a new vertex instance with the
    * added adjacency included in the collection of adjacencies.
@@ -36,7 +36,6 @@ case class Vertex[V](attribute: V, adjacencies: Unordered[Adjacency[V]])(var dis
   }
 
   override def toString: String = s"v$attribute"
-}
 
 /**
  * Companion object for the `Vertex` class, providing a factory method for creating
@@ -46,17 +45,17 @@ case class Vertex[V](attribute: V, adjacencies: Unordered[Adjacency[V]])(var dis
  */
 object Vertex:
   /**
-   * Creates a new `Vertex` instance with the specified attribute and a dynamically
-   * initialized collection of adjacencies.
+   * Creates a new instance of `Vertex` with the specified attribute and an optional
+   * collection of adjacencies.
    *
-   * @param f         a function that provides the initial unordered collection of adjacencies
-   *                  for the vertex.
-   *                  This allows for dynamic initialization of adjacencies when the vertex is created.
-   * @param attribute the attribute associated with the vertex, representing its data or value.
-   * @return a new `Vertex[V]` instance containing the specified attribute and the
-   *         dynamically created collection of adjacencies.
+   * @param attribute the data or value associated with this vertex of type `V`.
+   * @param vau       an optional unordered collection of adjacencies representing connections
+   *                  to other vertices.
+   *                  Defaults to an empty `Unordered_Bag` of adjacencies.
+   * @return a newly created `Vertex[V]` instance with the specified attribute and the
+   *         provided or default adjacencies.
    */
-  def create[V](f: () => Unordered[Adjacency[V]])(attribute: V): Vertex[V] = new Vertex[V](attribute, f())()
+  def create[V](attribute: V, vau: Unordered[Adjacency[V]] = Unordered_Bag.empty[Adjacency[V]]): Vertex[V] = Vertex[V](attribute, vau)()
 
   /**
    * Creates a new `Vertex` instance with the specified attribute and an empty
@@ -69,12 +68,11 @@ object Vertex:
    * @return a new `Vertex[V]` instance with the specified attribute and an empty
    *         collection of adjacencies.
    */
-  def createByVertex[V](attribute: V): Vertex[V] = create(() => Unordered_Bag.empty[AdjacencyVertex[V]])(attribute)
+  def createWithBag[V](attribute: V): Vertex[V] = create(attribute, Unordered_Bag.empty[Adjacency[V]])
 
   /**
    * Creates a new `Vertex` instance with the specified attribute and an empty
-   * collection of adjacencies initialized as an `Unordered_Bag` specifically
-   * designed to hold `AdjacencyEdge` elements.
+   * collection of adjacencies initialized as an `Unordered_Set`.
    *
    * This method serves as a factory for creating a vertex where the adjacency
    * collection is tailored for edges, allowing the representation of connections
@@ -82,9 +80,7 @@ object Vertex:
    *
    * @param attribute the attribute associated with the vertex, representing its data or value.
    * @tparam V the type representing the attribute of the vertex.
-   * @tparam E the type of edge attributes associated with the adjacencies.
    * @return a new `Vertex[V]` instance with the specified attribute and an empty
    *         collection of `AdjacencyEdge[V, E]`.
    */
-  def createByEdge[V, E](attribute: V): Vertex[V] = create(() => Unordered_Bag.empty[AdjacencyEdge[V, E]])(attribute)
-
+  def createWithSet[V](attribute: V): Vertex[V] = create(attribute, Unordered_Set.empty[Adjacency[V]])

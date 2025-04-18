@@ -146,9 +146,9 @@
 //    }
 //  }
 //
-//  private def findAndMarkVertex(f: Vertex[V] => Unit, z: Vertex[V], errorMessage: String): Option[V] = {
+//  private def findAndMarkVertex(vau: Vertex[V] => Unit, z: Vertex[V], errorMessage: String): Option[V] = {
 //    val xXvo: Option[Vertex[V]] = Option.when(z.discovered)(z)
-//    xXvo foreach f
+//    xXvo foreach vau
 //    xXvo map (_.attribute)
 //  }
 //}

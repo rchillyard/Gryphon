@@ -12,6 +12,14 @@ trait Adjacency[V] {
    * @return the vertex of type `Vertex[V]` linked to this adjacency.
    */
   def vertex: Vertex[V]
+
+  /**
+   * Retrieves the `Edge` associated with this adjacency, if one exists.
+   * An edge connects two vertices, providing a relationship or linkage between them.
+   *
+   * @return an `Option[Edge[_, V]]` that contains the `Edge` if present, or `None` if no edge is associated.
+   */
+  def maybeEdge: Option[Edge[_, V]]
 }
 
 /**
@@ -25,7 +33,17 @@ trait Adjacency[V] {
  * @param vertex the vertex that this adjacency directly connects to.
  * @tparam V the type representing the attribute of the vertex.
  */
-case class AdjacencyVertex[V](vertex: Vertex[V]) extends Adjacency[V]
+case class AdjacencyVertex[V](vertex: Vertex[V]) extends Adjacency[V]:
+  /**
+   * Retrieves an optional `Edge` associated with this adjacency.
+   * The edge, if present, represents a connection between two vertices
+   * in the graph.
+   * This method allows an adjacency to optionally include
+   * a direct reference to its associated edge within the graph structure.
+   *
+   * @return an `Option` containing the `Edge` if present, or `None` if no edge is associated.
+   */
+  def maybeEdge: Option[Edge[_, V]] = None
 
 /**
  * Represents an Adjacency in the form of an edge within a graph structure.
@@ -40,6 +58,8 @@ case class AdjacencyVertex[V](vertex: Vertex[V]) extends Adjacency[V]
  */
 case class AdjacencyEdge[V, E](edge: Edge[E, V], flipped: Boolean = false) extends Adjacency[V] {
   def vertex: Vertex[V] = if (flipped) edge.from else edge.to
+
+  def maybeEdge: Option[Edge[_, V]] = Some(edge)
 }
 
 //

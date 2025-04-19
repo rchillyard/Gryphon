@@ -1,5 +1,7 @@
 package littlegryphon.core
 
+import littlegryphon.visit.Visitor
+
 /**
  * A trait representing an abstract graph structure composed of vertices.
  *
@@ -10,18 +12,72 @@ package littlegryphon.core
  *           interacting with graph vertexMap. It allows querying for the set of vertices, adding 
  *           new vertices to the graph, and defining custom behaviors for graph implementations.
  */
-trait Graph[V] {
+trait Graph[V] extends Traversable[V] {
   //  def traverse: Traversal[V]
+
+  /**
+   * Retrieves the vertex map representation of the graph.
+   *
+   * @return the vertex map, represented as a `VertexMap[V]`, which provides
+   *         the internal mapping of vertices within the graph.
+   */
   def vertexMap: VertexMap[V]
 
+  /**
+   * Adds a new vertex to the graph and returns a new graph instance with the updated vertex map.
+   *
+   * @param vertex the vertex to be added to the graph.
+   *               The vertex contains its attribute and adjacencies, 
+   *               which define its connections within the graph.
+   * @return a new graph instance containing the existing vertex map and the newly added vertex.
+   */
   def addVertex(vertex: Vertex[V]): Graph[V] = unit(vertexMap + vertex)
 
+  /**
+   * Creates a new graph using the provided vertex map.
+   *
+   * @param vertexMap the vertex map that defines the structure and vertices of the new graph
+   * @return a new instance of the graph based on the given vertex map
+   */
   def unit(vertexMap: VertexMap[V]): Graph[V]
+
+  /**
+   * Method to run depth-first-search on this Traversable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex value.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
+
+  /**
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
+
+  /**
+   * Method to run goal-terminated breadth-first-search on this VertexMap.
+   *
+   * CONSIDER add relax method as in bfsMutable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @param goal    a function which will return true when the goal is reached.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] =
+    vertexMap.bfs(visitor)(v)(goal)
 }
 
 object Graph {
-  def addVertexToMap[W](vertexMap: Map[W, Vertex[W]])(vertex: Vertex[W]): Map[W, Vertex[W]] =
-    vertexMap + (vertex.attribute -> vertex)
+  //  def addVertexToMap[W](vertexMap: Map[W, Vertex[W]])(vertex: Vertex[W]): Map[W, Vertex[W]] =
+  //    vertexMap + (vertex.attribute -> vertex)
 }
 
 /**

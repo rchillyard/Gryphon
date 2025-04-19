@@ -55,9 +55,9 @@ object Queueable {
  * Type class trait to define the behavior of an immutable queue-like object.
  *
  * @tparam Q the queue type.
- * @tparam V the underlying type of the journal.
+ * @tparam J the underlying type of the journal.
  */
-trait MutableQueueable[Q, V] {
+trait MutableQueueable[Q, J] {
 
   /**
    * Take the oldest element from a mutable queue-like object.
@@ -65,11 +65,11 @@ trait MutableQueueable[Q, V] {
    * @param q the mutable queue-like object to take from.
    * @return a tuple of a V and a Q (the latter represents what's left in the queue-like object).
    */
-  def take(q: Q): Option[V]
+  def take(q: Q): Option[J]
 
   def empty: Q
 
-  def append(vq: Q, v: V): Unit
+  def append(vq: Q, v: J): Unit
 
   /**
    * Enqueue an entire sequence of Vs to q (given).
@@ -78,16 +78,16 @@ trait MutableQueueable[Q, V] {
    * @param vs a sequence of V values.
    * @return a new queue-like object (Q).
    */
-  def appendAll(q: Q, vs: Seq[V]): Unit = vs foreach (v => append(q, v))
+  def appendAll(q: Q, vs: Seq[J]): Unit = vs foreach (v => append(q, v))
 }
 
 object MutableQueueable {
-  trait MutableQueueableQueue[V] extends MutableQueueable[mutable.Queue[V], V] {
-    def take(q: mutable.Queue[V]): Option[V] = Option.when(q.nonEmpty)(q.dequeue())
+  trait MutableQueueableQueue[X] extends MutableQueueable[mutable.Queue[X], X] {
+    def take(q: mutable.Queue[X]): Option[X] = Option.when(q.nonEmpty)(q.dequeue())
 
-    def empty: mutable.Queue[V] = mutable.Queue.empty
+    def empty: mutable.Queue[X] = mutable.Queue.empty
 
-    def append(vq: mutable.Queue[V], v: V): Unit = vq.enqueue(v)
+    def append(vq: mutable.Queue[X], v: X): Unit = vq.enqueue(v)
   }
 
   implicit object MutableQueueableStringQueue extends MutableQueueableQueue[String]

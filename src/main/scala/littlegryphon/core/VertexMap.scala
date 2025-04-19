@@ -1,10 +1,13 @@
 package littlegryphon.core
 
-import littlegryphon.util.RandomIterator
 import littlegryphon.util.RandomIterator.*
-import littlegryphon.visit.Visitor
+import littlegryphon.util.{GraphException, RandomIterator}
+import littlegryphon.visit.Queueable.QueueableQueue
+import littlegryphon.visit.{MutableQueueable, Queueable, Visitor}
 
-import scala.util.Random
+import scala.annotation.tailrec
+import scala.collection.immutable.Queue
+import scala.util.{Random, Using}
 
 /**
  * Represents a mapping of vertex attributes to their corresponding vertices within
@@ -14,7 +17,7 @@ import scala.util.Random
  * @tparam V the type representing the vertex attributes (`V` is invariant).
  * @param map a mapping from vertex attributes to their associated Vertex instances.
  */
-case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Random()):
+case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Random()) extends Traversable[V]:
 
   /**
    * Retrieves an iterable collection of all vertices present in the `VertexMap`.
@@ -50,9 +53,134 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
     initializeVisits(Some(v))
-    val result = recursiveDFS(visitor, v)
+    Using.resource(recursiveDFS(visitor, v)) {
+      result => result
+    }
+  }
+
+  /**
+   * Method to run goal-terminated breadth-first-search on this VertexMap.
+   *
+   * CONSIDER add relax method as in bfsMutable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @param goal    a function which will return true when the goal is reached.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = {
+    initializeVisits(Some(v))
+    implicit object queuable extends QueueableQueue[V]
+    val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)(goal)
     result.close()
     result
+  }
+
+  /**
+   * Performs depth-first search on all the vertices in the graph represented by the `VertexMap`.
+   * The traversal begins from each undiscovered vertex and visits all reachable vertices,
+   * using the provided `Visitor` for processing during the traversal.
+   *
+   * @param visitor the visitor, an instance of `Visitor[V, J]`, responsible for processing vertices during traversal.
+   *                It represents the current state of the traversal and is updated as the traversal progresses.
+   * @tparam J the type of the journal associated with the `Visitor`.
+   * @return a `Visitor[V, J]` instance that reflects the state of the graph traversal after processing all vertices.
+   */
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = {
+    initializeVisits(None)
+
+    @tailrec
+    def inner(q: Visitor[V, J]): Visitor[V, J] = {
+      val undiscovered: Map[V, Vertex[V]] = map filter { case (_, v) => !v.discovered }
+      undiscovered.headOption match {
+        case Some((k, _)) =>
+          inner(recursiveDFS(q, k))
+        case None =>
+          q
+      }
+    }
+
+    inner(visitor)
+  }
+
+  /**
+   * Performs a breadth-first search (BFS) traversal on the graph represented by the `VertexMap`.
+   *
+   * @param visitor the visitor instance (`Visitor[V, J]`) responsible for processing vertices during traversal and
+   *                maintaining the state of the traversal.
+   * @param vs      a sequence of starting values for the BFS traversal.
+   * @param goal    a predicate function that determines whether a given vertex satisfies the goal condition.
+   * @param ev      an implicit instance of `MutableQueueable[Q, V]` required to manage the queue during
+   *                the mutable BFS traversal.
+   * @tparam J the type of the journal associated with the visitor, used for tracking traversal state and updates.
+   * @tparam Q the type of the queue used internally for managing vertices during the traversal.
+   * @return an updated `Visitor[V, J]` instance that reflects the traversal state after completing the BFS.
+   */
+  def bfsMutable[J, Q](visitor: Visitor[V, J])(vs: Seq[V])(goal: Vertex[V] => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ???
+  //    FP.sequence(vs map map.get) match {
+  //      case Some(vvs) => 
+  //        val queue: Q = ev.empty
+  //        val iterator = FP.mutableQueueIterator(queue)
+  //        vvs.foldLeft[Visitor[V,J]](visitor){
+  //          (z, vv) => bfsRecursive(z, vv, queue)(goal)
+  //        }
+  //        
+  //      case None => visitor
+  //    }
+
+  private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
+    @tailrec
+    def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
+      case Some((head, _)) if goal(head) => result.visitPre(head)
+      case Some((head, tail)) => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
+      case _ => result
+    }
+
+    inner(visitor, queueable.append(queueable.empty, v))
+  }
+
+  private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q = optAdjacencyList(v) match {
+    case Some(vau: Unordered[Adjacency[V]]) =>
+      val iterator: Iterator[Adjacency[V]] = vau.iterator
+      iterator.foldLeft(queue) { (q, x) =>
+        if (!x.vertex.discovered) {
+          x.vertex.discovered = true
+          queueable.append(q, x.vertex.attribute)
+        }
+        else
+          q
+      }
+    case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
+  }
+
+  private def optAdjacencyList(v: V): Option[Unordered[Adjacency[V]]] = map.get(v) map (_.adjacencies)
+
+  //  private def bfsRecursive[Q, J](visitor: Visitor[V, J], v: Vertex[V], queue: Q)(goal: Vertex[V] => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] =
+  //  if (goal(v)) visitor
+  //  else {
+  //    ev.append(queue, v)
+  //    map.get(v) map {
+  //      vertex =>
+  //        enqueueAdjacencies(visitor, queue)(vertex.adjacencies.iterator)
+  //        bfsRecursive(visitor, vertex.attribute, queue)(goal)
+  //    } match {
+  //      case Some(z) => z
+  //      case None => visitor
+  //    }
+  //  }
+
+  private def enqueueAdjacencies[Q, J](visitor: Visitor[V, J], queue: Q)(iterator: Iterator[Adjacency[V]])(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] =
+    iterator.foldLeft(visitor) {
+      (visitor, adjacency) =>
+        val w = adjacency.vertex
+        if (!w.discovered) {
+          w.discovered = true
+          ev.append(queue, w.attribute)
+          visitor.visitPre(w.attribute)
+        }
+        else
+          visitor
   }
 
   /**
@@ -156,7 +284,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return an updated Visitor[V, J] after processing the given adjacency and its contained vertex.
    */
   private def recurseOnAdjacency[J](v: V)(visitor: Visitor[V, J], x: Adjacency[V]): Visitor[V, J] =
-    findAndMarkVertex({ w => w.discovered = true }, x.vertex, s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") match {
+    findAndMarkVertex(x.vertex, s"DFS logic error 1: findAndMarkVertex(v = $v, x = $x") { w => w.discovered = true } match {
       case Some(z) =>
         recursiveDFS(visitor, z)
       case None =>
@@ -174,7 +302,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return an `Option` containing the attribute of the vertex if it was undiscovered,
    *         otherwise `None`.
    */
-  private def findAndMarkVertex(f: Vertex[V] => Unit, z: Vertex[V], errorMessage: String): Option[V] = {
+  private def findAndMarkVertex(z: Vertex[V], errorMessage: String)(f: Vertex[V] => Unit): Option[V] = {
     val vxo: Option[Vertex[V]] = Option.when(!z.discovered)(z)
     vxo foreach f
     vxo map (_.attribute)

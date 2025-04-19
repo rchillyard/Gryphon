@@ -8,27 +8,29 @@ import scala.collection.immutable.Queue
 
 /**
  * Trait to define the behavior of a visitor--used during depth-first-search, etc.
- * The Visitor supports two journal entries: pre- and post- recursion.
- * Most journals are also iterable so that they can be retrieved after DFS is complete.
+ * For DFS, `Visitor` supports two journal entries: pre- and post-recursion.
+ * For BFS, only the "pre" visit is supported.
+ *
+ * Most journals are also iterable so that they can be retrieved after the traversal is complete.
  * However, it is perfectly possible to have a journal which simply writes to a file (or something similar).
  *
- * CONSIDER do we need an edge-visitor?
- *
- * @tparam V the type to be visited, typically the (key) attribute type of vertex.
- * @tparam J the type of the journal for this visitor.
+ * @tparam V the type to be visited, typically the (key) attribute type of `Vertex`.
+ * @tparam J the type of the `Journal` for this `Visitor`.
  */
 trait Visitor[V, J] extends AutoCloseable {
 
   /**
-   * Method to visit BEFORE processing the (child) V values.
+   * Method to visit BEFORE processing the (child) `V` values in DFS.
+   * For BFS, this method is the only visit to be performed.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated Visitor[V, J].
+   * @param v (`V`) the `Attribute` of a `Vertex`.
+   * @return an updated `Visitor[V, J]`.
    */
   def visitPre(v: V): Visitor[V, J]
 
   /**
-   * Method to visit AFTER processing the (child) V values.
+   * Method to visit AFTER processing the (child) V values in DFS.
+   * For BFS, this method is a no-op.
    *
    * @param v (V) the value of this node (vertex).
    * @return an updated Visitor[V, J].

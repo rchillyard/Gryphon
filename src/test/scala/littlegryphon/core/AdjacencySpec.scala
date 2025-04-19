@@ -19,10 +19,10 @@ class AdjacencySpec extends AnyFlatSpec with Matchers {
     val vertex1 = Vertex.create(1)
     val vertex2 = Vertex.create(2)
     val adjacency1 = AdjacencyEdge(DirectedEdge[String, Int]("child", vertex1, vertex2))
-    adjacency1.edge.attribute shouldBe "child"
+    adjacency1.maybeEdge.map(_.attribute) shouldBe Some("child")
     adjacency1.vertex.attribute shouldBe 2
     val adjacency2 = AdjacencyEdge(DirectedEdge[String, Int]("child", vertex1, vertex2), flipped = true)
-    adjacency2.edge.attribute shouldBe "child"
+    adjacency2.maybeEdge.map(_.attribute) shouldBe Some("child")
     adjacency2.vertex.attribute shouldBe 1
   }
 

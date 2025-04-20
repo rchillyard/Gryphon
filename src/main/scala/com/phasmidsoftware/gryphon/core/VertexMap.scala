@@ -1,5 +1,8 @@
 package com.phasmidsoftware.gryphon.core
 
+// NOTE backward imports
+
+import com.phasmidsoftware.gryphon.adjunct.{EdgeList, VertexPairList}
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}

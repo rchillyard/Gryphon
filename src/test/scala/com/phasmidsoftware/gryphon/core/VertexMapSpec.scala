@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
+import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, EdgeList, VertexPairList}
 import com.phasmidsoftware.gryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

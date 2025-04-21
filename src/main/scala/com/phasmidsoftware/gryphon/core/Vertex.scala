@@ -14,7 +14,7 @@ package com.phasmidsoftware.gryphon.core
  *                    in a traversal.
  *                    Defaults to `false`.
  */
-case class Vertex[V](attribute: V, adjacencies: Unordered[Adjacency[V]])(var discovered: Boolean = false) extends Attribute[V]:
+case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: Boolean = false) extends Attribute[V]:
   /**
    * Adds a new adjacency to the current vertex and returns a new vertex instance with the
    * added adjacency included in the collection of adjacencies.
@@ -55,7 +55,7 @@ object Vertex:
    * @return a newly created `Vertex[V]` instance with the specified attribute and the
    *         provided or default adjacencies.
    */
-  def create[V](attribute: V, vau: Unordered[Adjacency[V]] = Unordered_Bag.empty[Adjacency[V]]): Vertex[V] = Vertex[V](attribute, vau)()
+  def create[V](attribute: V, vau: Adjacencies[V] = emptyAdjacenciesBag[V]): Vertex[V] = Vertex[V](attribute, vau)()
 
   /**
    * Creates a new `Vertex` instance with the specified attribute and an empty
@@ -68,7 +68,7 @@ object Vertex:
    * @return a new `Vertex[V]` instance with the specified attribute and an empty
    *         collection of adjacencies.
    */
-  def createWithBag[V](attribute: V): Vertex[V] = create(attribute, Unordered_Bag.empty[Adjacency[V]])
+  def createWithBag[V](attribute: V): Vertex[V] = create(attribute, emptyAdjacenciesBag[V])
 
   /**
    * Creates a new `Vertex` instance with the specified attribute and an empty
@@ -83,4 +83,4 @@ object Vertex:
    * @return a new `Vertex[V]` instance with the specified attribute and an empty
    *         collection of `AdjacencyEdge[V, E]`.
    */
-  def createWithSet[V](attribute: V): Vertex[V] = create(attribute, Unordered_Set.empty[Adjacency[V]])
+  def createWithSet[V](attribute: V): Vertex[V] = create(attribute, emptyAdjacenciesSet[V])

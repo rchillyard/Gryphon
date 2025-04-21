@@ -22,7 +22,7 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers {
 
   }
 
-  it should "Edges.parse" in {
+  it should "Triplets.parse" in {
     val triedSource = Try(Source.fromResource(dijkstraGraphPath))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
     println(wsy)
@@ -31,7 +31,7 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers {
     
   }
 
-  it should "Edges.parse 3" in {
+  it should "Triplets.parse 3" in {
     val url: URL = Thread.currentThread().getContextClassLoader.getResource(dijkstraGraphPath)
     val triedSource = Try(Source.fromURL(url, "UTF-8"))
     val triedStrings = triedSource match {

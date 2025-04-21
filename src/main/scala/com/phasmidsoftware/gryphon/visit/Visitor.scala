@@ -168,7 +168,7 @@ object Visitor {
  * @tparam J the type of the journal.
  *           Requires implicit evidence of type Journal[J, V].
  */
-case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
+case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
 
   val preFunc: V => J => Option[J] = appendToJournal
   val postFunc: V => J => Option[J] = doNothing
@@ -197,7 +197,7 @@ object PreVisitor {
  * @tparam J the type of the journal.
  *           Requires implicit evidence of type Journal[J, V].
  */
-case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
+case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
 
   val preFunc: V => J => Option[J] = doNothing
   val postFunc: V => J => Option[J] = appendToJournal
@@ -220,7 +220,7 @@ object PostVisitor {
  * @tparam J the type of the journal.
  *           Requires implicit evidence of type IterableJournal[J, V].
  */
-case class PreVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends BaseIterableVisitor[V, J](journal) {
+case class PreVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends AbstractIterableVisitor[V, J](journal) {
 
   val preFunc: V => J => Option[J] = appendToJournal
   val postFunc: V => J => Option[J] = doNothing
@@ -268,7 +268,7 @@ object PreVisitorIterable {
  * @tparam J the type of the journal.
  *           Requires implicit evidence of type IterableJournal[J, V].
  */
-case class PostVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends BaseIterableVisitor[V, J](journal) {
+case class PostVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends AbstractIterableVisitor[V, J](journal) {
 
   val preFunc: V => J => Option[J] = doNothing
   val postFunc: V => J => Option[J] = appendToJournal
@@ -318,7 +318,7 @@ object PostVisitorIterable {
  * @tparam J the Journal type.
  *           Requires implicit evidence of type Journal[J, V].
  */
-class GenericVisitor[V, J](val preFunc: V => J => Option[J], val postFunc: V => J => Option[J])(val journal: J)(implicit val ev: Journal[J, V]) extends BaseVisitor[V, J](journal) {
+class GenericVisitor[V, J](val preFunc: V => J => Option[J], val postFunc: V => J => Option[J])(val journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
   /**
    * Method to create a new GenericVisitor.
    *
@@ -363,7 +363,7 @@ trait IterableVisitor[V, J <: Iterable[V]] extends Visitor[V, J] {
  * @tparam J the type of the journal for this visitor.
  *           Requires implicit evidence of type Journal[J, V].
  */
-abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) extends Visitor[V, J] {
+abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) extends Visitor[V, J] {
   self =>
 
   /**
@@ -382,6 +382,12 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
    */
   def visitPost(v: V): Visitor[V, J] = unit(postFunc(v)(journal) getOrElse journal)
 
+  /**
+   * Method to append a value of type `V` to a journal of type `J`, utilizing the implicit `Journal` type class instance.
+   *
+   * @param ev the implicit `Journal` type class instance that defines how values are appended to the journal.
+   * @return a function that takes a value of type `V`, then a journal of type `J`, and produces an optional updated journal.
+   */
   protected def appendToJournal(implicit ev: Journal[J, V]): V => J => Option[J] = v => a => Some(ev.append(a, v))
 
   //noinspection MutatorLikeMethodIsParameterless
@@ -415,6 +421,15 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
   def join(visitor: Visitor[V, J]): Visitor[V, J] =
     new GenericVisitor[V, J](v => a => joinFunc(a, self.preFunc(v), visitor.preFunc(v)), v => a => joinFunc(a, self.postFunc(v), visitor.postFunc(v)))(self.journal)
 
+  /**
+   * Combines and applies two functions sequentially on a given value of type `J`, returning the first non-empty result.
+   *
+   * @param a  the initial journal value of type `J` to be processed by the functions.
+   * @param f1 a function that takes a `J` and produces an `Option[J]`. It is applied first to the input `a`.
+   * @param f2 a function that takes a `J` and produces an `Option[J]`. It is applied to the result of `f1` if `f1` produces a value,
+   *           or directly to `a` if `f1` produces `None`.
+   * @return the first `Some` result encountered during the application of `f1` or `f2`, or `None` if both return `None`.
+   */
   private def joinFunc(a: J, f1: J => Option[J], f2: J => Option[J]) = f1(a) match {
     case x@Some(b) => f2(b) orElse x
     case None => f2(a)
@@ -429,9 +444,14 @@ abstract class BaseVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) ex
  * @tparam J the type of the journal for this visitor.
  *           Requires implicit evidence of type IterableJournal[J, V].
  */
-abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val avai: IterableJournal[J, V]) extends BaseVisitor[V, J](journal) with IterableVisitor[V, J] {
+abstract class AbstractIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val avai: IterableJournal[J, V]) extends AbstractVisitor[V, J](journal) with IterableVisitor[V, J] {
   self =>
 
+  /**
+   * Returns an iterator over the elements in the journal.
+   *
+   * @return an Iterator of type V, representing the elements in the journal.
+   */
   def iterator: Iterator[V] = avai.iterator(journal)
 
   /**
@@ -453,6 +473,20 @@ abstract class BaseIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val
   override def visitPost(v: V): IterableVisitor[V, J] = super.visitPost(v).asInstanceOf[IterableVisitor[V, J]]
 }
 
+/**
+ * A type-class trait that provides functionality to allow iteration over elements for collections
+ * that are subtypes of `Iterable`. The trait is designed to enable iterating over a journal-like
+ * data structure, where the journal is itself an instance of `Iterable[V]`.
+ *
+ * @tparam J the journal type, which must be a subtype of `Iterable[V]`.
+ * @tparam V the type of elements contained in the journal.
+ */
 trait HasIterator[J <: Iterable[V], V] {
+  /**
+   * Returns an iterator over the elements in the given journal.
+   *
+   * @param journal the journal of type `J` to be iterated over.
+   * @return an iterator of type `Iterator[V]` for the elements in the journal.
+   */
   def iterator(journal: J): Iterator[V] = journal.iterator
 }

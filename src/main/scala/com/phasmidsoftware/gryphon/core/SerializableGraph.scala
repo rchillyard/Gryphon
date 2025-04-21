@@ -1,7 +1,5 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.{EdgeList, VertexPairList}
-
 /**
  * A trait representing a serializable graph structure.
  *

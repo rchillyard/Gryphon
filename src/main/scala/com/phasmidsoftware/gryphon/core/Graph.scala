@@ -13,7 +13,6 @@ import com.phasmidsoftware.gryphon.visit.Visitor
  *           new vertices to the graph, and defining custom behaviors for graph implementations.
  */
 trait Graph[V] extends Traversable[V] {
-  //  def traverse: Traversal[V]
 
   /**
    * Retrieves the vertex map representation of the graph.
@@ -75,10 +74,7 @@ trait Graph[V] extends Traversable[V] {
     vertexMap.bfs(visitor)(v)(goal)
 }
 
-object Graph {
-  //  def addVertexToMap[W](vertexMap: Map[W, Vertex[W]])(vertex: Vertex[W]): Map[W, Vertex[W]] =
-  //    vertexMap + (vertex.attribute -> vertex)
-}
+object Graph
 
 /**
  * An abstract base class representing a graph structure composed of vertices.
@@ -91,10 +87,10 @@ object Graph {
  *           This class extends the `Graph` trait and serves as a foundation for building graph
  *           implementations. The graph structure is defined and manipulated using its associated
  *           `VertexMap`, which organizes and manages the vertices of the graph.
- * @constructor Creates a new `BaseGraph` instance with the specified `vertexMap`.
+ * @constructor Creates a new `AbstractGraph` instance with the specified `vertexMap`.
  * @param vertexMap the `VertexMap` instance that holds and organizes the vertices of the graph.
  */
-abstract class BaseGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
+abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
 }
 
 /**

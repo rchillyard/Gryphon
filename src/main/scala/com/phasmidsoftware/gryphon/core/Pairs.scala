@@ -1,7 +1,30 @@
-package com.phasmidsoftware.gryphon.adjunct
+package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.core.{SerializableGraph, Vertex}
 import com.phasmidsoftware.gryphon.parse.Parseable
+
+/**
+ * A trait representing a collection of vertex pairs within a graph structure.
+ *
+ * The `Pairs` trait provides an abstraction for working with pairs of vertices,
+ * commonly used in undirected graphs or situations where the relationship between
+ * two vertices needs to be represented as a pair.
+ *
+ * @tparam V the type of attributes associated with the vertices in the graph.
+ */
+trait Pairs[V] {
+
+  /**
+   * Retrieves the sequence of vertex pairs contained within the graph structure.
+   *
+   * Each pair represents a connection or relationship between two vertices in the graph,
+   * commonly used in undirected graph representations or scenarios requiring bidirectional
+   * adjacency between vertices.
+   *
+   * @return a sequence of vertex pairs, where each pair consists of two `Vertex[V]` objects.
+   */
+  def pairs: Seq[(Vertex[V], Vertex[V])]
+}
+
 
 /**
  * Represents a list of vertex pairs that defines edges in a graph.
@@ -15,7 +38,7 @@ import com.phasmidsoftware.gryphon.parse.Parseable
  * @param pairs a sequence of vertex pairs representing the connections in the graph.
  *              Each pair consists of a source vertex and a target vertex.
  */
-case class VertexPairList[V](pairs: Seq[(Vertex[V], Vertex[V])]) extends SerializableGraph[V, Unit]:
+case class VertexPairList[V](pairs: Seq[(Vertex[V], Vertex[V])]) extends SerializableGraph[V, Unit] with Pairs[V]:
   /**
    * Transforms the sequence of vertex pairs into a sequence of triplets.
    * Each triplet consists of the attributes of the source vertex, the target vertex,

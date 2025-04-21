@@ -1,7 +1,21 @@
 package com.phasmidsoftware.gryphon.core
 
 /**
- * Hierarchical trait defining the behavior of a connexion.
+ * Hierarchical trait defining the behavior of an "adjacency."
+ * An adjacency is a relationship between two adjacent vertices in a graph structure.
+ * It might be based simply on a reference to a vertex, or it might be based on a reference to an edge.
+ *
+ * Adjacencies are the fundamental building blocks of a graph structure because from any given vertex,
+ * it is only possible to traverse to the vertices that are adjacent to it.
+ *
+ * Adjacencies are represented by the Adjacency trait, which defines the behavior of an adjacency.
+ * The Adjacency trait is an abstract type, which means that it cannot be instantiated directly.
+ * Instead, it is used as a type parameter for other concrete implementations of the Adjacency trait.
+ *
+ * The Adjacency trait provides a common interface for accessing the vertex associated with an adjacency.
+ * It also provides a method for retrieving the edge, if one exists.
+ *
+ * The Adjacency trait is used to define the behavior of the AdjacencyVertex and AdjacencyEdge classes,
  *
  * @tparam V the underlying vertex attribute type.
  */
@@ -62,15 +76,44 @@ case class AdjacencyEdge[V, E](edge: Edge[E, V], flipped: Boolean = false) exten
   def maybeEdge: Option[Edge[_, V]] = Some(edge)
 }
 
-//
-//case class DirectedEdge[V](vertex: Vertex[V], v2: Vertex[V]) extends Adjacency[V]
-//
-//case class DirectedAttributedEdge[V,E](vertex: Vertex[V], v2: Vertex[V], attribute: E) extends Adjacency[V]
-//
-//trait AttributedConnexion[V, E] extends Attributed[Adjacency[V], E] {
-//  extension (e: Adjacency[V]) def attribute: E
-//}
-//
-//given Attributed[DirectedAttributedEdge[V,E], E] with
-//  extension (c: Adjacency[V]) def attribute: E = c.
-////given given_AttributedEdge_Int_String
+/**
+ * Type alias to represent a collection of adjacencies for a given vertex type.
+ *
+ * An adjacency defines the relationship between two vertices in a graph, while
+ * this type alias represents an unordered collection of such adjacencies for
+ * all vertices, enabling graph traversal and exploration.
+ *
+ * NOTE that when an AdjacencyEdge is used, we can place it into a set because
+ * we will not (typically) have duplicate edges between vertices.
+ * However, when an AdjacencyVertex is used, we can't place it into a set because
+ * we may have duplicate vertices.
+ * Therefore, we typically use an Unordered_Bag for AdjacencyVertex, and an Unordered_Set for AdjacencyEdge.
+ *
+ * NOTE I'm beginning to really like Scala 3!
+ * From here on, in this module, the code would not have been possible in Scala 2.13.
+ *
+ * @tparam V the type of the vertex attribute.
+ */
+type Adjacencies[V] = Unordered[Adjacency[V]]
+
+/**
+ * Creates an empty `Adjacencies` instance for storing adjacency relationships
+ * between vertices within a graph structure. This collection is initially empty and
+ * can be used as a starting point for adding adjacencies.
+ *
+ * @tparam V the type of vertices associated with the adjacencies.
+ * @return an empty instance of `Adjacencies[V]`, represented as an unordered bag
+ *         containing no adjacency elements.
+ */
+def emptyAdjacenciesBag[V]: Adjacencies[V] = Unordered_Bag.empty[Adjacency[V]]
+/**
+ * Creates an empty set of adjacencies for a graph.
+ *
+ * This method initializes and returns an empty `Adjacencies[V]`, representing a collection
+ * containing no adjacency elements. It serves as a starting point for constructing or
+ * managing adjacency relationships in a graph.
+ *
+ * @tparam V the type of the vertex attribute associated with the adjacency.
+ * @return an empty instance of `Adjacencies[V]`.
+ */
+def emptyAdjacenciesSet[V]: Adjacencies[V] = Unordered_Set.empty[Adjacency[V]]

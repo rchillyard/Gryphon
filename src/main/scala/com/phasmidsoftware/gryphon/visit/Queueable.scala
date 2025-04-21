@@ -49,6 +49,8 @@ object Queueable {
   }
 
   implicit object QueueableStringQueue extends QueueableQueue[String]
+
+  implicit object QueueableIntQueue extends QueueableQueue[Int]
 }
 
 /**

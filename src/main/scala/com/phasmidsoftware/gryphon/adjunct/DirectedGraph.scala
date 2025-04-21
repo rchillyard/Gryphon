@@ -11,7 +11,7 @@ import com.phasmidsoftware.gryphon.core.*
  * @tparam E the type of attributes for the edges in the graph (invariant).
  * @param vertexMap the `VertexMap` that represents this `Graph`.
  */
-case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends BaseGraph[V](vertexMap) with EdgeGraph[V, E] {
+case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V](vertexMap) with EdgeGraph[V, E] {
 
   /**
    * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies

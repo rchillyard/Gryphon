@@ -170,7 +170,26 @@ object Visitor {
  */
 case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
 
+  /**
+   * A function that represents the pre-visit behavior in the `PreVisitor` class.
+   * This function takes a value of type `V` and returns a function that takes
+   * a journal of type `J`, producing an optional updated journal containing the appended value.
+   *
+   * The actual logic for appending the value to the journal is encapsulated
+   * within the `appendToJournal` method, which leverages the implicit `Journal` instance.
+   */
   val preFunc: V => J => Option[J] = appendToJournal
+
+  /**
+   * A function representing the post-visit operation of a `PreVisitor`.
+   *
+   * This function is invoked after visiting an element of type `V` to potentially modify the journal `J`.
+   * By default, it performs no operation and always returns `None` to signify that no journal changes occur.
+   *
+   * @return A function that takes an element of type `V` and returns
+   *         a function which accepts the current journal of type `J`
+   *         and produces an `Option[J]` representing the updated journal (or `None` if unchanged).
+   */
   val postFunc: V => J => Option[J] = doNothing
 
   /**
@@ -186,6 +205,15 @@ case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends 
  * Companion object to PreVisitor.
  */
 object PreVisitor {
+  /**
+   * Factory method to create a new instance of `PreVisitor` using an empty journal.
+   *
+   * @param ev an implicit evidence parameter of type `Journal[J, V]` that provides the ability
+   *           to manage a journal of type `J` containing elements of type `V`.
+   * @tparam V the type of elements that the `PreVisitor` will process.
+   * @tparam J the type of the journal used to record the processing of elements of type `V`.
+   * @return a new `PreVisitor` instance initialized with an empty journal.
+   */
   def apply[V, J]()(implicit ev: Journal[J, V]): PreVisitor[V, J] = new PreVisitor(ev.empty)
 }
 
@@ -199,9 +227,36 @@ object PreVisitor {
  */
 case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
 
+  /**
+   * A function that, given a value of type `V`, returns another function.
+   * The inner function, when provided a journal of type `J`, will
+   * produce an empty `Option[J]` (i.e., `None`) signifying that no operation
+   * was performed on the journal.
+   *
+   * This is typically used as a "do-nothing" function in contexts where
+   * pre-visit actions are optional or require no effect on the journal.
+   */
+
   val preFunc: V => J => Option[J] = doNothing
+
+  /**
+   * A function that represents the "post-visit" behavior for a `PostVisitor`.
+   *
+   * The function, when applied, utilizes the `appendToJournal` mechanism to potentially modify the journal
+   * after visiting a node or element of type `V`. The implicit `Journal[J, V]` instance determines
+   * how the value `V` is appended to the journal `J`.
+   *
+   * It takes a value of type `V` as input and returns another function, which takes a journal of type `J`
+   * and produces an updated journal wrapped in `Option`, reflecting how the visit is recorded.
+   */
   val postFunc: V => J => Option[J] = appendToJournal
 
+  /**
+   * Creates a `PostVisitor` instance initialized with the provided journal.
+   *
+   * @param journal the journal instance of type `J` to be used by the `PostVisitor`.
+   * @return a `PostVisitor` instance configured with the given journal.
+   */
   def unit(journal: J): Visitor[V, J] = PostVisitor(journal)
 }
 
@@ -209,6 +264,14 @@ case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends
  * Companion object to PostVisitor.
  */
 object PostVisitor {
+  /**
+   * Creates a new instance of `PostVisitor` with an empty journal.
+   *
+   * @param ev implicit evidence of type `Journal[J, V]`, which provides the behavior of the journal.
+   * @tparam V the type to be visited, typically the attribute type of a vertex.
+   * @tparam J the type of the journal.
+   * @return a new `PostVisitor` instance with an empty journal.
+   */
   def apply[V, J]()(implicit ev: Journal[J, V]): PostVisitor[V, J] = new PostVisitor(ev.empty)
 }
 
@@ -222,7 +285,25 @@ object PostVisitor {
  */
 case class PreVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends AbstractIterableVisitor[V, J](journal) {
 
+  /**
+   * A function that represents a pre-visit behavior to append a value of type `V` to a journal of type `J`.
+   * It uses the `appendToJournal` method, which relies on the implicit `Journal` type class to handle
+   * the appending of values and updates the journal accordingly.
+   *
+   * @return a curried function that first takes a value of type `V`, then
+   *         a journal of type `J`, and finally returns an optional updated journal.
+   */
   val preFunc: V => J => Option[J] = appendToJournal
+  /**
+   * A post-visit function defined for a `PreVisitorIterable`.
+   * This function determines the behavior to be executed after visiting an element.
+   *
+   * It is a no-operation (no-op) function that effectively performs no action
+   * and always results in `None`.
+   *
+   * @return a function that takes a value of type `V` and produces another function
+   *         which, given a journal of type `J`, returns `Option[J]` (always `None`).
+   */
   val postFunc: V => J => Option[J] = doNothing
 
   /**
@@ -270,7 +351,21 @@ object PreVisitorIterable {
  */
 case class PostVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends AbstractIterableVisitor[V, J](journal) {
 
+  /**
+   * A function that encapsulates a pre-visit operation for elements of type `V` during a traversal.
+   * This function takes a vertex of type `V`, returns a higher-order function
+   * that accepts a journal of type `J`, and produces an optional updated journal.
+   * The default implementation does nothing and always returns `None`.
+   */
   val preFunc: V => J => Option[J] = doNothing
+
+  /**
+   * A function that appends a value of type `V` to a journal of type `J`.
+   *
+   * This function uses the implicit `Journal[J, V]` type class instance to append
+   * the value to the journal. The function takes a value of type `V` and returns
+   * another function which takes a journal of type `J`, producing an optionally updated journal.
+   */
   val postFunc: V => J => Option[J] = appendToJournal
 
   /**
@@ -334,8 +429,7 @@ class GenericVisitor[V, J](val preFunc: V => J => Option[J], val postFunc: V => 
  * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
  */
-trait IterableVisitor[V, J <: Iterable[V]] extends Visitor[V, J] {
-  def iterator: Iterator[V]
+trait IterableVisitor[V, J <: Iterable[V]] extends Visitor[V, J] with IterableOnce[V] {
 
   /**
    * Method to visit BEFORE processing the (child) V values.
@@ -352,7 +446,6 @@ trait IterableVisitor[V, J <: Iterable[V]] extends Visitor[V, J] {
    * @return an updated Visitor[V, J].
    */
   def visitPost(v: V): IterableVisitor[V, J]
-
 }
 
 /**
@@ -390,6 +483,12 @@ abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]
    */
   protected def appendToJournal(implicit ev: Journal[J, V]): V => J => Option[J] = v => a => Some(ev.append(a, v))
 
+  /**
+   * A method that represents a no-operation for updating a journal of type `J` with a value of type `V`.
+   * It always returns `None` regardless of the inputs.
+   *
+   * @return a function that takes a value of type `V` and a journal of type `J`, always producing `None`.
+   */
   //noinspection MutatorLikeMethodIsParameterless
   protected def doNothing: V => J => Option[J] = _ => _ => None
 

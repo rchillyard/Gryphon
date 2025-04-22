@@ -27,8 +27,12 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers {
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
     println(wsy)
     wsy.isSuccess shouldBe true
-    wsy.get.size shouldBe 16
-    
+    val ws = wsy.get
+    ws.size shouldBe 16
+    //    GraphParser[Int, Double].
+    //    ws map {
+    //      w =>
+    //    }
   }
 
   it should "Triplets.parse 3" in {

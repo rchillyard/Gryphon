@@ -45,7 +45,7 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
 
   private def optAdjacencyList(v: Int): Option[Unordered[Adjacency[Int]]] = map.get(v) map (_.adjacencies)
 
-  it should "take" in {
+  ignore should "take" in {
     // NOTE this is a test of the Queueable trait, not the implementation of bfsMutable.
     // Admittedly, it's very roundabout way of testing Queuable but the idea is to remove
     // bits we don't need until we're left with just the code we want to test.

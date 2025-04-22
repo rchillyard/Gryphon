@@ -21,6 +21,8 @@ trait SerializableGraph[V, E]:
    */
   def triplets: Seq[(V, V, E)]
 
+  def serialize: String = triplets.map(t => s"${t._1},${t._2},${t._3}").mkString("\n")
+
 /**
  * Object providing factory methods for creating instances of the `SerializableGraph` trait.
  *
@@ -29,6 +31,38 @@ trait SerializableGraph[V, E]:
  * vertex pairs.
  */
 object SerializableGraph {
+  /**
+   * Creates a `SerializableGraph` instance from a sequence of triplets.
+   *
+   * Each triplet in the input sequence represents an edge in the graph, consisting of
+   * two vertices (source and target) and an edge attribute.
+   *
+   * @param triplets a sequence of triplets `(V, V, E)`, where:
+   *                 - the first element is the source vertex of type `V`.
+   *                 - the second element is the target vertex of type `V`.
+   *                 - the third element is the edge attribute of type `E`.
+   * @tparam V the type associated with the vertices in the graph.
+   * @tparam E the type associated with the edges in the graph.
+   * @return a `SerializableGraph[V, E]` representing the graph described by the provided triplets.
+   */
+  def createFromTriplets[V, E](triplets: Seq[(V, V, E)]): SerializableGraph[V, E] =
+    Triplets(triplets)
+
+  /**
+   * Creates a `SerializableGraph` instance from a sequence of vertex pairs.
+   *
+   * Each pair in the input sequence represents an edge in the graph, defined by two vertices.
+   * The resulting graph uses the pairs to establish connections between vertices, with no additional
+   * attributes associated with the edges.
+   *
+   * @param pairs a sequence of tuples `(V, V)` where each tuple represents a vertex pair in the graph.
+   *              The first element of the tuple is the source vertex, and the second element is the target vertex.
+   * @tparam V the type associated with the vertices in the graph.
+   * @return a `Connexions[V]` representing the graph constructed from the specified vertex pairs.
+   */
+  def createFromPairs[V](pairs: Seq[(V, V)]): SerializableGraph[V, Unit] =
+    Connexions(pairs)
+
   /**
    * Creates a `SerializableGraph` instance from a sequence of edges.
    *

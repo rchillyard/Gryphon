@@ -16,23 +16,39 @@ import scala.util.parsing.combinator.JavaTokenParsers
 class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
 
   /**
-   * Parses a given input string and attempts to extract a pair of elements of type `V`.
-   *
-   * @param s the input string to be parsed, which is expected to represent a pair of elements.
-   * @return a `ParseResult` encapsulating an `Option` that contains the pair of parsed elements of type `V`
-   *         if the input is successfully parsed, or `None` otherwise.
-   */
-  def parsePair(s: String): ParseResult[Option[(V, V)]] = parseAll(pair, s)
-
-  /**
-   * Parses the given string input into an optional triple of vertices and an edge of the format (V, V, E),
-   * using the defined parsing logic within the `triple` parser.
+   * Parses the given input string into an optional tuple of two elements `(V, V)`
+   * using the `pair` parser.
+   * The parsing result depends on the success of the `pair`
+   * parser in matching the input string.
+   * 
+   * TODO merge the two methods parsePair and parseTriple into one.
    *
    * @param s The input string to be parsed.
-   * @return A `ParseResult` containing an `Option` with the parsed triple (V, V, E) if successful, 
-   *         or `None` if the parsing fails.
+   * @return An `Option` containing a tuple `(V, V)` if the parsing is successful,
+   *         or `None` if the parsing fails or encounters an error.
    */
-  def parseTriple(s: String): ParseResult[Option[(V, V, E)]] = parseAll(triple, s)
+  def parsePair(s: String): Option[(V, V)] = parseAll(pair, s) match {
+    case this.Success(result, _) => result
+    case this.Failure(msg, _) => System.err.println(msg); None
+    case this.Error(msg, _) => System.err.println(msg); None
+  }
+
+  /**
+   * Parses the given input string into an optional tuple `(V, V, E)` using the `triple` parser. 
+   * The parsing result depends on the success of the `triple` parser in matching the input string. 
+   * If parsing is successful, a tuple `(V, V, E)` is returned as `Some`.
+   * If parsing fails or encounters an error, `None` is returned, 
+   * and the error message is printed to the standard error stream.
+   *
+   * @param s The input string to be parsed.
+   * @return An `Option` containing a tuple `(V, V, E)` if parsing is successful,
+   *         or `None` if parsing fails or encounters an error.
+   */
+  def parseTriple(s: String): Option[(V, V, E)] = parseAll(triple, s) match {
+    case this.Success(result, _) => result
+    case this.Failure(msg, _) => System.err.println(msg); None
+    case this.Error(msg, _) => System.err.println(msg); None
+  }
 
   /**
    * Parses two consecutive `vop` elements from the input and combines their results into an optional tuple.
@@ -74,23 +90,25 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
   private val ep = implicitly[Parseable[E]]
 
   /**
-   * Parses an optional vertex attribute from the input string using a regular expression 
+   * Parses an optional vertex attribute from the input string using a regular expression
    * defined by `vertexAttributeRegex` and attempts to convert it into a value of type `V`.
    * The conversion is performed by the `parse` method provided by the `Parseable` instance for type `V`.
    *
-   * @return A `Parser` that produces an `Option[V]`. Returns `Some(value)` if the input matches 
-   *         the regular expression and successfully parses into a value of type `V`. 
+   * @return A `Parser` that produces an `Option[V]`.
+   *         Returns `Some(value)` if the input matches the regular expression and
+   *         successfully parses into a value of type `V`.
    *         Returns `None` if the input does not match or parsing fails.
    */
   private def vop: Parser[Option[V]] = opt(vertexAttributeRegex) ^^ (vo => vo flatMap vp.parse)
 
   /**
-   * Parses an optional edge attribute from the input string using a regular expression 
+   * Parses an optional edge attribute from the input string using a regular expression
    * defined by `edgeAttributeRegex` and attempts to convert it into a value of type `E`.
    * The conversion is performed by the `parse` method provided by the `Parseable` instance for type `E`.
    *
-   * @return A `Parser` that produces an `Option[E]`. Returns `Some(value)` if the input matches 
-   *         the regular expression and successfully parses into a value of type `E`. 
+   * @return A `Parser` that produces an `Option[E]`.
+   *         Returns `Some(value)` if the input matches the regular expression and 
+   *         successfully parses into a value of type `E`.
    *         Returns `None` if the input does not match or parsing fails.
    */
   private def eop: Parser[Option[E]] = opt(edgeAttributeRegex) ^^ (vo => vo flatMap ep.parse)

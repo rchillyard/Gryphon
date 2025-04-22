@@ -1,26 +1,51 @@
 package com.phasmidsoftware.gryphon.parse
 
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
+import com.phasmidsoftware.gryphon.core.{SerializableGraph, VertexMap}
+import com.phasmidsoftware.gryphon.util.FP.sequence
+import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import scala.collection.immutable.Seq
+import scala.io.Source
+import scala.util.*
 
 class GraphParserSpec extends AnyFlatSpec with Matchers {
 
   behavior of "GraphParser"
 
+  val dijkstraGraphPath = "dijkstra.graph"
+
   it should "parsePair 1" in {
     val p = new GraphParser[Int, Double]
-    p.parsePair("1 2") should matchPattern { case p.Success(Some((1, 2)), _) => }
+    p.parsePair("1 2") should matchPattern { case Some((1, 2)) => }
   }
 
   it should "parsePair 2" in {
     val p = new GraphParser[String, Double]
-    p.parsePair("A B") should matchPattern { case p.Success(Some(("A", "B")), _) => }
+    p.parsePair("A B") should matchPattern { case Some(("A", "B")) => }
   }
 
   it should "parseTriple" in {
     val p = new DecimalGraphParser[Int, Double]
-    p.parseTriple("1 2 3.14") should matchPattern { case p.Success(Some((1, 2, 3.14)), _) => }
+    p.parseTriple("1 2 3.14") should matchPattern { case Some((1, 2, 3.14)) => }
 
   }
 
+  ignore should "parse Dijkstra" in {
+    val p = new DecimalGraphParser[Int, Double]
+    val triedSource = Try(Source.fromResource(dijkstraGraphPath))
+    val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
+    wsy.isSuccess shouldBe true
+    val ws = wsy.get
+    sequence(for (w <- ws) yield p.parseTriple(w)) match {
+      case Some(x) => val graph = DirectedGraph(VertexMap.create(SerializableGraph.createFromTriplets(x)))
+        println(graph.edges)
+        graph.vertexMap.map.size shouldBe 8
+        graph.edges.size shouldBe 16
+      case None => fail("parse failed")
+    }
+
+  }
 }

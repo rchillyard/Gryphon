@@ -112,7 +112,7 @@ object FP {
    *
    * @param resourceName the name of the resourceForClass.
    * @tparam C a class of the package containing the resourceForClass.
-   * @return a Try[URL].
+   * @return Try[URL].
    */
   def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
 
@@ -121,7 +121,7 @@ object FP {
    *
    * @param resourceName the name of the resource.
    * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
-   * @return a Try[URL]
+   * @return Try[URL]
    */
   def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
     case Some(u) => Success(u)
@@ -141,11 +141,11 @@ object FP {
   }
 
   /**
-   * Method to transform a a Try[X] into an Option[X].
-   * But, unlike "toOption," a Failure can be logged.
+   * Method to transform a Try[X] into an Option[X].
+   * But unlike "toOption," a Failure can be logged.
    *
    * @param f  a function to process any Exception (typically a logging function).
-   * @param xy the input Try[X}.
+   * @param xy the input Try[X].
    * @tparam X the underlying type.
    * @return an Option[X].
    */

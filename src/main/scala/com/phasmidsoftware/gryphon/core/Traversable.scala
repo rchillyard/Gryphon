@@ -23,7 +23,7 @@ trait Traversable[V] {
   def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
 
   /**
-   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited..
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited.
    *
    * @param visitor the visitor, of type Visitor[V, J].
    * @tparam J the journal type.

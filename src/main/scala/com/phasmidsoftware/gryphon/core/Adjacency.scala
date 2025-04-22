@@ -92,7 +92,7 @@ case class AdjacencyEdge[V, E](edge: Edge[E, V], flipped: Boolean = false) exten
  * NOTE I'm beginning to really like Scala 3!
  * From here on, in this module, the code would not have been possible in Scala 2.13.
  *
- * @tparam V the type of the vertex attribute.
+ * V: the type of the vertex attribute.
  */
 type Adjacencies[V] = Unordered[Adjacency[V]]
 

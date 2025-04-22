@@ -2,6 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 // NOTE backward imports
 
+import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
@@ -21,6 +22,13 @@ import scala.util.{Random, Using}
  * @param map a mapping from vertex attributes to their associated Vertex instances.
  */
 case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Random()) extends Traversable[V]:
+
+  /**
+   * Returns a string representation of the object.
+   *
+   * @return a string representation of the map.
+   */
+  override def toString: String = map.toString
 
   /**
    * Retrieves an iterable collection of all vertices present in the `VertexMap`.
@@ -264,7 +272,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v       the vertex to be processed.
    * @param visitor the visitor used to traverse and record information during the traversal.
    * @tparam J the type of the journal associated with the visitor.
-   * @throws GraphException if the vertex is not found in the graph.
+   * @throws util.GraphException if the vertex is not found in the graph.
    */
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
     get(v) match {
@@ -340,6 +348,14 @@ object VertexMap:
    */
   def create[E, V](serializableGraph: SerializableGraph[V, E]): VertexMap[V] = serializableGraph match {
     case edgeList: EdgeList[V, E] => createFromEdgeList(edgeList)
+    case triplets: Triplets[V, E] =>
+      val edges: Seq[Edge[E, V]] = for (z <- triplets.triplets) yield {
+        // TODO remove this reference to DirectedEdge which is not in evidence
+        // (belongs to an upstream package).
+        // instead, we can use a factory function.
+        DirectedEdge[E, V](z._3, Vertex.createWithSet(z._1), Vertex.createWithSet(z._2))
+      }
+      createFromEdgeList(EdgeList(edges))
     case x => createFromVertexPairList(x.asInstanceOf[VertexPairList[V]])
   }
 

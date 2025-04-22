@@ -9,6 +9,7 @@ import org.scalatest.matchers.should
 
 import java.io.FileWriter
 import scala.collection.immutable.Queue
+import scala.util.Using
 
 class VisitorSpec extends AnyFlatSpec with should.Matchers {
 
@@ -83,74 +84,88 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "implement visitPre twice and journal" in {
-    val target = Visitor.createPre[Int]
-    val t1 = target.visitPre(1)
-    t1.journal shouldBe Seq(1)
-    val t2 = t1.visitPre(2)
-    t2.journal shouldBe Queue(1, 2)
+    Using(Visitor.createPre[Int]) {
+      target =>
+        val t1 = target.visitPre(1)
+        t1.journal shouldBe Seq(1)
+        val t2 = t1.visitPre(2)
+        t2.journal shouldBe Queue(1, 2)
+    }
   }
 
   it should "implement reversePre with two visits" in {
-    val target = Visitor.reversePre[Int]
-    val t1 = target.visitPre(1)
-    t1 shouldBe PreVisitor(List(1))
-    val t2 = t1.visitPre(2)
-    t2 shouldBe PreVisitor(List(2, 1))
+    Using(Visitor.reversePre[Int]) {
+      target =>
+        val t1 = target.visitPre(1)
+        t1 shouldBe PreVisitor(List(1))
+        val t2 = t1.visitPre(2)
+        t2 shouldBe PreVisitor(List(2, 1))
+    }
   }
   behavior of "PostVisitorIterable"
 
   it should "visitPost and ignore visitPre" in {
-    val target: PostVisitorIterable[Int, Queue[Int]] = PostVisitorIterable()
-    val t1: IterableVisitor[Int, Queue[Int]] = target.visitPost(1)
-    t1.iterator.toSeq shouldBe Seq(1)
-    val t2: IterableVisitor[Int, Queue[Int]] = t1.visitPre(1)
-    t2 shouldBe t1
-    val t3: IterableVisitor[Int, Queue[Int]] = t2.visitPost(2)
-    t3.iterator.toSeq shouldBe Seq(1, 2)
+    Using(PostVisitorIterable[Int, Queue[Int]]()) {
+      target =>
+        val t1: IterableVisitor[Int, Queue[Int]] = target.visitPost(1)
+        t1.iterator.toSeq shouldBe Seq(1)
+        val t2: IterableVisitor[Int, Queue[Int]] = t1.visitPre(1)
+        t2 shouldBe t1
+        val t3: IterableVisitor[Int, Queue[Int]] = t2.visitPost(2)
+        t3.iterator.toSeq shouldBe Seq(1, 2)
+    }
   }
 
   it should "implement visitPost twice and journal" in {
-    val target = Visitor.createPostQueue[Int]
-    target.visitPre(1) shouldBe target
-    val t1 = target.visitPost(1)
-    t1.journal shouldBe Seq(1)
-    val t2 = t1.visitPost(2)
-    t2.journal shouldBe Queue(1, 2)
+    Using(Visitor.createPostQueue[Int]) {
+      target =>
+        val t1 = target.visitPost(1)
+        t1.iterator.toSeq shouldBe Seq(1)
+        val t2 = t1.visitPost(2)
+        t2.iterator.toSeq shouldBe Queue(1, 2)
+    }
   }
 
   it should "implement reversePost" in {
-    val target = Visitor.reversePostList[Int]
-    target.visitPre(1) shouldBe target
-    val t1 = target.visitPost(1)
-    t1.iterator.toSeq shouldBe List(1)
-    val t2 = t1.visitPost(2)
-    t2.iterator.toSeq shouldBe List(2, 1)
+    Using(Visitor.reversePostList[Int]) {
+      target =>
+        val t1 = target.visitPost(1)
+        t1.iterator.toSeq shouldBe List(1)
+        val t2 = t1.visitPost(2)
+        t2.iterator.toSeq shouldBe List(2, 1)
+    }
   }
 
   behavior of "PreVisitorIterable"
 
   it should "visitPre twice" in {
-    val target: PreVisitorIterable[Int, Queue[Int]] = PreVisitorIterable()
-    val t2 = target.visitPre(1)
-    t2.iterator.toSeq shouldBe Seq(1)
-    val t3 = t2.visitPre(2)
-    t3.iterator.toSeq shouldBe Seq(1, 2)
+    Using(PreVisitorIterable[Int, Queue[Int]]()) {
+      target =>
+        val t2: IterableVisitor[Int, Queue[Int]] = target.visitPre(1)
+        t2.iterator.toSeq shouldBe Seq(1)
+        val t3: IterableVisitor[Int, Queue[Int]] = t2.visitPre(2)
+        t3.iterator.toSeq shouldBe Seq(1, 2)
+    }
   }
 
   it should "implement visitPre twice and journal" in {
-    val target = Visitor.createPreQueue[Int]
-    val t1 = target.visitPre(1)
-    t1.iterator.toSeq shouldBe Seq(1)
-    val t2 = t1.visitPre(2)
-    t2.iterator.toSeq shouldBe Queue(1, 2)
+    Using(Visitor.createPreQueue[Int]) {
+      target =>
+        val t1 = target.visitPre(1)
+        t1.iterator.toSeq shouldBe Seq(1)
+        val t2 = t1.visitPre(2)
+        t2.iterator.toSeq shouldBe Queue(1, 2)
+    }
   }
 
   it should "implement reversePre with two visits" in {
-    val target = Visitor.reversePreList[Int]
-    val t1 = target.visitPre(1)
-    t1.iterator.toSeq shouldBe List(1)
-    val t2 = t1.visitPre(2)
-    t2.iterator.toSeq shouldBe List(2, 1)
+    Using(Visitor.reversePreList[Int]){
+      target =>
+        val t1 = target.visitPre(1)
+        t1.iterator.toSeq shouldBe List(1)
+        val t2 = t1.visitPre(2)
+        t2.iterator.toSeq shouldBe List(2, 1)
+    }
   }
 
   behavior of "Visitor"
@@ -163,18 +178,22 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "join 1" in {
-    val preVisitor: PreVisitor[Int, Queue[Int]] = PreVisitor()
-    val postVisitor: PostVisitor[Int, Queue[Int]] = PostVisitor()
-    val target: Visitor[Int, Queue[Int]] = preVisitor join postVisitor
-    target.visitPre(1).journal shouldBe Queue(1)
+    Using(PreVisitor[Int, Queue[Int]]()) {
+      preVisitor =>
+        val postVisitor: PostVisitor[Int, Queue[Int]] = PostVisitor()
+        val target: Visitor[Int, Queue[Int]] = preVisitor join postVisitor
+        target.visitPre(1).journal shouldBe Queue(1)
+    }
   }
 
   it should "join 2" in {
-    val preVisitor: PreVisitor[Int, List[Int]] = PreVisitor()
-    val postVisitor = Visitor.reversePost[Int]
-    val target: Visitor[Int, List[Int]] = preVisitor join postVisitor
-    val z1: Visitor[Int, List[Int]] = target.visitPre(1)
-    z1.visitPost(2).journal shouldBe List(2, 1)
+    Using(PreVisitor[Int, List[Int]]()) {
+      preVisitor =>
+        val postVisitor = Visitor.reversePost[Int]
+        val target: Visitor[Int, List[Int]] = preVisitor join postVisitor
+        val z1: Visitor[Int, List[Int]] = target.visitPre(1)
+        z1.visitPost(2).journal shouldBe List(2, 1)
+    }
   }
 
   it should "join 3" in {

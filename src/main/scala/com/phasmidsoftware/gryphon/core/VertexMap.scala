@@ -140,6 +140,22 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   //      case None => visitor
   //    }
 
+
+  /**
+   * Recursively processes vertices starting from the given vertex `v`, applying a visitor function for each vertex
+   * encountered prior to further recursion (or queue expansion).
+   * The traversal stops when the `goal` function evaluates to true for a vertex.
+   *
+   * This method uses an inner tail-recursive function to iterate over a queue of vertices,
+   * applying the visitor's `visitPre` method at each step, and enqueues adjacent, unvisited vertices.
+   *
+   * @param visitor   the `Visitor` instance used to process vertices during traversal.
+   * @param v         the starting vertex (as an `Int`).
+   * @param goal      a function that evaluates a condition for stopping traversal on a given vertex.
+   * @param queueable an implicit type class instance to handle operations on the queue-like structure.
+   * @tparam J the type representing the journal of the `Visitor`.
+   * @return an updated `Visitor` instance after processing all discovered vertices in the graph.
+   */
   private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
     @tailrec
     def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
@@ -151,48 +167,46 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     inner(visitor, queueable.append(queueable.empty, v))
   }
 
+
+  /**
+   * Enqueues all unvisited vertices adjacent to the given vertex into the provided queue.
+   *
+   * This method processes the adjacencies of the vertex `v` by iterating over them.
+   * If an adjacent vertex has not yet been discovered, it is marked as discovered
+   * and appended to the queue. If the vertex `v` does not exist in the adjacency list,
+   * an exception is thrown.
+   *
+   * @param v         the vertex whose unvisited adjacent vertices are to be enqueued
+   * @param queue     the queue into which the unvisited vertices will be appended
+   * @param queueable the implicit type class to handle the behavior of the queue-like object
+   * @return a new queue containing the original elements and the newly enqueued vertices
+   * @throws GraphException if the vertex `v` does not exist in the adjacency list
+   */
   private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q = optAdjacencyList(v) match {
     case Some(vau: Unordered[Adjacency[V]]) =>
-      val iterator: Iterator[Adjacency[V]] = vau.iterator
-      iterator.foldLeft(queue) { (q, x) =>
-        if (!x.vertex.discovered) {
-          x.vertex.discovered = true
-          queueable.append(q, x.vertex.attribute)
-        }
-        else
-          q
+      vau.iterator.foldLeft(queue) {
+        (q, va) =>
+          if (!va.vertex.discovered) {
+            va.vertex.discovered = true
+            queueable.append(q, va.vertex.attribute)
+          }
+          else
+            q
       }
     case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
   }
 
+
+  /**
+   * Retrieves the list of adjacencies for a given vertex if it exists in the graph.
+   * This method searches `vxVm` for the specified vertex and, if found,
+   * returns its associated adjacencies wrapped in an `Option`.
+   *
+   * @param v the vertex identifier for which adjacencies are to be retrieved.
+   * @return an `Option` containing the unordered collection of adjacencies for the given vertex,
+   *         or `None` if the vertex does not exist in the graph.
+   */
   private def optAdjacencyList(v: V): Option[Unordered[Adjacency[V]]] = map.get(v) map (_.adjacencies)
-
-  //  private def bfsRecursive[Q, J](visitor: Visitor[V, J], v: Vertex[V], queue: Q)(goal: Vertex[V] => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] =
-  //  if (goal(v)) visitor
-  //  else {
-  //    ev.append(queue, v)
-  //    map.get(v) map {
-  //      vertex =>
-  //        enqueueAdjacencies(visitor, queue)(vertex.adjacencies.iterator)
-  //        bfsRecursive(visitor, vertex.attribute, queue)(goal)
-  //    } match {
-  //      case Some(z) => z
-  //      case None => visitor
-  //    }
-  //  }
-
-  private def enqueueAdjacencies[Q, J](visitor: Visitor[V, J], queue: Q)(iterator: Iterator[Adjacency[V]])(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] =
-    iterator.foldLeft(visitor) {
-      (visitor, adjacency) =>
-        val w = adjacency.vertex
-        if (!w.discovered) {
-          w.discovered = true
-          ev.append(queue, w.attribute)
-          visitor.visitPre(w.attribute)
-        }
-        else
-          visitor
-  }
 
   /**
    * Retrieves the vertex associated with the specified key.

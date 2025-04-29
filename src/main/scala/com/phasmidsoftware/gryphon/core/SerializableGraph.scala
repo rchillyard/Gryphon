@@ -17,9 +17,9 @@ trait SerializableGraph[V, E]:
    * Each triplet consists of two vertices (source and target) of type `V` and an edge attribute
    * of type `E` connecting them, if any.
    *
-   * @return a sequence of triplets where each triplet is represented as a tuple `(V, V, E)`.
+   * @return a sequence of triplets where each triplet is represented as a tuple `Triplet[V, E]`.
    */
-  def triplets: Seq[(V, V, E)]
+  def triplets: Seq[Triplet[V, E]]
 
   def serialize: String = triplets.map(t => s"${t._1},${t._2},${t._3}").mkString("\n")
 
@@ -37,7 +37,7 @@ object SerializableGraph {
    * Each triplet in the input sequence represents an edge in the graph, consisting of
    * two vertices (source and target) and an edge attribute.
    *
-   * @param triplets a sequence of triplets `(V, V, E)`, where:
+   * @param triplets a sequence of triplets `Triplet[V, E]`, where:
    *                 - the first element is the source vertex of type `V`.
    *                 - the second element is the target vertex of type `V`.
    *                 - the third element is the edge attribute of type `E`.
@@ -45,7 +45,7 @@ object SerializableGraph {
    * @tparam E the type associated with the edges in the graph.
    * @return a `SerializableGraph[V, E]` representing the graph described by the provided triplets.
    */
-  def createFromTriplets[V, E](triplets: Seq[(V, V, E)]): SerializableGraph[V, E] =
+  def createFromTriplets[V, E](triplets: Seq[Triplet[V, E]]): SerializableGraph[V, E] =
     Triplets(triplets)
 
   /**
@@ -88,5 +88,5 @@ object SerializableGraph {
    *         structure based on the given vertex pairs.
    */
   def createFromVertexPairs[V](pairs: Seq[(Vertex[V], Vertex[V])]): SerializableGraph[V, Unit] = VertexPairList(pairs)
-  
+
 }

@@ -2,8 +2,7 @@ package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
-import com.phasmidsoftware.gryphon.applications.dfs.DFSSpec
-import com.phasmidsoftware.gryphon.core.{EdgeGraph, SerializableGraph, VertexMap}
+import com.phasmidsoftware.gryphon.core.EdgeGraph
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
@@ -34,7 +33,7 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
     p.parseTriple("1 2 3.14") should matchPattern { case Some((1, 2, 3.14)) => }
   }
 
-  ignore should "parse Dijkstra" in {
+  it should "parse Dijkstra" in {
     val p = new DecimalGraphParser[Int, Double]
     val triedSource = Try(Source.fromResource(dijkstraGraphPath))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)

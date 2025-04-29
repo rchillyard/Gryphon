@@ -1,5 +1,7 @@
 package com.phasmidsoftware.gryphon.parse
 
+import com.phasmidsoftware.gryphon.core.Triplet
+
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers
 
@@ -34,17 +36,17 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
   }
 
   /**
-   * Parses the given input string into an optional tuple `(V, V, E)` using the `triple` parser. 
+   * Parses the given input string into an optional tuple `Triplet[V, E]` using the `triple` parser.
    * The parsing result depends on the success of the `triple` parser in matching the input string. 
-   * If parsing is successful, a tuple `(V, V, E)` is returned as `Some`.
+   * If parsing is successful, a tuple `Triplet[V, E]` is returned as `Some`.
    * If parsing fails or encounters an error, `None` is returned, 
    * and the error message is printed to the standard error stream.
    *
    * @param s The input string to be parsed.
-   * @return An `Option` containing a tuple `(V, V, E)` if parsing is successful,
+   * @return An `Option` containing a tuple `Triplet[V, E]` if parsing is successful,
    *         or `None` if parsing fails or encounters an error.
    */
-  def parseTriple(s: String): Option[(V, V, E)] = parseAll(triple, s) match {
+  def parseTriple(s: String): Option[Triplet[V, E]] = parseAll(triple, s) match {
     case this.Success(result, _) => result
     case this.Failure(msg, _) => System.err.println(msg); None
     case this.Error(msg, _) => System.err.println(msg); None
@@ -63,11 +65,11 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
   /**
    * Parses a sequence consisting of two `V` elements followed by an `E` element and combines them into an `Option` tuple.
    * Each element is parsed using the `vop` and `eop` parsers, which are responsible for parsing parts of the input.
-   * If all elements are successfully parsed, they are combined into the tuple `(V, V, E)`; otherwise, the result is `None`.
+   * If all elements are successfully parsed, they are combined into the tuple `Triplet[V, E]`; otherwise, the result is `None`.
    *
-   * @return A `Parser` that produces an `Option` containing a tuple `(V, V, E)` if all parts are successfully parsed, or `None` if any part fails.
+   * @return A `Parser` that produces an `Option` containing a tuple `Triplet[V, E]` if all parts are successfully parsed, or `None` if any part fails.
    */
-  def triple: Parser[Option[(V, V, E)]] =
+  def triple: Parser[Option[Triplet[V, E]]] =
     vop ~ vop ~ eop ^^ { case xo ~ yo ~ zo => for (x <- xo; y <- yo; z <- zo) yield (x, y, z) }
 
   /**

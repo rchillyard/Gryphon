@@ -50,11 +50,11 @@ case class EdgeList[V, E](edges: Seq[Edge[E, V]]) extends SerializableGraph[V, E
    * Each triplet consists of the attribute of the source vertex, the attribute of the target vertex,
    * and the attribute of the edge connecting them.
    *
-   * @return a sequence of triplets where each triplet is represented as `(V, V, E)`,
+   * @return a sequence of triplets where each triplet is represented as `Triplet[V, E]`,
    *         with the first element being the source vertex's attribute, the second element
    *         being the target vertex's attribute, and the third element being the edge's attribute.
    */
-  def triplets: Seq[(V, V, E)] = edges.map(e => (e.from.attribute, e.to.attribute, e.attribute))
+  def triplets: Seq[Triplet[V, E]] = edges.map(e => (e.from.attribute, e.to.attribute, e.attribute))
 
 case class Triple[V, E](v1: V, v2: V, e: E)
 
@@ -72,7 +72,7 @@ case class Triple[V, E](v1: V, v2: V, e: E)
  *                 Each triplet contains a source vertex of type `V`, a target vertex of type `V`,
  *                 and an edge attribute of type `E`.
  */
-case class Triplets[V, E](triplets: Seq[(V, V, E)]) extends SerializableGraph[V, E]
+case class Triplets[V, E](triplets: Seq[Triplet[V, E]]) extends SerializableGraph[V, E]
 
 /**
  * Provides utility methods for creating and working with `Triplets` by parsing string representations

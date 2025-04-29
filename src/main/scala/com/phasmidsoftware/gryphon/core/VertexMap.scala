@@ -54,6 +54,16 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     copy(map = map + (vertex.attribute -> vertex))
 
   /**
+   * Applies a function to each triplet in the provided triplets and updates the vertex map accordingly.
+   *
+   * @param f        a function that takes a triplet and returns a pair of vertices.
+   * @param triplets the collection of triplets to process.
+   * @return an updated vertex map with modifications based on the applied function.
+   */
+  def addTriplets[E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E]): VertexMap[V] =
+    copy(map = VertexMap.addTripletsToMap(f)(map)(triplets))
+
+  /**
    * Method to run depth-first-search on this `VertexMap`.
    *
    * @param visitor the visitor, of type Visitor[V, J].
@@ -139,6 +149,38 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   //      case None => visitor
   //    }
 
+
+  /**
+   * Creates vertices from a given triplet representation of a graph relationship and returns updated vertices.
+   * NOTE this particular implementation is for directed graphs.
+   *
+   * @param f       a function that transforms a vertex attribute of type `V` into a `Vertex[V]`.
+   * @param f1      a function that creates an adjacency relationship of type `Adjacency[V]`
+   *                from two vertices and an edge attribute of type `E`.
+   * @param f2      a function that optionally creates an adjacency relationship of type `Adjacency[V]`
+   *                from two vertices and an edge attribute of type `E`.
+   * @param triplet a triplet representing a relationship in the graph, consisting of two vertex attributes
+   *                of type `V` and an edge attribute of type `E`.
+   * @return a pair of updated vertices `(Vertex[V], Vertex[V])` after applying the adjacency relationships.
+   */
+  def createVerticesFromTriplet[E](f: V => Vertex[V])(f1: (Vertex[V], Vertex[V], E) => Adjacency[V])(f2: (Vertex[V], Vertex[V], E) => Option[Adjacency[V]])(triplet: Triplet[V, E]): VertexMap[V] = {
+    val vv1: Vertex[V] = getOrCreate(f)(triplet._1)
+    val vv2: Vertex[V] = getOrCreate(f)(triplet._2)
+    val va1: Adjacency[V] = f1(vv1, vv2, triplet._3)
+    val va2: Option[Adjacency[V]] = None // XXX directed edge
+    this + (vv1 + va1) + va2.fold(vv2)(vv2 + _)
+  }
+
+  /**
+   * Retrieves the existing Vertex associated with the given key `v` from the map, 
+   * or creates a new Vertex using the provided function `f` if the key is not present.
+   * NOTE that this method does NOT insert a newly created Vertex into the map.
+   *
+   * @param f A function that takes a value of type `V` and produces a Vertex of type `Vertex[V]`.
+   * @param v The key of type `V` for which a Vertex is to be retrieved or created.
+   * @return The Vertex associated with the key `v`, either retrieved from the map or created using the function `f`.
+   */
+  private def getOrCreate(f: V => Vertex[V])(v: V): Vertex[V] = map.getOrElse(v, f(v))
 
   /**
    * Recursively processes vertices starting from the given vertex `v`, applying a visitor function for each vertex
@@ -347,14 +389,32 @@ object VertexMap:
    */
   def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
 
-  def createFromTriplets[V, E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E]): VertexMap[V] = {
-    val vvVm: Map[V, Vertex[V]] = triplets.triplets.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
-      (vm, t) =>
-        val (vv1, vv2) = f(t)
-        vm + (t._1 -> vv1) + (t._2 -> vv2)
-    }
-    VertexMap(vvVm)
-  }
+  /**
+   * Creates an empty `VertexMap` instance with no vertex mappings.
+   *
+   * This implementation acts as a convenience method to initialize 
+   * an empty `VertexMap` without explicitly passing an empty map.
+   *
+   * @tparam V the type of the vertex attributes.
+   * @return a new `VertexMap` with no vertex mappings.
+   */
+  def apply[V]: VertexMap[V] = apply(Map.empty[V, Vertex[V]])
+
+  /**
+   * Creates a `VertexMap` from the given `Triplets` by mapping each triplet to a pair of vertices
+   * using the provided function `f` and aggregating the vertices into a map.
+   *
+   * @param f        a function that takes a triplet and returns a pair of vertices.
+   *                 This function is used to extract or create vertices from each triplet.
+   * @param triplets the graph edges represented as a sequence of triplets, where each
+   *                 triplet contains a source vertex, a target vertex, and an edge attribute.
+   * @tparam V the type of the vertex attributes.
+   * @tparam E the type of the edge attributes.
+   * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects
+   *         derived from the `triplets`.
+   */
+  def createFromTriplets[V, E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E]): VertexMap[V] =
+    VertexMap(addTripletsToMap(f)(Map.empty[V, Vertex[V]])(triplets))
 
   /**
    * Creates a `VertexMap` from the given `EdgeList` by extracting vertices
@@ -393,6 +453,27 @@ object VertexMap:
     }
     VertexMap(vvVm)
   }
+
+  /**
+   * Updates a map of vertex attributes to `Vertex` instances by processing a collection of triplets.
+   * Each triplet is transformed into a pair of vertices using the provided function, and the map
+   * is updated with these vertices.
+   *
+   * @param f        a function that takes a triplet as input and returns a pair of vertices.
+   * @param map      the initial mapping of vertex attributes to their corresponding `Vertex` instances.
+   * @param triplets the collection of triplets representing graph edges, where each triplet contains:
+   *                 a source vertex, a target vertex, and an edge attribute.
+   * @tparam E the type of the edge attributes.
+   * @tparam V the type of the vertex attributes.
+   * @return an updated map of vertex attributes to `Vertex` instances, including vertices derived
+   *         from the provided triplets.
+   */
+  private def addTripletsToMap[V, E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(map: Map[V, Vertex[V]])(triplets: Triplets[V, E]): Map[V, Vertex[V]] =
+    triplets.triplets.foldLeft[Map[V, Vertex[V]]](map) {
+      (vm, t) =>
+        val (vv1, vv2) = f(t)
+        vm + (t._1 -> vv1) + (t._2 -> vv2)
+    }
 
   /**
    * Adds an edge to the given map of vertices by updating the adjacency list

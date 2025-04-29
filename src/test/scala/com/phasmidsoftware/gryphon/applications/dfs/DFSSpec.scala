@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
+package com.phasmidsoftware.gryphon.applications.dfs
+
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
+import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, DirectedGraph}
+import com.phasmidsoftware.gryphon.core.*
+import com.phasmidsoftware.gryphon.parse.DecimalGraphParser
+import com.phasmidsoftware.gryphon.parse.Parseable.ParseableUnit
+import com.phasmidsoftware.gryphon.util.FP.{resource, sequence}
+import com.phasmidsoftware.gryphon.util.{GraphException, TryUsing}
+import org.scalatest.Assertion
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
+
+import scala.io.Source
+import scala.util.*
+
+class DFSSpec extends AnyFlatSpec with should.Matchers {
+
+  behavior of "DFS"
+
+  val dijkstraGraphPath = "dijkstra.graph"
+
+  ignore should "dfs Dijkstra" in {
+    val p = new DecimalGraphParser[Int, Double]
+    val triedSource = Try(Source.fromResource(dijkstraGraphPath))
+    val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
+    wsy.isSuccess shouldBe true
+    val ws = wsy.get
+    sequence(for (w <- ws) yield p.parseTriple(w)) match {
+      case Some(triples) =>
+        triplesToTryGraph(triples) match {
+          case Success(graph: EdgeGraph[_, _]) =>
+            println(graph.edges)
+            graph.vertexMap.map.size shouldBe 8
+            graph.edges.size shouldBe 16
+          case Failure(x) =>
+            fail("parse failed: ", x)
+          case _ => fail("parse failed: Graph is not an EdgeGraph")
+        }
+      case None =>
+        fail("parse failed")
+    }
+  }
+
+  //  it should "dfsTree" in {
+  //    val uy = resource("/dfsu.graph")
+  //    val graphBuilder = new GraphBuilder[Int, Unit, VertexPair[Int]]()
+  //    val z: Try[Iterable[VertexPair[Int]]] = graphBuilder.createEdgeListPair(uy)(VertexPairCase.apply)
+  //    val graph: Graph[Int, Unit, VertexPair[Int], VertexPair[Int]] = VertexPairGraph[Int, VertexPair[Int]]("DFSU")
+  //    graphBuilder.createGraphFromEdges[VertexPair[Int]](graph)(z) match {
+  //      case Success(g) =>
+  //        val helper = new DFSHelper[Int, VertexPair[Int], DirectedEdge[Int, Unit]]
+  //        val start: Int = 0
+  //        val treeDFS: TreeDFS[Int, DirectedEdge[Int, Unit], Unit] = helper.dfsTree(g, start)(pair => DirectedEdgeCase(pair.vertices._1, pair.vertices._2, ()))
+  //        val edges = treeDFS.tree.edges
+  //        edges.size shouldBe 6
+  //        edges foreach println
+  //        val lastEdge: DirectedEdge[Int, Unit] = edges.last
+  //        lastEdge.from
+  //      case Failure(x) => throw x
+  //    }
+  //
+  //  }
+}

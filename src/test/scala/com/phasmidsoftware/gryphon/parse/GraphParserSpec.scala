@@ -1,7 +1,9 @@
 package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
-import com.phasmidsoftware.gryphon.core.{SerializableGraph, VertexMap}
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
+import com.phasmidsoftware.gryphon.applications.dfs.DFSSpec
+import com.phasmidsoftware.gryphon.core.{EdgeGraph, SerializableGraph, VertexMap}
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
@@ -30,7 +32,6 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
   it should "parseTriple" in {
     val p = new DecimalGraphParser[Int, Double]
     p.parseTriple("1 2 3.14") should matchPattern { case Some((1, 2, 3.14)) => }
-
   }
 
   ignore should "parse Dijkstra" in {
@@ -40,10 +41,17 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
     wsy.isSuccess shouldBe true
     val ws = wsy.get
     sequence(for (w <- ws) yield p.parseTriple(w)) match {
-      case Some(x) => val graph = DirectedGraph(VertexMap.create(SerializableGraph.createFromTriplets(x)))
-        println(graph.edges)
-        graph.vertexMap.map.size shouldBe 8
-        graph.edges.size shouldBe 16
+      case Some(triples) =>
+        triplesToTryGraph(triples) match {
+          case Success(graph: EdgeGraph[_, _]) =>
+            println(graph.edges)
+            graph.vertexMap.map.size shouldBe 8
+            graph.edges.size shouldBe 16
+          case Failure(x) =>
+            fail("parse failed: ", x)
+          case _ => fail("parse failed: Graph is not an EdgeGraph")
+        }
+
       case None => fail("parse failed")
     }
 

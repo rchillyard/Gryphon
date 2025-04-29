@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.core
 
 // NOTE backward imports
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
@@ -348,29 +347,13 @@ object VertexMap:
    */
   def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
 
-  /**
-   * Creates a `VertexMap` from the given `SerializableGraph` by matching the input
-   * to its specific implementation and invoking the appropriate method for vertex map creation.
-   *
-   * @param serializableGraph the input graph structure, which can be an `EdgeList`,
-   *                          a `VertexPairList`, or another type of serializable graph.
-   *                          Its implementation determines how the `VertexMap` will be created.
-   * @tparam E the type of the edge attributes in the graph.
-   * @tparam V the type of the vertex attributes in the graph.
-   * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
-   *         Throws an `IllegalArgumentException` if the input graph is not a supported type.
-   */
-  def create[E, V](serializableGraph: SerializableGraph[V, E]): VertexMap[V] = serializableGraph match {
-    case edgeList: EdgeList[V, E] => createFromEdgeList(edgeList)
-    case triplets: Triplets[V, E] =>
-      val edges: Seq[Edge[E, V]] = for (z <- triplets.triplets) yield {
-        // TODO remove this reference to DirectedEdge which is not in evidence
-        // (belongs to an upstream package).
-        // instead, we can use a factory function.
-        DirectedEdge[E, V](z._3, Vertex.createWithSet(z._1), Vertex.createWithSet(z._2))
-      }
-      createFromEdgeList(EdgeList(edges))
-    case x => createFromVertexPairList(x.asInstanceOf[VertexPairList[V]])
+  def createFromTriplets[V, E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E]): VertexMap[V] = {
+    val vvVm: Map[V, Vertex[V]] = triplets.triplets.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
+      (vm, t) =>
+        val (vv1, vv2) = f(t)
+        vm + (t._1 -> vv1) + (t._2 -> vv2)
+    }
+    VertexMap(vvVm)
   }
 
   /**

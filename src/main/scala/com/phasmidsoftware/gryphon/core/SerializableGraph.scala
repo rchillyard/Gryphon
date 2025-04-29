@@ -88,4 +88,5 @@ object SerializableGraph {
    *         structure based on the given vertex pairs.
    */
   def createFromVertexPairs[V](pairs: Seq[(Vertex[V], Vertex[V])]): SerializableGraph[V, Unit] = VertexPairList(pairs)
+  
 }

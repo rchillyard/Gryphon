@@ -1,6 +1,10 @@
 package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
+import com.phasmidsoftware.gryphon.core.Edge.createVerticesFromTriplet
+import com.phasmidsoftware.gryphon.util.GraphException
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * Represents a directed graph structure that supports operations on vertexMap and edges. 
@@ -79,6 +83,43 @@ object DirectedGraph {
    *         and edges derived from the given `edgeList`.
    */
   def apply[V, E](edgeList: EdgeList[V, E]): DirectedGraph[V, E] =
-    DirectedGraph(VertexMap.create(edgeList))
+    DirectedGraph(VertexMap.createFromEdgeList(edgeList))
+
+  /**
+   * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.
+   *
+   * Each triplet in the input sequence consists of two vertices (source and target)
+   * and an attribute associated with the edge connecting the vertices.
+   * This method attempts to construct a directed graph from the provided triplets, returning
+   * a `Success` with the graph instance if the operation is successful, or a `Failure`
+   * if the construction process encounters an error.
+   *
+   * @param triples a sequence of triplets `(V, V, E)` where:
+   *                - the first element is the source vertex of type `V`.
+   *                - the second element is the target vertex of type `V`.
+   *                - the third element is the edge attribute of type `E`.
+   * @tparam V the type of the vertices in the graph.
+   * @tparam E the type of the edges in the graph.
+   * @return a `Try[Graph[V]]`, where:
+   *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
+   *         - `Failure` contains a `GraphException` if the graph construction fails.
+   */
+  def triplesToTryGraph[V, E](triples: Seq[(V, V, E)]): Try[Graph[V]] =
+    SerializableGraph.createFromTriplets[V, E](triples) match {
+      case triplets: Triplets[V, E] =>
+        val f: ((V, V, E)) => (Vertex[V], Vertex[V]) = createVerticesFromTriplet[V, E](Vertex.createWithSet) {
+          (vv1, vv2, e) =>
+            val edge: DirectedEdge[E, V] = DirectedEdge(e, vv1, vv2)
+            AdjacencyEdge(edge)
+        } {
+          (vv1, vv2, e) =>
+            val edge: DirectedEdge[E, V] = DirectedEdge(e, vv1, vv2)
+            Some(AdjacencyEdge(edge))
+        }
+
+        Success(DirectedGraph(VertexMap.createFromTriplets(f)(triplets)))
+      case z =>
+        Failure(GraphException(s"parse failed: $z"))
+    }
 
 }

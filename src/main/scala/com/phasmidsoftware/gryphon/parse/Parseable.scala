@@ -28,6 +28,87 @@ trait Parseable[T] {
  */
 object Parseable {
   /**
+   * A trait that provides a specific implementation of the `Parseable` typeclass for the `Unit` type.
+   *
+   * This implementation of `Parseable` for `Unit` treats any input string as a valid parseable input and
+   * always returns `Some(())`, regardless of the content of the input string.
+   * Parsing inherently succeeds for this type since `Unit` carries no meaningful information.
+   *
+   * This trait can be used wherever `Parseable[Unit]` is required to signify that parsing is always successful
+   * and does not depend on the input string.
+   *
+   * This typeclass is defined as a trait, allowing it to be mixed into other components or implemented as an object.
+   *
+   * Extends:
+   * - `Parseable[Unit]`: Defines the generic contract for parsing a string into a `Unit` value.
+   *
+   * Methods:
+   * - `parse(w: String): Option[Unit]`: Always returns `Some(())`, ignoring the input string.
+   *
+   * Use this implementation in contexts where parsing behavior is trivial and the result is guaranteed.
+   */
+  trait ParseableUnit extends Parseable[Unit] {
+    /**
+     * Ignores the given string and returns an Option containing Unit.
+     *
+     * @param w the input string to be parsed (ignored)
+     * @return an Option containing Unit, which is always Some(())
+     */
+    def parse(w: String): Option[Unit] = Some(())
+  }
+
+  /**
+   * An implicit object that provides a `Parseable` implementation for the `Unit` type.
+   * This object enables parsing of strings into `Unit` values using the `Parseable` typeclass.
+   *
+   * The `parse` method always returns `Some(())` regardless of the input string,
+   * since `Unit` does not encode any meaningful data.
+   *
+   * It is commonly used in scenarios where the parsing result itself is irrelevant,
+   * and only the fact that parsing occurred successfully matters.
+   */
+  implicit object ParseableUnit extends ParseableUnit
+
+  /**
+   * A trait that provides an implementation of the `Parseable` typeclass for the `Boolean` type.
+   *
+   * This trait defines a mechanism for parsing string representations of boolean values
+   * ("true" or "false") into corresponding `Boolean` objects.
+   * If the input string can be successfully converted into a boolean,
+   * the result is wrapped in `Some`.
+   * Otherwise, the result is `None`.
+   *
+   * The parsing relies on the standard library method `toBooleanOption` to perform
+   * the string conversion, which is case-sensitive and adheres strictly to "true" and "false".
+   */
+  trait ParseableBoolean extends Parseable[Boolean] {
+    /**
+     * Parses the input string into an `Option[Boolean]` based on its content.
+     * The method interprets the string as a boolean value ("true" or "false")
+     * and returns it as an `Option`.
+     * If the string cannot be interpreted as a valid boolean, the method returns `None`.
+     *
+     * @param w The input string to parse into a boolean value.
+     * @return An `Option[Boolean]` containing `Some(true)` or `Some(false)` if parsing is successful,
+     *         or `None` if the string is not a valid representation of a boolean.
+     */
+    def parse(w: String): Option[Boolean] = w.toBooleanOption
+  }
+
+  /**
+   * Provides an implicit implementation of the `Parseable` typeclass for the `Boolean` type.
+   *
+   * This object defines a method to parse a `String` into a `Boolean` value using the `toBooleanOption` method.
+   * It is used as an implicit instance where the `Parseable[Boolean]` is required.
+   *
+   * Parsing accepts strings like "true" or "false" (case-insensitive), and returns
+   * an `Option` containing the corresponding `Boolean` value if successful.
+   *
+   * Extends the `ParseableBoolean` trait, which provides the parsing logic for the `Boolean` type.
+   */
+  implicit object ParseableBoolean extends ParseableBoolean
+
+  /**
    * A trait that provides an implementation of the `Parseable` typeclass for the `String` type.
    *
    * This trait allows parsing a string input into an optional value of type `String`.
@@ -35,12 +116,14 @@ object Parseable {
    */
   trait ParseableString extends Parseable[String] {
     /**
-     * Parses a string input and attempts to convert it into an optional value of type `String`.
+     * Parses the input string and returns an optional string based on the validity of the input.
+     * If the input string is non-null and non-empty, it is wrapped in an `Option` and returned.
+     * Otherwise, `None` is returned.
      *
-     * @param input The string to be parsed into an object of type `String`.
-     * @return An `Option` containing the parsed object of type `String` if successful, or `None` if the parsing fails.
+     * @param input the input string to parse. It can be null or empty.
+     * @return an `Option[String]` containing the input string if it is non-null and non-empty, or `None` otherwise.
      */
-    def parse(input: String): Option[String] = Option(input)
+    def parse(input: String): Option[String] = Option.when(input != null && input.nonEmpty)(input)
   }
 
   /**

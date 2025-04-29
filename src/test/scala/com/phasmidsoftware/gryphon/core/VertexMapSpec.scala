@@ -21,7 +21,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
   it should "implement createFromEdgeList, contains, apply, and vertices" in {
-    val target = VertexMap.create(edgeList)
+    val target = VertexMap.createFromEdgeList(edgeList)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
@@ -32,7 +32,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "implement createFromVertexPairList, contains, apply, and vertices" in {
-    val target = VertexMap.create(vertexPairList)
+    val target = VertexMap.createFromVertexPairList(vertexPairList)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
@@ -43,39 +43,39 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "$plus" in {
-    val target = VertexMap.create(edgeList)
+    val target = VertexMap.createFromEdgeList(edgeList)
     val updated = target + Vertex.createWithBag(4)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
   }
 
   it should "applyOrElse" in {
-    val target = VertexMap.create(edgeList)
+    val target = VertexMap.createFromEdgeList(edgeList)
     val vertex1: Vertex[Int] = target.applyOrElse(1, _ => defaultVertex)
     vertex1.attribute shouldBe 1
     val vertex0: Vertex[Int] = target.applyOrElse(4, _ => defaultVertex)
     vertex0.attribute shouldBe 0
   }
   it should "get" in {
-    val target = VertexMap.create(edgeList)
+    val target = VertexMap.createFromEdgeList(edgeList)
     target.get(1) should matchPattern { case Some(Vertex(1, _)) => }
   }
 
   it should "getOrElse" in {
-    val target = VertexMap.create(edgeList)
+    val target = VertexMap.createFromEdgeList(edgeList)
     target.getOrElse(1, defaultVertex) should matchPattern { case Vertex(1, _) => }
     target.getOrElse(4, defaultVertex) shouldBe defaultVertex
   }
 
   it should "keySet" in {
-    val target = VertexMap.create(edgeList)
+    val target = VertexMap.createFromEdgeList(edgeList)
     target.keySet shouldBe Set(1, 2, 3)
   }
 
   it should "dfs" in {
     Using(Visitor.createPre[Int]) {
       visitor =>
-        val target = VertexMap.create(edgeList)
+        val target = VertexMap.createFromEdgeList(edgeList)
         val result: Visitor[Int, Queue[Int]] = target.dfs(visitor)(1)
         result.journal.size shouldBe 3
         result.journal.head shouldBe 1
@@ -86,12 +86,11 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   it should "bfs" in {
     Using(Visitor.createPre[Int]) {
       visitor =>
-        val target = VertexMap.create(edgeList)
+        val target = VertexMap.createFromEdgeList(edgeList)
         val result: Visitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
         result.journal.size shouldBe 3
         result.journal.head shouldBe 1
         result.journal.last shouldBe 3
     }
   }
-
 }

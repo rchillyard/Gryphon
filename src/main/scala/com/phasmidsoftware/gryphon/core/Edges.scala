@@ -22,15 +22,14 @@ trait Edges[V, E] extends Pairs[V] {
   def edges: Seq[Edge[E, V]]
 
   /**
-   * Retrieves all the vertex pairs that represent the connections (edges) in the graph.
-   * Each pair consists of a starting vertex (`from`) and an ending vertex (`to`)
-   * corresponding to the `from` and `to` vertices of an edge.
+   * Retrieves a sequence of pairs of vertices representing the connections in the graph.
+   * Each pair corresponds to an edge in the graph, where the first element is the starting vertex
+   * and the second element is the ending vertex of the edge.
    *
-   * @return a `Seq` of tuples, where each tuple consists of two `Vertex[V]` elements.
-   *         The first element in the tuple represents the starting vertex of the edge,
-   *         and the second element represents the ending vertex.
+   * @return a sequence of vertex pairs `(V, V)` representing the connections in the graph. Each pair
+   *         corresponds to the `from` and `to` vertices of an edge.
    */
-  def pairs: Seq[(Vertex[V], Vertex[V])] = edges.map(e => (e.from, e.to))
+  def pairs: Seq[(V, V)] = edges.map(e => (e.from, e.to))
 }
 
 /**
@@ -46,16 +45,27 @@ trait Edges[V, E] extends Pairs[V] {
  */
 case class EdgeList[V, E](edges: Seq[Edge[E, V]]) extends SerializableGraph[V, E] with Edges[V, E]:
   /**
-   * Constructs a sequence of triplets from the edges in the edge list.
-   * Each triplet consists of the attribute of the source vertex, the attribute of the target vertex,
-   * and the attribute of the edge connecting them.
+   * Transforms the edge list into a sequence of triplets.
    *
-   * @return a sequence of triplets where each triplet is represented as `Triplet[V, E]`,
-   *         with the first element being the source vertex's attribute, the second element
-   *         being the target vertex's attribute, and the third element being the edge's attribute.
+   * Each triplet consists of the source vertex, the target vertex, and the attribute
+   * associated with the edge connecting them. This transformation provides a higher-level
+   * representation of the edge list, including the vertices and edge attributes together.
+   *
+   * @return a sequence of triplets where each triplet is a tuple of the form `(V, V, E)`,
+   *         corresponding to the source vertex, target vertex, and edge attribute respectively.
    */
-  def triplets: Seq[Triplet[V, E]] = edges.map(e => (e.from.attribute, e.to.attribute, e.attribute))
+  def triplets: Seq[Triplet[V, E]] = edges.map(e => (e.from, e.to, e.attribute))
 
+/**
+ * Represents a triple structure consisting of two vertices and an edge in the context of graph-related operations.
+ * NOTE unused.
+ *
+ * @tparam V the type of the vertices.
+ * @tparam E the type of the edge attribute.
+ * @param v1 the first vertex of this triple.
+ * @param v2 the second vertex of this triple.
+ * @param e  the edge attribute connecting the two vertices.
+ */
 case class Triple[V, E](v1: V, v2: V, e: E)
 
 /**

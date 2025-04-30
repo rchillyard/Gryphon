@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.visit
 
-import com.phasmidsoftware.gryphon.core.{Adjacency, Unordered, Vertex}
+import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -16,7 +16,15 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Queueable"
 
-  val vxVm: Map[Int, Vertex[Int]] = Map(1 -> Vertex.createWithBag(1), 2 -> Vertex.createWithBag(2), 3 -> Vertex.createWithBag(3))
+  val v1 = Vertex.createWithBag(1)
+  val v2 = Vertex.createWithBag(2)
+  val v3 = Vertex.createWithBag(3)
+
+  val v2_av = v2 + AdjacencyVertex(v3)
+  val v1_av = v1 + AdjacencyVertex(v2_av)
+
+  val vxVm: Map[Int, Vertex[Int]] =
+    Map.empty[Int, Vertex[Int]] + (3 -> v3) + (2 -> v2_av) + (1 -> v1_av)
 
   /**
    * Recursively processes vertices starting from the given vertex `v`, applying a visitor function for each vertex
@@ -38,7 +46,10 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
     @tailrec
     def inner(result: Visitor[Int, J], work: Queue[Int]): Visitor[Int, J] = queueable.take(work) match {
       case Some((head, _)) if goal(head) => result.visitPre(head)
-      case Some((head, tail)) => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
+      case Some((head, tail)) =>
+        vxVm(head).discovered = true
+        val queue = enqueueUnvisitedVertices(vxVm, head, tail)
+        inner(result.visitPre(head), queue)
       case _ => result
     }
 
@@ -60,16 +71,11 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
    * @return a new queue containing the original elements and the newly enqueued vertices
    * @throws GraphException if the vertex `v` does not exist in the adjacency list
    */
-  private def enqueueUnvisitedVertices(v: Int, queue: Queue[Int])(implicit queueable: Queueable[Queue[Int], Int]): Queue[Int] = optAdjacencyList(v) match {
+  private def enqueueUnvisitedVertices(map: Map[Int, Vertex[Int]], v: Int, queue: Queue[Int])(implicit queueable: Queueable[Queue[Int], Int]): Queue[Int] = optAdjacencyList(v) match {
     case Some(vau: Unordered[Adjacency[Int]]) =>
       vau.iterator.foldLeft(queue) {
         (vq, va) =>
-          if (!va.vertex.discovered) {
-            va.vertex.discovered = true
-            queueable.append(vq, va.vertex.attribute)
-          }
-          else
-            vq
+          VertexMap.maybeUndiscoveredVertex(map, va.vertex).map(v => queueable.append(vq, v.attribute)).getOrElse(vq)
       }
     case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
   }
@@ -90,6 +96,9 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
     // NOTE this is a test of the Queueable trait, not the implementation of bfsMutable.
     // Admittedly, it's very roundabout way of testing Queuable but the idea is to remove
     // bits we don't need until we're left with just the code we want to test.
+
+    println(s"vxVm = $vxVm")
+
     val visitor: PreVisitor[Int, Queue[Int]] = Visitor.createPre[Int]
     import Queueable.*
     val result = takeRecursively(visitor, 1)(x => x == 3)

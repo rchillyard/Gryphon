@@ -73,20 +73,20 @@ object SerializableGraph {
    */
   def createFromEdges[V, E](edges: Seq[Edge[E, V]]): SerializableGraph[V, E] = EdgeList(edges)
 
-  /**
-   * Creates a `SerializableGraph` instance from a sequence of vertex pairs.
-   *
-   * This method takes a sequence of pairs where each pair represents a connection
-   * between two vertices in the graph. The resulting graph uses the pairs to define
-   * its structure, with no additional attributes associated with the edges.
-   *
-   * @param pairs a sequence of tuples where each tuple consists of two vertices of type `Vertex[V]`.
-   *              The first element in the tuple represents the source vertex, and the second 
-   *              element represents the target vertex.
-   * @tparam V the type associated with the vertex attributes within the graph.
-   * @return a `SerializableGraph[V, Unit]` instance representing the graph
-   *         structure based on the given vertex pairs.
-   */
-  def createFromVertexPairs[V](pairs: Seq[(Vertex[V], Vertex[V])]): SerializableGraph[V, Unit] = VertexPairList(pairs)
+  //  /**
+  //   * Creates a `SerializableGraph` instance from a sequence of vertex pairs.
+  //   *
+  //   * This method takes a sequence of pairs where each pair represents a connection
+  //   * between two vertices in the graph. The resulting graph uses the pairs to define
+  //   * its structure, with no additional attributes associated with the edges.
+  //   *
+  //   * @param pairs a sequence of tuples where each tuple consists of two vertices of type `Vertex[V]`.
+  //   *              The first element in the tuple represents the source vertex, and the second
+  //   *              element represents the target vertex.
+  //   * @tparam V the type associated with the vertex attributes within the graph.
+  //   * @return a `SerializableGraph[V, Unit]` instance representing the graph
+  //   *         structure based on the given vertex pairs.
+  //   */
+  //  def createFromVertexPairs[V](pairs: Seq[(Vertex[V], Vertex[V])]): SerializableGraph[V, Unit] = VertexPairList(pairs)
 
 }

@@ -10,7 +10,7 @@ class AdjacencySpec extends AnyFlatSpec with Matchers {
 
   it should "vertex" in {
     val adjacency = AdjacencyVertex(Vertex.create(1))
-    adjacency.vertex.attribute shouldBe 1
+    adjacency.vertex shouldBe 1
   }
 
   behavior of "AdjacencyEdge"
@@ -18,12 +18,12 @@ class AdjacencySpec extends AnyFlatSpec with Matchers {
   it should "vertex" in {
     val vertex1 = Vertex.create(1)
     val vertex2 = Vertex.create(2)
-    val adjacency1 = AdjacencyEdge(DirectedEdge[String, Int]("child", vertex1, vertex2))
+    val adjacency1 = AdjacencyEdge(DirectedEdge[String, Int]("child", 1, 2))
     adjacency1.maybeEdge.map(_.attribute) shouldBe Some("child")
-    adjacency1.vertex.attribute shouldBe 2
-    val adjacency2 = AdjacencyEdge(DirectedEdge[String, Int]("child", vertex1, vertex2), flipped = true)
+    adjacency1.vertex shouldBe 2
+    val adjacency2 = AdjacencyEdge(DirectedEdge[String, Int]("child", 1, 2), flipped = true)
     adjacency2.maybeEdge.map(_.attribute) shouldBe Some("child")
-    adjacency2.vertex.attribute shouldBe 1
+    adjacency2.vertex shouldBe 1
   }
 
 }

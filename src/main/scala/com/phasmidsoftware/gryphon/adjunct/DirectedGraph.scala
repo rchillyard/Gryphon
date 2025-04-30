@@ -25,10 +25,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = {
-    val from: Vertex[V] = edge.from
-    val to: Vertex[V] = edge.to
-    val z: Vertex[V] = from + AdjacencyEdge(edge)
-    copy(vertexMap + z)
+    // CONSIDER using get here
+    copy(vertexMap + (vertexMap(edge.from) + AdjacencyEdge(edge)))
   }
 
   /**
@@ -106,23 +104,19 @@ object DirectedGraph {
   def triplesToTryGraph[V, E](triples: Seq[Triplet[V, E]]): Try[Graph[V]] =
     SerializableGraph.createFromTriplets[V, E](triples) match {
       case triplets: Triplets[V, E] =>
-        val vm = VertexMap[V]
-        val q: VertexMap[V] =
-          triplets.triplets.foldLeft(vm) {
+        val vm: VertexMap[V] =
+          triplets.triplets.foldLeft(VertexMap[V]) {
             (z, t) =>
-              z.createVerticesFromTriplet(Vertex.createWithSet) {
-                  (vv1, vv2, e: E) =>
-                    val edge: DirectedEdge[E, V] = DirectedEdge(e, vv1, vv2)
-                    AdjacencyEdge(edge)
+              z.createVerticesFromTriplet[E](Vertex.createWithSet) {
+                  (vv1, vv2, e) =>
+                    AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
                 } {
-                  (vv1, vv2, e: E) =>
-                    val edge: DirectedEdge[E, V] = DirectedEdge(e, vv1, vv2)
-                    Some(AdjacencyEdge(edge))
+                  (vv1, vv2, e) =>
+                    Some(AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute)))
                 }
                 (t)
         }
-
-        Success(DirectedGraph(q))
+        Success(DirectedGraph(vm))
       case z =>
         Failure(GraphException(s"parse failed: $z"))
     }

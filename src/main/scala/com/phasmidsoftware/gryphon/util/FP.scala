@@ -154,8 +154,42 @@ object FP {
     case Failure(NonFatal(x)) => f(x); None
     case Failure(x) => throw x
   }
+
+  /**
+   * Limits the number of elements displayed from an iterable collection when converted to a string.
+   * Appends additional information if the size of the collection exceeds the specified limit.
+   *
+   * @param limit the maximum number of elements to include in the output string.
+   * @param xs    the iterable collection of elements to be processed.
+   * @param sep   the separator string to use between elements in the output string (defaults to ", ").
+   * @tparam X the type of elements in the input collection.
+   * @return a string representation of up to `limit` elements from the collection, concatenated with the `sep` string.
+   *         If the collection has more elements than the limit, appends a summary of the remaining count.
+   */
+  def mkStringLimitIterator[X](xi: Iterator[X], limit: Int = 5, sep: String = ", "): String =
+    mkStringLimit(xi.to(List), limit, sep)
+
+  /**
+   * Limits the number of elements displayed from an iterable collection when converted to a string.
+   * Appends additional information if the size of the collection exceeds the specified limit.
+   *
+   * @param limit the maximum number of elements to include in the output string.
+   * @param xs    the iterable collection of elements to be processed.
+   * @param sep   the separator string to use between elements in the output string (defaults to ", ").
+   * @tparam X the type of elements in the input collection.
+   * @return a string representation of up to `limit` elements from the collection, concatenated with the `sep` string.
+   *         If the collection has more elements than the limit, appends a summary of the remaining count.
+   */
+  def mkStringLimit[X](xs: Iterable[X], limit: Int = 5, sep: String = ", "): String =
+    xs.iterator.take(limit).mkString(sep) + (if (xs.size > limit) s"... (and ${xs.size - limit} more)" else "")
 }
 
+/**
+ * Utility object to provide resource management methods using the `Using` construct.
+ *
+ * The methods in this object ensure proper handling of resources by automatically
+ * closing or releasing them after they are used within a defined context.
+ */
 object TryUsing {
   /**
    * This method is to Using.apply as flatMap is to Map.

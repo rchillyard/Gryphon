@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
+import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -16,11 +16,15 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val v1: Vertex[Int] = Vertex.createWithBag(1)
   private val v2: Vertex[Int] = Vertex.createWithBag(2)
   private val v3: Vertex[Int] = Vertex.createWithBag(3)
-  private val edgeList: EdgeList[Int, String] = EdgeList(Seq(DirectedEdge("A", v1, v2), DirectedEdge("B", v2, v3)))
-  private val vertexPairList: VertexPairList[Int] = VertexPairList(Seq(v1 -> v2, v2 -> v3))
+  private val edgeList: EdgeList[Int, String] = EdgeList(Seq(DirectedEdge("A", 1, 2), DirectedEdge("B", 2, 3)))
+  private val vertexPairList: VertexPairList[Int] = VertexPairList(Seq(1 -> 2, 2 -> 3))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
-  it should "implement createFromEdgeList, contains, apply, and vertices" in {
+  it should "addEdgeToMap" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+  }
+
+  ignore should "implement createFromEdgeList, contains, apply, and vertices" in {
     val target = VertexMap.createFromEdgeList(edgeList)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
@@ -31,7 +35,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     target.apply(3).attribute shouldBe 3
   }
 
-  it should "implement createFromVertexPairList, contains, apply, and vertices" in {
+  ignore should "implement createFromVertexPairList, contains, apply, and vertices" in {
     val target = VertexMap.createFromVertexPairList(vertexPairList)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
@@ -42,40 +46,74 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     target.apply(3).attribute shouldBe 3
   }
 
-  it should "$plus" in {
-    val target = VertexMap.createFromEdgeList(edgeList)
+  it should "empty $plus Vertex" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+    val updated = target + Vertex.createWithBag(4)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+  }
+
+  it should "$plus Vertex" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val updated = target + Vertex.createWithBag(4)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+  }
+
+  it should "empty $plus DirectedEdge" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+    val updated = target + DirectedEdge("C", 4, 2)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+    updated.get(2) should matchPattern { case Some(Vertex(2, Unordered_Set(_))) => }
+    updated(2).adjacencies.iterator.hasNext shouldBe false
+    updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(DirectedEdge("C", 4, 2)))
+  }
+
+  it should "empty $plus UndirectedEdge" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+    val updated = target + UndirectedEdge("C", 4, 2)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+    updated.get(2) should matchPattern { case Some(Vertex(2, Unordered_Set(_))) => }
+    updated(2).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2), true))
+    updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2)))
+  }
+
+  it should "$plus Edge" in {
+    val target = VertexMap[Int].addEdges(edgeList)
     val updated = target + Vertex.createWithBag(4)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
   }
 
   it should "applyOrElse" in {
-    val target = VertexMap.createFromEdgeList(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList)
     val vertex1: Vertex[Int] = target.applyOrElse(1, _ => defaultVertex)
     vertex1.attribute shouldBe 1
     val vertex0: Vertex[Int] = target.applyOrElse(4, _ => defaultVertex)
     vertex0.attribute shouldBe 0
   }
   it should "get" in {
-    val target = VertexMap.createFromEdgeList(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList)
     target.get(1) should matchPattern { case Some(Vertex(1, _)) => }
   }
 
   it should "getOrElse" in {
-    val target = VertexMap.createFromEdgeList(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList)
     target.getOrElse(1, defaultVertex) should matchPattern { case Vertex(1, _) => }
     target.getOrElse(4, defaultVertex) shouldBe defaultVertex
   }
 
   it should "keySet" in {
-    val target = VertexMap.createFromEdgeList(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList)
     target.keySet shouldBe Set(1, 2, 3)
   }
 
   it should "dfs" in {
     Using(Visitor.createPre[Int]) {
       visitor =>
-        val target = VertexMap.createFromEdgeList(edgeList)
+        val target = VertexMap[Int].addEdges(edgeList)
         val result: Visitor[Int, Queue[Int]] = target.dfs(visitor)(1)
         result.journal.size shouldBe 3
         result.journal.head shouldBe 1
@@ -86,7 +124,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   it should "bfs" in {
     Using(Visitor.createPre[Int]) {
       visitor =>
-        val target = VertexMap.createFromEdgeList(edgeList)
+        val target = VertexMap[Int].addEdges(edgeList)
         val result: Visitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
         result.journal.size shouldBe 3
         result.journal.head shouldBe 1

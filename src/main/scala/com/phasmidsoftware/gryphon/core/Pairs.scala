@@ -11,34 +11,29 @@ import com.phasmidsoftware.gryphon.parse.Parseable
  *
  * @tparam V the type of attributes associated with the vertices in the graph.
  */
-trait Pairs[V] {
+trait Pairs[V]:
 
   /**
-   * Retrieves the sequence of vertex pairs contained within the graph structure.
+   * Returns a sequence of vertex pairs.
+   * Each tuple in the sequence represents a relationship or connection
+   * between two vertices of type `V` in the graph.
    *
-   * Each pair represents a connection or relationship between two vertices in the graph,
-   * commonly used in undirected graph representations or scenarios requiring bidirectional
-   * adjacency between vertices.
-   *
-   * @return a sequence of vertex pairs, where each pair consists of two `Vertex[V]` objects.
+   * @return a sequence of tuples, where each tuple contains two vertices of type `V`.
    */
-  def pairs: Seq[(Vertex[V], Vertex[V])]
-}
-
+  def pairs: Seq[(V, V)]
 
 /**
- * Represents a list of vertex pairs that defines edges in a graph.
- * Each pair in the list corresponds to a directed edge where the first vertex
- * in the pair is the source, and the second vertex is the target.
+ * A case class representing a list of vertex pairs in a graph.
  *
- * This class extends the `SerializableGraph` trait, providing a way
- * to serialize and traverse the graph structure through the triplets it generates.
+ * This class provides a concrete implementation of `SerializableGraph` and `Pairs`, enabling functionalities
+ * such as accessing the pairs of vertices and transforming these pairs into triplets. Each triplet includes
+ * the source vertex, target vertex, and a unit value indicating the absence of an explicit edge attribute.
  *
  * @tparam V the type of attributes associated with the vertices in the graph.
- * @param pairs a sequence of vertex pairs representing the connections in the graph.
- *              Each pair consists of a source vertex and a target vertex.
+ * @param pairs a sequence of tuples, where each tuple contains two vertices representing
+ *              a connection or relationship in the graph.
  */
-case class VertexPairList[V](pairs: Seq[(Vertex[V], Vertex[V])]) extends SerializableGraph[V, Unit] with Pairs[V]:
+case class VertexPairList[V](pairs: Seq[(V, V)]) extends SerializableGraph[V, Unit] with Pairs[V]:
   /**
    * Transforms the sequence of vertex pairs into a sequence of triplets.
    * Each triplet consists of the attributes of the source vertex, the target vertex,
@@ -47,20 +42,23 @@ case class VertexPairList[V](pairs: Seq[(Vertex[V], Vertex[V])]) extends Seriali
    * @return a sequence of triplets where each triplet contains the attribute of the source vertex,
    *         the attribute of the target vertex, and a unit value.
    */
-  def triplets: Seq[(V, V, Unit)] = pairs.map(p => (p._1.attribute, p._2.attribute, ()))
+  def triplets: Seq[(V, V, Unit)] = pairs.map(p => (p._1, p._2, ()))
 
 /**
- * A case class representing a collection of vertex pairs, which can be interpreted as
- * the edges of a graph with unit-edge attributes (i.e., no meaningful data attached to edges).
+ * A case class representing a collection of directed connections (edges) between pairs of vertices.
  *
- * This class extends `SerializableGraph` with vertices of type `V` and edges with a unit (`Unit`) attribute.
- * It provides the ability to retrieve graph edges in the form of triplets, where each triplet
- * contains a source vertex, a target vertex, and the corresponding edge attribute (always `()`).
+ * Each connection is represented as a pair of vertices of type `V`, where the first element in the pair
+ * represents the source vertex and the second element represents the target vertex. This structure allows
+ * modeling graph-like relationships between vertices without associated edge attributes (i.e., the edges carry no additional data).
  *
- * @constructor Creates a new instance of `Connexions` with a sequence of vertex pairs representing edges.
- * @param pairs a sequence of tuples `(V, V)` where each tuple represents a directed edge from a source
- *              vertex (first element) to a target vertex (second element).
- * @tparam V the type of vertices in the graph, which is also the type of the elements in the vertex pairs.
+ * This class extends `SerializableGraph` and implements its `triplets` method, representing connections as triplets with
+ * an empty unit attribute (`()`).
+ *
+ * @tparam V the type of vertices in the graph. Each vertex can represent any user-defined type.
+ * @constructor Creates a new `Connexions` instance to store the specified sequence of vertex pairs.
+ *              These pairs define the edges of the graph-like structure.
+ * @param pairs a sequence of vertex pairs of type `(V, V)`, each representing a directed edge
+ *              between the source (`_1`) and target (`_2`) vertices.
  */
 case class Connexions[V](pairs: Seq[(V, V)]) extends SerializableGraph[V, Unit]:
   def triplets: Seq[(V, V, Unit)] = pairs.map(p => (p._1, p._2, ()))

@@ -36,19 +36,19 @@ class VertexSpec extends AnyFlatSpec with should.Matchers {
 
   it should "$plus 1" in {
     val vertex2 = Vertex.create(2)
-    val result = vertex2 + AdjacencyVertex(target)
+    val result = vertex2 + AdjacencyVertex(2)
     result.attribute shouldBe 2
     val adjacencies: Unordered_Bag[Adjacency[Int]] = result.adjacencies.asInstanceOf[Unordered_Bag[Adjacency[Int]]]
     adjacencies should matchPattern { case Unordered_Bag(_) => }
     adjacencies.size shouldBe 1
-    adjacencies.elements.contains(AdjacencyVertex(target)) shouldBe true
+    adjacencies.elements.contains(AdjacencyVertex(2)) shouldBe true
   }
 
   it should "$plus 2" in {
     val vertex2 = Vertex.createWithSet(2)
     val vertex3 = Vertex.createWithSet(3)
     val vertex4 = Vertex.createWithSet(4)
-    val result = vertex2 + AdjacencyVertex(target) + AdjacencyVertex(vertex3) + AdjacencyVertex(vertex4)
+    val result = vertex2 + AdjacencyVertex(target.attribute) + AdjacencyVertex(vertex3.attribute) + AdjacencyVertex(vertex4.attribute)
     result.attribute shouldBe 2
     val adjacencies: Unordered_Set[Adjacency[Int]] = result.adjacencies.asInstanceOf[Unordered_Set[Adjacency[Int]]]
     adjacencies should matchPattern { case Unordered_Set(_) => }

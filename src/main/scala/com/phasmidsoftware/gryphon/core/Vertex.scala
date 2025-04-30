@@ -1,5 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
+
 /**
  * Represents a vertex in a graph structure with an associated attribute and a collection
  * of adjacencies.
@@ -35,7 +37,7 @@ case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: 
     discovered = false
   }
 
-  override def toString: String = s"v$attribute"
+  override def toString: String = s"v$attribute with ${mkStringLimitIterator(adjacencies.iterator)} adjacencies and discovered = $discovered"
 
 /**
  * Companion object for the `Vertex` class, providing a factory method for creating

@@ -24,7 +24,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
 
   val dijkstraGraphPath = "dijkstra.graph"
 
-  ignore should "dfs Dijkstra" in {
+  it should "dfs Dijkstra" in {
     val p = new DecimalGraphParser[Int, Double]
     val triedSource = Try(Source.fromResource(dijkstraGraphPath))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)

@@ -33,7 +33,7 @@ trait Pairs[V]:
  * @param pairs a sequence of tuples, where each tuple contains two vertices representing
  *              a connection or relationship in the graph.
  */
-case class VertexPairList[V](pairs: Seq[(V, V)]) extends SerializableGraph[V, Unit] with Pairs[V]:
+case class VertexPairList[V](pairs: Seq[(V, V)], oneWay: Boolean = false) extends SerializableGraph[V, Unit] with Pairs[V]:
   /**
    * Transforms the sequence of vertex pairs into a sequence of triplets.
    * Each triplet consists of the attributes of the source vertex, the target vertex,

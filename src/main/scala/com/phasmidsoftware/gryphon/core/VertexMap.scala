@@ -24,11 +24,56 @@ import scala.util.{Random, Using}
 case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Random()) extends Traversable[V]:
 
   /**
+   * Computes and returns an iterator of adjacent vertices for the given vertex.
+   *
+   * This method retrieves the adjacency information for the provided vertex,
+   * processes it to obtain random adjacencies, and returns an iterator over
+   * the resulting vertices.
+   *
+   * @param v the vertex for which adjacencies are to be computed
+   * @return an iterator of vertices adjacent to the provided vertex
+   */
+  def adjacencies(v: V): Iterator[V] = for (vv <- get(v).iterator; va <- randomAdjacencies(vv)) yield va.vertex
+
+  /**
+   * Retrieves an iterator over the adjacencies of the given vertex that have not yet been discovered.
+   *
+   * @param v the vertex for which undiscovered adjacencies are sought
+   * @return an iterator over the vertices that are adjacent to the given vertex and undiscovered
+   */
+  def undiscoveredAdjacencies(v: V): Iterator[V] = filteredAdjacencies(undiscoveredVertex(_).isDefined)(v)
+
+  /**
    * Returns a string representation of the object.
    *
    * @return a string representation of the map.
    */
   override def toString: String = map.toString
+
+  /**
+   * A function value that represents adding an adjacency to a vertex.
+   *
+   * This is a curried function where:
+   * - The first parameter is an adjacency of type `Adjacency[V]`.
+   * - The second parameter is a vertex of type `Vertex[V]`.
+   *
+   * The result is a new vertex with the adjacency added to it.
+   */
+  val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
+
+  /**
+   * Processes a vertex within a vertex map by applying a specified function to a given vertex and an additional parameter.
+   *
+   * @param f A function that takes a vertex and an additional parameter of type X, then return processed vertex.
+   * @param v The key of the vertex to be processed, of type V.
+   * @param x An additional parameter of type X that is passed to the function f.
+   * @return A new VertexMap[V] with the processed vertex if the key v exists, or the original VertexMap[V] if the key does not exist.
+   */
+  def processVertex[X](f: X => Vertex[V] => Vertex[V])(v: V)(x: X): VertexMap[V] =
+    get(v) map (vv => f(x)(vv)) match {
+      case Some(vv) => this + vv
+      case None => this
+    }
 
   /**
    * Retrieves an iterable collection of all vertices present in the `VertexMap`.
@@ -72,6 +117,24 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     val fromFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createFrom)
     val toFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createTo)
     fromFunc(toFunc(this)(edge.to))(edge.from)
+  }
+
+  /**
+   * Adds a new pair of vertices and their adjacency relationship to the VertexMap.
+   *
+   * @param pair A tuple containing two vertices of type V and a Boolean flag.
+   *             The first element (pair._1) represents the source vertex.
+   *             The second element (pair._2) represents the target vertex.
+   *             The third element (pair._3) indicates whether the relationship is one-way (true)
+   *             or bidirectional (false).
+   * @return A new VertexMap[V] instance with the updated adjacency relationships.
+   */
+  def +(pair: (V, V, Boolean)): VertexMap[V] = {
+    val create: V => Vertex[V] = Vertex.createWithBag[V]
+    val v1 = pair._1
+    val v2 = pair._2
+    val vm = this.ensure(create)(v1).ensure(create)(v2).processVertex(addAdjFunction)(v1)(AdjacencyVertex(v2))
+    if (pair._3) vm else vm.processVertex(addAdjFunction)(v2)(AdjacencyVertex(v1))
   }
 
   /**
@@ -168,6 +231,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return a new VertexMap with the edges from the EdgeList added
    */
   def addEdges[E](edgeList: EdgeList[V, E]): VertexMap[V] = edgeList.edges.foldLeft[VertexMap[V]](this) { (vm, e) => vm + e }
+
+  /**
+   * Adds vertex pairs to the vertex map while considering the directionality based on the `oneWay` parameter.
+   *
+   * @param pairs  A sequence of vertex pairs where each pair represents a connection between two vertices.
+   * @param oneWay A boolean flag indicating whether the connection between vertices should be one-way (true) or two-way (false).
+   * @return A new VertexMap with the provided vertex pairs added, updated to reflect the specified directions.
+   */
+  def addVertexPairs[E](pairs: Seq[(V, V)], oneWay: Boolean): VertexMap[V] = pairs.map(p => (p._1, p._2, oneWay)).foldLeft[VertexMap[V]](this) { (vm, pair) => vm + pair }
 
   /**
    * Method to run depth-first-search on this `VertexMap`.
@@ -394,11 +466,20 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     get(v) match {
       case Some(vv) =>
         // CONSIDER just using `iterator` because the iterator of `adjacencies` may already be randomized.
-        val iterator: Iterator[Adjacency[V]] = RandomIterator(vv.adjacencies.iterator)(random)
+        val iterator: Iterator[Adjacency[V]] = randomAdjacencies(vv)
         iterator.foldLeft(visitor)(recurseOnAdjacency(v))
       case None =>
         throw util.GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
     }
+
+  /**
+   * Generates a random iterator of adjacencies for the given vertex.
+   *
+   * @param vv the vertex whose adjacencies are to be randomized
+   * @tparam J the type parameter representing the relationship or type of adjacencies
+   * @return a randomized iterator of the vertex's adjacencies
+   */
+  private def randomAdjacencies[J](vv: Vertex[V]) = RandomIterator(vv.adjacencies.iterator)(random)
 
   /**
    * Applies depth-first search logic on a given adjacency, marking the associated vertex as discovered
@@ -506,13 +587,8 @@ object VertexMap:
    * @tparam V the type of the vertex attribute.
    * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
    */
-  def createFromVertexPairList[V](vertexPairList: VertexPairList[V]): VertexMap[V] = {
-    val vvVm: Map[V, Vertex[V]] = vertexPairList.pairs.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
-      (vm, pair) =>
-        addVertexPairToMap(vm).tupled(vm(pair._1) -> vm(pair._2))
-    }
-    VertexMap(vvVm)
-  }
+  def createFromVertexPairList[V](vertexPairList: VertexPairList[V]): VertexMap[V] =
+    VertexMap[V].addVertexPairs(vertexPairList.pairs, vertexPairList.oneWay)
 
   /**
    * Attempts to retrieve a vertex from the given map of vertex attributes to `Vertex` instances

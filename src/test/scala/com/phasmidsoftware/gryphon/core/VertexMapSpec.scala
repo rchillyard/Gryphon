@@ -35,15 +35,20 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     target.apply(3).attribute shouldBe 3
   }
 
-  ignore should "implement createFromVertexPairList, contains, apply, and vertices" in {
-    val target = VertexMap.createFromVertexPairList(vertexPairList)
+  it should "implement createFromVertexPairList, contains, apply, and vertices" in {
+    val target = VertexMap.createFromVertexPairList(vertexPairList) // 1 -> 2, 2 -> 3
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
     target.contains(3) shouldBe true
-    target.apply(1).attribute shouldBe 1
-    target.apply(2).attribute shouldBe 2
-    target.apply(3).attribute shouldBe 3
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 2
   }
 
   it should "empty $plus Vertex" in {

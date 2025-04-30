@@ -12,6 +12,33 @@ import com.phasmidsoftware.gryphon.visit.Visitor
  * @tparam V the underlying key (attribute) type for a vertex.
  */
 trait Traversable[V] {
+
+  /**
+   * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
+   *
+   * @param v the vertex whose adjacent vertices are to be returned.
+   * @return an iterator over the vertices adjacent to the specified vertex.
+   */
+  def adjacencies(v: V): Iterator[V]
+
+  /**
+   * Filters the vertices adjacent to a given vertex based on a specified predicate.
+   *
+   * @param predicate a function that determines whether an adjacent vertex should be included.
+   *                  It takes a vertex of type `V` and returns a boolean indicating whether the vertex satisfies the condition.
+   * @param v         the vertex whose adjacent vertices are to be filtered.
+   * @return an iterator containing the adjacent vertices that satisfy the predicate.
+   */
+  def filteredAdjacencies(predicate: V => Boolean)(v: V): Iterator[V] = adjacencies(v).filter(predicate)
+
+  /**
+   * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
+   *
+   * @param v the vertex whose adjacent vertices are to be returned.
+   * @return an iterator over the vertices adjacent to the specified vertex.
+   */
+  def undiscoveredAdjacencies(v: V): Iterator[V]
+
   /**
    * Method to run depth-first-search on this Traversable.
    *

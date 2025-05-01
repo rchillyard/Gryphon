@@ -2,11 +2,12 @@ package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.util.FP.lift
 
+import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 
 /**
  * A base class for parsing operations that extends the Scala `JavaTokenParsers`.
- * This class provides utility methods and predefined parsers for parsing input strings 
+ * This class provides utility methods and predefined parsers for parsing input strings
  * into specific types `V` and `E` using the `Parseable` typeclass.
  *
  * @tparam V The type of values to be parsed from the input, requiring an implicit `Parseable[V]`.
@@ -14,21 +15,18 @@ import scala.util.parsing.combinator.JavaTokenParsers
  */
 class BaseParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
   /**
-   * Attempts to parse the given input string using the provided parser.
-   * If the parsing is successful, the method wraps the result in an `Option`.
-   * In case of a parsing failure or error, an appropriate error message is printed to
-   * the standard error stream, and the method returns `None`.
-   *
-   * CONSIDER returning Try[T]
+   * Attempts to parse the given input string using the specified parser.
+   * If parsing succeeds, the result is wrapped in a `Success`.
+   * If parsing fails, a `Failure` containing a `ParseException` is returned.
    *
    * @param parser The parser to be used for parsing the input string.
-   * @param s      The input string to be parsed.
-   * @return An `Option` containing the result of type `T` from the parser if parsing
-   *         is successful, or `None` if parsing fails or encounters an error.
+   * @param s      The input string to parse.
+   * @return A `Try` containing the parsed result as `Success` if parsing succeeds, or
+   *         a `Failure` with a `ParseException` if parsing fails.
    */
-  def maybeParseAll[T](parser: Parser[T])(s: String): Option[T] = parseAll(parser, s) match {
-    case this.Success(result, _) => Some(result)
-    case this.NoSuccess.I(msg, _) => System.err.println(msg); None
+  def maybeParseAll[T](parser: Parser[T])(s: String): Try[T] = parseAll(parser, s) match {
+    case this.Success(result, _) => scala.util.Success(result)
+    case this.NoSuccess.I(msg, _) => scala.util.Failure(ParseException(msg))
   }
 
   private val vp = implicitly[Parseable[V]]

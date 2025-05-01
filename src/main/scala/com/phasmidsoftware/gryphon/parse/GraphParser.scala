@@ -2,6 +2,8 @@ package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.core.Triplet
 
+import scala.util.Try
+
 /**
  * A class that provides utilities for parsing graph-related data. It operates on vertices of type `V`
  * and edges of type `E`, where the parsing logic is defined through the `Parseable` typeclass.
@@ -17,29 +19,27 @@ import com.phasmidsoftware.gryphon.core.Triplet
 class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
 
   /**
-   * Parses the given input string into an optional tuple of two elements `(V, V)`
-   * using the `pair` parser.
-   * The parsing result depends on the success of the `pair`
-   * parser in matching the input string.
+   * Parses the given input string into a tuple `(V, V)` using the `pair` parser.
+   * The parsing is performed via the `maybeParseAll` method and depends on the success of the `pair` parser.
+   * If parsing succeeds, a `Success` containing the tuple `(V, V)` is returned.
+   * If parsing fails, a `Failure` containing a `ParseException` is returned.
    *
    * @param s The input string to be parsed.
-   * @return An `Option` containing a tuple `(V, V)` if the parsing is successful,
-   *         or `None` if the parsing fails or encounters an error.
+   * @return A `Try` containing a tuple `(V, V)` if parsing is successful, or a `Failure` with a `ParseException` if parsing fails.
    */
-  def parsePair(s: String): Option[(V, V)] = maybeParseAll(pair)(s)
+  def parsePair(s: String): Try[(V, V)] = maybeParseAll(pair)(s)
 
   /**
-   * Parses the given input string into an optional tuple `Triplet[V, E]` using the `triple` parser.
-   * The parsing result depends on the success of the `triple` parser in matching the input string. 
-   * If parsing is successful, a tuple `Triplet[V, E]` is returned as `Some`.
-   * If parsing fails or encounters an error, `None` is returned, 
-   * and the error message is printed to the standard error stream.
+   * Parses the given input string into an `Option[Triplet[V, E]]` using the `triple` parser.
+   * The parsing is performed via the `maybeParseAll` method. If the `triple` parser succeeds,
+   * the result is an `Option[Triplet[V, E]]` wrapped in a `Success`. If parsing fails,
+   * a `Failure` containing a `ParseException` is returned.
    *
    * @param s The input string to be parsed.
-   * @return An `Option` containing a tuple `Triplet[V, E]` if parsing is successful,
-   *         or `None` if parsing fails or encounters an error.
+   * @return A `Try` containing an `Option[Triplet[V, E]]` if parsing succeeds, or a `Failure`
+   *         with a `ParseException` if parsing fails.
    */
-  def parseTriple(s: String): Option[Triplet[V, E]] = maybeParseAll(triple)(s).flatten
+  def parseTriple(s: String): Try[Option[Triplet[V, E]]] = maybeParseAll(triple)(s)
 
   /**
    * Parses two consecutive `vop` elements from the input and combines their results into an optional tuple.
@@ -73,3 +73,18 @@ class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
  * @param t       The underlying throwable cause of the exception, if available.
  */
 case class ParseException(message: String, t: Throwable) extends Exception(message, t)
+
+/**
+ * Companion object for the ParseException class.
+ *
+ * Provides utility methods for creating instances of the ParseException class.
+ */
+object ParseException {
+  /**
+   * Creates a new instance of the `ParseException` class with the specified message and no cause.
+   *
+   * @param message The detail message explaining the context or cause of the parsing error.
+   * @return A new instance of `ParseException` initialized with the provided message.
+   */
+  def apply(message: String): ParseException = ParseException(message, null)
+}

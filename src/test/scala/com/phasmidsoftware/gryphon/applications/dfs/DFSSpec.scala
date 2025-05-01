@@ -9,7 +9,7 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.FP.sequence
-import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -30,18 +30,23 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
     wsy.isSuccess shouldBe true
     val ws = wsy.get
     sequence(for (w <- ws) yield p.parseTriple(w)) match {
-      case Some(triples) =>
-        triplesToTryGraph(triples) match {
-          case Success(graph: EdgeGraph[_, _]) =>
-            println(graph.edges)
-            graph.vertexMap.map.size shouldBe 8
-            graph.edges.size shouldBe 16
-          case Failure(x) =>
-            fail("parse failed: ", x)
-          case _ => fail("parse failed: Graph is not an EdgeGraph")
+      case Success(maybeTuples) =>
+        FP.sequence(maybeTuples) match {
+          case Some(triples) =>
+            triplesToTryGraph(triples) match {
+              case Success(graph: EdgeGraph[_, _]) =>
+                println(graph.edges)
+                graph.vertexMap.map.size shouldBe 8
+                graph.edges.size shouldBe 16
+              case Failure(x) =>
+                fail("parse failed: ", x)
+              case _ => fail("parse failed: Graph is not an EdgeGraph")
+            }
+          case None => fail("parse failed: no triples")
         }
-      case None =>
-        fail("parse failed")
+
+      case Failure(x) =>
+        fail("parse failed", x)
     }
   }
 

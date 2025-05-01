@@ -4,7 +4,7 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.EdgeGraph
 import com.phasmidsoftware.gryphon.util.FP.sequence
-import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -20,17 +20,17 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
 
   it should "parsePair 1" in {
     val p = new GraphParser[Int, Double]
-    p.parsePair("1 2") should matchPattern { case Some((1, 2)) => }
+    p.parsePair("1 2") should matchPattern { case Success((1, 2)) => }
   }
 
   it should "parsePair 2" in {
     val p = new GraphParser[String, Double]
-    p.parsePair("A B") should matchPattern { case Some(("A", "B")) => }
+    p.parsePair("A B") should matchPattern { case Success(("A", "B")) => }
   }
 
   it should "parseTriple" in {
     val p = new GraphParser[Int, Double]
-    p.parseTriple("1 2 3.14") should matchPattern { case Some((1, 2, 3.14)) => }
+    p.parseTriple("1 2 3.14") should matchPattern { case Success(Some((1, 2, 3.14))) => }
   }
 
   it should "parse Dijkstra" in {
@@ -40,18 +40,23 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
     wsy.isSuccess shouldBe true
     val ws = wsy.get
     sequence(for (w <- ws) yield p.parseTriple(w)) match {
-      case Some(triples) =>
-        triplesToTryGraph(triples) match {
-          case Success(graph: EdgeGraph[_, _]) =>
-            println(graph.edges)
-            graph.vertexMap.map.size shouldBe 8
-            graph.edges.size shouldBe 16
-          case Failure(x) =>
-            fail("parse failed: ", x)
-          case _ => fail("parse failed: Graph is not an EdgeGraph")
+      case Success(maybeTuples) =>
+        FP.sequence(maybeTuples) match {
+          case Some(triples) =>
+            triplesToTryGraph(triples) match {
+              case Success(graph: EdgeGraph[_, _]) =>
+                println(graph.edges)
+                graph.vertexMap.map.size shouldBe 8
+                graph.edges.size shouldBe 16
+              case Failure(x) =>
+                fail("parse failed: ", x)
+              case _ => fail("parse failed: Graph is not an EdgeGraph")
+            }
+          case None => fail("parse failed: no triples")
         }
 
-      case None => fail("parse failed")
+      case Failure(x) =>
+        fail("parse failed", x)
     }
 
   }

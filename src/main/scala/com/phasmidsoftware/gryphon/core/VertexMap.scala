@@ -2,6 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 // NOTE backward imports
 
+import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
 import com.phasmidsoftware.gryphon.core.VertexMap.maybeUndiscoveredVertex
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
@@ -62,15 +63,32 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
 
   /**
-   * Processes a vertex within a vertex map by applying a specified function to a given vertex and an additional parameter.
+   * Processes a vertex within a vertex map by applying a specified function to a given vertex
+   * and an additional parameter.
    *
-   * @param f A function that takes a vertex and an additional parameter of type X, then return processed vertex.
+   * @param f     A function that takes a vertex and an additional parameter of type X,
+   *              then return processed vertex.
    * @param v The key of the vertex to be processed, of type V.
    * @param x An additional parameter of type X that is passed to the function f.
-   * @return A new VertexMap[V] with the processed vertex if the key v exists, or the original VertexMap[V] if the key does not exist.
+   * @tparam X The type of the additional parameter.
+   * @return A new VertexMap[V] with the processed vertex if the key v exists,
+   *         or the original VertexMap[V] if the key does not exist.
    */
-  def processVertex[X](f: X => Vertex[V] => Vertex[V])(v: V)(x: X): VertexMap[V] =
+  def modifyVertexX[X](f: X => Vertex[V] => Vertex[V])(v: V)(x: X): VertexMap[V] =
     get(v) map (vv => f(x)(vv)) match {
+      case Some(vv) => this + vv
+      case None => this
+    }
+
+  /**
+   * Modifies a vertex in this `VertexMap`, if it exists, using the provided function.
+   *
+   * @param f the function that takes a vertex and returns a modified vertex
+   * @param v the identifier of the vertex to modify
+   * @return a new VertexMap with the vertex modified if it exists; otherwise, the original VertexMap
+   */
+  def modifyVertex(f: Vertex[V] => Vertex[V])(v: V): VertexMap[V] =
+    get(v) map f match {
       case Some(vv) => this + vv
       case None => this
     }
@@ -110,10 +128,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *         reflecting the addition of the edge.
    */
   def +[E](edge: Edge[E, V]): VertexMap[V] = {
-    val create: V => Vertex[V] = Vertex.createWithSet[V]
-    val addAdj: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
-    val createFrom: V => Vertex[V] = create andThen addAdj(AdjacencyEdge(edge))
-    val createTo: V => Vertex[V] = if (edge.oneWay) create else create andThen addAdj(AdjacencyEdge(edge, true))
+    val createFrom: V => Vertex[V] = createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge))
+    val createTo: V => Vertex[V] = if (edge.oneWay) createWithSet[V] else createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge, true))
     val fromFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createFrom)
     val toFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createTo)
     fromFunc(toFunc(this)(edge.to))(edge.from)
@@ -133,8 +149,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     val create: V => Vertex[V] = Vertex.createWithBag[V]
     val v1 = pair._1
     val v2 = pair._2
-    val vm = this.ensure(create)(v1).ensure(create)(v2).processVertex(addAdjFunction)(v1)(AdjacencyVertex(v2))
-    if (pair._3) vm else vm.processVertex(addAdjFunction)(v2)(AdjacencyVertex(v1))
+    val vm = this.ensure(create)(v1).ensure(create)(v2).modifyVertex(addAdjFunction(AdjacencyVertex(v2)))(v1)
+    if (pair._3) vm else vm.modifyVertex(addAdjFunction(AdjacencyVertex(v1)))(v2)
   }
 
   /**
@@ -395,6 +411,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * and appended to the queue. If the vertex `v` does not exist in the adjacency list,
    * an exception is thrown.
    *
+   * TODO use undiscoveredAdjacencies
+   *
    * @param v         the vertex whose unvisited adjacent vertices are to be enqueued
    * @param queue     the queue into which the unvisited vertices will be appended
    * @param queueable the implicit type class to handle the behavior of the queue-like object
@@ -463,14 +481,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws util.GraphException if the vertex is not found in the graph.
    */
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
-    get(v) match {
-      case Some(vv) =>
-        // CONSIDER just using `iterator` because the iterator of `adjacencies` may already be randomized.
-        val iterator: Iterator[Adjacency[V]] = randomAdjacencies(vv)
-        iterator.foldLeft(visitor)(recurseOnAdjacency(v))
-      case None =>
-        throw util.GraphException(s"DFS logic error 0: recursiveDFS(v = $v)")
-    }
+    undiscoveredAdjacencies(v).foldLeft(visitor)((b, v) => recursiveDFS(b, v))
 
   /**
    * Generates a random iterator of adjacencies for the given vertex.

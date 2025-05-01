@@ -16,14 +16,14 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Queueable"
 
-  val v1 = Vertex.createWithBag(1)
-  val v2 = Vertex.createWithBag(2)
-  val v3 = Vertex.createWithBag(3)
+  private val v1 = Vertex.createWithBag(1)
+  private val v2 = Vertex.createWithBag(2)
+  private val v3 = Vertex.createWithBag(3)
 
-  val v2_av = v2 + AdjacencyVertex(v3)
-  val v1_av = v1 + AdjacencyVertex(v2_av)
+  private val v2_av = v2 + AdjacencyVertex(v3)
+  private val v1_av = v1 + AdjacencyVertex(v2_av)
 
-  val vxVm: Map[Int, Vertex[Int]] =
+  private val vxVm: Map[Int, Vertex[Int]] =
     Map.empty[Int, Vertex[Int]] + (3 -> v3) + (2 -> v2_av) + (1 -> v1_av)
 
   /**

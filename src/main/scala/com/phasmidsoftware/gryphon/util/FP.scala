@@ -160,7 +160,7 @@ object FP {
    * Appends additional information if the size of the collection exceeds the specified limit.
    *
    * @param limit the maximum number of elements to include in the output string.
-   * @param xs    the iterable collection of elements to be processed.
+   * @param xi    the iterator of elements to be processed.
    * @param sep   the separator string to use between elements in the output string (defaults to ", ").
    * @tparam X the type of elements in the input collection.
    * @return a string representation of up to `limit` elements from the collection, concatenated with the `sep` string.

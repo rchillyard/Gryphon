@@ -29,12 +29,12 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "parseTriple" in {
-    val p = new DecimalGraphParser[Int, Double]
+    val p = new GraphParser[Int, Double]
     p.parseTriple("1 2 3.14") should matchPattern { case Some((1, 2, 3.14)) => }
   }
 
   it should "parse Dijkstra" in {
-    val p = new DecimalGraphParser[Int, Double]
+    val p = new GraphParser[Int, Double]
     val triedSource = Try(Source.fromResource(dijkstraGraphPath))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
     wsy.isSuccess shouldBe true

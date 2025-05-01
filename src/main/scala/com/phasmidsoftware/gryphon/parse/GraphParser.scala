@@ -1,13 +1,15 @@
 package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.core.Triplet
+import com.phasmidsoftware.gryphon.util.FP.lift
 
-import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers
 
 /**
  * A class that provides utilities for parsing graph-related data. It operates on vertices of type `V`
  * and edges of type `E`, where the parsing logic is defined through the `Parseable` typeclass.
+ *
+ * CONSIDER renaming (or splitting) this class
  *
  * This parser supports extracting pairs of vertices, triples (two vertices and an edge), and custom
  * parsing of vertices and edges in a graph representation.
@@ -22,18 +24,12 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
    * using the `pair` parser.
    * The parsing result depends on the success of the `pair`
    * parser in matching the input string.
-   * 
-   * TODO merge the two methods parsePair and parseTriple into one.
    *
    * @param s The input string to be parsed.
    * @return An `Option` containing a tuple `(V, V)` if the parsing is successful,
    *         or `None` if the parsing fails or encounters an error.
    */
-  def parsePair(s: String): Option[(V, V)] = parseAll(pair, s) match {
-    case this.Success(result, _) => result
-    case this.Failure(msg, _) => System.err.println(msg); None
-    case this.Error(msg, _) => System.err.println(msg); None
-  }
+  def parsePair(s: String): Option[(V, V)] = maybeParseAll(pair)(s)
 
   /**
    * Parses the given input string into an optional tuple `Triplet[V, E]` using the `triple` parser.
@@ -46,11 +42,7 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
    * @return An `Option` containing a tuple `Triplet[V, E]` if parsing is successful,
    *         or `None` if parsing fails or encounters an error.
    */
-  def parseTriple(s: String): Option[Triplet[V, E]] = parseAll(triple, s) match {
-    case this.Success(result, _) => result
-    case this.Failure(msg, _) => System.err.println(msg); None
-    case this.Error(msg, _) => System.err.println(msg); None
-  }
+  def parseTriple(s: String): Option[Triplet[V, E]] = maybeParseAll(triple)(s).flatten
 
   /**
    * Parses two consecutive `vop` elements from the input and combines their results into an optional tuple.
@@ -59,8 +51,8 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
    *
    * @return A parser that evaluates to an `Option` containing a tuple of two elements `(V, V)` if successful, or `None` otherwise.
    */
-  def pair: Parser[Option[(V, V)]] =
-    vop ~ vop ^^ { case xo ~ yo => for (x <- xo; y <- yo) yield (x, y) }
+  def pair: Parser[(V, V)] =
+    vop ~ vop ^^ { case x ~ y => (x, y) }
 
   /**
    * Parses a sequence consisting of two `V` elements followed by an `E` element and combines them into an `Option` tuple.
@@ -70,50 +62,53 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
    * @return A `Parser` that produces an `Option` containing a tuple `Triplet[V, E]` if all parts are successfully parsed, or `None` if any part fails.
    */
   def triple: Parser[Option[Triplet[V, E]]] =
-    vop ~ vop ~ eop ^^ { case xo ~ yo ~ zo => for (x <- xo; y <- yo; z <- zo) yield (x, y, z) }
+    vop ~ vop ~ eop ^^ { case x ~ y ~ zo => zo match {
+      case None => None
+      case Some(z) => Some((x, y, z))
+    }
+    }
 
   /**
-   * A regular expression used to match attributes of vertices in the graph.
-   * This should be overridden when anything other than the default pattern is required.
+   * Attempts to parse the given input string using the provided parser.
+   * If the parsing is successful, the method wraps the result in an `Option`.
+   * In case of a parsing failure or error, an appropriate error message is printed to
+   * the standard error stream, and the method returns `None`.
    *
-   * @return A `Regex` pattern that matches one or more word characters (`\w+`).
-   */
-  def vertexAttributeRegex: Regex = """\w+""".r
-
-  /**
-   * A regular expression used to match attributes of edges in the graph.
-   * This should be overridden when anything other than the default pattern is required.
+   * CONSIDER returning Try[T]
    *
-   * @return A `Regex` pattern that matches one or more word characters (`\w+`).
+   * @param parser The parser to be used for parsing the input string.
+   * @param s      The input string to be parsed.
+   * @return An `Option` containing the result of type `T` from the parser if parsing
+   *         is successful, or `None` if parsing fails or encounters an error.
    */
-  def edgeAttributeRegex: Regex = """\w+""".r
+  private def maybeParseAll[T](parser: Parser[T])(s: String): Option[T] = parseAll(parser, s) match {
+    case this.Success(result, _) => Some(result)
+    case this.NoSuccess.I(msg, _) => System.err.println(msg); None
+  }
 
   private val vp = implicitly[Parseable[V]]
   private val ep = implicitly[Parseable[E]]
 
   /**
-   * Parses an optional vertex attribute from the input string using a regular expression
-   * defined by `vertexAttributeRegex` and attempts to convert it into a value of type `V`.
-   * The conversion is performed by the `parse` method provided by the `Parseable` instance for type `V`.
+   * Parses an input string using the regular expression provided by `vp.regex`
+   * and converts the matched result into a value of type `V` using the `Parseable.parser` method.
+   * The input must match the regular expression for the parsing to succeed.
    *
-   * @return A `Parser` that produces an `Option[V]`.
-   *         Returns `Some(value)` if the input matches the regular expression and
-   *         successfully parses into a value of type `V`.
-   *         Returns `None` if the input does not match or parsing fails.
+   * @return A `Parser` that produces a value of type `V`. If the input matches the regular expression 
+   *         and is successfully parsed into a value of type `V`, the result is returned by the parser. 
+   *         Otherwise, parsing fails.
    */
-  private def vop: Parser[Option[V]] = opt(vertexAttributeRegex) ^^ (vo => vo flatMap vp.parse)
+  private def vop: Parser[V] = vp.regex ^^ Parseable.parser(vp)
 
   /**
-   * Parses an optional edge attribute from the input string using a regular expression
-   * defined by `edgeAttributeRegex` and attempts to convert it into a value of type `E`.
-   * The conversion is performed by the `parse` method provided by the `Parseable` instance for type `E`.
+   * Parses an optional element of type `E` using the regular expression provided by `ep.regex`
+   * and converts the matched result into a value of type `E` using the `Parseable.parser` method.
+   * The parsing process matches an optional occurrence (`opt`) of the pattern.
    *
-   * @return A `Parser` that produces an `Option[E]`.
-   *         Returns `Some(value)` if the input matches the regular expression and 
-   *         successfully parses into a value of type `E`.
-   *         Returns `None` if the input does not match or parsing fails.
+   * @return A `Parser` that evaluates to an `Option` containing a value of type `E` if the input matches
+   *         the regular expression and is successfully parsed. Returns `None` if no match is found.
    */
-  private def eop: Parser[Option[E]] = opt(edgeAttributeRegex) ^^ (vo => vo flatMap ep.parse)
+  private def eop: Parser[Option[E]] = opt(ep.regex) ^^ lift(Parseable.parser(ep))
 }
 
 /**
@@ -126,13 +121,12 @@ class GraphParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
  * @tparam V the type of the vertices in the graph, which must have an implicit `Parseable[V]` instance
  * @tparam E the type of the edges in the graph, which must have an implicit `Parseable[E]` instance
  */
-class DecimalGraphParser[V: Parseable, E: Parseable] extends GraphParser[V, E]:
-  /**
-   * A regular expression used to match attributes of edges in the graph. This overrides the default implementation
-   * to match decimal numbers, including integers, floating-point numbers with an optional leading or trailing zero,
-   * and numbers in scientific notation.
-   *
-   * @return A `Regex` pattern that matches decimal numbers, allowing both integers (e.g., "42") and floating-point
-   *         numbers (e.g., "3.14" or ".5").
-   */
-  override def edgeAttributeRegex: Regex = """(\d+(\.\d*)?|\d*\.\d+)""".r
+class DecimalGraphParser[V: Parseable, E: Parseable] extends GraphParser[V, E]
+
+/**
+ * A specialized exception class representing errors encountered during parsing processes.
+ *
+ * @param message The detail message explaining the cause or context of the exception.
+ * @param t       The underlying throwable cause of the exception, if available.
+ */
+case class ParseException(message: String, t: Throwable) extends Exception(message, t)

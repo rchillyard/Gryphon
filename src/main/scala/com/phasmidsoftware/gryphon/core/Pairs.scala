@@ -1,6 +1,9 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.parse.Parseable
+import com.phasmidsoftware.gryphon.util.FP
+
+import scala.util.Try
 
 /**
  * A trait representing a collection of vertex pairs within a graph structure.
@@ -70,11 +73,29 @@ case class Connexions[V](pairs: Seq[(V, V)]) extends SerializableGraph[V, Unit]:
  * where vertices are connected by edges derived from parsed values.
  */
 object Connexions {
-  def parse[V: Parseable](pairs: Seq[(String, String)]): Connexions[V] =
-    Connexions(for {
+  /**
+   * Parses a sequence of string pairs into a `Connexions` instance, where each pair represents
+   * a directed connection between two vertices of type `V`.
+   *
+   * The method relies on the `Parseable` typeclass to parse each string into the target type `V`.
+   * If all pairs are successfully parsed, a `Connexions` instance is created. If any parsing
+   * operation fails, the method returns a failed `Try`.
+   *
+   * @param pairs a sequence of string pairs representing directed connections; each pair consists 
+   *              of two strings that are parsed into vertices of type `V`.
+   * @tparam V the type of the vertices in the `Connexions`, which must have an implicit `Parseable`
+   *           instance for parsing strings into `V`.
+   * @return a `Try` containing the resulting `Connexions[V]` instance if all pairs are successfully
+   *         parsed, or a failed `Try` with the corresponding exception if any parsing fails.
+   */
+  def parse[V: Parseable](pairs: Seq[(String, String)]): Try[Connexions[V]] = {
+    val tys: Seq[Try[(V, V)]] = for {
       (x, y) <- pairs
+    } yield for {
       vx <- implicitly[Parseable[V]].parse(x)
       vy <- implicitly[Parseable[V]].parse(y)
     } yield (vx, vy)
-    )
+    FP.sequence(tys) map (Connexions(_))
+
+  }
 }

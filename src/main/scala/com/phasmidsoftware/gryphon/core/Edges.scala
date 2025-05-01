@@ -1,6 +1,9 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.parse.Parseable
+import com.phasmidsoftware.gryphon.util.FP
+
+import scala.util.Try
 
 /**
  * A trait representing a graph structure defined by its edges.
@@ -97,13 +100,32 @@ case class Triplets[V, E](triplets: Seq[Triplet[V, E]]) extends SerializableGrap
  * for the provided types. If any conversion fails, the corresponding triplet is discarded.
  */
 object Triplets {
-  def parse[V: Parseable, E: Parseable](ts: Seq[(String, String, String)]): Triplets[V, E] =
-    Triplets(for {
+  /**
+   * Parses a sequence of string triplets into a `Triplets` object, where each triplet
+   * represents a connection in a graph with a source vertex, target vertex, and edge attribute.
+   * The parsing process utilizes implicitly provided instances of the `Parseable` typeclass
+   * for the vertex and edge types and returns a `Try` encapsulating the parsed result.
+   *
+   * @param ts a sequence of string tuples where each tuple contains three elements:
+   *           - the first element is the string representation of the source vertex
+   *           - the second element is the string representation of the target vertex
+   *           - the third element is the string representation of the edge attribute
+   * @tparam V the type of the parsed vertices
+   * @tparam E the type of the parsed edge attributes
+   * @return a `Try` wrapping a `Triplets` object if all parsing operations are successful,
+   *         or a `Failure` if any of the string parsing operations fail
+   */
+  def parse[V: Parseable, E: Parseable](ts: Seq[(String, String, String)]): Try[Triplets[V, E]] = {
+    val tys: Seq[Try[(V, V, E)]] = for {
       (x, y, z) <- ts
+    }
+    yield for {
       vx <- implicitly[Parseable[V]].parse(x)
       vy <- implicitly[Parseable[V]].parse(y)
       ez <- implicitly[Parseable[E]].parse(z)
     } yield (vx, vy, ez)
-    )
+
+    FP.sequence(tys) map (Triplets(_))
+  }
 
 }

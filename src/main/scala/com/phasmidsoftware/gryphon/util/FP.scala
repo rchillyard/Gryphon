@@ -14,6 +14,32 @@ import scala.util.{Failure, Success, Try, Using}
 object FP {
 
   /**
+   * Lifts a function `f` of type `A => B` into a function that operates on `Option`.
+   * The resulting function applies the given function `f` to the value inside an `Option`,
+   * if it is defined, and returns the transformed `Option`.
+   *
+   * @param f the function to be lifted, which takes a value of type `A` and returns a value of type `B`.
+   * @tparam A the input type of the function `f`.
+   * @tparam B the output type of the function `f`.
+   * @return a function that takes an `Option[A]` and returns an `Option[B]` by applying `f` to the value inside the `Option` if it exists.
+   */
+  def lift[A, B](f: A => B): Option[A] => Option[B] = _ map f
+
+  /**
+   * Asserts a condition and returns a success or failure based on the outcome.
+   * If the condition is true, the method returns a success containing the value `t`.
+   * Otherwise, it returns a failure with an `AssertionError` containing the provided message.
+   *
+   * @param b   the condition to be asserted, which determines success or failure.
+   * @param msg the error message to include in the `AssertionError` if the condition is false.
+   * @param t   the value to be returned in the `Success` case if the condition is true.
+   * @tparam T the type of the value contained in the `Try`.
+   * @return a `Try[T]` containing the value `t` as a `Success` if the condition is true, 
+   *         or a `Failure` with an `AssertionError` if the condition is false.
+   */
+  def assert[T](b: Boolean)(msg: String)(t: T): Try[T] = if (b) Success(t) else Failure(AssertionError(msg))
+
+  /**
    * Combines a sequence of optional values into a single optional sequence, preserving
    * the order of elements and excluding any `None` values.
    * If the input sequence contains only `None` values, the result will be `None`.

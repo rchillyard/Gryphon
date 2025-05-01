@@ -469,24 +469,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   private def randomAdjacencies[J](vv: Vertex[V]) = RandomIterator(vv.adjacencies.iterator)(random)
 
   /**
-   * Applies depth-first search logic on a given adjacency, marking the associated vertex as discovered
-   * and invoking recursive processing if the vertex is found.
-   *
-   * @param v       the current vertex attribute being processed.
-   * @param visitor the visitor instance to be used for traversal logic.
-   * @param va      the adjacency containing the vertex to process.
-   * @tparam J the type of the visitor's journal.
-   * @return an updated Visitor[V, J] after processing the given adjacency and its contained vertex.
-   */
-  private def recurseOnAdjacency[J](v: V)(visitor: Visitor[V, J], va: Adjacency[V]): Visitor[V, J] =
-    findAndMarkVertex(map(va.vertex), s"DFS logic error 1: findAndMarkVertex(v = $v, va = $va") { w => w.discovered = true } match {
-      case Some(z) =>
-        recursiveDFS(visitor, z)
-      case None =>
-        visitor
-    }
-
-  /**
    * Searches for the given vertex to check if it is undiscovered, marks it as discovered,
    * and applies the provided function to it.
    * If the vertex is discovered during the process, its attribute is returned.

@@ -4,13 +4,12 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
-import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, DirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.gryphon.parse.DecimalGraphParser
-import com.phasmidsoftware.gryphon.parse.Parseable.ParseableUnit
-import com.phasmidsoftware.gryphon.util.FP.{resource, sequence}
-import com.phasmidsoftware.gryphon.util.{GraphException, TryUsing}
+import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.util.FP.sequence
+import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -25,7 +24,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
   val dijkstraGraphPath = "dijkstra.graph"
 
   it should "dfs Dijkstra" in {
-    val p = new DecimalGraphParser[Int, Double]
+    val p = new GraphParser[Int, Double]
     val triedSource = Try(Source.fromResource(dijkstraGraphPath))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
     wsy.isSuccess shouldBe true

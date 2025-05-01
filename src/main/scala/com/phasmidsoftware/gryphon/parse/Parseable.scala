@@ -1,5 +1,10 @@
 package com.phasmidsoftware.gryphon.parse
 
+import com.phasmidsoftware.gryphon.util.FP
+
+import scala.util.matching.Regex
+import scala.util.{Success, Try}
+
 /**
  * A trait that defines a typeclass for parsing strings into objects of type `T`.
  *
@@ -12,12 +17,30 @@ package com.phasmidsoftware.gryphon.parse
 trait Parseable[T] {
 
   /**
-   * Parses a string input and attempts to convert it into an optional value of type `T`.
+   * Parses the input string into an instance of type `T`.
+   * The parsing process utilizes the logic provided by the implementation of the `parse` method
+   * in the corresponding `Parseable[T]` instance.
    *
-   * @param input The string to be parsed into an object of type `T`.
-   * @return An `Option` containing the parsed object of type `T` if successful, or `None` if the parsing fails.
+   * @param input the string to be parsed into an instance of type `T`
+   * @return a `Try` wrapping the resulting parsed object of type `T` if successful,
+   *         or a `Failure` with the corresponding exception if parsing fails
    */
-  def parse(input: String): Option[T]
+  def parse(input: String): Try[T]
+
+  /**
+   * The regular expression used for parsing a `Parseable[T]`.
+   *
+   * @return A compiled regular expression.
+   *         By default, the result matches one or more word characters (`\w+`).
+   */
+  def regex: Regex
+
+  /**
+   * Returns a message providing details about of type `T`.
+   *
+   * @return The message.
+   */
+  def message: String
 }
 
 /**
@@ -27,6 +50,24 @@ trait Parseable[T] {
  * These implementations can be used where implicit conversions are required for parsing operations.
  */
 object Parseable {
+
+  /**
+   * Parses a string input into an instance of type `T` using the implicitly provided `Parseable[T]` typeclass.
+   * Utilizes the `Parseable[T]#parse` method to attempt parsing the input, throwing a `ParseException`
+   * with detailed information if the parsing fails.
+   *
+   * @tparam T The target type to which the string is parsed.
+   * @return A function that takes a `String` input and returns an instance of type `T`.
+   *         If parsing fails, a `ParseException` is thrown.
+   */
+  def parser[T: Parseable]: String => T =
+    w =>
+      val parseable = implicitly[Parseable[T]]
+      parseable.parse(w) match {
+        case util.Failure(exception) => throw ParseException(s"Failed to parse \"$w\" as ${parseable.message}", exception)
+        case util.Success(value) => value
+      }
+
   /**
    * A trait that provides a specific implementation of the `Parseable` typeclass for the `Unit` type.
    *
@@ -54,7 +95,22 @@ object Parseable {
      * @param w the input string to be parsed (ignored)
      * @return an Option containing Unit, which is always Some(())
      */
-    def parse(w: String): Option[Unit] = Some(())
+    def parse(w: String): Try[Unit] = FP.assert(w == "()")("not a valid Unit")(w)
+
+    /**
+     * The regular expression used for parsing a `Parseable[Unit]`.
+     *
+     * @return A compiled regular expression.
+     *         The result matches one or more word characters (`()`).
+     */
+    override def regex: Regex = """\(\)""".r
+
+    /**
+     * Returns a constant string representation of the `Unit` type.
+     *
+     * @return the string "Unit"
+     */
+    def message: String = "Unit"
   }
 
   /**
@@ -92,7 +148,22 @@ object Parseable {
      * @return An `Option[Boolean]` containing `Some(true)` or `Some(false)` if parsing is successful,
      *         or `None` if the string is not a valid representation of a boolean.
      */
-    def parse(w: String): Option[Boolean] = w.toBooleanOption
+    def parse(w: String): Try[Boolean] = Try(w.toBoolean)
+
+    /**
+     * Provides a message describing the type supported by this implementation.
+     *
+     * @return A string representation of the type, in this case "Boolean".
+     */
+    def message: String = "Boolean"
+
+    /**
+     * The regular expression used for parsing a `Parseable[T]`.
+     *
+     * @return A compiled regular expression.
+     *         By default, the result matches one or more word characters (`\w+`).
+     */
+    override def regex: Regex = """yes|true|no|false/i""".r
   }
 
   /**
@@ -123,7 +194,22 @@ object Parseable {
      * @param input the input string to parse. It can be null or empty.
      * @return an `Option[String]` containing the input string if it is non-null and non-empty, or `None` otherwise.
      */
-    def parse(input: String): Option[String] = Option.when(input != null && input.nonEmpty)(input)
+    def parse(input: String): Try[String] = FP.assert(input != null && input.nonEmpty)("not a valid String")(input)
+
+    /**
+     * Retrieves a predefined string message.
+     *
+     * @return A string message, "String".
+     */
+    def message: String = "String"
+
+    /**
+     * The regular expression used for parsing a `Parseable[String]`.
+     *
+     * @return A compiled regular expression.
+     *         The result matches one or more word characters (`\w+`).
+     */
+    def regex: Regex = """\w+""".r
   }
 
   /**
@@ -150,7 +236,23 @@ object Parseable {
      * @param input The string to be parsed into an object of type `Int`.
      * @return An `Option` containing the parsed object of type `Int` if successful, or `None` if the parsing fails.
      */
-    def parse(input: String): Option[Int] = input.toIntOption
+    def parse(input: String): Try[Int] = Try(input.toInt)
+
+    /**
+     * Retrieves a string representation of the type `Int`.
+     *
+     * @return A string value `"Int"` that represents the type.
+     */
+    def message: String = "Int"
+
+    /**
+     * A regular expression pattern for matching integer values in a string.
+     *
+     * The regex matches optional negative signs followed by one or more digits.
+     *
+     * @return A `Regex` instance that represents the pattern for matching integers.
+     */
+    def regex: Regex = """-?\d+""".r
   }
 
   /**
@@ -178,7 +280,22 @@ object Parseable {
      * @param input The string to be parsed into an object of type `Double`.
      * @return An `Option` containing the parsed object of type `Double` if successful, or `None` if the parsing fails.
      */
-    def parse(input: String): Option[Double] = input.toDoubleOption
+    def parse(input: String): Try[Double] = Try(input.toDouble)
+
+    /**
+     * A method that returns a string representation associated with this trait.
+     *
+     * @return The string "Double".
+     */
+    def message: String = "Double"
+
+    /**
+     * A regular expression used to match numeric values in a string, including integers, floating-point numbers,
+     * and numbers with an optional leading or trailing zero.
+     *
+     * @return A `Regex` pattern that matches valid numeric representations, such as "42", "3.14", or ".5".
+     */
+    override def regex: Regex = """(\d+(\.\d*)?|\d*\.\d+)""".r
   }
 
   /**

@@ -31,7 +31,9 @@ class ParseableSpec extends AnyFlatSpec with Matchers {
   it should "fail Boolean 3" in {
     val booleanParser: String => Boolean = Parseable.parser[Boolean]
     Try(booleanParser("X")) match {
-      case Failure(e) => e.getLocalizedMessage shouldBe "Failed to parse \"X\" as Boolean"
+      case Failure(e) =>
+        e.getLocalizedMessage shouldBe "Failed to parse \"X\" as Boolean (This is most likely an inconsistency in the logic of the implicit instance of Parseable[Boolean]). The underlying cause is:"
+        e.getCause.getLocalizedMessage shouldBe "For input string: \"X\""
       case _ => fail("parse succeeded when it should have failed")
     }
   }

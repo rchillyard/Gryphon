@@ -64,8 +64,10 @@ object Parseable {
     w =>
       val parseable = implicitly[Parseable[T]]
       parseable.parse(w) match {
-        case util.Failure(exception) => throw ParseException(s"Failed to parse \"$w\" as ${parseable.message}", exception)
-        case util.Success(value) => value
+        case util.Failure(exception) =>
+          throw ParseException(s"Failed to parse \"$w\" as ${parseable.message} (This is most likely an inconsistency in the logic of the implicit instance of Parseable[${parseable.message}]). The underlying cause is:", exception)
+        case util.Success(t) =>
+          t
       }
 
   /**

@@ -419,32 +419,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return a new queue containing the original elements and the newly enqueued vertices
    * @throws GraphException if the vertex `v` does not exist in the adjacency list
    */
-  private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q = optAdjacencyList(v) match {
-    case Some(vau: Unordered[Adjacency[V]]) =>
-      vau.iterator.foldLeft(queue) {
-        (q, va) =>
-          val vertex = map(va.vertex)
-          if (!vertex.discovered) {
-            vertex.discovered = true
-            queueable.append(q, va.vertex)
-          }
-          else
-            q
-      }
-    case None => throw GraphException(s"BFS logic error 0: enqueueUnvisitedVertices(v = $v)")
-  }
-
-
-  /**
-   * Retrieves the list of adjacencies for a given vertex if it exists in the graph.
-   * This method searches `vxVm` for the specified vertex and, if found,
-   * returns its associated adjacencies wrapped in an `Option`.
-   *
-   * @param v the vertex identifier for which adjacencies are to be retrieved.
-   * @return an `Option` containing the unordered collection of adjacencies for the given vertex,
-   *         or `None` if the vertex does not exist in the graph.
-   */
-  private def optAdjacencyList(v: V): Option[Unordered[Adjacency[V]]] = map.get(v) map (_.adjacencies)
+  private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q =
+    undiscoveredAdjacencies(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
 
   /**
    * Initializes the visit status of all vertices in the map by resetting their state.

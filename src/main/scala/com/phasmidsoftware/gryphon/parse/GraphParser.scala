@@ -38,28 +38,28 @@ class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V
   def parseTriple(s: String): Try[Option[Triplet[V, E, Z]]] = maybeParseAll(triple)(s)
 
   /**
-   * Parses two consecutive `vop` elements from the input and combines their results into an optional tuple.
-   * If both `vop` elements are successfully parsed and yield values, the result will contain a tuple with those values.
-   * If either `vop` fails to yield a value, the result will be `None`.
+   * Parses two consecutive `vertex` elements from the input and combines their results into an optional tuple.
+   * If both `vertex` elements are successfully parsed and yield values, the result will contain a tuple with those values.
+   * If either `vertex` fails to yield a value, the result will be `None`.
    *
    * @return A parser that evaluates to an `Option` containing a tuple of two elements `(V, V)` if successful, or `None` otherwise.
    */
   def pair: Parser[(V, V, Option[Z])] =
-    vop ~ zop ~ vop ^^ { case x ~ zo ~ y => (x, y, zo) }
+    vertex ~ maybeZ ~ vertex ^^ { case x ~ zo ~ y => (x, y, zo) }
 
   /**
    * Parses a sequence consisting of two `V` elements followed by an `E` element and combines them into an `Option` tuple.
-   * Each element is parsed using the `vop` and `eop` parsers, which are responsible for parsing parts of the input.
+   * Each element is parsed using the `vertex` and `maybeEdge` parsers, which are responsible for parsing parts of the input.
    * If all elements are successfully parsed, they are combined into the tuple `Triplet[V, E]`; otherwise, the result is `None`.
    *
    * @return A `Parser` that produces an `Option` containing a tuple `Triplet[V, E]` if all parts are successfully parsed, or `None` if any part fails.
    */
   def triple: Parser[Option[Triplet[V, E, Z]]] =
-    vop ~ zop ~ vop ~ eop ^^ { case x ~ zo ~ y ~ qo => (qo, zo) match {
-      case (Some(q), Some(z)) =>
-        Some((x, y, q, z))
-      case (Some(q), None) =>
-        Some((x, y, q, implicitly[Parseable[Z]].none))
+    vertex ~ maybeZ ~ vertex ~ maybeEdge ^^ { case x ~ zo ~ y ~ eo => (eo, zo) match {
+      case (Some(e), Some(z)) =>
+        Some((x, y, e, z))
+      case (Some(e), None) =>
+        Some((x, y, e, implicitly[Parseable[Z]].none))
       case _ =>
         None
     }

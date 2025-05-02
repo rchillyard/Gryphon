@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
-import com.phasmidsoftware.gryphon.core.{EdgeGraph, EdgeType, Undirected}
+import com.phasmidsoftware.gryphon.core.{Directed, EdgeGraph, EdgeType, Undirected}
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -28,9 +28,15 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
     p.parsePair("A B") should matchPattern { case Success(("A", "B", None)) => }
   }
 
-  it should "parseTriple" in {
+  it should "parseTriple Undirected" in {
     val p = new GraphParser[Int, Double, EdgeType]
     p.parseTriple("1 = 2 3.14") should matchPattern { case Success(Some((1, 2, 3.14, Undirected))) => }
+  }
+
+  it should "parseTriple Directed" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    val triedMaybeTuple = p.parseTriple("1 2 3.14")
+    triedMaybeTuple should matchPattern { case Success(Some((1, 2, 3.14, Directed))) => }
   }
 
   it should "parse Dijkstra" in {

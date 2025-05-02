@@ -56,8 +56,6 @@ trait EdgeType:
    */
   def oneWay: Boolean
 
-  override def toString: String = if (oneWay) "Directed" else "Undirected"
-
 /**
  * The `Directed` object represents a directed edge type in a graph,
  * where the edge has a specific direction (one-way).
@@ -71,6 +69,8 @@ object Directed extends EdgeType {
    * @return true, as this method always returns true to signify that the edge is directed.
    */
   def oneWay: Boolean = true
+
+  override def toString: String = "Directed"
 }
 
 /**
@@ -85,6 +85,8 @@ object Undirected extends EdgeType {
    * @return false, as the edge type is not one-way.
    */
   def oneWay: Boolean = false
+
+  override def toString: String = "Undirected"
 }
 
 /**
@@ -106,6 +108,8 @@ object Undefined extends EdgeType {
    * @return false, indicating the edge type is not one-way.
    */
   def oneWay: Boolean = false
+
+  override def toString: String = "Undefined"
 }
 
 /**
@@ -133,7 +137,7 @@ object EdgeType {
      * @return A compiled regular expression.
      *         By default, the result matches one or more word characters (`\w+`).
      */
-    def regex: Regex = """[=<->]+""".r
+    def regex: Regex = """[=<->.]+""".r
 
     /**
      * Returns a message providing details about of type `T`.
@@ -164,7 +168,7 @@ object EdgeType {
      *
      * @return the default value of type `T`, typically representing an "empty" or "none" state.
      */
-    def none: EdgeType = Undefined
+    def none: EdgeType = Directed
   }
 
   /**

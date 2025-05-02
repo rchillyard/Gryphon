@@ -345,7 +345,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *                of type `V` and an edge attribute of type `E`.
    * @return a pair of updated vertices `(Vertex[V], Vertex[V])` after applying the adjacency relationships.
    */
-  def createVerticesFromTriplet[E, Z](f: V => Vertex[V])(f1: (Vertex[V], Vertex[V], E) => Adjacency[V])(f2: (Vertex[V], Vertex[V], E) => Option[Adjacency[V]])(triplet: Triplet[V, E, Z]): VertexMap[V] = {
+  def createVerticesFromTriplet[E, Z](f: V => Vertex[V])(f1: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V])(f2: (Vertex[V], Vertex[V], Option[E]) => Option[Adjacency[V]])(triplet: Triplet[V, E, Z]): VertexMap[V] = {
     val vv1: Vertex[V] = getOrCreate(f)(triplet._1)
     val vv2: Vertex[V] = getOrCreate(f)(triplet._2)
     val va1: Adjacency[V] = f1(vv1, vv2, triplet._3)

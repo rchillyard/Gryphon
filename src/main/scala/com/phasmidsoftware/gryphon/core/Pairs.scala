@@ -47,7 +47,7 @@ case class Connexions[V, Z](pairs: Seq[(V, V, Z)]) extends SerializableGraph[V, 
    *         The first element represents the source vertex, the second represents the target vertex,
    *         the third is a unit value, and the fourth corresponds to the additional attribute.
    */
-  def triplets: Seq[(V, V, Unit, Z)] = pairs.map(p => (p._1, p._2, (), p._3))
+  def triplets: Seq[Triplet[V, Unit, Z]] = pairs.map(p => Triplet(p._1, p._2, None, p._3))
 
 /**
  * Provides a utility for constructing a `Connexions` instance from a sequence of string ts.

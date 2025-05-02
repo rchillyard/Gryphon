@@ -26,8 +26,8 @@ class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V
   def parsePair(s: String): Try[(V, V, Option[Z])] = maybeParseAll(pair)(s)
 
   /**
-   * Parses the given input string into an `Option[Triplet[V, E]]` using the `triple` parser.
-   * The parsing is performed via the `maybeParseAll` method. If the `triple` parser succeeds,
+   * Parses the given input string into an `Option[Triplet[V, E]]` using the `triplet` parser.
+   * The parsing is performed via the `maybeParseAll` method. If the `triplet` parser succeeds,
    * the result is an `Option[Triplet[V, E]]` wrapped in a `Success`. If parsing fails,
    * a `Failure` containing a `ParseException` is returned.
    *
@@ -35,7 +35,7 @@ class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V
    * @return A `Try` containing an `Option[Triplet[V, E]]` if parsing succeeds, or a `Failure`
    *         with a `ParseException` if parsing fails.
    */
-  def parseTriple(s: String): Try[Option[Triplet[V, E, Z]]] = maybeParseAll(triple)(s)
+  def parseTriple(s: String): Try[Triplet[V, E, Z]] = maybeParseAll(triplet)(s)
 
   /**
    * Parses two consecutive `vertex` elements from the input and combines their results into an optional tuple.
@@ -54,14 +54,12 @@ class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V
    *
    * @return A `Parser` that produces an `Option` containing a tuple `Triplet[V, E]` if all parts are successfully parsed, or `None` if any part fails.
    */
-  def triple: Parser[Option[Triplet[V, E, Z]]] =
-    vertex ~ maybeZ ~ vertex ~ maybeEdge ^^ { case x ~ zo ~ y ~ eo => (eo, zo) match {
-      case (Some(e), Some(z)) =>
-        Some((x, y, e, z))
-      case (Some(e), None) =>
-        Some((x, y, e, implicitly[Parseable[Z]].none))
-      case _ =>
-        None
+  def triplet: Parser[Triplet[V, E, Z]] =
+    vertex ~ maybeZ ~ vertex ~ maybeEdge ^^ { case x ~ zo ~ y ~ eo => zo match {
+      case Some(z) =>
+        Triplet(x, y, eo, z)
+      case None =>
+        Triplet(x, y, eo, implicitly[Parseable[Z]].none)
     }
     }
 }

@@ -74,3 +74,16 @@ object SerializableGraph {
   def createFromPairs[V, Z](pairs: Seq[(V, V, Z)]): SerializableGraph[V, Unit, Z] =
     Connexions(pairs)
 }
+
+/**
+ * Represents a triplet structure consisting of two vertices, an optional attribute, and an edge type.
+ *
+ * @tparam V the type of the vertices (from and to).
+ * @tparam E the type of the optional attribute associated with the edge.
+ * @tparam Z the type representing the edge type.
+ * @param from           the starting vertex of the triplet.
+ * @param to             the ending vertex of the triplet.
+ * @param maybeAttribute an optional attribute that provides additional metadata for the edge.
+ * @param edgeType       the type of the edge, providing further classification or relationship information.
+ */
+case class Triplet[V, E, Z](from: V, to: V, maybeAttribute: Option[E], edgeType: Z)

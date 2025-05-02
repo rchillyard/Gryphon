@@ -18,7 +18,7 @@ class LazyPrimSpec extends AnyFlatSpec with should.Matchers {
   //    val edge3 = UndirectedOrderedEdgeCase("A", "D", 3)
   //    val edge2 = UndirectedOrderedEdgeCase("A", "C", 2)
   //    val value1: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = UndirectedGraph.createUnordered[String, Int, UndirectedOrderedEdge[String, Int], Unit]("Prim test").addEdge(edge1).addEdge(edge3).addEdge(edge2)
-  //    // TODO eliminate this asInstanceOf
+  //    // CONSIDER eliminate this asInstanceOf
   //    val graph: UndirectedGraph[String, Int, UndirectedOrderedEdge[String, Int], Unit] = value1
   //    val target: LazyPrim[String, Int, UndirectedOrderedEdge[String, Int]] = new LazyPrimHelper[String, Int, UndirectedOrderedEdge[String, Int]]().createFromGraph(graph)
   //    target.edges shouldBe List(edge3, edge2, edge1)

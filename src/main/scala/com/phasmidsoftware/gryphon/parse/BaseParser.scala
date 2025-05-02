@@ -10,10 +10,11 @@ import scala.util.parsing.combinator.JavaTokenParsers
  * This class provides utility methods and predefined parsers for parsing input strings
  * into specific types `V` and `E` using the `Parseable` typeclass.
  *
- * @tparam V The type of values to be parsed from the input, requiring an implicit `Parseable[V]`.
- * @tparam E The type of optional elements to be parsed from the input, requiring an implicit `Parseable[E]`.
+ * @tparam V The type of vertex-attribute values to be parsed from the input, requiring an implicit `Parseable[V]`.
+ * @tparam E The type of edge-attribute values to be parsed from the input, requiring an implicit `Parseable[E]`.
+ * @tparam Z The type of edge-type values to be parsed from the input, requiring an implicit `Parseable[Z]`.
  */
-class BaseParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
+class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenParsers {
   /**
    * Attempts to parse the given input string using the specified parser.
    * If parsing succeeds, the result is wrapped in a `Success`.
@@ -30,6 +31,8 @@ class BaseParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
   }
 
   private val vp = implicitly[Parseable[V]]
+  private val ep = implicitly[Parseable[E]]
+  private val zp = implicitly[Parseable[Z]]
 
   /**
    * Parses an input string using the regular expression provided by `vp.regex`
@@ -42,8 +45,6 @@ class BaseParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
    */
   protected def vop: Parser[V] = vp.regex ^^ Parseable.parser
 
-  private val ep = implicitly[Parseable[E]]
-
   /**
    * Parses an optional element of type `E` using the regular expression provided by `ep.regex`
    * and converts the matched result into a value of type `E` using the `Parseable.parser` method.
@@ -54,4 +55,13 @@ class BaseParser[V: Parseable, E: Parseable] extends JavaTokenParsers {
    */
   protected def eop: Parser[Option[E]] = opt(ep.regex) ^^ lift(Parseable.parser)
 
+  /**
+   * Parses an optional element of type `Z` using the regular expression provided by `zp.regex`
+   * and converts the matched result into a value of type `Z` using the `Parseable.parser` method.
+   * The parsing process matches an optional occurrence (`opt`) of the pattern.
+   *
+   * @return A `Parser` that evaluates to an `Option` containing a value of type `Z` if the input matches
+   *         the regular expression and is successfully parsed. Returns `None` if no match is found.
+   */
+  protected def zop: Parser[Option[Z]] = opt(zp.regex) ^^ lift(Parseable.parser)
 }

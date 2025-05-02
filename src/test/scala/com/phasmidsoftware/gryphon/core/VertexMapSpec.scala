@@ -16,8 +16,9 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val v1: Vertex[Int] = Vertex.createWithBag(1)
   private val v2: Vertex[Int] = Vertex.createWithBag(2)
   private val v3: Vertex[Int] = Vertex.createWithBag(3)
-  private val edgeList: EdgeList[Int, String] = EdgeList(Seq(DirectedEdge("A", 1, 2), DirectedEdge("B", 2, 3)))
-  private val vertexPairList: VertexPairList[Int] = VertexPairList(Seq(1 -> 2, 2 -> 3))
+  private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(DirectedEdge("A", 1, 2), DirectedEdge("B", 2, 3)))
+  private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
+  private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
   it should "addEdgeToMap" in {
@@ -35,8 +36,24 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     target.apply(3).attribute shouldBe 3
   }
 
-  it should "implement createFromVertexPairList, contains, apply, and vertices" in {
-    val target = VertexMap.createFromVertexPairList(vertexPairList) // 1 -> 2, 2 -> 3
+  it should "implement createFromVertexPairList, contains, apply, and vertices 1" in {
+    val target = VertexMap.createFromVertexPairList(vertexPairListDirected) // 1 -> 2, 2 -> 3
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 1
+  }
+
+  it should "implement createFromVertexPairList, contains, apply, and vertices 2" in {
+    val target = VertexMap.createFromVertexPairList(vertexPairListUndirected) // 1 -> 2, 2 -> 3
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true

@@ -559,7 +559,7 @@ abstract class AbstractIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit
    * @param v (V) the value of this node (vertex).
    * @return an updated IterableVisitor[V, J].
    */
-  // TODO eliminate this asInstanceOf
+  // CONSIDER eliminate this asInstanceOf
   override def visitPre(v: V): IterableVisitor[V, J] = super.visitPre(v).asInstanceOf[IterableVisitor[V, J]]
 
   /**

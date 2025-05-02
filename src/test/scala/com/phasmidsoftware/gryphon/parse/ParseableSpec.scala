@@ -12,6 +12,7 @@ class ParseableSpec extends AnyFlatSpec with Matchers {
   it should "parse Boolean" in {
     val parseable = implicitly[Parseable[Boolean]]
     parseable.parse("true") shouldBe Success(true)
+    parseable.parse("tRuE") shouldBe Success(true)
   }
   it should "fail Boolean 1" in {
     val parseable = implicitly[Parseable[Boolean]]

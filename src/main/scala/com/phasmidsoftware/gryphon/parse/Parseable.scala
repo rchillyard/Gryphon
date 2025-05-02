@@ -41,6 +41,13 @@ trait Parseable[T] {
    * @return The message.
    */
   def message: String
+
+  /**
+   * Returns a default value of type `T`.
+   *
+   * @return the default value of type `T`, typically representing an "empty" or "none" state.
+   */
+  def none: T
 }
 
 /**
@@ -97,7 +104,7 @@ object Parseable {
      * @param w the input string to be parsed (ignored)
      * @return an Option containing Unit, which is always Some(())
      */
-    def parse(w: String): Try[Unit] = FP.assert(w == "()")("not a valid Unit")(w)
+    def parse(w: String): Try[Unit] = FP.assert(w == "()")("not a valid Unit")(())
 
     /**
      * The regular expression used for parsing a `Parseable[Unit]`.
@@ -113,6 +120,13 @@ object Parseable {
      * @return the string "Unit"
      */
     def message: String = "Unit"
+
+    /**
+     * Returns a default value of type `T`.
+     *
+     * @return the default value of type `T`, typically representing an "empty" or "none" state.
+     */
+    def none: Unit = ()
   }
 
   /**
@@ -166,6 +180,13 @@ object Parseable {
      *         By default, the result matches one or more word characters (`\w+`).
      */
     override def regex: Regex = """yes|true|no|false/i""".r
+
+    /**
+     * Returns a default value of type `T`.
+     *
+     * @return the default value of type `T`, typically representing an "empty" or "none" state.
+     */
+    def none: Boolean = false
   }
 
   /**
@@ -212,6 +233,13 @@ object Parseable {
      *         The result matches one or more word characters (`\w+`).
      */
     def regex: Regex = """\w+""".r
+
+    /**
+     * Returns a default value of type `T`.
+     *
+     * @return the default value of type `T`, typically representing an "empty" or "none" state.
+     */
+    def none: String = ""
   }
 
   /**
@@ -255,6 +283,13 @@ object Parseable {
      * @return A `Regex` instance that represents the pattern for matching integers.
      */
     def regex: Regex = """-?\d+""".r
+
+    /**
+     * Returns a default value of type `T`.
+     *
+     * @return the default value of type `T`, typically representing an "empty" or "none" state.
+     */
+    def none: Int = 0
   }
 
   /**
@@ -298,6 +333,13 @@ object Parseable {
      * @return A `Regex` pattern that matches valid numeric representations, such as "42", "3.14", or ".5".
      */
     override def regex: Regex = """(\d+(\.\d*)?|\d*\.\d+)""".r
+
+    /**
+     * Returns a default value of type `T`.
+     *
+     * @return the default value of type `T`, typically representing an "empty" or "none" state.
+     */
+    def none: Double = Double.NaN
   }
 
   /**

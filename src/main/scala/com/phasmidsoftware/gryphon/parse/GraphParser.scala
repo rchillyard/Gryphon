@@ -5,18 +5,14 @@ import com.phasmidsoftware.gryphon.core.Triplet
 import scala.util.Try
 
 /**
- * A class that provides utilities for parsing graph-related data. It operates on vertices of type `V`
- * and edges of type `E`, where the parsing logic is defined through the `Parseable` typeclass.
+ * A class for parsing graph-related data structures, including pairs of vertices and triplets (vertices connected by an edge).
+ * This class extends `BaseParser` and leverages its parsing utilities to handle graph-specific parsing tasks.
  *
- * CONSIDER renaming (or splitting) this class
- *
- * This parser supports extracting pairs of vertices, triples (two vertices and an edge), and custom
- * parsing of vertices and edges in a graph representation.
- *
- * @tparam V the type of the vertices in the graph, which must have an implicit `Parseable[V]` instance
- * @tparam E the type of the edges in the graph, which must have an implicit `Parseable[E]` instance
+ * @tparam V The type of vertex-attribute values to be parsed, requiring an implicit `Parseable[V]`.
+ * @tparam E The type of edge-attribute values to be parsed, requiring an implicit `Parseable[E]`.
+ * @tparam Z The type of edge-type values to be parsed, requiring an implicit `Parseable[Z]`.
  */
-class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
+class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V, E, Z] {
 
   /**
    * Parses the given input string into a tuple `(V, V)` using the `pair` parser.
@@ -27,7 +23,7 @@ class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
    * @param s The input string to be parsed.
    * @return A `Try` containing a tuple `(V, V)` if parsing is successful, or a `Failure` with a `ParseException` if parsing fails.
    */
-  def parsePair(s: String): Try[(V, V)] = maybeParseAll(pair)(s)
+  def parsePair(s: String): Try[(V, V, Option[Z])] = maybeParseAll(pair)(s)
 
   /**
    * Parses the given input string into an `Option[Triplet[V, E]]` using the `triple` parser.
@@ -39,7 +35,7 @@ class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
    * @return A `Try` containing an `Option[Triplet[V, E]]` if parsing succeeds, or a `Failure`
    *         with a `ParseException` if parsing fails.
    */
-  def parseTriple(s: String): Try[Option[Triplet[V, E]]] = maybeParseAll(triple)(s)
+  def parseTriple(s: String): Try[Option[Triplet[V, E, Z]]] = maybeParseAll(triple)(s)
 
   /**
    * Parses two consecutive `vop` elements from the input and combines their results into an optional tuple.
@@ -48,8 +44,8 @@ class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
    *
    * @return A parser that evaluates to an `Option` containing a tuple of two elements `(V, V)` if successful, or `None` otherwise.
    */
-  def pair: Parser[(V, V)] =
-    vop ~ vop ^^ { case x ~ y => (x, y) }
+  def pair: Parser[(V, V, Option[Z])] =
+    vop ~ zop ~ vop ^^ { case x ~ zo ~ y => (x, y, zo) }
 
   /**
    * Parses a sequence consisting of two `V` elements followed by an `E` element and combines them into an `Option` tuple.
@@ -58,10 +54,14 @@ class GraphParser[V: Parseable, E: Parseable] extends BaseParser[V, E] {
    *
    * @return A `Parser` that produces an `Option` containing a tuple `Triplet[V, E]` if all parts are successfully parsed, or `None` if any part fails.
    */
-  def triple: Parser[Option[Triplet[V, E]]] =
-    vop ~ vop ~ eop ^^ { case x ~ y ~ zo => zo match {
-      case None => None
-      case Some(z) => Some((x, y, z))
+  def triple: Parser[Option[Triplet[V, E, Z]]] =
+    vop ~ zop ~ vop ~ eop ^^ { case x ~ zo ~ y ~ qo => (qo, zo) match {
+      case (Some(q), Some(z)) =>
+        Some((x, y, q, z))
+      case (Some(q), None) =>
+        Some((x, y, q, implicitly[Parseable[Z]].none))
+      case _ =>
+        None
     }
     }
 }

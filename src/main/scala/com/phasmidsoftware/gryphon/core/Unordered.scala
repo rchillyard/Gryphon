@@ -205,6 +205,7 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
    *         elements of the original collection.
    * @tparam U a supertype of `T` that represents the type of the element being added.
    */
+  // CONSIDER eliminate this asInstanceOf
   def +[U >: T](u: U): Unordered[U] = copy(elements = elements.asInstanceOf[Set[U]] + u)
 
 /**

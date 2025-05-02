@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.adjunct
 
-import com.phasmidsoftware.gryphon.core.Edge
+import com.phasmidsoftware.gryphon.core.{Directed, Edge, EdgeType}
 
 /**
  * Represents a directed edge in a graph structure, connecting a starting vertex (`from`)
@@ -13,9 +13,11 @@ import com.phasmidsoftware.gryphon.core.Edge
  * @param to        the vertex where the directed edge terminates.
  */
 case class DirectedEdge[E, V](attribute: E, from: V, to: V) extends Edge[E, V]:
+
   /**
-   * Determines if this edge can only be traversed in one direction.
+   * Returns the type of the edge represented by this object.
    *
-   * @return true.
+   * @return the edge type, which is always `Directed` for this implementation.
    */
-  def oneWay: Boolean = true
+  def edgeType: EdgeType = Directed
+  

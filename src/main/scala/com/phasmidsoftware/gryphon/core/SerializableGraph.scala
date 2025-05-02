@@ -10,8 +10,9 @@ package com.phasmidsoftware.gryphon.core
  *
  * @tparam V the type associated with the vertices in the graph.
  * @tparam E the type associated with the edges in the graph.
+ * @tparam Z the generic type for edge type.
  */
-trait SerializableGraph[V, E]:
+trait SerializableGraph[V, E, Z]:
   /**
    * Retrieves a sequence of triplets representing the graph structure.
    * Each triplet consists of two vertices (source and target) of type `V` and an edge attribute
@@ -19,8 +20,16 @@ trait SerializableGraph[V, E]:
    *
    * @return a sequence of triplets where each triplet is represented as a tuple `Triplet[V, E]`.
    */
-  def triplets: Seq[Triplet[V, E]]
+  def triplets: Seq[Triplet[V, E, Z]]
 
+  /**
+   * Serializes the sequence of triplets into a string representation.
+   * Each triplet is converted to a comma-separated string of its elements and the
+   * entire sequence is joined using newline characters.
+   *
+   * @return a string representation of the triplets, where each triplet is serialized as "source,target,attribute"
+   *         and each serialized triplet is separated by a newline.
+   */
   def serialize: String = triplets.map(t => s"${t._1},${t._2},${t._3}").mkString("\n")
 
 /**
@@ -43,9 +52,10 @@ object SerializableGraph {
    *                 - the third element is the edge attribute of type `E`.
    * @tparam V the type associated with the vertices in the graph.
    * @tparam E the type associated with the edges in the graph.
+   * @tparam Z the generic type for edge type.
    * @return a `SerializableGraph[V, E]` representing the graph described by the provided triplets.
    */
-  def createFromTriplets[V, E](triplets: Seq[Triplet[V, E]]): SerializableGraph[V, E] =
+  def createFromTriplets[V, E, Z](triplets: Seq[Triplet[V, E, Z]]): SerializableGraph[V, E, Z] =
     Triplets(triplets)
 
   /**
@@ -58,35 +68,9 @@ object SerializableGraph {
    * @param pairs a sequence of tuples `(V, V)` where each tuple represents a vertex pair in the graph.
    *              The first element of the tuple is the source vertex, and the second element is the target vertex.
    * @tparam V the type associated with the vertices in the graph.
+   * @tparam Z the generic type for edge type.
    * @return a `Connexions[V]` representing the graph constructed from the specified vertex pairs.
    */
-  def createFromPairs[V](pairs: Seq[(V, V)]): SerializableGraph[V, Unit] =
+  def createFromPairs[V, Z](pairs: Seq[(V, V, Z)]): SerializableGraph[V, Unit, Z] =
     Connexions(pairs)
-
-  /**
-   * Creates a `SerializableGraph` instance from a sequence of edges.
-   *
-   * @param edges a sequence of edges of type `Edge[E, V]` representing the connections 
-   *              between vertices in the graph. Each edge contains two vertices 
-   *              (`from` and `to`) and an attribute of type `E`.
-   * @return a `SerializableGraph[V, E]` representing the graph structure defined by the provided edges.
-   */
-  def createFromEdges[V, E](edges: Seq[Edge[E, V]]): SerializableGraph[V, E] = EdgeList(edges)
-
-  //  /**
-  //   * Creates a `SerializableGraph` instance from a sequence of vertex pairs.
-  //   *
-  //   * This method takes a sequence of pairs where each pair represents a connection
-  //   * between two vertices in the graph. The resulting graph uses the pairs to define
-  //   * its structure, with no additional attributes associated with the edges.
-  //   *
-  //   * @param pairs a sequence of tuples where each tuple consists of two vertices of type `Vertex[V]`.
-  //   *              The first element in the tuple represents the source vertex, and the second
-  //   *              element represents the target vertex.
-  //   * @tparam V the type associated with the vertex attributes within the graph.
-  //   * @return a `SerializableGraph[V, Unit]` instance representing the graph
-  //   *         structure based on the given vertex pairs.
-  //   */
-  //  def createFromVertexPairs[V](pairs: Seq[(Vertex[V], Vertex[V])]): SerializableGraph[V, Unit] = VertexPairList(pairs)
-
 }

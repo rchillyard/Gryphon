@@ -74,6 +74,16 @@ trait Graph[V] extends Traversable[V] {
     vertexMap.bfs(visitor)(v)(goal)
 }
 
+/**
+ * Companion object for the `Graph` class.
+ * This object provides methods to operate on or create instances of the `Graph` type.
+ *
+ * A `Graph` is a generic structure representing a collection of vertices and the edges between them.
+ * The vertices hold values of type `V`, and the graph supports various operations, such as adding vertices,
+ * performing depth-first and breadth-first searches, and retrieving its internal vertex representation.
+ *
+ * This object contains utilities for interacting with and constructing `Graph` instances.
+ */
 object Graph
 
 /**
@@ -90,8 +100,7 @@ object Graph
  * @constructor Creates a new `AbstractGraph` instance with the specified `vertexMap`.
  * @param vertexMap the `VertexMap` instance that holds and organizes the vertices of the graph.
  */
-abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
-}
+abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]
 
 /**
  * A trait representing a graph structure that incorporates both vertices and edges. 
@@ -101,8 +110,22 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
  * @tparam E the type representing the attributes associated with the edges in the graph.
  */
 trait EdgeGraph[V, E] extends Graph[V] {
-  //  def edgeTraversal: EdgeTraversal[V, E]
+  /**
+   * Retrieves all edges in the graph.
+   *
+   * @return an `Iterable` containing all edges of type `Edge[E, V]` present in the graph.
+   *         Each edge connects two vertices of type `V` and carries an attribute of type `E`.
+   */
   def edges: Iterable[Edge[E, V]]
 
+  /**
+   * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.
+   * CONSIDER eliminating this method.
+   *
+   * @param edge the edge to be added, which is an instance of `Edge[E, V]`. The edge defines the connection
+   *             between two vertices of type `V` and may have a direction and an associated attribute of type `E`.
+   * @return a new `EdgeGraph[V, E]` instance that includes the newly added edge. The returned graph preserves
+   *         all existing edges and vertices.
+   */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E]
 }

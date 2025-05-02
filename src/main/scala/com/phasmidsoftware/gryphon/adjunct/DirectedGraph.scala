@@ -20,6 +20,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies
    * accordingly. The edge is connected between its `from` and `to` vertices.
    *
+   * CONSIDER eliminating this method.
+   *
    * @param edge the edge to be added to the graph. It contains a starting vertex (`from`),
    *             an ending vertex (`to`), and an associated attribute that defines the edge.
    * @return a new instance of the graph that includes the specified edge and updated vertices.
@@ -96,7 +98,7 @@ object DirectedGraph {
    * @return a newly constructed `DirectedGraph` containing the vertices
    *         and edges derived from the given `edgeList`.
    */
-  def apply[V, E](edgeList: EdgeList[V, E]): DirectedGraph[V, E] =
+  def apply[V, E](edgeList: EdgeList[V, E, EdgeType]): DirectedGraph[V, E] =
     DirectedGraph(VertexMap.createFromEdgeList(edgeList))
 
   /**
@@ -118,13 +120,13 @@ object DirectedGraph {
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
-  def triplesToTryGraph[V, E](triples: Seq[Triplet[V, E]]): Try[Graph[V]] =
-    SerializableGraph.createFromTriplets[V, E](triples) match {
-      case triplets: Triplets[V, E] =>
+  def triplesToTryGraph[V, E](triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
+    SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match {
+      case triplets: Triplets[V, E, EdgeType] =>
         val vm: VertexMap[V] =
           triplets.triplets.foldLeft(VertexMap[V]) {
             (z, t) =>
-              z.createVerticesFromTriplet[E](Vertex.createWithSet) {
+              z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
                   (vv1, vv2, e) =>
                     AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
                 } {
@@ -137,5 +139,4 @@ object DirectedGraph {
       case z =>
         Failure(GraphException(s"parse failed: $z"))
     }
-
 }

@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.adjunct
 
-import com.phasmidsoftware.gryphon.core.Edge
+import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Undirected}
 
 /**
  * Represents an undirected edge in a graph structure, connecting two vertices (`from` and `to`) equally,
@@ -13,9 +13,10 @@ import com.phasmidsoftware.gryphon.core.Edge
  * @param to        the other vertex connected by the undirected edge.
  */
 case class UndirectedEdge[E, V](attribute: E, from: V, to: V) extends Edge[E, V]:
+
   /**
-   * Determines if this edge can only be traversed in one direction.
+   * Returns the type of the edge as an instance of `EdgeType`.
    *
-   * @return false.
+   * @return the edge type, which is `Undirected` for this implementation.
    */
-  def oneWay: Boolean = false
+  def edgeType: EdgeType = Undirected

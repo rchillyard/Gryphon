@@ -129,7 +129,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def +[E](edge: Edge[E, V]): VertexMap[V] = {
     val createFrom: V => Vertex[V] = createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge))
-    val createTo: V => Vertex[V] = if (edge.oneWay) createWithSet[V] else createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge, true))
+    val createTo: V => Vertex[V] = if (edge.edgeType.oneWay) createWithSet[V] else createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge, true))
     val fromFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createFrom)
     val toFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createTo)
     fromFunc(toFunc(this)(edge.to))(edge.from)
@@ -145,12 +145,12 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *             or bidirectional (false).
    * @return A new VertexMap[V] instance with the updated adjacency relationships.
    */
-  def +(pair: (V, V, Boolean)): VertexMap[V] = {
+  def +(pair: (V, V, EdgeType)): VertexMap[V] = {
     val create: V => Vertex[V] = Vertex.createWithBag[V]
     val v1 = pair._1
     val v2 = pair._2
     val vm = this.ensure(create)(v1).ensure(create)(v2).modifyVertex(addAdjFunction(AdjacencyVertex(v2)))(v1)
-    if (pair._3) vm else vm.modifyVertex(addAdjFunction(AdjacencyVertex(v1)))(v2)
+    if (pair._3.oneWay) vm else vm.modifyVertex(addAdjFunction(AdjacencyVertex(v1)))(v2)
   }
 
   /**
@@ -231,31 +231,21 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   def undiscoveredVertex(v: V): Option[Vertex[V]] = maybeUndiscoveredVertex(map, v)
 
   /**
-   * Applies a function to each triplet in the provided triplets and updates the vertex map accordingly.
-   *
-   * @param f        a function that takes a triplet and returns a pair of vertices.
-   * @param triplets the collection of triplets to process.
-   * @return an updated vertex map with modifications based on the applied function.
-   */
-  def addTriplets[E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E]): VertexMap[V] =
-    copy(map = VertexMap.addTripletsToMap(f)(map)(triplets))
-
-  /**
    * Adds the edges from the provided EdgeList to the existing VertexMap.
    *
    * @param edgeList the EdgeList containing the edges to be added
    * @return a new VertexMap with the edges from the EdgeList added
    */
-  def addEdges[E](edgeList: EdgeList[V, E]): VertexMap[V] = edgeList.edges.foldLeft[VertexMap[V]](this) { (vm, e) => vm + e }
+  def addEdges[E, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] = edgeList.edges.foldLeft[VertexMap[V]](this) { (vm, e) => vm + e }
 
   /**
-   * Adds vertex pairs to the vertex map while considering the directionality based on the `oneWay` parameter.
+   * Adds a sequence of vertex pairs along with their associated edge types to the current vertex map.
    *
-   * @param pairs  A sequence of vertex pairs where each pair represents a connection between two vertices.
-   * @param oneWay A boolean flag indicating whether the connection between vertices should be one-way (true) or two-way (false).
-   * @return A new VertexMap with the provided vertex pairs added, updated to reflect the specified directions.
+   * @param pairs A sequence of tuples where each tuple contains two vertices of type V and an edge type of type EdgeType.
+   * @return A new VertexMap[V] containing the added vertex pairs and edge types.
    */
-  def addVertexPairs[E](pairs: Seq[(V, V)], oneWay: Boolean): VertexMap[V] = pairs.map(p => (p._1, p._2, oneWay)).foldLeft[VertexMap[V]](this) { (vm, pair) => vm + pair }
+  def addVertexPairs[E](pairs: Seq[(V, V, EdgeType)]): VertexMap[V] =
+    pairs.map(p => (p._1, p._2, p._3)).foldLeft[VertexMap[V]](this) { (vm, pair) => vm + pair }
 
   /**
    * Method to run depth-first-search on this `VertexMap`.
@@ -357,7 +347,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *                of type `V` and an edge attribute of type `E`.
    * @return a pair of updated vertices `(Vertex[V], Vertex[V])` after applying the adjacency relationships.
    */
-  def createVerticesFromTriplet[E](f: V => Vertex[V])(f1: (Vertex[V], Vertex[V], E) => Adjacency[V])(f2: (Vertex[V], Vertex[V], E) => Option[Adjacency[V]])(triplet: Triplet[V, E]): VertexMap[V] = {
+  def createVerticesFromTriplet[E, Z](f: V => Vertex[V])(f1: (Vertex[V], Vertex[V], E) => Adjacency[V])(f2: (Vertex[V], Vertex[V], E) => Option[Adjacency[V]])(triplet: Triplet[V, E, Z]): VertexMap[V] = {
     val vv1: Vertex[V] = getOrCreate(f)(triplet._1)
     val vv2: Vertex[V] = getOrCreate(f)(triplet._2)
     val va1: Adjacency[V] = f1(vv1, vv2, triplet._3)
@@ -524,7 +514,7 @@ object VertexMap:
    * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects
    *         derived from the `triplets`.
    */
-  def createFromTriplets[V, E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E]): VertexMap[V] =
+  def createFromTriplets[V, E, Z](f: Triplet[V, E, Z] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E, Z]): VertexMap[V] =
     VertexMap(addTripletsToMap(f)(Map.empty[V, Vertex[V]])(triplets))
 
   /**
@@ -538,7 +528,7 @@ object VertexMap:
    * @tparam V the type of the vertex attribute.
    * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
    */
-  def createFromEdgeList[E, V](edgeList: EdgeList[V, E]): VertexMap[V] = {
+  def createFromEdgeList[E, V, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] = {
     val vvVm: Map[V, Vertex[V]] = edgeList.edges.foldLeft[Map[V, Vertex[V]]](Map.empty[V, Vertex[V]]) {
       (vm, e) =>
         addEdgeToMap(vm)(e)
@@ -557,7 +547,7 @@ object VertexMap:
    * @return a `VertexMap` that maps vertex attributes to their corresponding `Vertex` objects.
    */
   def createFromVertexPairList[V](vertexPairList: VertexPairList[V]): VertexMap[V] =
-    VertexMap[V].addVertexPairs(vertexPairList.pairs, vertexPairList.oneWay)
+    VertexMap[V].addVertexPairs(vertexPairList.pairs)
 
   /**
    * Attempts to retrieve a vertex from the given map of vertex attributes to `Vertex` instances
@@ -590,7 +580,7 @@ object VertexMap:
    * @return an updated map of vertex attributes to `Vertex` instances, including vertices derived
    *         from the provided triplets.
    */
-  private def addTripletsToMap[V, E](f: Triplet[V, E] => (Vertex[V], Vertex[V]))(map: Map[V, Vertex[V]])(triplets: Triplets[V, E]): Map[V, Vertex[V]] =
+  private def addTripletsToMap[V, E, Z](f: Triplet[V, E, Z] => (Vertex[V], Vertex[V]))(map: Map[V, Vertex[V]])(triplets: Triplets[V, E, Z]): Map[V, Vertex[V]] =
     triplets.triplets.foldLeft[Map[V, Vertex[V]]](map) {
       (vm, t) =>
         val (vv1, vv2) = f(t)

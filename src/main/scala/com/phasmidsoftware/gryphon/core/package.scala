@@ -13,7 +13,8 @@ package object core {
    *
    * @tparam V the type of the vertex attribute in a graph.
    * @tparam E the type of the edge attribute in the graph.
+   * @tparam Z the type of the connexion.
    */
-  type Triplet[V, E] = (V, V, E)
+  type Triplet[V, E, Z] = (V, V, E, Z)
 
 }

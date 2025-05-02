@@ -17,6 +17,8 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val v2: Vertex[Int] = Vertex.createWithBag(2)
   private val v3: Vertex[Int] = Vertex.createWithBag(3)
   private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(DirectedEdge("A", 1, 2), DirectedEdge("B", 2, 3)))
+  private val tripletsDirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Directed), Triplet(2, 3, None, Directed))
+  private val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Undirected), Triplet(2, 3, None, Undirected))
   private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
   private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
@@ -34,6 +36,37 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     target.apply(1).attribute shouldBe 1
     target.apply(2).attribute shouldBe 2
     target.apply(3).attribute shouldBe 3
+  }
+
+  it should "implement createVerticesFromTriplet undirected" in {
+    val target: VertexMap[Int] = tripletsUndirected.foldLeft[VertexMap[Int]](VertexMap[Int]) {
+      (vm, triplet) =>
+        vm.createVerticesFromTriplet[Unit, EdgeType](Vertex.createWithSet) {
+            case (vv1, vv2, Some(e)) =>
+              AdjacencyEdge[Int, Unit](UndirectedEdge(e, vv1.attribute, vv2.attribute))
+            case (vv1, vv2, None) =>
+              AdjacencyEdge[Int, Unit](UndirectedEdge((), vv1.attribute, vv2.attribute))
+          } {
+            (_, _, _) =>
+              None
+          }
+          (triplet)
+    }
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 1
+  }
+
+  it should "implement createVerticesFromTriplet directed" in {
   }
 
   it should "implement createFromVertexPairList, contains, apply, and vertices 1" in {

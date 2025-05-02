@@ -39,19 +39,8 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "implement createVerticesFromTriplet undirected" in {
-    val target: VertexMap[Int] = tripletsUndirected.foldLeft[VertexMap[Int]](VertexMap[Int]) {
-      (vm, triplet) =>
-        vm.createVerticesFromTriplet[Unit, EdgeType](Vertex.createWithSet) {
-            case (vv1, vv2, Some(e)) =>
-              AdjacencyEdge[Int, Unit](UndirectedEdge(e, vv1.attribute, vv2.attribute))
-            case (vv1, vv2, None) =>
-              AdjacencyEdge[Int, Unit](UndirectedEdge((), vv1.attribute, vv2.attribute))
-          } {
-            (_, _, _) =>
-              None
-          }
-          (triplet)
-    }
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = tripletsUndirected
+    val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, EdgeType => UndirectedEdge[Unit, Int])(triplets)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true

@@ -4,6 +4,7 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
 import com.phasmidsoftware.gryphon.core.VertexMap.maybeUndiscoveredVertex
+import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
@@ -332,6 +333,22 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   //        
   //      case None => visitor
   //    }
+
+
+  def addTriplets[E: Parseable, Z](vertexFunction: V => Vertex[V], edgeFunction: Z => (E, V, V) => Edge[E, V])(triplets: Seq[Triplet[V, E, Z]]): VertexMap[V] =
+    triplets.foldLeft[VertexMap[V]](this) {
+      (vm, triplet) =>
+        vm.createVerticesFromTriplet[E, Z](vertexFunction) {
+            case (vv1, vv2, Some(e)) =>
+              AdjacencyEdge[V, E](edgeFunction(triplet.edgeType)(e, vv1.attribute, vv2.attribute))
+            case (vv1, vv2, None) =>
+              AdjacencyEdge[V, E](edgeFunction(triplet.edgeType)(implicitly[Parseable[E]].none, vv1.attribute, vv2.attribute))
+          } {
+            (_, _, _) =>
+              None
+          }
+          (triplet)
+    }
 
   /**
    * Creates vertices from a given triplet representation of a graph relationship and returns updated vertices.

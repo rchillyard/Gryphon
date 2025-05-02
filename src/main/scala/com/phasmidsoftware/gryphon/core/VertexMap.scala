@@ -458,23 +458,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   private def randomAdjacencies[J](vv: Vertex[V]) = RandomIterator(vv.adjacencies.iterator)(random)
 
-  /**
-   * Searches for the given vertex to check if it is undiscovered, marks it as discovered,
-   * and applies the provided function to it.
-   * If the vertex is discovered during the process, its attribute is returned.
-   *
-   * @param f            a function to be applied to the vertex if it is not yet discovered.
-   * @param z            the vertex to be checked and marked.
-   * @param errorMessage an error message to indicate any expected issue (not used directly in this method).
-   * @return an `Option` containing the attribute of the vertex if it was undiscovered,
-   *         otherwise `None`.
-   */
-  private def findAndMarkVertex(z: Vertex[V], errorMessage: String)(f: Vertex[V] => Unit): Option[V] = {
-    val vxo: Option[Vertex[V]] = Option.when(!z.discovered)(z)
-    vxo foreach f
-    vxo map (_.attribute)
-  }
-
 /**
  * Companion object for creating instances of `VertexMap` and providing
  * related utility methods for graph data structure management.

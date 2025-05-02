@@ -126,6 +126,8 @@ object DirectedGraph {
         val vm: VertexMap[V] =
           triplets.triplets.foldLeft(VertexMap[V]) {
             (z, t) =>
+              // TODO find another way to handle this anomaly
+              if (!t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is not directed.")
               z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
                   (vv1, vv2, e) =>
                     AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
@@ -135,7 +137,12 @@ object DirectedGraph {
                 }
                 (t)
         }
-        Success(DirectedGraph(vm))
+        // TODO find another way to handle this anomaly
+        val allAdjacencies = for (vv <- vm.vertices.iterator; va <- vv.adjacencies.iterator) yield va
+        if (allAdjacencies.size != triplets.triplets.size) System.err.println(s"WARNING: ${allAdjacencies.size} != ${triplets.triplets.size}")
+        val graph = DirectedGraph(vm)
+        println(s"graph = $graph")
+        Success(graph)
       case z =>
         Failure(GraphException(s"parse failed: $z"))
     }

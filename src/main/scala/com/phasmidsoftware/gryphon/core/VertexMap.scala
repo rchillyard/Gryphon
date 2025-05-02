@@ -333,10 +333,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   //      case None => visitor
   //    }
 
-
   /**
    * Creates vertices from a given triplet representation of a graph relationship and returns updated vertices.
-   * NOTE this particular implementation is for directed graphs.
    *
    * @param f       a function that transforms a vertex attribute of type `V` into a `Vertex[V]`.
    * @param f1      a function that creates an adjacency relationship of type `Adjacency[V]`
@@ -351,7 +349,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     val vv1: Vertex[V] = getOrCreate(f)(triplet._1)
     val vv2: Vertex[V] = getOrCreate(f)(triplet._2)
     val va1: Adjacency[V] = f1(vv1, vv2, triplet._3)
-    val va2: Option[Adjacency[V]] = None // XXX directed edge
+    val va2: Option[Adjacency[V]] = f2(vv2, vv1, triplet._3)
     this + (vv1 + va1) + va2.fold(vv2)(vv2 + _)
   }
 

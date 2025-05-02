@@ -132,15 +132,14 @@ object DirectedGraph {
                   (vv1, vv2, e) =>
                     AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
                 } {
-                  (vv1, vv2, e) =>
-                    Some(AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute)))
+                  (_, _, _) =>
+                    None
                 }
                 (t)
         }
-        // TODO find another way to handle this anomaly
-        val allAdjacencies = for (vv <- vm.vertices.iterator; va <- vv.adjacencies.iterator) yield va
-        if (allAdjacencies.size != triplets.triplets.size) System.err.println(s"WARNING: ${allAdjacencies.size} != ${triplets.triplets.size}")
         val graph = DirectedGraph(vm)
+        // TODO find another way to handle this anomaly
+        if (graph.adjacencies.size != triplets.triplets.size) System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")
         println(s"graph = $graph")
         Success(graph)
       case z =>

@@ -28,7 +28,7 @@ trait Edges[V, E] extends Pairs[V, EdgeType] {
    * and the second element is the ending vertex of the edge.
    *
    * @return a sequence of vertex pairs `(V, V)` representing the connections in the graph. Each pair
-   *         corresponds to the `from` and `to` vertices of an edge.
+   *         corresponds to the `v1` and `v2` vertices of an edge.
    */
-  def pairs: Seq[(V, V, EdgeType)] = edges.map(e => (e.from, e.to, e.edgeType))
+  def pairs: Seq[(V, V, EdgeType)] = edges.map(e => (e.v1, e.v2, e.edgeType))
 }

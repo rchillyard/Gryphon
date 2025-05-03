@@ -9,30 +9,14 @@ import scala.util.{Success, Try}
  * Defines an abstraction for an edge in a graph structure that connects two vertices.
  * An `Edge` may be directed or undirected, and it carries an attribute of type `E`.
  *
- * The connection is established between two vertices of type `V`, referred to as `from` and `to`.
+ * The connection is established between two vertices of type `V`, referred to as `v1` and `v2`.
  * The type (directionality) of the edge, as well as whether it allows traversal in one or both directions,
  * is given by the `edgeType` field.
  *
  * @tparam E the type of the attribute associated with the edge.
  * @tparam V the type of the vertices connected by the edge.
  */
-trait Edge[E, V] extends Attribute[E] {
-  /**
-   * Retrieves the starting `Vertex` of this `Edge`.
-   * If this is an `UndirectedEdge`, from and to represent the nominal direction.
-   * Individual adjacencies can be based on a flipped version of an `UndirectedEdge`.
-   *
-   * @return the vertex where the edge originates (the "from" vertex).
-   */
-  def from: V
-
-  /**
-   * Retrieves the ending vertex of the edge.
-   * See NOTE above for `from`.
-   *
-   * @return the vertex where the edge terminates (the "to" vertex).
-   */
-  def to: V
+trait Edge[E, V] extends Attribute[E] with Connexion[V] {
 
   /**
    * Retrieves the type of the edge (e.g., directed or undirected).

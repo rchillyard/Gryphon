@@ -79,7 +79,7 @@ object AdjacencyVertex:
 
 /**
  * Represents an Adjacency in the form of an edge within a graph structure.
- * In the case of edge being an undirected edge, the flipped member is used to 
+ * In the case of edge being an undirected edge, the flipped member is used to
  * represent which direction of the edge is used for this particular adjacency.
  *
  * @tparam V the type of the vertex attributes associated with the edge.
@@ -91,12 +91,12 @@ object AdjacencyVertex:
 case class AdjacencyEdge[V, E](edge: Edge[E, V], flipped: Boolean = false) extends Adjacency[V] {
   /**
    * Determines the vertex associated with this adjacency based on the direction of the edge.
-   * If the edge is flipped, the originating vertex (`from`) is returned.
-   * Otherwise, the terminating vertex (`to`) is returned.
+   * If the edge is flipped, the originating vertex (`v1`) is returned.
+   * Otherwise, the terminating vertex (`v2`) is returned.
    *
    * @return the vertex of type `V` associated with this adjacency, determined by the direction of the edge.
    */
-  def vertex: V = if (flipped) edge.from else edge.to
+  def vertex: V = if (flipped) edge.v1 else edge.v2
 
   /**
    * Retrieves an optional instance of the edge associated with this adjacency.

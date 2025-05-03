@@ -18,17 +18,17 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
 
   /**
    * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies
-   * accordingly. The edge is connected between its `from` and `to` vertices.
+   * accordingly. The edge is connected between its `from` and `v2` vertices.
    *
    * CONSIDER eliminating this method.
    *
    * @param edge the edge to be added to the graph. It contains a starting vertex (`from`),
-   *             an ending vertex (`to`), and an associated attribute that defines the edge.
+   *             an ending vertex (`v2`), and an associated attribute that defines the edge.
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = {
     // CONSIDER using get here
-    copy(vertexMap + (vertexMap(edge.from) + AdjacencyEdge(edge)))
+    copy(vertexMap + (vertexMap(edge.v1) + AdjacencyEdge(edge)))
   }
 
   /**

@@ -3,13 +3,14 @@ package com.phasmidsoftware.gryphon.core
 // NOTE backward imports
 
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
-import com.phasmidsoftware.gryphon.core.VertexMap.maybeUndiscoveredVertex
+import com.phasmidsoftware.gryphon.core.VertexMap.{logger, maybeUndiscoveredVertex}
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
 import com.phasmidsoftware.gryphon.visit.Queueable.QueueableQueue
 import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Queueable, Visitor}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
@@ -35,7 +36,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v the vertex for which adjacencies are to be computed
    * @return an iterator of vertices adjacent to the provided vertex
    */
-  def adjacencies(v: V): Iterator[V] = for (vv <- get(v).iterator; va <- randomAdjacencies(vv)) yield va.vertex
+  def adjacencies(v: V): Iterator[V] =
+    val vo = get(v)
+    if (vo.isEmpty) logger.warn(s"vertex ${v} not found")
+    (for (vv <- vo.iterator; va <- randomAdjacencies(vv)) yield va.vertex)
 
   /**
    * Retrieves an iterator over the adjacencies of the given vertex that have not yet been discovered.
@@ -43,7 +47,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v the vertex for which undiscovered adjacencies are sought
    * @return an iterator over the vertices that are adjacent to the given vertex and undiscovered
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V] = filteredAdjacencies(undiscoveredVertex(_).isDefined)(v)
+  def undiscoveredAdjacencies(v: V): Iterator[V] =
+    filteredAdjacencies(undiscoveredVertex(_).isDefined)(v)
 
   /**
    * Returns a string representation of the object.
@@ -463,10 +468,20 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the type parameter representing any journal or auxiliary type used with the method.
    * @return Unit since this method performs a side effect operation and does not return a value.
    */
-  private def initializeVisits[J](vo: Option[V]): Unit = {
+  private def initializeVisits[J](vo: Option[V]): Vertex[V] = {
     map.values foreach (_.reset())
-    // TODO remove this reference completely?
-    //        findAndMarkVertex(map, { (_: Vertex[V]) => () }, vo, s"initializeVisits")
+    vo match {
+      case Some(v) =>
+        get(v) match {
+          case Some(vv) =>
+            vv.reset()
+          case None =>
+            logger.warn(s"Vertex $v not found in map.")
+            // TODO understand why the exception is not thrown
+            throw GraphException(s"Vertex $v not found in map.")
+        }
+      case None => null
+    }
   }
 
   /**
@@ -613,3 +628,5 @@ object VertexMap:
    */
   def addVertexPairToMap[V](map: Map[V, Vertex[V]])(from: Vertex[V], to: Vertex[V]): Map[V, Vertex[V]] =
     map + (from.attribute -> (from + AdjacencyVertex(to.attribute))) + (to.attribute -> to)
+
+  val logger: Logger = LoggerFactory.getLogger("VertexMap")

@@ -48,7 +48,8 @@ trait Graph[V] extends Traversable[V] {
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = vertexMap.dfs(visitor)(v)
+  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] =
+    vertexMap.dfs(visitor)(v)
 
   /**
    * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited.
@@ -57,7 +58,8 @@ trait Graph[V] extends Traversable[V] {
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = vertexMap.dfsAll(visitor)
+  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] =
+    vertexMap.dfsAll(visitor)
 
   /**
    * Method to run goal-terminated breadth-first-search on this VertexMap.

@@ -29,7 +29,8 @@ trait Traversable[V] {
    * @param v         the vertex whose adjacent vertices are to be filtered.
    * @return an iterator containing the adjacent vertices that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: V => Boolean)(v: V): Iterator[V] = adjacencies(v).filter(predicate)
+  def filteredAdjacencies(predicate: V => Boolean)(v: V): Iterator[V] =
+    adjacencies(v).filter(predicate)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.

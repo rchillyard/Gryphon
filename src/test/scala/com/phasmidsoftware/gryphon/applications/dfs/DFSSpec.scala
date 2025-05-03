@@ -10,6 +10,7 @@ import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
+import com.phasmidsoftware.gryphon.visit.Visitor
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -22,6 +23,14 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
   behavior of "DFS"
 
   val dijkstraGraphPath = "dijkstra.graph"
+
+  it should "fail on empty graph" in {
+    val graph: Graph[Int] = DirectedGraph[Int, Unit]
+    Using(Visitor.createPre[Int]) {
+      visitor =>
+        graph.dfs(visitor)(1)
+    }
+  }
 
   it should "dfs Dijkstra" in {
     val p = new GraphParser[Int, Double, EdgeType]

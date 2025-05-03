@@ -33,8 +33,9 @@ case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: 
    *
    * @return Unit
    */
-  def reset(): Unit = {
+  def reset(): Vertex[V] = {
     discovered = false
+    this
   }
 
   override def toString: String = s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"

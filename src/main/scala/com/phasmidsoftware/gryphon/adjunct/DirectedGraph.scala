@@ -98,6 +98,30 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
 object DirectedGraph {
 
   /**
+   * Constructs a new directed graph using the provided vertex map.
+   *
+   * @param vertexMap a map containing the vertices of type `V` as keys and their associated
+   *                  adjacency lists or other vertex-specific data.
+   * @tparam V the type of the vertices in the graph.
+   * @tparam E the type of the edges in the graph.
+   * @return an instance of `DirectedGraph[V, E]` initialized with the given vertex map.
+   */
+  def apply[V, E](vertexMap: VertexMap[V]): DirectedGraph[V, E] = new DirectedGraph(vertexMap)
+
+  /**
+   * Creates a new instance of a `DirectedGraph` with an empty vertex map.
+   *
+   * This method provides a convenient way to initialize an empty directed graph
+   * without explicitly providing a `VertexMap`. The vertex map is initialized
+   * using the default empty `VertexMap` implementation.
+   *
+   * @tparam V the type of the vertices in the graph.
+   * @tparam E the type of the edges in the graph.
+   * @return an empty instance of `DirectedGraph[V, E]`.
+   */
+  def apply[V, E]: DirectedGraph[V, E] = apply[V, E](VertexMap[V])
+
+  /**
    * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.
    *
    * Each triplet in the input sequence consists of two vertices (source and target)

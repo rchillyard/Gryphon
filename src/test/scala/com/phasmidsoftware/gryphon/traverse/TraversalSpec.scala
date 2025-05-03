@@ -25,10 +25,10 @@ class TraversalSpec extends AnyFlatSpec with Matchers {
     val graph = UndirectedGraph[Int, Unit](vm)
     println(graph)
     val vertexFunction: Int => VertexRecord = i => VertexRecord(i)
-    val traversal = Traversal.vertexTraversalDfs(vertexFunction)(graph)(0)
+    val traversal = Traversal.vertexTraversalDfs(vertexFunction)(graph)(1)
     println(traversal)
     traversal match {
-      case MapTraversal(map) => map.size shouldBe 1 // TODO should be 3
+      case MapTraversal(map) => map.size shouldBe 3
       case _ => fail("vertexTraversalDfs failed")
     }
   }

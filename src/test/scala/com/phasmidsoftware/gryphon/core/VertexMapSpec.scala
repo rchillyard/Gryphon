@@ -1,6 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.edgeFunc
 import com.phasmidsoftware.gryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -22,13 +23,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
   private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
-
-  // TODO move this method into EdgeType, perhaps.
-  val edgeFunc: EdgeType => ProtoConnexion[Unit, Int] => Connexion[Int] = {
-    case Directed => DirectedEdge[Unit, Int]
-    case Undirected => UndirectedEdge[Unit, Int]
-    case Undefined => (_, v1, v2) => VertexPair(v1, v2)
-  }
 
   it should "implement createVerticesFromTriplet undirected" in {
     val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsUndirected)

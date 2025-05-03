@@ -131,10 +131,7 @@ object DirectedGraph {
               z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
                   (vv1, vv2, e) =>
                     AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
-                } {
-                  (_, _, _) =>
-                    None
-                }
+                }(false)
                 (t)
         }
         val graph = DirectedGraph(vm)

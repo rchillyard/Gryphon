@@ -334,40 +334,69 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   //      case None => visitor
   //    }
 
-
+  /**
+   * Processes a sequence of triplets and adds them to the VertexMap using the provided vertex and edge functions.
+   *
+   * @param vertexFunction a function to transform a value of type V into a Vertex
+   * @param edgeFunction   a function to transform a value of type Z into a function that creates an Edge given E, V, and V
+   * @param triplets       a sequence of triplets containing vertex-edge information to be added
+   * @return a new VertexMap with the added triplets
+   */
   def addTriplets[E: Parseable, Z](vertexFunction: V => Vertex[V], edgeFunction: Z => (E, V, V) => Edge[E, V])(triplets: Seq[Triplet[V, E, Z]]): VertexMap[V] =
     triplets.foldLeft[VertexMap[V]](this) {
       (vm, triplet) =>
-        vm.createVerticesFromTriplet[E, Z](vertexFunction) {
-            case (vv1, vv2, Some(e)) =>
-              AdjacencyEdge[V, E](edgeFunction(triplet.edgeType)(e, vv1.attribute, vv2.attribute))
-            case (vv1, vv2, None) =>
-              AdjacencyEdge[V, E](edgeFunction(triplet.edgeType)(implicitly[Parseable[E]].none, vv1.attribute, vv2.attribute))
-          } {
-            (_, _, _) =>
-              None
-          }
-          (triplet)
+        vm.addTriplet(edgeFunction)(vertexFunction)(triplet)
     }
 
   /**
-   * Creates vertices from a given triplet representation of a graph relationship and returns updated vertices.
+   * Creates vertices and their adjacencies from a given triplet based on the specified parameters.
    *
-   * @param f       a function that transforms a vertex attribute of type `V` into a `Vertex[V]`.
-   * @param f1      a function that creates an adjacency relationship of type `Adjacency[V]`
-   *                from two vertices and an edge attribute of type `E`.
-   * @param f2      a function that optionally creates an adjacency relationship of type `Adjacency[V]`
-   *                from two vertices and an edge attribute of type `E`.
-   * @param triplet a triplet representing a relationship in the graph, consisting of two vertex attributes
-   *                of type `V` and an edge attribute of type `E`.
-   * @return a pair of updated vertices `(Vertex[V], Vertex[V])` after applying the adjacency relationships.
+   * @param f         a function that transforms a value of type V into a Vertex[V]
+   * @param g         a function that creates an adjacency between two vertices, optionally considering an edge of type E
+   * @param condition a boolean condition upon which certain adjacencies are created
+   * @param triplet   a Triplet containing two vertex values of type V and optionally an edge of type E
+   * @tparam E the type of the edge in the triplet, if present
+   * @tparam Z the auxiliary type used in the triplet
+   * @return a VertexMap[V] representing the updated graph structure with newly created or modified vertices
    */
-  def createVerticesFromTriplet[E, Z](f: V => Vertex[V])(f1: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V])(f2: (Vertex[V], Vertex[V], Option[E]) => Option[Adjacency[V]])(triplet: Triplet[V, E, Z]): VertexMap[V] = {
+  def createVerticesFromTriplet[E, Z](f: V => Vertex[V])(g: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V])(condition: Boolean)(triplet: Triplet[V, E, Z]): VertexMap[V] = {
     val vv1: Vertex[V] = getOrCreate(f)(triplet._1)
     val vv2: Vertex[V] = getOrCreate(f)(triplet._2)
-    val va1: Adjacency[V] = f1(vv1, vv2, triplet._3)
-    val va2: Option[Adjacency[V]] = f2(vv2, vv1, triplet._3)
+    val va1: Adjacency[V] = g(vv1, vv2, triplet._3)
+    val va2: Option[Adjacency[V]] = Option.when(condition)(g(vv2, vv1, triplet._3))
     this + (vv1 + va1) + va2.fold(vv2)(vv2 + _)
+  }
+
+  /**
+   * Creates an adjacency representation for a graph structure based on the provided edge function,
+   * two vertices, and an optional edge.
+   *
+   * @param edgeFunction A function that takes an edge instance of type E, and the attributes of two vertices,
+   *                     returning an Edge instance.
+   * @param vv1          The first vertex of type Vertex[V].
+   * @param vv2          The second vertex of type Vertex[V].
+   * @param maybeE       An optional edge of type E. If defined, it is used to create an adjacency edge,
+   *                     otherwise an adjacency vertex is created.
+   * @return An adjacency of type Adjacency[V], which represents the relationship between vertices in the graph.
+   */
+  def createAdjacency[E, Z](edgeFunction: (E, V, V) => Edge[E, V])(vv1: Vertex[V], vv2: Vertex[V], maybeE: Option[E]): Adjacency[V] =
+    maybeE match {
+      case Some(e) => AdjacencyEdge[V, E](edgeFunction(e, vv1.attribute, vv2.attribute))
+      case None => AdjacencyVertex[V](vv2.attribute)
+    }
+
+  /**
+   * Adds a triplet by creating vertices and connecting them using the provided edge and vertex creation functions.
+   *
+   * @param edgeFunction   A function that takes a type of edge data `Z`
+   *                       and returns a function that creates an `Edge[E, V]` given an edge type `E` and a pair of vertices `V`.
+   * @param vertexFunction A function that takes a vertex `V` and creates a `Vertex[V]`.
+   * @param triplet        A `Triplet[V, E, Z]` containing the vertices, edge, and edge type to be processed.
+   * @return A `VertexMap[V]` representing the updated set of vertices with their adjacencies.
+   */
+  def addTriplet[Z, E](edgeFunction: Z => (E, V, V) => Edge[E, V])(vertexFunction: V => Vertex[V])(triplet: Triplet[V, E, Z]): VertexMap[V] = {
+    val f: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V] = createAdjacency(edgeFunction(triplet.edgeType))
+    createVerticesFromTriplet[E, Z](vertexFunction)(f)(triplet.edgeType == Undirected)(triplet)
   }
 
   /**

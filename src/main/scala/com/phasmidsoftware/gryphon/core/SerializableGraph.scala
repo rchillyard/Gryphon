@@ -30,7 +30,8 @@ trait SerializableGraph[V, E, Z]:
    * @return a string representation of the triplets, where each triplet is serialized as "source,target,attribute"
    *         and each serialized triplet is separated by a newline.
    */
-  def serialize: String = triplets.map(t => s"${t._1},${t._2},${t._3}").mkString("\n")
+  def serialize: String =
+    triplets.map(t => s"${t._1},${t._2},${t._3}").mkString("\n")
 
 /**
  * Object providing factory methods for creating instances of the `SerializableGraph` trait.

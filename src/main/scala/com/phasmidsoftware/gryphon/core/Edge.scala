@@ -121,14 +121,16 @@ object EdgeType {
      * @return A compiled regular expression.
      *         By default, the result matches one or more word characters (`\w+`).
      */
-    def regex: Regex = """[=<->.]+""".r
+    def regex: Regex =
+      """[=<->.]+""".r
 
     /**
      * Returns a message providing details about of type `T`.
      *
      * @return The message.
      */
-    def message: String = "EdgeType"
+    def message: String =
+      "EdgeType"
 
     /**
      * Attempts to parse a string into an `EdgeType`.

@@ -93,7 +93,8 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends Unordered[T]:
    * @tparam U the type of `u` and a supertype of `T`.
    * @return `true` if the element is present in the set, `false` otherwise.
    */
-  def contains[U >: T](u: U): Boolean = elements.contains(u)
+  def contains[U >: T](u: U): Boolean =
+    elements.contains(u)
 
   /**
    * Returns an iterator over the elements in the adjacency set.
@@ -101,7 +102,8 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends Unordered[T]:
    *
    * @return an `Iterator[T]` over the elements of type `T` contained in the set.
    */
-  def iterator: Iterator[T] = elements.iterator
+  def iterator: Iterator[T] =
+    elements.iterator
 
   /**
    * Adds a specified element to the unordered collection, resulting in a new instance
@@ -112,7 +114,8 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends Unordered[T]:
    * @return a new instance of `Unordered` containing the specified element in addition
    *         to the existing elements
    */
-  def +[U >: T](u: U): Unordered[U] = copy(elements = elements + u)
+  def +[U >: T](u: U): Unordered[U] =
+    copy(elements = elements + u)
 
 /**
  * Companion object for the `Unordered_Bag` class providing factory methods to create instances of `Unordered`
@@ -128,7 +131,8 @@ object Unordered_Bag {
    * @tparam X the type of elements that the unordered collection can hold
    * @return an empty unordered collection
    */
-  def empty[X]: Unordered_Bag[X] = Unordered_Bag(Bag.empty)
+  def empty[X]: Unordered_Bag[X] =
+    Unordered_Bag(Bag.empty)
 
   /**
    * Creates an instance of `Unordered` containing elements from the provided sequence.
@@ -136,7 +140,8 @@ object Unordered_Bag {
    * @param xs the sequence of elements to include in the `Unordered` collection
    * @return an `Unordered` collection containing the elements from the input sequence
    */
-  def apply[X](xs: Seq[X]): Unordered_Bag[X] = Unordered_Bag(ListBag[X](xs))
+  def apply[X](xs: Seq[X]): Unordered_Bag[X] =
+    Unordered_Bag(ListBag[X](xs))
 
   /**
    * Creates an instance of `Unordered` containing the provided elements.
@@ -147,7 +152,8 @@ object Unordered_Bag {
    * @param xs the elements to include in the unordered collection
    * @return an `Unordered` instance containing the provided elements
    */
-  def create[X](xs: X*): Unordered_Bag[X] = apply(xs)
+  def create[X](xs: X*): Unordered_Bag[X] =
+    apply(xs)
 }
 
 /**
@@ -169,14 +175,16 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
    *
    * @return `true` if the set contains no elements, otherwise `false`.
    */
-  def isEmpty: Boolean = elements.isEmpty
+  def isEmpty: Boolean =
+    elements.isEmpty
 
   /**
    * Returns the number of elements in the set.
    *
    * @return the size of the set as an integer.
    */
-  def size: Int = elements.size
+  def size: Int =
+    elements.size
 
   /**
    * Checks whether the specified element is contained within the set.
@@ -185,7 +193,8 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
    *          the type `T` of the elements in the set, or be a supertype of `T`.
    * @return `true` if the element exists within the set, otherwise `false`.
    */
-  def contains[U >: T](u: U): Boolean = elements.asInstanceOf[Set[U]].contains(u)
+  def contains[U >: T](u: U): Boolean =
+    elements.asInstanceOf[Set[U]].contains(u)
 
   /**
    * Returns an iterator over the elements in the adjacency set.
@@ -193,7 +202,8 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
    *
    * @return an `Iterator[T]` over the elements of type `T` contained in the set.
    */
-  def iterator: Iterator[T] = elements.iterator
+  def iterator: Iterator[T] =
+    elements.iterator
 
   /**
    * Adds the specified element to the unordered collection, returning a new instance 
@@ -206,7 +216,8 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
    * @tparam U a supertype of `T` that represents the type of the element being added.
    */
   // CONSIDER eliminate this asInstanceOf
-  def +[U >: T](u: U): Unordered[U] = copy(elements = elements.asInstanceOf[Set[U]] + u)
+  def +[U >: T](u: U): Unordered[U] =
+    copy(elements = elements.asInstanceOf[Set[U]] + u)
 
 /**
  * A companion object for `Unordered_Set`, providing factory methods to create instances of
@@ -221,7 +232,8 @@ object Unordered_Set {
    *
    * @return an empty instance of `Unordered[X]`.
    */
-  def empty[X]: Unordered[X] = Unordered_Set(Set.empty)
+  def empty[X]: Unordered[X] =
+    Unordered_Set(Set.empty)
 
   /**
    * Creates an instance of `Unordered` from a sequence of elements.
@@ -234,7 +246,8 @@ object Unordered_Set {
    *           collection
    * @return an instance of `Unordered` containing the unique elements from the input sequence
    */
-  def apply[X](xs: Seq[X]): Unordered[X] = new Unordered_Set(xs.toSet)
+  def apply[X](xs: Seq[X]): Unordered[X] =
+    new Unordered_Set(xs.toSet)
 
   /**
    * Creates a new instance of `Unordered[X]` populated with the provided elements.
@@ -245,5 +258,6 @@ object Unordered_Set {
    * @tparam X the type of the elements contained within the unordered collection.
    * @return an instance of `Unordered[X]` containing the provided elements.
    */
-  def create[X](xs: X*): Unordered[X] = apply(xs)
+  def create[X](xs: X*): Unordered[X] =
+    apply(xs)
 }

@@ -84,5 +84,6 @@ object ParseException {
    * @param message The detail message explaining the context or cause of the parsing error.
    * @return A new instance of `ParseException` initialized with the provided message.
    */
-  def apply(message: String): ParseException = ParseException(message, null)
+  def apply(message: String): ParseException =
+    ParseException(message, null)
 }

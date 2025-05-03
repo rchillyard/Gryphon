@@ -25,10 +25,11 @@ class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenPars
    * @return A `Try` containing the parsed result as `Success` if parsing succeeds, or
    *         a `Failure` with a `ParseException` if parsing fails.
    */
-  def maybeParseAll[T](parser: Parser[T])(s: String): Try[T] = parseAll(parser, s) match {
-    case this.Success(result, _) => scala.util.Success(result)
-    case this.NoSuccess.I(msg, _) => scala.util.Failure(ParseException(msg))
-  }
+  def maybeParseAll[T](parser: Parser[T])(s: String): Try[T] =
+    parseAll(parser, s) match {
+      case this.Success(result, _) => scala.util.Success(result)
+      case this.NoSuccess.I(msg, _) => scala.util.Failure(ParseException(msg))
+    }
 
   private val vp = implicitly[Parseable[V]]
   private val ep = implicitly[Parseable[E]]
@@ -43,7 +44,8 @@ class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenPars
    *         and is successfully parsed into a value of type `V`, the result is returned by the parser.
    *         Otherwise, parsing fails.
    */
-  protected def vertex: Parser[V] = vp.regex ^^ Parseable.parser
+  protected def vertex: Parser[V] =
+    vp.regex ^^ Parseable.parser
 
   /**
    * Parses an optional element of type `E` using the regular expression provided by `ep.regex`
@@ -53,7 +55,8 @@ class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenPars
    * @return A `Parser` that evaluates to an `Option` containing a value of type `E` if the input matches
    *         the regular expression and is successfully parsed. Returns `None` if no match is found.
    */
-  protected def maybeEdge: Parser[Option[E]] = opt(ep.regex) ^^ lift(Parseable.parser)
+  protected def maybeEdge: Parser[Option[E]] =
+    opt(ep.regex) ^^ lift(Parseable.parser)
 
   /**
    * Parses an optional element of type `Z` using the regular expression provided by `zp.regex`
@@ -63,5 +66,6 @@ class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenPars
    * @return A `Parser` that evaluates to an `Option` containing a value of type `Z` if the input matches
    *         the regular expression and is successfully parsed. Returns `None` if no match is found.
    */
-  protected def maybeZ: Parser[Option[Z]] = opt(zp.regex) ^^ lift(Parseable.parser)
+  protected def maybeZ: Parser[Option[Z]] =
+    opt(zp.regex) ^^ lift(Parseable.parser)
 }

@@ -34,4 +34,5 @@ case class UndirectedEdge[E, V](attribute: E, white: V, black: V) extends Edge[E
    * @param v the vertex for which the opposite vertex is to be determined.
    * @return the vertex at the other end of the edge. If the given vertex is `white`, returns `black`; otherwise, returns `white`.
    */
-  def other(v: V): V = if (v == white) black else white
+  def other(v: V): V =
+    if (v == white) black else white

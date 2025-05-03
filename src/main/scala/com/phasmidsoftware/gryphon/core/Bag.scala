@@ -28,21 +28,24 @@ trait Bag[+X] {
    *
    * @return true if the collection contains no elements, false otherwise.
    */
-  def isEmpty: Boolean = iterator.isEmpty
+  def isEmpty: Boolean =
+    iterator.isEmpty
 
   /**
    * Checks if the collection contains at least one element.
    *
    * @return true if the collection is not empty, false otherwise.
    */
-  def nonEmpty: Boolean = iterator.nonEmpty
+  def nonEmpty: Boolean =
+    iterator.nonEmpty
 
   /**
    * Retrieves the number of elements in the collection.
    *
    * @return the total count of elements in the collection.
    */
-  def size: Int = iterator.size
+  def size: Int =
+    iterator.size
 
   /**
    * Checks if the specified element is present in the collection.
@@ -50,7 +53,8 @@ trait Bag[+X] {
    * @param y the element to check for presence; can be any type that is a supertype of `X`.
    * @return `true` if the element is found in the collection; `false` otherwise.
    */
-  def contains[Y >: X](y: Y): Boolean = iterator.contains(y)
+  def contains[Y >: X](y: Y): Boolean =
+    iterator.contains(y)
 
   /**
    * Adds a new element to the bag, creating a new bag instance that includes the added element.
@@ -95,7 +99,8 @@ case class ListBag[X](xs: Seq[X]) extends Bag[X] {
    * @return a new instance of `Bag[Y]` that includes all elements of the current bag
    *         and the newly added element.
    */
-  def +[Y >: X](y: Y): Bag[Y] = ListBag(xs :+ y)
+  def +[Y >: X](y: Y): Bag[Y] =
+    ListBag(xs :+ y)
 }
 
 /**
@@ -114,7 +119,8 @@ object Bag {
    *
    * @return an empty `Bag` of type `Bag[X]`.
    */
-  def empty[X]: Bag[X] = ListBag(Seq.empty)
+  def empty[X]: Bag[X] =
+    ListBag(Seq.empty)
 
   /**
    * Creates a new `Bag` instance populated with the specified elements.
@@ -123,7 +129,8 @@ object Bag {
    *           are variable-length arguments that allow creating a `Bag` with one or more elements.
    * @return a new `Bag[X]` instance containing the provided elements.
    */
-  def create[X](xs: X*): Bag[X] = ListBag(xs)
+  def create[X](xs: X*): Bag[X] =
+    ListBag(xs)
 
   implicit val random: Random = new scala.util.Random
 }

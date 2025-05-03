@@ -56,7 +56,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *                  and their adjacencies in the graph.
    * @return a new directed graph constructed with the given vertex map.
    */
-  def unit(vertexMap: VertexMap[V]): Graph[V] = DirectedGraph(vertexMap)
+  def unit(vertexMap: VertexMap[V]): Graph[V] =
+    DirectedGraph(vertexMap)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -64,7 +65,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def adjacencies(v: V): Iterator[V] = vertexMap.adjacencies(v)
+  def adjacencies(v: V): Iterator[V] =
+    vertexMap.adjacencies(v)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -73,7 +75,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V] = vertexMap.undiscoveredAdjacencies(v)
+  def undiscoveredAdjacencies(v: V): Iterator[V] =
+    vertexMap.undiscoveredAdjacencies(v)
 
   /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
@@ -106,7 +109,8 @@ object DirectedGraph {
    * @tparam E the type of the edges in the graph.
    * @return an instance of `DirectedGraph[V, E]` initialized with the given vertex map.
    */
-  def apply[V, E](vertexMap: VertexMap[V]): DirectedGraph[V, E] = new DirectedGraph(vertexMap)
+  def apply[V, E](vertexMap: VertexMap[V]): DirectedGraph[V, E] =
+    new DirectedGraph(vertexMap)
 
   /**
    * Creates a new instance of a `DirectedGraph` with an empty vertex map.
@@ -119,7 +123,8 @@ object DirectedGraph {
    * @tparam E the type of the edges in the graph.
    * @return an empty instance of `DirectedGraph[V, E]`.
    */
-  def apply[V, E]: DirectedGraph[V, E] = apply[V, E](VertexMap[V])
+  def apply[V, E]: DirectedGraph[V, E] =
+    apply[V, E](VertexMap[V])
 
   /**
    * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.

@@ -75,7 +75,8 @@ object AdjacencyVertex:
    *               The `attribute` of the `Vertex` is used as the parameter for the `AdjacencyVertex`.
    * @return an `AdjacencyVertex` containing the `attribute` of the given `Vertex`.
    */
-  def apply[V](vertex: Vertex[V]): AdjacencyVertex[V] = AdjacencyVertex(vertex.attribute)
+  def apply[V](vertex: Vertex[V]): AdjacencyVertex[V] =
+    AdjacencyVertex(vertex.attribute)
 
 /**
  * Represents an Adjacency in the form of an edge within a graph structure.
@@ -96,7 +97,8 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
    *
    * @return the vertex of type `V` associated with this adjacency, determined by the value of `flipped`.
    */
-  def vertex: V = if (flipped) connexion.white else connexion.black
+  def vertex: V =
+    if (flipped) connexion.white else connexion.black
 
   /**
    * Retrieves an optional instance of the edge associated with this adjacency.
@@ -138,7 +140,9 @@ type Adjacencies[V] = Unordered[Adjacency[V]]
  * @return an empty instance of `Adjacencies[V]`, represented as an unordered bag
  *         containing no adjacency elements.
  */
-def emptyAdjacenciesBag[V]: Adjacencies[V] = Unordered_Bag.empty[Adjacency[V]]
+def emptyAdjacenciesBag[V]: Adjacencies[V] =
+  Unordered_Bag.empty[Adjacency[V]]
+
 /**
  * Creates an empty set of adjacencies for a graph.
  *
@@ -149,4 +153,5 @@ def emptyAdjacenciesBag[V]: Adjacencies[V] = Unordered_Bag.empty[Adjacency[V]]
  * @tparam V the type of the vertex attribute associated with the adjacency.
  * @return an empty instance of `Adjacencies[V]`.
  */
-def emptyAdjacenciesSet[V]: Adjacencies[V] = Unordered_Set.empty[Adjacency[V]]
+def emptyAdjacenciesSet[V]: Adjacencies[V] =
+  Unordered_Set.empty[Adjacency[V]]

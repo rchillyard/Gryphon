@@ -65,7 +65,8 @@ object Traversal {
         map
       }
     }
-    val result: Try[Visitor[V, mutable.Map[V, T]]] = Using(PostVisitor[V, mutable.Map[V, T]]()) {
+    val result: Try[Visitor[V, mutable.Map[V, T]]] =
+      Using(PostVisitor[V, mutable.Map[V, T]]()) {
       (visitor: Visitor[V, mutable.Map[V, T]]) =>
         traversable.dfs[mutable.Map[V, T]](visitor)(start)
     }
@@ -98,7 +99,8 @@ case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, E, T] {
    * @return the traversal result of type `T` associated with the provided vertex.
    * @throws NoSuchElementException if the vertex does not exist in the map.
    */
-  def vertexTraverse(v: V): T = map.getOrElse(v, throw new NoSuchElementException(s"no such element: $v"))
+  def vertexTraverse(v: V): T =
+    map.getOrElse(v, throw new NoSuchElementException(s"no such element: $v"))
 
   /**
    * Traverses a specified edge within a graph-like structure and produces a result of type T.
@@ -116,7 +118,8 @@ case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, E, T] {
    *          traversal result of type `T`.
    * @return a new `MapTraversal` instance of type `MapTraversal[V, E, T]` containing the updated map.
    */
-  def +(t: (V, T)): MapTraversal[V, E, T] = MapTraversal(map + t)
+  def +(t: (V, T)): MapTraversal[V, E, T] =
+    MapTraversal(map + t)
 }
 
 /**
@@ -138,5 +141,6 @@ object MapTraversal {
    * @tparam T The resulting type after traversing a vertex or an edge.
    * @return A new `MapTraversal` instance with an empty map.
    */
-  def empty[V, E, T]: MapTraversal[V, E, T] = MapTraversal(Map.empty[V, T])
+  def empty[V, E, T]: MapTraversal[V, E, T] =
+    MapTraversal(Map.empty[V, T])
 }

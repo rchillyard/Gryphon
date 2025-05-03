@@ -30,5 +30,6 @@ trait Edges[V, E] extends Pairs[V, EdgeType] {
    * @return a sequence of vertex pairs `(V, V)` representing the connections in the graph. Each pair
    *         corresponds to the `white` and `black` vertices of an edge.
    */
-  def pairs: Seq[(V, V, EdgeType)] = edges.map(e => (e.white, e.black, e.edgeType))
+  def pairs: Seq[(V, V, EdgeType)] =
+    edges.map(e => (e.white, e.black, e.edgeType))
 }

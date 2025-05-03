@@ -104,7 +104,8 @@ object Parseable {
      * @param w the input string to be parsed (ignored)
      * @return an Option containing Unit, which is always Some(())
      */
-    def parse(w: String): Try[Unit] = FP.assert(w == "()")("not a valid Unit")(())
+    def parse(w: String): Try[Unit] =
+      FP.assert(w == "()")("not a valid Unit")(())
 
     /**
      * The regular expression used for parsing a `Parseable[Unit]`.
@@ -112,14 +113,16 @@ object Parseable {
      * @return A compiled regular expression.
      *         The result matches one or more word characters (`()`).
      */
-    override def regex: Regex = """\(\)""".r
+    override def regex: Regex =
+      """\(\)""".r
 
     /**
      * Returns a constant string representation of the `Unit` type.
      *
      * @return the string "Unit"
      */
-    def message: String = "Unit"
+    def message: String =
+      "Unit"
 
     /**
      * Returns a default value of type `T`.
@@ -164,14 +167,16 @@ object Parseable {
      * @return An `Option[Boolean]` containing `Some(true)` or `Some(false)` if parsing is successful,
      *         or `None` if the string is not a valid representation of a boolean.
      */
-    def parse(w: String): Try[Boolean] = Try(w.toBoolean)
+    def parse(w: String): Try[Boolean] =
+      Try(w.toBoolean)
 
     /**
      * Provides a message describing the type supported by this implementation.
      *
      * @return A string representation of the type, in this case "Boolean".
      */
-    def message: String = "Boolean"
+    def message: String =
+      "Boolean"
 
     /**
      * The regular expression used for parsing a `Parseable[T]`.
@@ -179,7 +184,8 @@ object Parseable {
      * @return A compiled regular expression.
      *         By default, the result matches one or more word characters (`\w+`).
      */
-    override def regex: Regex = """yes|true|no|false/i""".r
+    override def regex: Regex =
+      """yes|true|no|false/i""".r
 
     /**
      * Returns a default value of type `T`.
@@ -217,7 +223,8 @@ object Parseable {
      * @param input the input string to parse. It can be null or empty.
      * @return an `Option[String]` containing the input string if it is non-null and non-empty, or `None` otherwise.
      */
-    def parse(input: String): Try[String] = FP.assert(input != null && input.nonEmpty)("not a valid String")(input)
+    def parse(input: String): Try[String] =
+      FP.assert(input != null && input.nonEmpty)("not a valid String")(input)
 
     /**
      * Retrieves a predefined string message.
@@ -266,14 +273,16 @@ object Parseable {
      * @param input The string to be parsed into an object of type `Int`.
      * @return An `Option` containing the parsed object of type `Int` if successful, or `None` if the parsing fails.
      */
-    def parse(input: String): Try[Int] = Try(input.toInt)
+    def parse(input: String): Try[Int] =
+      Try(input.toInt)
 
     /**
      * Retrieves a string representation of the type `Int`.
      *
      * @return A string value `"Int"` that represents the type.
      */
-    def message: String = "Int"
+    def message: String =
+      "Int"
 
     /**
      * A regular expression pattern for matching integer values in a string.
@@ -282,14 +291,16 @@ object Parseable {
      *
      * @return A `Regex` instance that represents the pattern for matching integers.
      */
-    def regex: Regex = """-?\d+""".r
+    def regex: Regex =
+      """-?\d+""".r
 
     /**
      * Returns a default value of type `T`.
      *
      * @return the default value of type `T`, typically representing an "empty" or "none" state.
      */
-    def none: Int = 0
+    def none: Int =
+      0
   }
 
   /**
@@ -317,14 +328,16 @@ object Parseable {
      * @param input The string to be parsed into an object of type `Double`.
      * @return An `Option` containing the parsed object of type `Double` if successful, or `None` if the parsing fails.
      */
-    def parse(input: String): Try[Double] = Try(input.toDouble)
+    def parse(input: String): Try[Double] =
+      Try(input.toDouble)
 
     /**
      * A method that returns a string representation associated with this trait.
      *
      * @return The string "Double".
      */
-    def message: String = "Double"
+    def message: String =
+      "Double"
 
     /**
      * A regular expression used to match numeric values in a string, including integers, floating-point numbers,
@@ -332,14 +345,16 @@ object Parseable {
      *
      * @return A `Regex` pattern that matches valid numeric representations, such as "42", "3.14", or ".5".
      */
-    override def regex: Regex = """(\d+(\.\d*)?|\d*\.\d+)""".r
+    override def regex: Regex =
+      """(\d+(\.\d*)?|\d*\.\d+)""".r
 
     /**
      * Returns a default value of type `T`.
      *
      * @return the default value of type `T`, typically representing an "empty" or "none" state.
      */
-    def none: Double = Double.NaN
+    def none: Double =
+      Double.NaN
   }
 
   /**

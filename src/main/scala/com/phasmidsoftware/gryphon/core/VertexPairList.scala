@@ -22,4 +22,5 @@ case class VertexPairList[V](pairs: Seq[(V, V, EdgeType)]) extends SerializableG
    * @return a sequence of triplets, where each triplet contains a source vertex,
    *         a target vertex, None as the optional attribute, and the edge type.
    */
-  def triplets: Seq[Triplet[V, Unit, EdgeType]] = pairs.map(p => Triplet(p._1, p._2, None, p._3))
+  def triplets: Seq[Triplet[V, Unit, EdgeType]] =
+    pairs.map(p => Triplet(p._1, p._2, None, p._3))

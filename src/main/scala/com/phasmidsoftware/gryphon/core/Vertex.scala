@@ -26,7 +26,8 @@ case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: 
    * @return a new `Vertex[V]` instance with the same attribute and discovered state as the
    *         current vertex, but with the specified adjacency added to the adjacencies.
    */
-  def +(a: Adjacency[V]): Vertex[V] = Vertex(attribute, adjacencies + a)(discovered)
+  def +(a: Adjacency[V]): Vertex[V] =
+    Vertex(attribute, adjacencies + a)(discovered)
 
   /**
    * Mutating method that resets the `discovered` state of this `Vertex` to `false`.
@@ -38,7 +39,8 @@ case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: 
     this
   }
 
-  override def toString: String = s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"
+  override def toString: String =
+    s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"
 
 /**
  * Companion object for the `Vertex` class, providing a factory method for creating
@@ -58,7 +60,8 @@ object Vertex:
    * @return a newly created `Vertex[V]` instance with the specified attribute and the
    *         provided or default adjacencies.
    */
-  def create[V](attribute: V, vau: Adjacencies[V] = emptyAdjacenciesBag[V]): Vertex[V] = Vertex[V](attribute, vau)()
+  def create[V](attribute: V, vau: Adjacencies[V] = emptyAdjacenciesBag[V]): Vertex[V] =
+    Vertex[V](attribute, vau)()
 
   /**
    * Creates a new `Vertex` instance with the specified attribute and an empty
@@ -71,7 +74,8 @@ object Vertex:
    * @return a new `Vertex[V]` instance with the specified attribute and an empty
    *         collection of adjacencies.
    */
-  def createWithBag[V](attribute: V): Vertex[V] = create(attribute, emptyAdjacenciesBag[V])
+  def createWithBag[V](attribute: V): Vertex[V] =
+    create(attribute, emptyAdjacenciesBag[V])
 
   /**
    * Creates a new `Vertex` instance with the specified attribute and an empty
@@ -86,4 +90,5 @@ object Vertex:
    * @return a new `Vertex[V]` instance with the specified attribute and an empty
    *         collection of `AdjacencyEdge[V, E]`.
    */
-  def createWithSet[V](attribute: V): Vertex[V] = create(attribute, emptyAdjacenciesSet[V])
+  def createWithSet[V](attribute: V): Vertex[V] =
+    create(attribute, emptyAdjacenciesSet[V])

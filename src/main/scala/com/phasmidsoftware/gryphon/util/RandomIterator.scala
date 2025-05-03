@@ -20,7 +20,8 @@ case class RandomIterator[T](private val iterable: Iterable[T])(implicit random:
    *
    * @return true if there are more elements to iterate through, false otherwise.
    */
-  def hasNext: Boolean = list.nonEmpty
+  def hasNext: Boolean =
+    list.nonEmpty
 
   /**
    * Returns the next randomly selected element from the underlying collection and removes it.
@@ -30,11 +31,13 @@ case class RandomIterator[T](private val iterable: Iterable[T])(implicit random:
    * @return the next randomly selected element of type `T`.
    * @throws NoSuchElementException if the collection is empty.
    */
-  def next(): T = list.remove(random.nextInt(list.size))
+  def next(): T =
+    list.remove(random.nextInt(list.size))
 
   random.nextLong() // XXX burn the first value
 
-  private val list: mutable.ListBuffer[T] = mutable.ListBuffer(iterable.toSeq: _*)
+  private val list: mutable.ListBuffer[T] =
+    mutable.ListBuffer(iterable.toSeq: _*)
 }
 
 /**

@@ -37,7 +37,8 @@ object FP {
    * @return a `Try[T]` containing the value `t` as a `Success` if the condition is true, 
    *         or a `Failure` with an `AssertionError` if the condition is false.
    */
-  def assert[T](b: Boolean)(msg: String)(t: T): Try[T] = if (b) Success(t) else Failure(AssertionError(msg))
+  def assert[T](b: Boolean)(msg: String)(t: T): Try[T] =
+    if (b) Success(t) else Failure(AssertionError(msg))
 
   /**
    * Combines a sequence of optional values into a single optional sequence, preserving
@@ -63,10 +64,22 @@ object FP {
         }
     }
 
-  def mutableQueueIterator[T](queue: mutable.Queue[T]): Iterator[T] = new AbstractIterator[T] {
-    def hasNext: Boolean = queue.nonEmpty
+  /**
+   * Creates an iterator for a mutable queue that allows sequential access to its elements.
+   * Each call to `next` dequeues an element from the queue, modifying the original queue.
+   *
+   * @param queue the mutable queue containing elements of type `T` to be iterated over. 
+   *              The queue is modified as elements are consumed.
+   * @tparam T the type of elements in the queue.
+   * @return an iterator over the elements of the mutable queue, consuming elements as they are accessed.
+   */
+  def mutableQueueIterator[T](queue: mutable.Queue[T]): Iterator[T] =
+    new AbstractIterator[T] {
+      def hasNext: Boolean =
+        queue.nonEmpty
 
-    def next(): T = queue.dequeue()
+      def next(): T =
+        queue.dequeue()
   }
 
   /**
@@ -76,7 +89,8 @@ object FP {
    * @tparam X the underlying type
    * @return a Try of Iterator[X]
    */
-  def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] = sequence(xys.to(List)).map(_.iterator)
+  def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] =
+    sequence(xys.to(List)).map(_.iterator)
 
   /**
    * Sequence method to combine elements of Try.
@@ -85,7 +99,8 @@ object FP {
    * @tparam X the underlying type
    * @return a Try of Iterator[X]
    */
-  def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] = sequence(xos.to(List)).map(_.iterator)
+  def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] =
+    sequence(xos.to(List)).map(_.iterator)
 
   /**
    * Sequence method to combine elements of Try.
@@ -120,7 +135,8 @@ object FP {
    * @tparam X the underlying type
    * @return a tuple of two iterators of Try[X], the first one being successes, the second one being failures.
    */
-  def partition[X](xys: Iterator[Try[X]]): (Iterator[Try[X]], Iterator[Try[X]]) = xys.partition(_.isSuccess)
+  def partition[X](xys: Iterator[Try[X]]): (Iterator[Try[X]], Iterator[Try[X]]) =
+    xys.partition(_.isSuccess)
 
   /**
    * Method to partition an  method to combine elements of Try.
@@ -131,7 +147,8 @@ object FP {
    * @tparam X the underlying type
    * @return a tuple of two Seqs of Try[X], the first one being successes, the second one being failures.
    */
-  def partition[X](xys: Seq[Try[X]]): (Seq[Try[X]], Seq[Try[X]]) = xys.partition(_.isSuccess)
+  def partition[X](xys: Seq[Try[X]]): (Seq[Try[X]], Seq[Try[X]]) =
+    xys.partition(_.isSuccess)
 
   /**
    * Method to yield a URL for a given resourceForClass in the classpath for C.
@@ -140,7 +157,8 @@ object FP {
    * @tparam C a class of the package containing the resourceForClass.
    * @return Try[URL].
    */
-  def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
+  def resource[C: ClassTag](resourceName: String): Try[URL] =
+    resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
 
   /**
    * Method to yield a Try[URL] for a resource name and a given class.
@@ -149,7 +167,8 @@ object FP {
    * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
    * @return Try[URL]
    */
-  def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
+  def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] =
+    Option(clazz.getResource(resourceName)) match {
     case Some(u) => Success(u)
     case None => Failure(FPException(s"$resourceName is not a valid resource for $clazz"))
   }

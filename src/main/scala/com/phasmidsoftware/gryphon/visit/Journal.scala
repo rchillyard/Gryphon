@@ -46,9 +46,23 @@ trait IterableJournal[J <: Iterable[V], V] extends Journal[J, V] with HasIterato
  * @tparam V the type of elements stored in the queue.
  */
 trait IterableJournalQueue[V] extends IterableJournal[Queue[V], V] {
-  val empty: Queue[V] = Queue.empty
+  /**
+   * Represents an empty `Queue` of type `V`.
+   * This defines the base case or starting state for operations
+   * performed on the queue within the `IterableJournalQueue` trait.
+   */
+  val empty: Queue[V] =
+    Queue.empty
 
-  def append(q: Queue[V], v: V): Queue[V] = q.enqueue(v)
+  /**
+   * Appends an element to the end of the specified queue.
+   *
+   * @param q the queue to which the element will be added
+   * @param v the element to append to the queue
+   * @return a new queue with the element appended
+   */
+  def append(q: Queue[V], v: V): Queue[V] =
+    q.enqueue(v)
 }
 
 /**
@@ -60,15 +74,48 @@ trait IterableJournalQueue[V] extends IterableJournal[Queue[V], V] {
  * @tparam V the type of the elements in the journal.
  */
 trait IterableJournalStack[V] extends IterableJournal[List[V], V] {
-  val empty: List[V] = List.empty
+  /**
+   * An empty journal of type `List[V]`.
+   * Represents the initial state of the stack, containing no elements.
+   */
+  val empty: List[V] =
+    List.empty
 
-  def append(q: List[V], v: V): List[V] = v :: q
+  /**
+   * Appends an element to the beginning of the given list in a last-in-first-out (LIFO) manner.
+   *
+   * @param q the list to which the element will be appended
+   * @param v the value to append to the list
+   * @return a new list with the value appended to the beginning
+   */
+  def append(q: List[V], v: V): List[V] =
+    v :: q
 }
 
+/**
+ * A type-class trait extending `Journal` to provide specific behavior for journals 
+ * using `StringBuilder` as the journal type to store values of type `V`.
+ *
+ * @tparam V the underlying type of the values stored in the journal.
+ */
 trait StringBuilderJournal[V] extends Journal[StringBuilder, V] {
-  def empty: StringBuilder = new StringBuilder()
+  /**
+   * Creates and returns a new, empty StringBuilder instance.
+   *
+   * @return an empty StringBuilder.
+   */
+  def empty: StringBuilder =
+    new StringBuilder()
 
-  def append(j: StringBuilder, v: V): StringBuilder = j.append(s"$v\n")
+  /**
+   * Appends a value of type `V` to the provided `StringBuilder` journal.
+   *
+   * @param j the `StringBuilder` instance to which the value will be appended
+   * @param v the value of type `V` to append to the `StringBuilder`
+   * @return the updated `StringBuilder` instance with the appended value
+   */
+  def append(j: StringBuilder, v: V): StringBuilder =
+    j.append(s"$v\n")
 }
 
 trait FileWriterJournal[V] extends Journal[FileWriter, V] {
@@ -77,7 +124,8 @@ trait FileWriterJournal[V] extends Journal[FileWriter, V] {
    *
    * @return a new FileWriter based on the file called "FileWriterJournal.txt".
    */
-  def empty: FileWriter = new FileWriter("FileWriterJournal.txt")
+  def empty: FileWriter =
+    new FileWriter("FileWriterJournal.txt")
 
   /**
    * Method to append a V value to a journal.
@@ -86,7 +134,9 @@ trait FileWriterJournal[V] extends Journal[FileWriter, V] {
    * @param v an instance of V to be appended to the journal j.
    * @return a new journal.
    */
-  def append(j: FileWriter, v: V): FileWriter = { j.append(s"$v\n"); j }
+  def append(j: FileWriter, v: V): FileWriter = {
+    j.append(s"$v\n"); j
+  }
 }
 
 /**

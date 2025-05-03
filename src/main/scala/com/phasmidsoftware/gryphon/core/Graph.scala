@@ -30,7 +30,8 @@ trait Graph[V] extends Traversable[V] {
    *               which define its connections within the graph.
    * @return a new graph instance containing the existing vertex map and the newly added vertex.
    */
-  def addVertex(vertex: Vertex[V]): Graph[V] = unit(vertexMap + vertex)
+  def addVertex(vertex: Vertex[V]): Graph[V] =
+    unit(vertexMap + vertex)
 
   /**
    * Creates a new graph using the provided vertex map.

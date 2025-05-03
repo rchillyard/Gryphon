@@ -142,7 +142,7 @@ object EdgeType {
      * @return a `Try[EdgeType]` representing success with a parsed `EdgeType` or failure with an exception
      */
     def parse(s: String): Try[EdgeType] = s match {
-      case "." => Success(Directed)
+      case ">" => Success(Directed)
       case "=" => Success(Undirected)
       case _ => Success(Undefined)
     }

@@ -123,7 +123,7 @@ object UndirectedGraph {
           triplets.triplets.foldLeft(VertexMap[V]) {
             (z, t) =>
               // TODO find another way to handle this anomaly
-              if (!t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is not directed.")
+              if (t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is directed.")
               z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
                   (vv1, vv2, e) =>
                     AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))

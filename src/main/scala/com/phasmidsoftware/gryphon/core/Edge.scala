@@ -9,7 +9,7 @@ import scala.util.{Success, Try}
  * Defines an abstraction for an edge in a graph structure that connects two vertices.
  * An `Edge` may be directed or undirected, and it carries an attribute of type `E`.
  *
- * The connection is established between two vertices of type `V`, referred to as `v1` and `v2`.
+ * The connection is established between two vertices of type `V`, referred to as `white` and `black`.
  * The type (directionality) of the edge, as well as whether it allows traversal in one or both directions,
  * is given by the `edgeType` field.
  *

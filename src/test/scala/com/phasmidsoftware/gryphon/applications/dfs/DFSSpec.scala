@@ -60,7 +60,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
   //        edges.size shouldBe 6
   //        edges foreach println
   //        val lastEdge: DirectedEdge[Int, Unit] = edges.last
-  //        lastEdge.v1
+  //        lastEdge.white
   //      case Failure(x) => throw x
   //    }
   //

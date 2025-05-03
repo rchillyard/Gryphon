@@ -18,17 +18,16 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
 
   /**
    * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies
-   * accordingly. The edge is connected between its `from` and `v2` vertices.
+   * accordingly. The edge is connected between its `from` and `black` vertices.
    *
    * CONSIDER eliminating this method.
    *
    * @param edge the edge to be added to the graph. It contains a starting vertex (`from`),
-   *             an ending vertex (`v2`), and an associated attribute that defines the edge.
+   *             an ending vertex (`black`), and an associated attribute that defines the edge.
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = {
-    // CONSIDER using get here
-    copy(vertexMap + (vertexMap(edge.v1) + AdjacencyEdge(edge)))
+    copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
   }
 
   /**
@@ -37,10 +36,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @return an iterable collection containing all edges of type `Edge[E, V]` in the graph.
    */
   def edges: Iterable[DirectedEdge[E, V]] =
-    (adjacencies map {
-      case AdjacencyEdge(e: DirectedEdge[E, V], false) => e
-    }
-      ).toSeq
+    (adjacencies map getDirectedEdgeFromAdjacency).toSeq
 
   /**
    * Retrieves an iterator of all adjacencies from the vertexMap in the graph.
@@ -78,6 +74,20 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
   def undiscoveredAdjacencies(v: V): Iterator[V] = vertexMap.undiscoveredAdjacencies(v)
+
+  /**
+   * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
+   * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
+   *
+   * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
+   * indicating an unsupported or an invalid edge type.
+   *
+   * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
+   */
+  private val getDirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], DirectedEdge[E, V]] = {
+    case AdjacencyEdge(e: DirectedEdge[E, V], false) => e
+    case x => throw new GraphException(s"unexpected edge type: $x")
+  }
 }
 
 /**
@@ -86,20 +96,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
  * from an edge list representation.
  */
 object DirectedGraph {
-  /**
-   * Constructs a `DirectedGraph` instance from the provided `EdgeList`.
-   * This method converts an `EdgeList` representation into a `DirectedGraph`,
-   * effectively mapping vertex attributes and their corresponding connections.
-   *
-   * @param edgeList the list of edges representing the graph structure, 
-   *                 where each edge connects a source vertex to a target vertex.
-   * @tparam V the type of the vertex attributes.
-   * @tparam E the type of the edge attributes.
-   * @return a newly constructed `DirectedGraph` containing the vertices
-   *         and edges derived from the given `edgeList`.
-   */
-  def apply[V, E](edgeList: EdgeList[V, E, EdgeType]): DirectedGraph[V, E] =
-    DirectedGraph(VertexMap.createFromEdgeList(edgeList))
 
   /**
    * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.

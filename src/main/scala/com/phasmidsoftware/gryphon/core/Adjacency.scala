@@ -84,26 +84,29 @@ object AdjacencyVertex:
  *
  * @tparam V the type of the vertex attributes associated with the edge.
  * @tparam E the type of the edge attributes.
- * @param edge    the edge instance, containing the vertex connection and attribute information.
+ * @param connexion the edge instance, containing the vertex connection and attribute information.
  * @param flipped an optional flag indicating if the directionality of the edge is reversed
  *                (only relevant when the edge is undirected).
  */
-case class AdjacencyEdge[V, E](edge: Edge[E, V], flipped: Boolean = false) extends Adjacency[V] {
+case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false) extends Adjacency[V] {
   /**
-   * Determines the vertex associated with this adjacency based on the direction of the edge.
-   * If the edge is flipped, the originating vertex (`v1`) is returned.
-   * Otherwise, the terminating vertex (`v2`) is returned.
+   * Determines the vertex associated with this adjacency based on the nominal direction of the given edge.
+   * If the edge is flipped, the originating vertex (`white`) is returned.
+   * Otherwise, the terminating vertex (`black`) is returned.
    *
-   * @return the vertex of type `V` associated with this adjacency, determined by the direction of the edge.
+   * @return the vertex of type `V` associated with this adjacency, determined by the value of `flipped`.
    */
-  def vertex: V = if (flipped) edge.v1 else edge.v2
+  def vertex: V = if (flipped) connexion.white else connexion.black
 
   /**
    * Retrieves an optional instance of the edge associated with this adjacency.
    *
-   * @return an `Option` containing the edge if it exists; `None` otherwise.
+   * @return an `Option` containing the connexion if it is an edge; `None` otherwise.
    */
-  def maybeEdge: Option[Edge[_, V]] = Some(edge)
+  def maybeEdge: Option[Edge[_, V]] = connexion match {
+    case e: Edge[_, V] => Some(e)
+    case _ => None
+  }
 }
 
 /**

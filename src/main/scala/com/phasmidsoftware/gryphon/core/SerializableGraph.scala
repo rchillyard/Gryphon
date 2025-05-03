@@ -78,7 +78,7 @@ object SerializableGraph {
 /**
  * Represents a triplet structure consisting of two vertices, an optional attribute, and an edge type.
  *
- * @tparam V the type of the vertices (v1 and v2).
+ * @tparam V the type of the vertices (white and black).
  * @tparam E the type of the optional attribute associated with the edge.
  * @tparam Z the type representing the edge type.
  * @param from           the starting vertex of the triplet.

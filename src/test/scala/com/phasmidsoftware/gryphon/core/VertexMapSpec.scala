@@ -23,23 +23,14 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
-  it should "addEdgeToMap" in {
-    val target: VertexMap[Int] = VertexMap[Int]
-  }
-
-  ignore should "implement createFromEdgeList, contains, apply, and vertices" in {
-    val target = VertexMap.createFromEdgeList(edgeList)
-    target.vertices.size shouldBe 3
-    target.contains(1) shouldBe true
-    target.contains(2) shouldBe true
-    target.contains(3) shouldBe true
-    target.apply(1).attribute shouldBe 1
-    target.apply(2).attribute shouldBe 2
-    target.apply(3).attribute shouldBe 3
+  // TODO move this method into EdgeType, perhaps.
+  val edgeFunc: EdgeType => ProtoConnexion[Unit, Int] => Connexion[Int] = {
+    case Directed => DirectedEdge[Unit, Int]
+    case Undirected => UndirectedEdge[Unit, Int]
+    case Undefined => (_, v1, v2) => VertexPair(v1, v2)
   }
 
   it should "implement createVerticesFromTriplet undirected" in {
-    val edgeFunc: EdgeType => (Unit, Int, Int) => Edge[Unit, Int] = z => if (z.oneWay) DirectedEdge[Unit, Int] else UndirectedEdge[Unit, Int]
     val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsUndirected)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
@@ -56,7 +47,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "implement createVerticesFromTriplet directed" in {
-    val edgeFunc: EdgeType => (Unit, Int, Int) => Edge[Unit, Int] = z => if (z.oneWay) DirectedEdge[Unit, Int] else UndirectedEdge[Unit, Int]
     val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsDirected)
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true

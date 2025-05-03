@@ -23,18 +23,18 @@ case class DirectedEdge[E, V](attribute: E, from: V, to: V) extends Edge[E, V]:
 
   /**
    * Retrieves the starting `Vertex` of this `Edge`.
-   * If this is an `UndirectedEdge`, v1 and v2 represent the nominal direction.
+   * If this is an `UndirectedEdge`, white and black represent the nominal direction.
    * Individual adjacencies can be based on a flipped version of an `UndirectedEdge`.
    *
-   * @return the vertex where the edge originates (the "v1" vertex).
+   * @return the vertex where the edge originates (the "white" vertex).
    */
-  def v1: V = from
+  def white: V = from
 
   /**
    * Retrieves the ending vertex of the edge.
-   * See NOTE above for `v1`.
+   * See NOTE above for `white`.
    *
-   * @return the vertex where the edge terminates (the "v2" vertex).
+   * @return the vertex where the edge terminates (the "black" vertex).
    */
-  def v2: V = to
+  def black: V = to
   

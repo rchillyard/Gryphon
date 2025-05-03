@@ -12,7 +12,7 @@ package com.phasmidsoftware.gryphon.core
  * additional properties or characteristics of the graph or edges, such as edge types.
  *
  * @param edges a sequence of edges that define the connections in the graph.
- *              Each edge connects a source vertex (`v1`) and a target vertex (`v2`),
+ *              Each edge connects a source vertex (`white`) and a target vertex (`black`),
  *              and may carry an associated attribute (`attribute`) and type (`edgeType`).
  * @tparam V the type of the vertices in the graph.
  * @tparam E the type of the attributes associated with the edges.
@@ -24,12 +24,12 @@ case class EdgeList[V, E, Z](edges: Seq[Edge[E, V]]) extends SerializableGraph[V
    * Each triplet contains the source vertex, the target vertex, the attribute associated with the edge, 
    * and the type of the edge cast to type `Z`.
    *
-   * @return a sequence of `Triplet[V, E, Z]`, where each triplet describes the source vertex (`v1`),
-   *         the target vertex (`v2`), the edge attribute (`attribute`), and the edge type (`edgeType`)
+   * @return a sequence of `Triplet[V, E, Z]`, where each triplet describes the `white` vertex,
+   *         the `black` vertex, the edge attribute (`attribute`), and the edge type (`edgeType`)
    *         of an edge in the graph.
    */
   // CONSIDER eliminate this asInstanceOf
-  def triplets: Seq[Triplet[V, E, Z]] = edges.map(e => Triplet(e.v1, e.v2, Some(e.attribute), e.edgeType.asInstanceOf[Z]))
+  def triplets: Seq[Triplet[V, E, Z]] = edges.map(e => Triplet(e.white, e.black, Some(e.attribute), e.edgeType.asInstanceOf[Z]))
 
 /**
  * A case class representing a collection of graph triplets.

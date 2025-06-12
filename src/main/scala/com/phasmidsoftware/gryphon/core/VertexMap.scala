@@ -610,7 +610,7 @@ object VertexMap:
    */
   def maybeUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]], v: V): Option[Vertex[V]] = {
     val vertex = vvVm(v)
-    Option.when(vertex.undiscovered)(vertex) map (_.setDiscovered())
+    Option.when(vertex.undiscovered)(vertex) map (_.discover())
   }
 
   /**
@@ -625,7 +625,7 @@ object VertexMap:
    *         or `None` if no undiscovered vertices are found in the map.
    */
   def anyUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]]): Option[Vertex[V]] =
-    vvVm.values.find(_.undiscovered) map (_.setDiscovered())
+    vvVm.values.find(_.undiscovered) map (_.discover())
 
   /**
    * Updates a map of vertex attributes to `Vertex` instances by processing a collection of triplets.

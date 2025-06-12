@@ -45,7 +45,7 @@ case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: 
    *
    * @return the current vertex (`Vertex[V]`) instance with its `discovered` state updated.
    */
-  def setDiscovered(): Vertex[V] = {
+  def discover(): Vertex[V] = {
     discovered = true
     this
   }

@@ -84,7 +84,7 @@ object Traversal {
     result match {
       case Success(visitor: Visitor[V, mutable.Map[V, T]]) =>
         val map: mutable.Map[V, T] = visitor.journal
-        map.keys.foldLeft(MapTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
+        map.keys.foldLeft(VertexTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
       case Failure(exception) =>
         throw exception
     }
@@ -114,13 +114,12 @@ case class EdgeTraversal[V, E, T](ts: List[T]) extends Traversal[V, T] {
  * A concrete implementation of the `Traversal` trait that uses a map to represent
  * vertex traversals. Each vertex in the graph is associated with a traversal result.
  *
- * @constructor Creates a `MapTraversal` with the given map of vertices and their associated traversal outputs.
+ * @constructor Creates a `VertexTraversal` with the given map of vertices and their associated traversal outputs.
  * @param map A map where each key is a vertex of type `V`, and the value is the corresponding traversal result of type `T`.
  * @tparam V The type representing a vertex in the graph.
- * @tparam E The type representing an edge in the graph.
  * @tparam T The resulting type after traversing a vertex or an edge.
  */
-case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, T] {
+case class VertexTraversal[V, T](map: Map[V, T]) extends Traversal[V, T] {
   /**
    * Traverses the specified vertex in the graph and retrieves the associated traversal result
    * from the underlying map. If the vertex does not exist, a `NoSuchElementException` is thrown.
@@ -142,35 +141,35 @@ case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, T] {
 
   /**
    * Adds a new mapping of a vertex to its corresponding traversal result to the existing map,
-   * returning a new `MapTraversal` instance with the updated mapping.
+   * returning a new `VertexTraversal` instance with the updated mapping.
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   * @return a new `MapTraversal` instance of type `MapTraversal[V, E, T]` containing the updated map.
+   * @return a new `VertexTraversal` instance of type `VertexTraversal[V, E, T]` containing the updated map.
    */
-  def +(t: (V, T)): MapTraversal[V, E, T] =
-    MapTraversal(map + t)
+  def +(t: (V, T)): VertexTraversal[V, T] =
+    VertexTraversal(map + t)
 }
 
 /**
- * Provides utility methods for creating and working with instances of `MapTraversal`.
+ * Provides utility methods for creating and working with instances of `VertexTraversal`.
  *
- * A `MapTraversal` is a concrete implementation of the `Traversal` trait
+ * A `VertexTraversal` is a concrete implementation of the `Traversal` trait
  * that uses a map to represent the traversal results for graph vertices.
- * This object contains a factory method for creating an empty `MapTraversal` instance.
+ * This object contains a factory method for creating an empty `VertexTraversal` instance.
  */
-object MapTraversal {
+object VertexTraversal {
   /**
-   * Creates and returns an empty `MapTraversal` instance.
+   * Creates and returns an empty `VertexTraversal` instance.
    *
-   * An empty `MapTraversal` contains no mappings of vertices to their traversal results.
+   * An empty `VertexTraversal` contains no mappings of vertices to their traversal results.
    * This method is useful as a starting point for building a traversal object incrementally.
    *
    * @tparam V The type representing a vertex in the graph.
    * @tparam E The type representing an edge in the graph.
    * @tparam T The resulting type after traversing a vertex or an edge.
-   * @return A new `MapTraversal` instance with an empty map.
+   * @return A new `VertexTraversal` instance with an empty map.
    */
-  def empty[V, E, T]: MapTraversal[V, E, T] =
-    MapTraversal(Map.empty[V, T])
+  def empty[V, E, T]: VertexTraversal[V, T] =
+    VertexTraversal(Map.empty[V, T])
 }

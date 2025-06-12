@@ -27,7 +27,7 @@ class TraversalSpec extends AnyFlatSpec with Matchers {
     val traversal = Traversal.vertexTraversalDfs(vertexFunction)(graph)(1)
     println(traversal)
     traversal match {
-      case MapTraversal(map) => map.size shouldBe 3
+      case VertexTraversal(map) => map.size shouldBe 3
       case _ => fail("vertexTraversalDfs failed")
     }
   }
@@ -46,7 +46,7 @@ class TraversalSpec extends AnyFlatSpec with Matchers {
             val traversal = Traversal.vertexTraversalDfs(vertexFunction)(graph)(0)
             println(traversal)
             traversal match {
-              case MapTraversal(map) => map.size shouldBe 7 // TODO CHECK this
+              case VertexTraversal(map) => map.size shouldBe 7 // TODO CHECK this
               case _ => fail("vertexTraversalDfs failed")
             }
           case Failure(exception) => fail(exception)

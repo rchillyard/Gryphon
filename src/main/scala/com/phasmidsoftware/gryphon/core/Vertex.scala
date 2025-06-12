@@ -39,6 +39,28 @@ case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: 
     this
   }
 
+  /**
+   * Marks the current vertex as discovered by setting its internal `discovered` state to `true`.
+   * This operates by side-effect.
+   *
+   * @return the current vertex (`Vertex[V]`) instance with its `discovered` state updated.
+   */
+  def setDiscovered(): Vertex[V] = {
+    discovered = true
+    this
+  }
+
+  /**
+   * Checks if the vertex is not discovered.
+   * NOTE that this must remain a def (not a lazy val) because the `discovered` property is mutable.
+   *
+   * This method inversely reflects the `discovered` property of a vertex.
+   * If a vertex is marked as not discovered, this method returns `true`.
+   *
+   * @return `true` if the vertex has not been discovered, `false` otherwise.
+   */
+  def undiscovered: Boolean = !discovered
+
   override def toString: String =
     s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"
 

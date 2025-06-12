@@ -236,6 +236,19 @@ object FP {
    */
   def mkStringLimit[X](xs: Iterable[X], limit: Int = 5, sep: String = ", "): String =
     xs.iterator.take(limit).mkString(sep) + (if (xs.size > limit) s"... (and ${xs.size - limit} more)" else "")
+
+  /**
+   * Applies a side-effecting function `f` to a lazily evaluated value `x`, and then returns `x`.
+   *
+   * @param f a function that performs a side effect on the value of type `X`.
+   * @param x a lazily evaluated value of type `X`.
+   * @tparam X the type of the value being processed.
+   * @return the original value `x` after the side effect is applied.
+   */
+  def tee[X](f: X => Unit)(x: => X): X = {
+    f(x)
+    x
+  }
 }
 
 /**

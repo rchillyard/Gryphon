@@ -1,6 +1,8 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.core
+import com.phasmidsoftware.gryphon.core.{Edge, EdgeGraph}
+import com.phasmidsoftware.gryphon.util.GraphException
 import com.phasmidsoftware.gryphon.visit.{Journal, PostVisitor, Visitor}
 
 import scala.collection.mutable
@@ -10,10 +12,9 @@ import scala.util.{Failure, Success, Try, Using}
  * A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.
  *
  * @tparam V the type representing a vertex in the graph.
- * @tparam E the type representing an edge in the graph.
  * @tparam T the resulting type after traversing a vertex or an edge.
  */
-trait Traversal[V, E, T] {
+trait Traversal[V, T] {
 
   /**
    * Traverses a given vertex in the graph and returns the result of the traversal.
@@ -24,29 +25,39 @@ trait Traversal[V, E, T] {
   def vertexTraverse(v: V): T
 
   /**
-   * Traverses a specified edge within a graph-like structure and produces a result of type T.
+   * Traverses an indexed edge within a graph-like structure and produces a result of type T.
    *
-   * @param e the edge to be traversed
-   * @return the result of the traversal
+   * @param x the index of the edge traversed
+   * @return the corresponding value of T
    */
-  def edgeTraverse(e: E): T
+  def edgeTraverse(x: Int): T
 }
 
 /**
  * Provides graph traversal functionality using depth-first search (DFS) for vertex traversal.
  */
 object Traversal {
+  def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.Traversable[E]): Traversal[V, T] = traversable match {
+    case graph: EdgeGraph[V, E] =>
+      val ts: List[T] = graph.edges.foldLeft(List[T]()) {
+        (m, e) =>
+          f(e) :: m
+      }
+      EdgeTraversal(ts)
+    case _ => throw GraphException(s"edgeTraversal called on non-edge graph: $traversable")
+  }
 
   /**
-   * Executes a depth-first search (DFS) traversal starting from a specified vertex and applies a transformation
-   * function to each visited vertex. The result of the traversal is represented as a `Traversal`.
+   * Executes a depth-first search (DFS) traversal starting from a specified vertex and maps the
+   * traversal to a result using a provided vertex-mapping function.
    *
-   * @param f           a function that takes a vertex of type `V` and returns a transformed value of type `T`.
-   * @param traversable the graph-like structure that supports DFS traversal, represented as `core.Traversable[V]`.
-   * @param start       the starting vertex for the DFS traversal, of type `V`.
-   * @return a `Traversal` object of type `Traversal[V, E, T]` containing the results of the traversal.
+   * @param f           a function that maps each vertex of type `V` to a result of type `T`.
+   * @param traversable a graph-like structure that is traversable, with vertices of type `V`.
+   * @param start       the starting vertex of the depth-first search traversal.
+   * @return a `Traversal[V, E, T]` object representing the result of the DFS traversal with
+   *         transformed vertices.
    */
-  def vertexTraversalDfs[V, E, T](f: V => T)(traversable: core.Traversable[V])(start: V): Traversal[V, E, T] = {
+  def vertexTraversalDfs[V, E, T](f: V => T)(traversable: core.Traversable[V])(start: V): Traversal[V, T] = {
     implicit object ZZ extends Journal[mutable.Map[V, T], V] {
       /**
        * An empty journal.
@@ -81,6 +92,24 @@ object Traversal {
 
 }
 
+case class EdgeTraversal[V, E, T](ts: List[T]) extends Traversal[V, T] {
+  /**
+   * Traverses a given vertex in the graph and returns the result of the traversal.
+   *
+   * @param v the vertex to be traversed.
+   * @return the result of the traversal for the provided vertex.
+   */
+  def vertexTraverse(v: V): T = throw GraphException(s"vertexTraverse called on EdgeTraversal: $v")
+
+  /**
+   * Traverses a specified edge within a graph-like structure and produces a result of type T.
+   *
+   * @param x the index of the edge to be traversed
+   * @return the result of the traversal
+   */
+  def edgeTraverse(x: Int): T = ts(x)
+}
+
 /**
  * A concrete implementation of the `Traversal` trait that uses a map to represent
  * vertex traversals. Each vertex in the graph is associated with a traversal result.
@@ -91,7 +120,7 @@ object Traversal {
  * @tparam E The type representing an edge in the graph.
  * @tparam T The resulting type after traversing a vertex or an edge.
  */
-case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, E, T] {
+case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, T] {
   /**
    * Traverses the specified vertex in the graph and retrieves the associated traversal result
    * from the underlying map. If the vertex does not exist, a `NoSuchElementException` is thrown.
@@ -109,7 +138,7 @@ case class MapTraversal[V, E, T](map: Map[V, T]) extends Traversal[V, E, T] {
    * @param e the edge to be traversed
    * @return the result of the traversal for the provided edge
    */
-  def edgeTraverse(e: E): T = ???
+  def edgeTraverse(e: Int): T = ???
 
   /**
    * Adds a new mapping of a vertex to its corresponding traversal result to the existing map,

@@ -7,9 +7,12 @@ package com.phasmidsoftware.gryphon.applications.dfs
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.{EdgeGraph, EdgeType, Graph, Triplet}
 import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.traverse.Traversal
 import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.gryphon.visit.Visitor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.matchers.should.Matchers.shouldBe
 
 import scala.io.Source
 import scala.util.*
@@ -25,20 +28,25 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
       (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
     }
     zsy match {
-
-      //      val uy: Try[URL] = resource[TopologicalSortSpec]("/dag.graph")
-      //      val triedSource = uy map (Source.fromURL(_))
-      //      val wsy: Try[Iterator[String]] = TryUsing.trial(triedSource)(_.getLines())
-      //      wsy.isSuccess shouldBe true
-      //      val ws: Iterator[String] = wsy.get
-      //      sequence(for (w <- ws) yield p.parseTriple(w)) match {
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](triplets) match {
           case Success(graph: EdgeGraph[_, _]) =>
             println(graph.edges)
             graph.vertexMap.map.size shouldBe 7
             graph.edges.size shouldBe 11
-
+            graph.vertexMap.map.keys.toSeq.sorted shouldBe Seq(0, 1, 2, 3, 4, 5, 6)
+            val traversal = Traversal.edgeTraversal[Int, Int, String](edge => s"${edge.white} -> ${edge.black}")(graph)
+            println(traversal)
+            val visitor = Visitor.reversePost[Int]
+            val result = graph.dfsAll(visitor)
+            val topologicalOrder = result.journal
+            println(topologicalOrder)
+            val possibleOrders = List(
+              List(3, 6, 0, 1, 4, 5, 2),
+              List(3, 6, 0, 5, 2, 1, 4),
+              List(3, 6, 0, 5, 1, 4, 2)
+            )
+            possibleOrders.contains(topologicalOrder) shouldBe true
           case Failure(x) =>
             fail("parse failed: ", x)
           case _ => fail("parse failed: Graph is not an EdgeGraph")

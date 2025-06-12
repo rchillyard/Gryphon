@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.core
 // NOTE backward imports
 
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
-import com.phasmidsoftware.gryphon.core.VertexMap.{logger, maybeUndiscoveredVertex}
+import com.phasmidsoftware.gryphon.core.VertexMap.{anyUndiscoveredVertex, logger, maybeUndiscoveredVertex}
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
@@ -309,28 +309,22 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   }
 
   /**
-   * Performs depth-first search on all the vertices in the graph represented by the `VertexMap`.
-   * The traversal begins from each undiscovered vertex and visits all reachable vertices,
-   * using the provided `Visitor` for processing during the traversal.
+   * Performs a Depth-First Search (DFS) ensuring that all vertices are discovered.
    *
-   * @param visitor the visitor, an instance of `Visitor[V, J]`, responsible for processing vertices during traversal.
-   *                It represents the current state of the traversal and is updated as the traversal progresses.
-   * @tparam J the type of the journal associated with the `Visitor`.
-   * @return a `Visitor[V, J]` instance that reflects the state of the graph traversal after processing all vertices.
+   * @param visitor the visitor that processes the vertices during the DFS traversal
+   * @return the updated visitor after processing all undiscovered vertices
    */
   def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = {
     initializeVisits(None)
 
     @tailrec
-    def inner(q: Visitor[V, J]): Visitor[V, J] = {
-      val undiscovered: Map[V, Vertex[V]] = map filter { case (_, v) => !v.discovered }
-      undiscovered.headOption match {
-        case Some((k, _)) =>
-          inner(recursiveDFS(q, k))
+    def inner(q: Visitor[V, J]): Visitor[V, J] =
+      anyUndiscoveredVertex(map) match {
+        case Some(v) =>
+          inner(recursiveDFS(q, v.attribute))
         case None =>
           q
       }
-    }
 
     inner(visitor)
   }
@@ -616,8 +610,22 @@ object VertexMap:
    */
   def maybeUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]], v: V): Option[Vertex[V]] = {
     val vertex = vvVm(v)
-    Option.when(!vertex.discovered)(vertex).map { vv => vv.discovered = true; vv }
+    Option.when(vertex.undiscovered)(vertex) map (_.setDiscovered())
   }
+
+  /**
+   * Searches for any undiscovered vertex in the given map of vertices and marks it as discovered
+   * if one is found.
+   * NOTE that this method and maybeUndiscoveredVertex must operate similarly
+   *
+   * @param vvVm a map associating vertex attributes of type `V` with their corresponding `Vertex[V]` instances.
+   *             Each vertex has a `discovered` flag indicating its discovery status during graph traversal.
+   * @tparam V the type of the vertex attributes.
+   * @return an `Option` containing an undiscovered `Vertex[V]` that is subsequently marked as discovered,
+   *         or `None` if no undiscovered vertices are found in the map.
+   */
+  def anyUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]]): Option[Vertex[V]] =
+    vvVm.values.find(_.undiscovered) map (_.setDiscovered())
 
   /**
    * Updates a map of vertex attributes to `Vertex` instances by processing a collection of triplets.

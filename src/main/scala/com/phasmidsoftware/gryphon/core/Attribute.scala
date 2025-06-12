@@ -31,7 +31,7 @@ trait Attributed[T, A] {
    * @param t the entity of type `T` for which the associated attribute is to be retrieved.
    * @return the attribute of type `A` associated with the given entity.
    */
-   def attribute(t: T): A
+  def attribute(t: T): A
 }
 
 

@@ -16,19 +16,29 @@ import scala.util.parsing.combinator.JavaTokenParsers
  */
 class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenParsers {
   /**
-   * Attempts to parse the given input string using the specified parser.
-   * If parsing succeeds, the result is wrapped in a `Success`.
-   * If parsing fails, a `Failure` containing a `ParseException` is returned.
+   * Attempts to parse the provided input string `s` using the given optional parser `parser`
+   * followed by an optional `comment`.
+   * If `parser` succeeds, then any subsequent comment is ignored, and the result is a `Success`.
+   * The method handles cases where parsing is successful, where parsing yields no result,
+   * or where an error occurs during parsing, and returns the corresponding `Try[T]`.
    *
-   * @param parser The parser to be used for parsing the input string.
-   * @param s      The input string to parse.
-   * @return A `Try` containing the parsed result as `Success` if parsing succeeds, or
-   *         a `Failure` with a `ParseException` if parsing fails.
+   * @param parser The parser of type `Parser[T]` used to parse the input string.
+   * @param s      The input string to be parsed that may (or may not) end with a comment.
+   * @return A `Try` instance containing the parsed result of type `T` if parsing succeeds,
+   *         or a `Failure` containing an exception if parsing fails or the input is empty.
+   *         In particular, a comment line, or a blank line will result in a `Failure`
+   *         containing an `EmptyStringException`.
    */
-  def maybeParseAll[T](parser: Parser[T])(s: String): Try[T] =
-    parseAll(parser, s) match {
-      case this.Success(result, _) => scala.util.Success(result)
-      case this.NoSuccess.I(msg, _) => scala.util.Failure(ParseException(msg))
+  def tryParseAll[T](parser: Parser[T])(s: String): Try[T] =
+    parseAll(opt(parser) ~ opt(comment), s) match {
+      case this.Success(Some(result) ~ _, _) =>
+        scala.util.Success(result)
+      case this.Success(None ~ Some(w), _) =>
+        scala.util.Failure(EmptyStringException(w))
+      case this.Success(None ~ _, _) =>
+        scala.util.Failure(EmptyStringException(s))
+      case this.NoSuccess.I(msg, _) =>
+        scala.util.Failure(ParseException(msg))
     }
 
   private val vp = implicitly[Parseable[V]]
@@ -68,4 +78,25 @@ class BaseParser[V: Parseable, E: Parseable, Z: Parseable] extends JavaTokenPars
    */
   protected def maybeZ: Parser[Option[Z]] =
     opt(zp.regex) ^^ lift(Parseable.parser)
+
+  /**
+   * NOTE: only used by unit tests.
+   * Combines two optional parsers: one for a vertex (`vertex`) and another for a comment (`comment`).
+   * The resulting parser produces a tuple, where the first element is an `Option[V]`
+   * representing the parsed vertex (if present), and the second element is an `Option[String]`
+   * representing the parsed comment (if present).
+   *
+   * @return A parser that evaluates to a tuple consisting of an optional vertex and an optional comment.
+   */
+  def optional: Parser[Option[V] ~ Option[String]] = opt(vertex) ~ opt(comment)
+
+  /**
+   * Parses a comment line from the input string.
+   * Matches any characters following the `commentToken` until the end of the line.
+   *
+   * @return A `Parser` that evaluates to a `String` containing the content of the comment line.
+   */
+  def comment: Parser[String] = commentToken ~> """.*$""".r
+
+  private val commentToken = "//"
 }

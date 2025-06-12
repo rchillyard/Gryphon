@@ -67,14 +67,15 @@ object Traversal {
     }
     val result: Try[Visitor[V, mutable.Map[V, T]]] =
       Using(PostVisitor[V, mutable.Map[V, T]]()) {
-      (visitor: Visitor[V, mutable.Map[V, T]]) =>
-        traversable.dfs[mutable.Map[V, T]](visitor)(start)
-    }
+        (visitor: Visitor[V, mutable.Map[V, T]]) =>
+          traversable.dfs[mutable.Map[V, T]](visitor)(start)
+      }
     result match {
       case Success(visitor: Visitor[V, mutable.Map[V, T]]) =>
         val map: mutable.Map[V, T] = visitor.journal
         map.keys.foldLeft(MapTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
-      case Failure(exception) => throw exception
+      case Failure(exception) =>
+        throw exception
     }
   }
 

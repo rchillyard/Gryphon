@@ -8,10 +8,8 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.util.FP.sequence
-import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
+import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.gryphon.visit.Visitor
-import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -35,20 +33,23 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
   it should "dfs Dijkstra" in {
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource(dijkstraGraphPath))
-    val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
-    wsy.isSuccess shouldBe true
-    val ws = wsy.get
-    sequence(for (w <- ws) yield p.parseTriple(w)) match {
+    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    }
+    zsy match {
       case Success(triplets) =>
         triplesToTryGraph(triplets) match {
-              case Success(graph: EdgeGraph[_, _]) =>
-                println(graph.edges)
-                graph.vertexMap.map.size shouldBe 8
-                graph.edges.size shouldBe 16
-              case Failure(x) =>
-                fail("parse failed: ", x)
-              case _ => fail("parse failed: Graph is not an EdgeGraph")
+          case Success(graph: EdgeGraph[_, _]) =>
+            println(graph.edges)
+            graph.vertexMap.map.size shouldBe 8
+            graph.edges.size shouldBe 16
+            graph.dfs(Visitor.createPre[Int])(1) match {
+              case visitor => println(visitor)
             }
+          case Failure(x) =>
+            fail("parse failed: ", x)
+          case _ => fail("parse failed: Graph is not an EdgeGraph")
+        }
 
       case Failure(x) =>
         fail("parse failed", x)

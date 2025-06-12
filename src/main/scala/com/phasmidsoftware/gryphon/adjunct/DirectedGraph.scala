@@ -83,13 +83,15 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
    *
    * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
-   * indicating an unsupported or an invalid edge type.
+   * indicating an unsupported or an invalid-edge type.
    *
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
   private val getDirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], DirectedEdge[E, V]] = {
-    case AdjacencyEdge(e: DirectedEdge[E, V], false) => e
-    case x => throw new GraphException(s"unexpected edge type: $x")
+    case AdjacencyEdge(e: DirectedEdge[E, V], false) =>
+      e
+    case x =>
+      throw GraphException(s"unexpected edge type: $x")
   }
 }
 
@@ -101,7 +103,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
 object DirectedGraph {
 
   /**
-   * Constructs a new directed graph using the provided vertex map.
+   * Constructs a new, directed graph using the provided vertex map.
    *
    * @param vertexMap a map containing the vertices of type `V` as keys and their associated
    *                  adjacency lists or other vertex-specific data.
@@ -158,7 +160,7 @@ object DirectedGraph {
                     AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
                 }(false)
                 (t)
-        }
+          }
         val graph = DirectedGraph(vm)
         // TODO find another way to handle this anomaly
         if (graph.adjacencies.size != triplets.triplets.size) System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")

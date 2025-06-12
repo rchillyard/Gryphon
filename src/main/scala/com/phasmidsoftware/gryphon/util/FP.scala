@@ -15,15 +15,16 @@ object FP {
 
   /**
    * Lifts a function `f` of type `A => B` into a function that operates on `Option`.
-   * The resulting function applies the given function `f` to the value inside an `Option`,
-   * if it is defined, and returns the transformed `Option`.
+   * The resulting function applies the given function `f` to the value inside an `Option`
+   * if it is defined and returns the transformed `Option`.
    *
    * @param f the function to be lifted, which takes a value of type `A` and returns a value of type `B`.
    * @tparam A the input type of the function `f`.
    * @tparam B the output type of the function `f`.
    * @return a function that takes an `Option[A]` and returns an `Option[B]` by applying `f` to the value inside the `Option` if it exists.
    */
-  def lift[A, B](f: A => B): Option[A] => Option[B] = _ map f
+  def lift[A, B](f: A => B): Option[A] => Option[B] =
+    _ map f
 
   /**
    * Asserts a condition and returns a success or failure based on the outcome.
@@ -80,7 +81,7 @@ object FP {
 
       def next(): T =
         queue.dequeue()
-  }
+    }
 
   /**
    * Sequence method to combine elements of Try.
@@ -129,7 +130,7 @@ object FP {
     }
 
   /**
-   * Method to partition an  method to combine elements of Try.
+   * Method to partition a method to combine elements of Try.
    *
    * @param xys an Iterator of Try[X]
    * @tparam X the underlying type
@@ -139,7 +140,7 @@ object FP {
     xys.partition(_.isSuccess)
 
   /**
-   * Method to partition an  method to combine elements of Try.
+   * Method to partition a method to combine elements of Try.
    *
    * TEST
    *
@@ -169,9 +170,11 @@ object FP {
    */
   def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] =
     Option(clazz.getResource(resourceName)) match {
-    case Some(u) => Success(u)
-    case None => Failure(FPException(s"$resourceName is not a valid resource for $clazz"))
-  }
+      case Some(u) =>
+        Success(u)
+      case None =>
+        Failure(FPException(s"$resourceName is not a valid resource for $clazz"))
+    }
 
   /**
    * Method to determine if the String w was found at a valid index (i).
@@ -181,8 +184,10 @@ object FP {
    * @return Success(i) if all well, else Failure(exception).
    */
   def indexFound(w: String, i: Int): Try[Int] = i match {
-    case x if x >= 0 => Success(x)
-    case _ => Failure(FPException(s"Header column '$w' not found"))
+    case x if x >= 0 =>
+      Success(x)
+    case _ =>
+      Failure(FPException(s"Header column '$w' not found"))
   }
 
   /**
@@ -195,9 +200,13 @@ object FP {
    * @return an Option[X].
    */
   def tryToOption[X](f: Throwable => Unit)(xy: Try[X]): Option[X] = xy match {
-    case Success(x) => Some(x)
-    case Failure(NonFatal(x)) => f(x); None
-    case Failure(x) => throw x
+    case Success(x) =>
+      Some(x)
+    case Failure(NonFatal(x)) =>
+      f(x)
+      None
+    case Failure(x) =>
+      throw x
   }
 
   /**
@@ -245,12 +254,13 @@ object TryUsing {
    * @tparam A the underlying type of the result.
    * @return a Try[A]
    */
-  def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] = Using(resource)(f).flatten
+  def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] =
+    Using(resource)(f).flatten
 
   /**
    * Executes the provided function `f` with a resource managed via `Using` while handling the resource lifecycle.
    *
-   * This method takes a `Try` of resource type `R`, and applies the function `f` to the successfully
+   * This method takes a `Try` of resource type `R` and applies the function `f` to the successfully
    * acquired resource if `ry`. If `ry` is a `Failure`, the failure is propagated.
    *
    * @param ry a `Try[R]` representing a resource to be used. If `Success`, the resource is passed to the function `f`.
@@ -261,23 +271,26 @@ object TryUsing {
    *         or propagating the `Failure` if `ry` is `Failure`.
    */
   def trial[R: Releasable, A](ry: => Try[R])(f: R => A): Try[A] = ry match {
-    case Success(r) => Using(r)(f)
-    case Failure(x) => Failure(x)
+    case Success(r) =>
+      Using(r)(f)
+    case Failure(x) =>
+      Failure(x)
   }
 
   /**
-   * This method is similar to apply(r) but it takes a Try[R] as its parameter.
-   * The definition of f is the same as in the other apply, however.
+   * This method is similar to `apply(r)`, but it takes a `Try[R]` as its parameter.
+   * The definition of `f` is the same as in the other `apply`, however.
    *
    * TEST
    *
-   * @param ry a Try[R] which is passed into f and will be managed via Using.apply
+   * @param ry a Try[R] which is passed into f and will be managed via `Using.apply`.
    * @param f  a function of R => Try[A].
    * @tparam R the resource type.
    * @tparam A the underlying type of the result.
    * @return a Try[A]
    */
-  def tryIt[R: Releasable, A](ry: => Try[R])(f: R => Try[A]): Try[A] = for (r <- ry; a <- apply(r)(f)) yield a
+  def tryIt[R: Releasable, A](ry: => Try[R])(f: R => Try[A]): Try[A] =
+    for (r <- ry; a <- apply(r)(f)) yield a
 }
 
 case class FPException(msg: String, eo: Option[Throwable] = None) extends Exception(msg, eo.orNull)

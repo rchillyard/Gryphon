@@ -38,8 +38,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def adjacencies(v: V): Iterator[V] =
     val vo = get(v)
-    if (vo.isEmpty) logger.warn(s"vertex ${v} not found")
-    (for (vv <- vo.iterator; va <- randomAdjacencies(vv)) yield va.vertex)
+    if (vo.isEmpty) logger.warn(s"vertex $v not found")
+    for (vv <- vo.iterator; va <- randomAdjacencies(vv)) yield va.vertex
 
   /**
    * Retrieves an iterator over the adjacencies of the given vertex that have not yet been discovered.
@@ -55,7 +55,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * @return a string representation of the map.
    */
-  override def toString: String = map.toString
+  override def toString: String =
+    map.toString
 
   /**
    * A function value that represents adding an adjacency to a vertex.
@@ -72,8 +73,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * Processes a vertex within a vertex map by applying a specified function to a given vertex
    * and an additional parameter.
    *
-   * @param f     A function that takes a vertex and an additional parameter of type X,
-   *              then return processed vertex.
+   * @param f A function that takes a vertex and an additional parameter of type X,
+   *          then return processed vertex.
    * @param v The key of the vertex to be processed, of type V.
    * @param x An additional parameter of type X that is passed to the function f.
    * @tparam X The type of the additional parameter.
@@ -82,8 +83,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def modifyVertexX[X](f: X => Vertex[V] => Vertex[V])(v: V)(x: X): VertexMap[V] =
     get(v) map (vv => f(x)(vv)) match {
-      case Some(vv) => this + vv
-      case None => this
+      case Some(vv) =>
+        this + vv
+      case None =>
+        this
     }
 
   /**
@@ -95,8 +98,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def modifyVertex(f: Vertex[V] => Vertex[V])(v: V): VertexMap[V] =
     get(v) map f match {
-      case Some(vv) => this + vv
-      case None => this
+      case Some(vv) =>
+        this + vv
+      case None =>
+        this
     }
 
   /**
@@ -104,7 +109,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * @return an `Iterable` collection of `Vertex` objects representing the vertices in the map.
    */
-  def vertices: Iterable[Vertex[V]] = map.values
+  def vertices: Iterable[Vertex[V]] =
+    map.values
 
   /**
    * Checks if the specified key is present in the VertexMap.
@@ -112,7 +118,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param key the key to be checked for existence in the map.
    * @return true if the key exists, false otherwise.
    */
-  def contains(key: V): Boolean = map.contains(key)
+  def contains(key: V): Boolean =
+    map.contains(key)
 
   /**
    * Adds a vertex to the current VertexMap, associating it with its attribute as the key.
@@ -134,10 +141,14 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *         reflecting the addition of the edge.
    */
   def +[E](edge: Edge[E, V]): VertexMap[V] = {
-    val createFrom: V => Vertex[V] = createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge))
-    val createTo: V => Vertex[V] = if (edge.edgeType.oneWay) createWithSet[V] else createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge, true))
-    val fromFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createFrom)
-    val toFunc: VertexMap[V] => V => VertexMap[V] = mv => mv.ensure(createTo)
+    val createFrom: V => Vertex[V] =
+      createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge))
+    val createTo: V => Vertex[V] =
+      if (edge.edgeType.oneWay) createWithSet[V] else createWithSet[V] andThen addAdjFunction(AdjacencyEdge(edge, true))
+    val fromFunc: VertexMap[V] => V => VertexMap[V] =
+      mv => mv.ensure(createFrom)
+    val toFunc: VertexMap[V] => V => VertexMap[V] =
+      mv => mv.ensure(createTo)
     fromFunc(toFunc(this)(edge.black))(edge.white)
   }
 
@@ -165,7 +176,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param key the key representing the attribute of the vertex to retrieve.
    * @return an `Option` containing the vertex associated with the key, or `None` if the key is not present.
    */
-  def get(key: V): Option[Vertex[V]] = map.get(key)
+  def get(key: V): Option[Vertex[V]] =
+    map.get(key)
 
   /**
    * Returns the value associated with the given key in the map if it exists.
@@ -176,7 +188,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param default the default value to return if the key is not found in the map.
    * @return the value associated with the given key, or the default value if the key is not found.
    */
-  def getOrElse(key: V, default: => Vertex[V]): Vertex[V] = map.getOrElse(key, default)
+  def getOrElse(key: V, default: => Vertex[V]): Vertex[V] =
+    map.getOrElse(key, default)
 
   /**
    * Retrieves the vertex associated with the specified key from the vertex map.
@@ -186,7 +199,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws NoSuchElementException if the key is not present in the vertex map.
    */
   @throws[NoSuchElementException]
-  def apply(key: V): Vertex[V] = map.apply(key)
+  def apply(key: V): Vertex[V] =
+    map.apply(key)
 
   /**
    * Applies the provided function `defaultFunc` to the key `x` if `x` is not present in the map;
@@ -197,21 +211,24 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param defaultFunc the function to apply when the key `x` is not found in the map
    * @return the value associated with the key `x` in the map, or the result of applying the `defaultFunc` function if `x` is not found
    */
-  def applyOrElse(x: V, defaultFunc: V => Vertex[V]): Vertex[V] = map.applyOrElse(x, defaultFunc)
+  def applyOrElse(x: V, defaultFunc: V => Vertex[V]): Vertex[V] =
+    map.applyOrElse(x, defaultFunc)
 
   /**
    * Retrieves the set of keys (attributes of vertices) present in the `VertexMap`.
    *
    * @return a `Set` containing the keys associated with the vertices in the `VertexMap`.
    */
-  def keySet: Set[V] = map.keySet
+  def keySet: Set[V] =
+    map.keySet
 
   /**
    * Provides an iterator over the keys in the underlying map.
    *
    * @return An iterator of type `V` representing the keys in the map.
    */
-  def iterator: Iterator[V] = map.keysIterator
+  def iterator: Iterator[V] =
+    map.keysIterator
 
   /**
    * Ensures that a vertex corresponding to the given value is present in the VertexMap.
@@ -224,8 +241,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *         if the vertex is already present.
    */
   def ensure(f: V => Vertex[V])(v: V): VertexMap[V] = get(v) match {
-    case Some(_) => this
-    case None => this + f(v)
+    case Some(_) =>
+      this
+    case None =>
+      this + f(v)
   }
 
   /**
@@ -234,7 +253,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v The value associated with the vertex to be checked for discovery status.
    * @return An Option containing the undiscovered vertex if found and marked as discovered, or None if no undiscovered vertex exists.
    */
-  def undiscoveredVertex(v: V): Option[Vertex[V]] = maybeUndiscoveredVertex(map, v)
+  def undiscoveredVertex(v: V): Option[Vertex[V]] =
+    maybeUndiscoveredVertex(map, v)
 
   /**
    * Adds the edges from the provided EdgeList to the existing VertexMap.
@@ -242,7 +262,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param edgeList the EdgeList containing the edges to be added
    * @return a new VertexMap with the edges from the EdgeList added
    */
-  def addEdges[E, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] = edgeList.edges.foldLeft[VertexMap[V]](this) { (vm, e) => vm + e }
+  def addEdges[E, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] =
+    edgeList.edges.foldLeft[VertexMap[V]](this) { (vm, e) => vm + e }
 
   /**
    * Adds a sequence of vertex pairs along with their associated edge types to the current vertex map.
@@ -386,8 +407,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def createAdjacency[E, Z](edgeFunction: ProtoConnexion[E, V] => Connexion[V])(vv1: Vertex[V], vv2: Vertex[V], maybeE: Option[E]): Adjacency[V] =
     maybeE match {
-      case Some(e) => AdjacencyEdge[V, E](edgeFunction(e, vv1.attribute, vv2.attribute))
-      case None => AdjacencyVertex[V](vv2.attribute)
+      case Some(e) =>
+        AdjacencyEdge[V, E](edgeFunction(e, vv1.attribute, vv2.attribute))
+      case None =>
+        AdjacencyVertex[V](vv2.attribute)
     }
 
   /**
@@ -413,7 +436,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v The key of type `V` for which a Vertex is to be retrieved or created.
    * @return The Vertex associated with the key `v`, either retrieved from the map or created using the function `f`.
    */
-  private def getOrCreate(f: V => Vertex[V])(v: V): Vertex[V] = map.getOrElse(v, f(v))
+  private def getOrCreate(f: V => Vertex[V])(v: V): Vertex[V] =
+    map.getOrElse(v, f(v))
 
   /**
    * Recursively processes vertices starting from the given vertex `v`, applying a visitor function for each vertex
@@ -433,9 +457,12 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
     @tailrec
     def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
-      case Some((head, _)) if goal(head) => result.visitPre(head)
-      case Some((head, tail)) => inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
-      case _ => result
+      case Some((head, _)) if goal(head) =>
+        result.visitPre(head)
+      case Some((head, tail)) =>
+        inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
+      case _ =>
+        result
     }
 
     inner(visitor, queueable.append(queueable.empty, v))
@@ -480,7 +507,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
             // TODO understand why the exception is not thrown
             throw GraphException(s"Vertex $v not found in map.")
         }
-      case None => null
+      case None =>
+        null
     }
   }
 
@@ -530,7 +558,8 @@ object VertexMap:
    * @tparam V the type of the vertex attributes.
    * @return a new `VertexMap` containing the specified mapping of vertex attributes to vertices.
    */
-  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
+  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] =
+    new VertexMap(map)
 
   /**
    * Creates an empty `VertexMap` instance with no vertex mappings.
@@ -541,7 +570,8 @@ object VertexMap:
    * @tparam V the type of the vertex attributes.
    * @return a new `VertexMap` with no vertex mappings.
    */
-  def apply[V]: VertexMap[V] = apply(Map.empty[V, Vertex[V]])
+  def apply[V]: VertexMap[V] =
+    apply(Map.empty[V, Vertex[V]])
 
   /**
    * Creates a `VertexMap` from the given `Triplets` by mapping each triplet to a pair of vertices

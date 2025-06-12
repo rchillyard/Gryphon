@@ -17,9 +17,12 @@ package object gryphon {
    * in a graph.
    */
   val edgeFunc: EdgeType => ProtoConnexion[Unit, Int] => Connexion[Int] = {
-    case Directed => DirectedEdge[Unit, Int]
-    case Undirected => UndirectedEdge[Unit, Int]
-    case Undefined => (_, v1, v2) => VertexPair(v1, v2)
+    case Directed =>
+      DirectedEdge[Unit, Int]
+    case Undirected =>
+      UndirectedEdge[Unit, Int]
+    case Undefined =>
+      (_, v1, v2) => VertexPair(v1, v2)
   }
 
 }

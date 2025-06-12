@@ -4,43 +4,74 @@
 
 package com.phasmidsoftware.gryphon.applications.dfs
 
-import com.phasmidsoftware.gryphon.core.Graph
-import com.phasmidsoftware.gryphon.util.FP.resource
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
+import com.phasmidsoftware.gryphon.core.{EdgeGraph, EdgeType, Graph, Triplet}
+import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.io.Source
 import scala.util.*
 
 class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "TopologicalSort"
-  //
-  //  it should "sort" in {
-  //    val uy = resource[TopologicalSortSpec]("/dag.graph")
-  //    val graphBuilder: GraphBuilder[Int, Unit, Unit] = new GraphBuilder[Int, Unit, Unit]()
-  //    val z: Try[Iterable[DirectedEdge[Int, Unit]]] = graphBuilder.createEdgeListPair(uy)(DirectedEdge.apply[Int])
-  //    val graph: Graph[Int, Unit, DirectedEdge[Int, Unit], Unit] = DirectedGraph[Int, Unit, DirectedEdge[Int, Unit], Unit]("DAG")
-  //    val gy: Try[Graph[Int, Unit, DirectedEdge[Int, Unit], Unit]] = graphBuilder.createGraphFromEdges[DirectedEdge[Int, Unit]](graph)(z)
-  //    gy match {
-  //      case Success(g) =>
-  //        val sorted = TopologicalSort.sort(g)
-  //        sorted shouldBe List(3, 6, 0, 5, 2, 1, 4)
-  //        TopologicalSort.acyclic(graph.edges, sorted) shouldBe true
-  //      case Failure(x) => throw x
-  //    }
-  //  }
 
-  //  it should "handle a directed graph" in {
-  //    val uy = resource("/directed.graph")
-  //    val graphBuilder = new GraphBuilder[Int, Unit, Unit]()
-  //    val z = graphBuilder.createEdgeListPair(uy)(DirectedEdge.apply[Int])
-  //    val graph = DirectedGraph[Int, Unit, DirectedEdge[Int, Unit], Unit]("DAG")
-  //    val gy = graphBuilder.createGraphFromEdges[DirectedEdge[Int, Unit]](graph)(z)
-  //    gy match {
-  //      case Success(g) =>
-  //        val sorted = TopologicalSort.sort(g)
-  //        TopologicalSort.acyclic(g.edges, sorted) shouldBe false
-  //      case Failure(x) => throw x
+  it should "sort" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    val triedSource = Try(Source.fromResource("dag.graph"))
+    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    }
+    zsy match {
+
+      //      val uy: Try[URL] = resource[TopologicalSortSpec]("/dag.graph")
+      //      val triedSource = uy map (Source.fromURL(_))
+      //      val wsy: Try[Iterator[String]] = TryUsing.trial(triedSource)(_.getLines())
+      //      wsy.isSuccess shouldBe true
+      //      val ws: Iterator[String] = wsy.get
+      //      sequence(for (w <- ws) yield p.parseTriple(w)) match {
+      case Success(triplets) =>
+        triplesToTryGraph[Int, Double](triplets) match {
+          case Success(graph: EdgeGraph[_, _]) =>
+            println(graph.edges)
+            graph.vertexMap.map.size shouldBe 7
+            graph.edges.size shouldBe 11
+
+          case Failure(x) =>
+            fail("parse failed: ", x)
+          case _ => fail("parse failed: Graph is not an EdgeGraph")
+        }
+
+      case Failure(x) =>
+        fail("parse failed", x)
+    }
+
+    //      val graphBuilder: GraphBuilder[Int, Unit, Unit] = new GraphBuilder[Int, Unit, Unit]()
+    //      val z: Try[Iterable[DirectedEdge[Int, Unit]]] = graphBuilder.createEdgeListPair(uy)(DirectedEdge.apply[Int])
+    //      val graph: Graph[Int, Unit, DirectedEdge[Int, Unit], Unit] = DirectedGraph[Int, Unit, DirectedEdge[Int, Unit], Unit]("DAG")
+    //      val gy: Try[Graph[Int, Unit, DirectedEdge[Int, Unit], Unit]] = graphBuilder.createGraphFromEdges[DirectedEdge[Int, Unit]](graph)(z)
+    //      gy match {
+    //        case Success(g) =>
+    //          val sorted = TopologicalSort.sort(g)
+    //          sorted shouldBe List(3, 6, 0, 5, 2, 1, 4)
+    //          TopologicalSort.acyclic(graph.edges, sorted) shouldBe true
+    //        case Failure(x) => throw x
+    //      }
+  }
+
+  //    it should "handle a directed graph" in {
+  //      val uy = resource("/directed.graph")
+  //      val graphBuilder = new GraphBuilder[Int, Unit, Unit]()
+  //      val z = graphBuilder.createEdgeListPair(uy)(DirectedEdge.apply[Int])
+  //      val graph = DirectedGraph[Int, Unit, DirectedEdge[Int, Unit], Unit]("DAG")
+  //      val gy = graphBuilder.createGraphFromEdges[DirectedEdge[Int, Unit]](graph)(z)
+  //      gy match {
+  //        case Success(g) =>
+  //          val sorted = TopologicalSort.sort(g)
+  //          TopologicalSort.acyclic(g.edges, sorted) shouldBe false
+  //        case Failure(x) => throw x
+  //      }
   //    }
-  //  }
 }

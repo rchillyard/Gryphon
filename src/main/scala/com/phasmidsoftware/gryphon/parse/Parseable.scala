@@ -259,7 +259,7 @@ object Parseable {
 
   /**
    * A trait that provides a specialized implementation of the `Parseable` typeclass for parsing
-   * strings into integer (`Int`) values.
+   * strings into non-negative integer (`Int`) values.
    *
    * Classes or objects implementing this trait can parse a string input and convert it into an `Option[Int]`,
    * where `Some(value)` represents a successfully parsed integer, and `None` indicates a failed parsing attempt.
@@ -285,14 +285,12 @@ object Parseable {
       "Int"
 
     /**
-     * A regular expression pattern for matching integer values in a string.
+     * Provides a regular expression pattern for matching one or more digits that represent a non-negative integer.
      *
-     * The regex matches optional negative signs followed by one or more digits.
-     *
-     * @return A `Regex` instance that represents the pattern for matching integers.
+     * @return A `Regex` object representing the regular expression `\d+`, which matches any sequence of one or more digits.
      */
     def regex: Regex =
-      """-?\d+""".r
+      """\d+""".r
 
     /**
      * Returns a default value of type `T`.

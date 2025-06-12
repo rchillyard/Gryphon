@@ -56,7 +56,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *                  and their adjacencies in the graph.
    * @return a new directed graph constructed with the given vertex map.
    */
-  def unit(vertexMap: VertexMap[V]): Graph[V] = DirectedGraph(vertexMap)
+  def unit(vertexMap: VertexMap[V]): Graph[V] =
+    DirectedGraph(vertexMap)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -64,7 +65,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def adjacencies(v: V): Iterator[V] = vertexMap.adjacencies(v)
+  def adjacencies(v: V): Iterator[V] =
+    vertexMap.adjacencies(v)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -73,7 +75,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V] = vertexMap.undiscoveredAdjacencies(v)
+  def undiscoveredAdjacencies(v: V): Iterator[V] =
+    vertexMap.undiscoveredAdjacencies(v)
 
   /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
@@ -85,8 +88,10 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
   private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[E, V]] = {
-    case AdjacencyEdge(e: UndirectedEdge[E, V], false) => e
-    case x => throw new GraphException(s"unexpected edge type: $x")
+    case AdjacencyEdge(e: UndirectedEdge[E, V], false) =>
+      e
+    case x =>
+      throw new GraphException(s"unexpected edge type: $x")
   }
 }
 

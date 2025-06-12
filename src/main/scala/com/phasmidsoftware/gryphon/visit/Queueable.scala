@@ -31,7 +31,8 @@ trait Queueable[Q, V] extends Journal[Q, V] {
    * @param vs a sequence of V values.
    * @return a new queue-like object (Q).
    */
-  def appendAll(q: Q, vs: Seq[V]): Q = vs.foldLeft(q)((b, v) => append(b, v))
+  def appendAll(q: Q, vs: Seq[V]): Q =
+    vs.foldLeft(q)((b, v) => append(b, v))
 }
 
 /**
@@ -56,8 +57,10 @@ object Queueable {
      */
     def take(vq: Queue[V]): Option[(V, Queue[V])] = {
       vq match {
-        case v +: q => Some(v -> q)
-        case _ => None
+        case v +: q =>
+          Some(v -> q)
+        case _ =>
+          None
       }
     }
 
@@ -66,7 +69,8 @@ object Queueable {
      *
      * @return an empty `Queue` instance.
      */
-    def empty: Queue[V] = Queue.empty
+    def empty: Queue[V] =
+      Queue.empty
 
     /**
      * Appends an element to the end of the given queue.
@@ -75,7 +79,8 @@ object Queueable {
      * @param v  the element to append to the queue
      * @return a new queue with the element appended
      */
-    def append(vq: Queue[V], v: V): Queue[V] = vq.appended(v)
+    def append(vq: Queue[V], v: V): Queue[V] =
+      vq.appended(v)
   }
 
   /**
@@ -186,7 +191,8 @@ object MutableQueueable {
      * @param v  the element to append to the queue
      * @return Unit, as this method modifies the given mutable queue in place
      */
-    def append(vq: mutable.Queue[X], v: X): Unit = vq.enqueue(v)
+    def append(vq: mutable.Queue[X], v: X): Unit =
+      vq.enqueue(v)
   }
 
   /**

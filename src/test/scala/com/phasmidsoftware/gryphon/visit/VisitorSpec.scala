@@ -180,7 +180,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "implement reversePre with two visits" in {
-    Using(Visitor.reversePreList[Int]){
+    Using(Visitor.reversePreList[Int]) {
       target =>
         val t1 = target.visitPre(1)
         t1.iterator.toSeq shouldBe List(1)

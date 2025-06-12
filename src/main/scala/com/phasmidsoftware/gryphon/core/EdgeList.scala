@@ -29,7 +29,8 @@ case class EdgeList[V, E, Z](edges: Seq[Edge[E, V]]) extends SerializableGraph[V
    *         of an edge in the graph.
    */
   // CONSIDER eliminate this asInstanceOf
-  def triplets: Seq[Triplet[V, E, Z]] = edges.map(e => Triplet(e.white, e.black, Some(e.attribute), e.edgeType.asInstanceOf[Z]))
+  def triplets: Seq[Triplet[V, E, Z]] =
+    edges.map(e => Triplet(e.white, e.black, Some(e.attribute), e.edgeType.asInstanceOf[Z]))
 
 /**
  * A case class representing a collection of graph triplets.

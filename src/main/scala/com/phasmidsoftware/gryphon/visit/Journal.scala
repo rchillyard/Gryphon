@@ -135,7 +135,8 @@ trait FileWriterJournal[V] extends Journal[FileWriter, V] {
    * @return a new journal.
    */
   def append(j: FileWriter, v: V): FileWriter = {
-    j.append(s"$v\n"); j
+    j.append(s"$v\n")
+    j
   }
 }
 

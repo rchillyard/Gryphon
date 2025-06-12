@@ -133,7 +133,7 @@ object Visitor {
    * Method to create a reverse PreVisitorIterable based on a List[V].
    *
    * @tparam V the type to be visited, typically the (key) attribute type of vertex.
-   *           Requires evidence of a IterableJournal[List[V], V].
+   *           Requires evidence of an `IterableJournal[List[V], V]`.
    * @return a PreVisitorIterable of V and List[V]
    */
   def reversePreList[V](implicit ev: IterableJournal[List[V], V]): PreVisitorIterable[V, List[V]] =
@@ -536,9 +536,10 @@ abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]
    */
   def close(): Unit =
     journal match {
-    case x: AutoCloseable => x.close()
-    case _ =>
-  }
+      case x: AutoCloseable =>
+        x.close()
+      case _ =>
+    }
 
   /**
    * Method to compose two Visitors into one.
@@ -563,9 +564,11 @@ abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]
    */
   private def joinFunc(a: J, f1: J => Option[J], f2: J => Option[J]) =
     f1(a) match {
-    case x@Some(b) => f2(b) orElse x
-    case None => f2(a)
-  }
+      case x@Some(b) =>
+        f2(b) orElse x
+      case None =>
+        f2(a)
+    }
 }
 
 /**

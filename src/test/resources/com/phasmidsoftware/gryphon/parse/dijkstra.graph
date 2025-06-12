@@ -1,3 +1,4 @@
+// This graph is that used by Sedgewick and Wayne in the demo "Dijkstra's Algorithm Demo"
 0 > 1   5.0
 0 > 4   9.0
 0 > 7   8.0

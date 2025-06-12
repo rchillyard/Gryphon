@@ -13,9 +13,9 @@ package com.phasmidsoftware.gryphon.core
  * Instead, it is used as a type parameter for other concrete implementations of the Adjacency trait.
  *
  * The Adjacency trait provides a common interface for accessing the vertex associated with an adjacency.
- * It also provides a method for retrieving the edge, if one exists.
+ * It also provides a method for retrieving the edge if one exists.
  *
- * The Adjacency trait is used to define the behavior of the AdjacencyVertex and AdjacencyEdge classes,
+ * The Adjacency trait is used to define the behavior of the AdjacencyVertex and AdjacencyEdge classes.
  *
  * @tparam V the underlying vertex attribute type.
  */
@@ -80,14 +80,14 @@ object AdjacencyVertex:
 
 /**
  * Represents an Adjacency in the form of an edge within a graph structure.
- * In the case of edge being an undirected edge, the flipped member is used to
+ * In the case of an edge being an undirected edge, the flipped member is used to
  * represent which direction of the edge is used for this particular adjacency.
  *
  * @tparam V the type of the vertex attributes associated with the edge.
  * @tparam E the type of the edge attributes.
  * @param connexion the edge instance, containing the vertex connection and attribute information.
- * @param flipped an optional flag indicating if the directionality of the edge is reversed
- *                (only relevant when the edge is undirected).
+ * @param flipped   an optional flag indicating if the directionality of the edge is reversed
+ *                  (only relevant when the edge is undirected).
  */
 case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false) extends Adjacency[V] {
   /**
@@ -106,8 +106,10 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
    * @return an `Option` containing the connexion if it is an edge; `None` otherwise.
    */
   def maybeEdge: Option[Edge[_, V]] = connexion match {
-    case e: Edge[_, V] => Some(e)
-    case _ => None
+    case e: Edge[_, V] =>
+      Some(e)
+    case _ =>
+      None
   }
 }
 

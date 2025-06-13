@@ -50,58 +50,6 @@ object Traversal {
    */
   def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.EdgeTraversable[V, E]): Traversal[V, T] =
     EdgeTraversal(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
-
-  /**
-   * Performs depth-first search (DFS) traversal on the vertices of a graph and applies a function
-   * to each vertex, returning the traversal result as a `Traversal`.
-   *
-   * @param f           a mapping function applied to each vertex during the DFS traversal
-   * @param traversable the graph or data structure implementing the `core.Traversable` interface
-   *                    over vertex type `V` to be traversed
-   * @param start       the starting vertex for the DFS traversal
-   * @return a `Traversal[V, T]` object containing the results of applying function `f`
-   *         during the DFS traversal
-   */
-  @deprecated def vertexTraversalDfs[V, E, T](f: V => T)(traversable: core.Traversable[V])(start: V): Traversal[V, T] = {
-    implicit object MappedJournalVT extends MappedJournal[Map[V, T], V, T] {
-      /**
-       * Computes and returns the result of applying the function `f` to the given key `k`.
-       *
-       * @param k the key of type `V` for which the function `f` is to be applied.
-       * @return the result of type `T` derived from applying the mapping function `f` to `k`.
-       */
-      def fulfill(k: V): T =
-        f(k)
-
-      /**
-       * An empty journal.
-       */
-      def empty: Map[V, T] =
-        Map.empty
-
-      /**
-       * Method to append a `V` value to this `Journal`.
-       *
-       * @param j the journal to be appended to.
-       * @param z an instance of `(V, T)` to be appended to `j`.
-       * @return a new `Journal`.
-       */
-      def append(j: Map[V, T], z: (V, T)): Map[V, T] =
-        j + z
-    }
-    val result: Try[Visitor[V, Map[V, T]]] =
-      Using(PostKeyedVisitor.create[V, T, Map[V, T]]()) {
-        (visitor: Visitor[V, Map[V, T]]) =>
-          traversable.dfs[Map[V, T]](visitor)(start)
-      }
-    result match {
-      case Success(visitor: Visitor[V, Map[V, T]]) =>
-        val map: Map[V, T] = visitor.journal
-        map.keys.foldLeft(VertexTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
-      case Failure(exception) =>
-        throw exception
-    }
-  }
 }
 
 /**

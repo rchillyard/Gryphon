@@ -80,6 +80,32 @@ trait IterableJournal[J <: Iterable[X], X] extends Journal[J, X] with HasIterato
 trait MappedJournal[J <: Map[K, X], K, X] extends KeyedJournal[J, K, X] with HasIterator[J, (K, X)] with IsMap[J, K, X]
 
 /**
+ * A trait that represents a mapped journal specifically for `Map` data structures.
+ * This combines the behavior of a `MappedJournal` with the use of a key-value structure.
+ *
+ * @tparam V the type of keys in the map.
+ * @tparam T the type of values in the map.
+ */
+trait MappedJournalMap[V, T] extends MappedJournal[Map[V, T], V, T] {
+
+  /**
+   * An empty journal.
+   */
+  def empty: Map[V, T] =
+    Map.empty
+
+  /**
+   * Method to append a `V` value to this `Journal`.
+   *
+   * @param j the journal to be appended to.
+   * @param z an instance of `(V, T)` to be appended to `j`.
+   * @return a new `Journal`.
+   */
+  def append(j: Map[V, T], z: (V, T)): Map[V, T] =
+    j + z
+}
+
+/**
  * A trait that extends the functionality of `IterableJournal` to work with `Queue` as the journal type.
  *
  * @tparam Z the type of elements stored in the queue.

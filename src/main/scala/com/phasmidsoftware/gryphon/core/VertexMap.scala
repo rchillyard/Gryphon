@@ -515,7 +515,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return a new Visitor[V, J].
    */
   private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] =
-    recurseOnVertex(v, visitor.visitPre(v)).visitPost(v)
+    recurseOnVertex(v, visitor).visitPost(v)
 
   /**
    * Recursively processes a vertex in the graph, traversing its adjacencies
@@ -528,7 +528,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws util.GraphException if the vertex is not found in the graph.
    */
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
-    undiscoveredAdjacencies(v).foldLeft(visitor)((b, v) => recursiveDFS(b, v))
+    undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => recursiveDFS(jVv.visitPre(w), w))
 
   /**
    * Generates a random iterator of adjacencies for the given vertex.

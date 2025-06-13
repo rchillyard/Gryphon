@@ -87,31 +87,8 @@ trait Traversable[V] {
    *         during the DFS traversal
    */
   def vertexTraversalDfs[E, T](f: V => T)(start: V): Traversal[V, T] = {
-    implicit object MappedJournalVT extends MappedJournal[Map[V, T], V, T] {
-      /**
-       * Computes and returns the result of applying the function `f` to the given key `k`.
-       *
-       * @param k the key of type `V` for which the function `f` is to be applied.
-       * @return the result of type `T` derived from applying the mapping function `f` to `k`.
-       */
-      def fulfill(k: V): T =
-        f(k)
-
-      /**
-       * An empty journal.
-       */
-      def empty: Map[V, T] =
-        Map.empty
-
-      /**
-       * Method to append a `V` value to this `Journal`.
-       *
-       * @param j the journal to be appended to.
-       * @param z an instance of `(V, T)` to be appended to `j`.
-       * @return a new `Journal`.
-       */
-      def append(j: Map[V, T], z: (V, T)): Map[V, T] =
-        j + z
+    implicit object MappedJournalVT extends MappedJournalMap[V, T] {
+      def fulfill(k: V): T = f(k)
     }
     val result: Try[Visitor[V, Map[V, T]]] =
       Using(PostKeyedVisitor.create[V, T, Map[V, T]]()) {

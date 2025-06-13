@@ -14,40 +14,40 @@ import scala.collection.immutable.Queue
  * Most journals are also iterable so that they can be retrieved after the traversal is complete.
  * However, it is perfectly possible to have a journal which simply writes to a file (or something similar).
  *
- * @tparam V the type to be visited, typically the (key) attribute type of `Vertex`.
+ * @tparam A the type to be visited, typically the (key) attribute type of `Vertex`.
  * @tparam J the type of the `Journal` for this `Visitor`.
  */
-trait Visitor[V, J] extends AutoCloseable {
+trait Visitor[A, J] extends AutoCloseable {
 
   /**
-   * Method to visit BEFORE processing the (child) `V` values in DFS.
+   * Method to visit BEFORE processing the (child) `A` values in DFS.
    * For BFS, this method is the only visit to be performed.
    *
-   * @param v (`V`) the `Attribute` of a `Vertex`.
-   * @return an updated `Visitor[V, J]`.
+   * @param a (`A`) the type being visited.
+   * @return an updated `Visitor[A, J]`.
    */
-  def visitPre(v: V): Visitor[V, J]
+  def visitPre(a: A): Visitor[A, J]
 
   /**
-   * Method to visit AFTER processing the (child) V values in DFS.
+   * Method to visit AFTER processing the (child) A values in DFS.
    * For BFS, this method is a no-op.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated Visitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
    */
-  def visitPost(v: V): Visitor[V, J]
+  def visitPost(a: A): Visitor[A, J]
 
   /**
    * Function to process a vertex in pre-order.
    * NOTE This function is not intended for application usage.
    */
-  val preFunc: V => J => Option[J]
+  val preFunc: A => J => Option[J]
 
   /**
    * Function to process a vertex in post-order.
    * NOTE This function is not intended for application usage.
    */
-  val postFunc: V => J => Option[J]
+  val postFunc: A => J => Option[J]
 
   /**
    * The journal of all the pre- and post-invocations.
@@ -76,23 +76,23 @@ object Visitor {
    *
    * TODO generalize this so that it doesn't require a Queue.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
    *           requires evidence of a Journal...
-   * @return a PreVisitor of V and Queue[V]
+   * @return a PreVisitor of A and Queue[A]
    */
-  def createPre[V](implicit ev: Journal[Queue[V], V]): PreVisitor[V, Queue[V]] =
-    PreVisitor[V, Queue[V]]()
+  def createPre[A](implicit ev: Journal[Queue[A], A]): PreVisitor[A, Queue[A]] =
+    PreVisitor[A, Queue[A]]()
 
   /**
    * Method to create a reverse PreVisitor.
    *
    * TODO generalize this so that it doesn't require a List.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
    *           Requires implicit evidence of type Journal...
-   * @return a PreVisitor of V and List[V]
+   * @return a PreVisitor of A and List[A]
    */
-  def reversePre[V](implicit ev: Journal[List[V], V]): PreVisitor[V, List[V]] =
+  def reversePre[A](implicit ev: Journal[List[A], A]): PreVisitor[A, List[A]] =
     PreVisitor(ev.empty)
 
   /**
@@ -100,116 +100,116 @@ object Visitor {
    *
    * TODO generalize this so that it doesn't require a Queue.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
    *           Requires implicit evidence of type Journal...
-   * @return a PostVisitor of V and Queue[V]
+   * @return a PostVisitor of A and Queue[A]
    */
-  def createPost[V](implicit ev: Journal[Queue[V], V]): PostVisitor[V, Queue[V]] =
-    PostVisitor[V, Queue[V]]()
+  def createPostQueue[A](implicit ev: Journal[Queue[A], A]): PostVisitor[A, Queue[A]] =
+    PostVisitor[A, Queue[A]]()
 
   /**
    * Method to create a reverse PostVisitor.
    *
    * TODO generalize this so that it doesn't require a List.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
    *           Requires implicit evidence of type Journal...
-   * @return a PostVisitor of V and List[V]
+   * @return a PostVisitor of A and List[A]
    */
-  def reversePost[V](implicit ev: Journal[List[V], V]): PostVisitor[V, List[V]] =
+  def reversePost[A](implicit ev: Journal[List[A], A]): PostVisitor[A, List[A]] =
     PostVisitor(ev.empty)
 
   /**
-   * Method to create a PreVisitorIterable based on a Queue[V].
+   * Method to create a PreVisitorIterable based on a Queue[A].
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
-   *           Requires evidence of type IterableJournal[Queue[V], V].
-   * @return a PreVisitorIterable of V and Queue[V]
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
+   *           Requires evidence of type IterableJournal[Queue[A], A].
+   * @return a PreVisitorIterable of A and Queue[A]
    */
-  def createPreQueue[V](implicit ev: IterableJournal[Queue[V], V]): PreVisitorIterable[V, Queue[V]] =
-    PreVisitorIterable[V, Queue[V]]()
+  def createPreQueue[A](implicit ev: IterableJournal[Queue[A], A]): PreVisitorIterable[A, Queue[A]] =
+    PreVisitorIterable[A, Queue[A]]()
 
   /**
-   * Method to create a reverse PreVisitorIterable based on a List[V].
+   * Method to create a reverse PreVisitorIterable based on a List[A].
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of vertex.
-   *           Requires evidence of an `IterableJournal[List[V], V]`.
-   * @return a PreVisitorIterable of V and List[V]
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
+   *           Requires evidence of an `IterableJournal[List[A], A]`.
+   * @return a PreVisitorIterable of A and List[A]
    */
-  def reversePreList[V](implicit ev: IterableJournal[List[V], V]): PreVisitorIterable[V, List[V]] =
+  def reversePreList[A](implicit ev: IterableJournal[List[A], A]): PreVisitorIterable[A, List[A]] =
     PreVisitorIterable(ev.empty)
 
   /**
-   * Method to create a PostVisitorIterable based on a Queue[V].
+   * Method to create a PostVisitorIterable based on a Queue[A].
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
-   *           Requires evidence of a IterableJournal[Queue[V], V].
-   * @return a PostVisitorIterable of V and Queue[V]
+   * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
+   *           Requires evidence of a IterableJournal[Queue[A], A].
+   * @return a PostVisitorIterable of A and Queue[A]
    */
-  def createPostQueue[V](implicit ev: IterableJournal[Queue[V], V]): PostVisitorIterable[V, Queue[V]] =
-    PostVisitorIterable[V, Queue[V]]()
+  def createPostQueue[A](implicit ev: IterableJournal[Queue[A], A]): PostVisitorIterable[A, Queue[A]] =
+    PostVisitorIterable[A, Queue[A]]()
 
   /**
-   * Method to create a reverse PostVisitorIterable based on a List[V].
+   * Method to create a reverse PostVisitorIterable based on a List[A].
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
-   *           Requires implicit evidence of a IterableJournal[List[V], V].
-   * @return a PostVisitorIterable of V and List[V]
+   * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
+   *           Requires implicit evidence of a IterableJournal[List[A], A].
+   * @return a PostVisitorIterable of A and List[A]
    */
-  def reversePostList[V](implicit ev: IterableJournal[List[V], V]): PostVisitorIterable[V, List[V]] =
+  def reversePostList[A](implicit ev: IterableJournal[List[A], A]): PostVisitorIterable[A, List[A]] =
     PostVisitorIterable(ev.empty)
 
   /**
    * Method to create a composed pre- and post-visitor.
    *
-   * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
-   * @return a Visitor[V, List of V].
+   * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
+   * @return a Visitor[A, List of A].
    */
-  def preAndPost[V](implicit ev: Journal[List[V], V]): Visitor[V, List[V]] =
-    PreVisitor[V, List[V]]() join PostVisitor()
+  def preAndPost[A](implicit ev: Journal[List[A], A]): Visitor[A, List[A]] =
+    PreVisitor[A, List[A]]() join PostVisitor()
 }
 
 /**
  * Case class representing a generic PreVisitor.
  *
  * @param journal the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal.
- *           Requires implicit evidence of type Journal[J, V].
+ *           Requires implicit evidence of type Journal[J, A].
  */
-case class PreVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
+case class PreVisitor[A, J](journal: J)(implicit val ev: Journal[J, A]) extends AbstractVisitor[A, J](journal) {
 
   /**
    * A function that represents the pre-visit behavior in the `PreVisitor` class.
-   * This function takes a value of type `V` and returns a function that takes
+   * This function takes a value of type `A` and returns a function that takes
    * a journal of type `J`, producing an optional updated journal containing the appended value.
    *
    * The actual logic for appending the value to the journal is encapsulated
    * within the `appendToJournal` method, which leverages the implicit `Journal` instance.
    */
-  val preFunc: V => J => Option[J] =
+  val preFunc: A => J => Option[J] =
     appendToJournal
 
   /**
    * A function representing the post-visit operation of a `PreVisitor`.
    *
-   * This function is invoked after visiting an element of type `V` to potentially modify the journal `J`.
+   * This function is invoked after visiting an element of type `A` to potentially modify the journal `J`.
    * By default, it performs no operation and always returns `None` to signify that no journal changes occur.
    *
-   * @return A function that takes an element of type `V` and returns
+   * @return A function that takes an element of type `A` and returns
    *         a function which accepts the current journal of type `J`
    *         and produces an `Option[J]` representing the updated journal (or `None` if unchanged).
    */
-  val postFunc: V => J => Option[J] =
+  val postFunc: A => J => Option[J] =
     doNothing
 
   /**
-   * Method to construct a new Visitor[V, J] based on this visitor and the given journal.
+   * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
    *
    * @param journal the journal to keep track of the visited elements.
-   * @return a new Visitor[V, J].
+   * @return a new Visitor[A, J].
    */
-  def unit(journal: J): Visitor[V, J] =
+  def unit(journal: J): Visitor[A, J] =
     PreVisitor(journal)
 }
 
@@ -220,13 +220,13 @@ object PreVisitor {
   /**
    * Factory method to create a new instance of `PreVisitor` using an empty journal.
    *
-   * @param ev an implicit evidence parameter of type `Journal[J, V]` that provides the ability
-   *           to manage a journal of type `J` containing elements of type `V`.
-   * @tparam V the type of elements that the `PreVisitor` will process.
-   * @tparam J the type of the journal used to record the processing of elements of type `V`.
+   * @param ev an implicit evidence parameter of type `Journal[J, A]` that provides the ability
+   *           to manage a journal of type `J` containing elements of type `A`.
+   * @tparam A the type of elements that the `PreVisitor` will process.
+   * @tparam J the type of the journal used to record the processing of elements of type `A`.
    * @return a new `PreVisitor` instance initialized with an empty journal.
    */
-  def apply[V, J]()(implicit ev: Journal[J, V]): PreVisitor[V, J] =
+  def apply[A, J]()(implicit ev: Journal[J, A]): PreVisitor[A, J] =
     new PreVisitor(ev.empty)
 }
 
@@ -234,14 +234,14 @@ object PreVisitor {
  * Case class representing a generic PostVisitor.
  *
  * @param journal the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal.
- *           Requires implicit evidence of type Journal[J, V].
+ *           Requires implicit evidence of type Journal[J, A].
  */
-case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
+case class PostVisitor[A, J](journal: J)(implicit val ev: Journal[J, A]) extends AbstractVisitor[A, J](journal) {
 
   /**
-   * A function that, given a value of type `V`, returns another function.
+   * A function that, given a value of type `A`, returns another function.
    * The inner function, when provided a journal of type `J`, will
    * produce an empty `Option[J]` (i.e., `None`) signifying that no operation
    * was performed on the journal.
@@ -250,20 +250,20 @@ case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends
    * pre-visit actions are optional or require no effect on the journal.
    */
 
-  val preFunc: V => J => Option[J] =
+  val preFunc: A => J => Option[J] =
     doNothing
 
   /**
    * A function that represents the "post-visit" behavior for a `PostVisitor`.
    *
    * The function, when applied, utilizes the `appendToJournal` mechanism to potentially modify the journal
-   * after visiting a node or element of type `V`. The implicit `Journal[J, V]` instance determines
-   * how the value `V` is appended to the journal `J`.
+   * after visiting a node or element of type `A`. The implicit `Journal[J, A]` instance determines
+   * how the value `A` is appended to the journal `J`.
    *
-   * It takes a value of type `V` as input and returns another function, which takes a journal of type `J`
+   * It takes a value of type `A` as input and returns another function, which takes a journal of type `J`
    * and produces an updated journal wrapped in `Option`, reflecting how the visit is recorded.
    */
-  val postFunc: V => J => Option[J] =
+  val postFunc: A => J => Option[J] =
     appendToJournal
 
   /**
@@ -272,7 +272,7 @@ case class PostVisitor[V, J](journal: J)(implicit val ev: Journal[J, V]) extends
    * @param journal the journal instance of type `J` to be used by the `PostVisitor`.
    * @return a `PostVisitor` instance configured with the given journal.
    */
-  def unit(journal: J): Visitor[V, J] =
+  def unit(journal: J): Visitor[A, J] =
     PostVisitor(journal)
 }
 
@@ -283,12 +283,12 @@ object PostVisitor {
   /**
    * Creates a new instance of `PostVisitor` with an empty journal.
    *
-   * @param ev implicit evidence of type `Journal[J, V]`, which provides the behavior of the journal.
-   * @tparam V the type to be visited, typically the attribute type of a vertex.
+   * @param ev implicit evidence of type `Journal[J, A]`, which provides the behavior of the journal.
+   * @tparam A the type to be visited, typically the attribute type of a vertex.
    * @tparam J the type of the journal.
    * @return a new `PostVisitor` instance with an empty journal.
    */
-  def apply[V, J]()(implicit ev: Journal[J, V]): PostVisitor[V, J] =
+  def apply[A, J]()(implicit ev: Journal[J, A]): PostVisitor[A, J] =
     new PostVisitor(ev.empty)
 }
 
@@ -296,21 +296,21 @@ object PostVisitor {
  * Case class representing an iterable PreVisitor.
  *
  * @param journal the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal.
- *           Requires implicit evidence of type IterableJournal[J, V].
+ *           Requires implicit evidence of type IterableJournal[J, A].
  */
-case class PreVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends AbstractIterableVisitor[V, J](journal) {
+case class PreVisitorIterable[A, J <: Iterable[A]](journal: J)(implicit val ev: IterableJournal[J, A]) extends AbstractIterableVisitor[A, J](journal) {
 
   /**
-   * A function that represents a pre-visit behavior to append a value of type `V` to a journal of type `J`.
+   * A function that represents a pre-visit behavior to append a value of type `A` to a journal of type `J`.
    * It uses the `appendToJournal` method, which relies on the implicit `Journal` type class to handle
    * the appending of values and updates the journal accordingly.
    *
-   * @return a curried function that first takes a value of type `V`, then
+   * @return a curried function that first takes a value of type `A`, then
    *         a journal of type `J`, and finally returns an optional updated journal.
    */
-  val preFunc: V => J => Option[J] =
+  val preFunc: A => J => Option[J] =
     appendToJournal
   /**
    * A post-visit function defined for a `PreVisitorIterable`.
@@ -319,19 +319,19 @@ case class PreVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: 
    * It is a no-operation (no-op) function that effectively performs no action
    * and always results in `None`.
    *
-   * @return a function that takes a value of type `V` and produces another function
+   * @return a function that takes a value of type `A` and produces another function
    *         which, given a journal of type `J`, returns `Option[J]` (always `None`).
    */
-  val postFunc: V => J => Option[J] =
+  val postFunc: A => J => Option[J] =
     doNothing
 
   /**
-   * Method to construct a new Visitor[V, J] based on this visitor and the given journal.
+   * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
    *
    * @param journal the journal to keep track of the visited elements.
-   * @return a new Visitor[V, J].
+   * @return a new Visitor[A, J].
    */
-  def unit(journal: J): Visitor[V, J] =
+  def unit(journal: J): Visitor[A, J] =
     PreVisitorIterable(journal)
 }
 
@@ -342,23 +342,22 @@ object PreVisitorIterable {
   /**
    * Method to construct a new PreVisitorIterable based on an empty journal.
    *
-   * @tparam V the underlying type of the visitor and the journal.
-   * @tparam J the journal type, for example Queue[V].
-   *           Must provide implicit evidence of type IterableJournal[J, V].
-   * @return a PreVisitorIterable[V, J]
+   * @tparam A the underlying type of the visitor and the journal.
+   * @tparam J the journal type, for example Queue[A].
+   *           Must provide implicit evidence of type IterableJournal[J, A].
+   * @return a PreVisitorIterable[A, J]
    */
-  def apply[V, J <: Iterable[V]]()(implicit ev: IterableJournal[J, V]): PreVisitorIterable[V, J] =
+  def apply[A, J <: Iterable[A]]()(implicit ev: IterableJournal[J, A]): PreVisitorIterable[A, J] =
     new PreVisitorIterable(ev.empty)
 
   /**
-   * Method to create an PreVisitorIterable based on a Queue -- without having to provide evidence of an IterableJournal[J, V].
+   * Method to create an PreVisitorIterable based on a Queue -- without having to provide evidence of an IterableJournal[J, A].
    *
-   * @tparam V the underlying type of the visitor and the resulting queue.
+   * @tparam A the underlying type of the visitor and the resulting queue.
    * @return an IterableVisitor based on a Queue.
    */
-  def create[V]: PreVisitorIterable[V, Queue[V]] = {
-    implicit val vijq: IterableJournalQueue[V] =
-      new IterableJournalQueue[V] {}
+  def create[A]: PreVisitorIterable[A, Queue[A]] = {
+    implicit val vijq: IterableJournalQueue[A] = new IterableJournalQueue[A] {}
     apply()
   }
 }
@@ -367,38 +366,38 @@ object PreVisitorIterable {
  * Case class representing an iterable PostVisitor.
  *
  * @param journal the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal.
- *           Requires implicit evidence of type IterableJournal[J, V].
+ *           Requires implicit evidence of type IterableJournal[J, A].
  */
-case class PostVisitorIterable[V, J <: Iterable[V]](journal: J)(implicit val ev: IterableJournal[J, V]) extends AbstractIterableVisitor[V, J](journal) {
+case class PostVisitorIterable[A, J <: Iterable[A]](journal: J)(implicit val ev: IterableJournal[J, A]) extends AbstractIterableVisitor[A, J](journal) {
 
   /**
-   * A function that encapsulates a pre-visit operation for elements of type `V` during a traversal.
-   * This function takes a vertex of type `V`, returns a higher-order function
+   * A function that encapsulates a pre-visit operation for elements of type `A` during a traversal.
+   * This function takes a vertex of type `A`, returns a higher-order function
    * that accepts a journal of type `J`, and produces an optional updated journal.
    * The default implementation does nothing and always returns `None`.
    */
-  val preFunc: V => J => Option[J] =
+  val preFunc: A => J => Option[J] =
     doNothing
 
   /**
-   * A function that appends a value of type `V` to a journal of type `J`.
+   * A function that appends a value of type `A` to a journal of type `J`.
    *
-   * This function uses the implicit `Journal[J, V]` type class instance to append
-   * the value to the journal. The function takes a value of type `V` and returns
+   * This function uses the implicit `Journal[J, A]` type class instance to append
+   * the value to the journal. The function takes a value of type `A` and returns
    * another function which takes a journal of type `J`, producing an optionally updated journal.
    */
-  val postFunc: V => J => Option[J] =
+  val postFunc: A => J => Option[J] =
     appendToJournal
 
   /**
-   * Method to construct a new Visitor[V, J] based on this visitor and the given journal.
+   * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
    *
    * @param journal the journal to keep track of the visited elements.
-   * @return a new Visitor[V, J].
+   * @return a new Visitor[A, J].
    */
-  def unit(journal: J): Visitor[V, J] =
+  def unit(journal: J): Visitor[A, J] =
     PostVisitorIterable(journal)
 }
 
@@ -409,24 +408,97 @@ object PostVisitorIterable {
   /**
    * Method to construct a new PostVisitorIterable based on an empty journal.
    *
-   * @tparam V the underlying type of the visitor and the journal.
-   * @tparam J the journal type, for example Queue[V].
-   *           Must provide implicit evidence of type IterableJournal[J, V].
-   * @return a PostVisitorIterable[V, J]
+   * @tparam A the underlying type of the visitor and the journal.
+   * @tparam J the journal type, for example Queue[A].
+   *           Must provide implicit evidence of type IterableJournal[J, A].
+   * @return a PostVisitorIterable[A, J]
    */
-  def apply[V, J <: Iterable[V]]()(implicit ev: IterableJournal[J, V]): PostVisitorIterable[V, J] =
+  def apply[A, J <: Iterable[A]]()(implicit ev: IterableJournal[J, A]): PostVisitorIterable[A, J] =
     new PostVisitorIterable(ev.empty)
 
   /**
-   * Method to create an PostVisitorIterable based on a Queue -- without having to provide evidence of an IterableJournal[J, V].
+   * Method to create an PostVisitorIterable based on a Queue -- without having to provide evidence of an IterableJournal[J, A].
    *
-   * @tparam V the underlying type of the visitor and the resulting queue.
+   * @tparam A the underlying type of the visitor and the resulting queue.
    * @return an IterableVisitor based on a Queue.
    */
-  def create[V]: PostVisitorIterable[V, Queue[V]] = {
-    implicit val vijq: IterableJournalQueue[V] = new IterableJournalQueue[V] {}
+  def create[A]: PostVisitorIterable[A, Queue[A]] = {
+    implicit val vijq: IterableJournalQueue[A] = new IterableJournalQueue[A] {}
     apply()
   }
+}
+
+/**
+ * A case class representing a "post-keyed visitor" that performs specific actions
+ * on a journal associated with visited elements after processing them.
+ *
+ * This visitor operates in the context of a keyed journal, leveraging the implicit
+ * `KeyedJournal` type class instance to manage the journal and its entries.
+ *
+ * CONSIDER added a PreKeyedVisitor (although such would be less likely to be useful).
+ *
+ * @tparam A The type of the value being visited, typically a key or attribute of a vertex.
+ * @tparam X The type of the associated value in the keyed journal entries.
+ * @tparam J The type of the journal used to record the visited elements.
+ * @param journal The journal instance used for tracking visited elements during processing.
+ * @param ev      An implicit instance of the `KeyedJournal` type class, providing operations for keyed journals.
+ */
+case class PostKeyedVisitor[A, X, J](journal: J)(implicit val ev: KeyedJournal[J, A, X]) extends AbstractKeyedVisitor[A, X, J](journal) {
+
+  /**
+   * A function that, given a value of type `A`, returns another function.
+   * The inner function, when provided a journal of type `J`, will
+   * produce an empty `Option[J]` (i.e., `None`) signifying that no operation
+   * was performed on the journal.
+   *
+   * This is typically used as a "do-nothing" function in contexts where
+   * pre-visit actions are optional or require no effect on the journal.
+   */
+
+  val preFunc: A => J => Option[J] =
+    doNothing
+
+  /**
+   * A function that represents the "post-visit" behavior for a `PostVisitor`.
+   *
+   * The function, when applied, utilizes the `appendToJournal` mechanism to potentially modify the journal
+   * after visiting a node or element of type `A`. The implicit `Journal[J, A]` instance determines
+   * how the value `A` is appended to the journal `J`.
+   *
+   * It takes a value of type `A` as input and returns another function, which takes a journal of type `J`
+   * and produces an updated journal wrapped in `Option`, reflecting how the visit is recorded.
+   */
+  val postFunc: A => J => Option[J] =
+    appendToJournal
+
+  /**
+   * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
+   *
+   * @param journal the journal to keep track of the visited elements.
+   * @return a new Visitor[A, J].
+   */
+  def unit(journal: J): AbstractKeyedVisitor[A, X, J] =
+    PostKeyedVisitor(journal)
+}
+
+/**
+ * Companion object for the `PostKeyedVisitor` class, providing utility methods for constructing instances
+ * of `PostKeyedVisitor` with specific journal and value types.
+ */
+object PostKeyedVisitor {
+
+  /**
+   * Creates a new instance of `PostKeyedVisitor` with an empty journal, utilizing the implicit
+   * `KeyedJournal` instance for journal operations.
+   *
+   * @param ev An implicit instance of the `KeyedJournal` type class, which provides the functionality
+   *           for managing journals of type `J`, where each entry is associated with a value of type `A` and
+   *           an associated value of type `X`.
+   * @return A new instance of `PostKeyedVisitor` initialized with an empty journal.
+   */
+  def create[A, X, J]()(implicit ev: KeyedJournal[J, A, X]): PostKeyedVisitor[A, X, J] =
+    new PostKeyedVisitor(ev.empty)
+
 }
 
 /**
@@ -435,101 +507,100 @@ object PostVisitorIterable {
  * @param preFunc  the function to be invoked in pre-order.
  * @param postFunc the function to be invoked in post-order.
  * @param journal  the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the Journal type.
- *           Requires implicit evidence of type Journal[J, V].
+ *           Requires implicit evidence of type Journal[J, A].
  */
-class GenericVisitor[V, J](val preFunc: V => J => Option[J], val postFunc: V => J => Option[J])(val journal: J)(implicit val ev: Journal[J, V]) extends AbstractVisitor[V, J](journal) {
+class GenericVisitor[A, J](val preFunc: A => J => Option[J], val postFunc: A => J => Option[J])(val journal: J)(implicit val ev: Journal[J, A]) extends AbstractVisitor[A, J](journal) {
   /**
    * Method to create a new GenericVisitor.
    *
    * @param journal the journal to keep track of the visited elements.
-   * @return a new Visitor[V, J].
+   * @return a new Visitor[A, J].
    */
-  def unit(journal: J): Visitor[V, J] =
+  def unit(journal: J): Visitor[A, J] =
     new GenericVisitor(preFunc, postFunc)(journal)
 }
 
 /**
  * Trait to define the behavior of a Visitor which can be iterated.
  *
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
  */
-trait IterableVisitor[V, J <: Iterable[V]] extends Visitor[V, J] with IterableOnce[V] {
+trait IterableVisitor[A, J <: Iterable[A]] extends Visitor[A, J] with IterableOnce[A] {
 
   /**
-   * Method to visit BEFORE processing the (child) V values.
+   * Method to visit BEFORE processing the (child) A values.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated Visitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
    */
-  def visitPre(v: V): IterableVisitor[V, J]
+  def visitPre(a: A): IterableVisitor[A, J]
 
   /**
-   * Method to visit AFTER processing the (child) V values.
+   * Method to visit AFTER processing the (child) A values.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated Visitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
    */
-  def visitPost(v: V): IterableVisitor[V, J]
+  def visitPost(a: A): IterableVisitor[A, J]
 }
 
 /**
- * Abstract base class which extends Visitor[V, J].
+ * Abstract base class which extends Visitor[A, J].
  *
  * @param journal the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
- *           Requires implicit evidence of type Journal[J, V].
+ *           Requires implicit evidence of type Journal[J, A].
  */
-abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]) extends Visitor[V, J] {
+abstract class AbstractVisitor[A, J](journal: J)(implicit val ava: Journal[J, A]) extends Visitor[A, J] {
   self =>
 
   /**
-   * Method to visit before processing the (child) V values.
+   * Method to visit before processing the (child) A values.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated Visitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
    */
-  def visitPre(v: V): Visitor[V, J] =
-    unit(preFunc(v)(journal) getOrElse journal)
+  def visitPre(a: A): Visitor[A, J] =
+    unit(preFunc(a)(journal) getOrElse journal)
 
   /**
-   * Method to visit after processing the (child) V values.
+   * Method to visit after processing the (child) A values.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated Visitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
    */
-  def visitPost(v: V): Visitor[V, J] =
-    unit(postFunc(v)(journal) getOrElse journal)
+  def visitPost(a: A): Visitor[A, J] =
+    unit(postFunc(a)(journal) getOrElse journal)
 
   /**
-   * Method to append a value of type `V` to a journal of type `J`, utilizing the implicit `Journal` type class instance.
+   * Method to append a value of type `A` to a journal of type `J`, utilizing the implicit `Journal` type class instance.
    *
-   * @param ev the implicit `Journal` type class instance that defines how values are appended to the journal.
-   * @return a function that takes a value of type `V`, then a journal of type `J`, and produces an optional updated journal.
+   * @return a function that takes a value of type `A`, then a journal of type `J`, and produces an optional updated journal.
    */
-  protected def appendToJournal(implicit ev: Journal[J, V]): V => J => Option[J] =
-    v => a => Some(ev.append(a, v))
+  protected def appendToJournal: A => J => Option[J] =
+    v => a => Some(ava.append(a, v))
 
   /**
-   * A method that represents a no-operation for updating a journal of type `J` with a value of type `V`.
+   * A method that represents a no-operation for updating a journal of type `J` with a value of type `A`.
    * It always returns `None` regardless of the inputs.
    *
-   * @return a function that takes a value of type `V` and a journal of type `J`, always producing `None`.
+   * @return a function that takes a value of type `A` and a journal of type `J`, always producing `None`.
    */
   //noinspection MutatorLikeMethodIsParameterless
-  protected def doNothing: V => J => Option[J] =
+  protected def doNothing: A => J => Option[J] =
     _ => _ => None
 
   /**
-   * Method to construct a new Visitor[V, J] based on this visitor and the given journal.
+   * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
    *
    * @param journal the journal to keep track of the visited elements.
-   * @return a new Visitor[V, J].
+   * @return a new Visitor[A, J].
    */
-  def unit(journal: J): Visitor[V, J]
+  def unit(journal: J): Visitor[A, J]
 
   /**
    * Non-pure method to close this Visitor.
@@ -544,14 +615,16 @@ abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]
   /**
    * Method to compose two Visitors into one.
    *
-   * NOTE that the types (V, J) of the other visitor MUST be consistent with the types of this visitor.
+   * TODO move this into GenericVisitor or use unit
+   *
+   * NOTE that the types (A, J) of the other visitor MUST be consistent with the types of this visitor.
    * See VisitorSpec to see how you might work around this limitation.
    *
-   * @param visitor a Visitor[V, J].
-   * @return a new GenericVisitor[V, J].
+   * @param visitor a Visitor[A, J].
+   * @return a new GenericVisitor[A, J].
    */
-  def join(visitor: Visitor[V, J]): Visitor[V, J] =
-    new GenericVisitor[V, J](v => a => joinFunc(a, self.preFunc(v), visitor.preFunc(v)), v => a => joinFunc(a, self.postFunc(v), visitor.postFunc(v)))(self.journal)
+  def join(visitor: Visitor[A, J]): Visitor[A, J] =
+    new GenericVisitor[A, J](v => a => joinFunc(a, self.preFunc(v), visitor.preFunc(v)), v => a => joinFunc(a, self.postFunc(v), visitor.postFunc(v)))(self.journal)
 
   /**
    * Combines and applies two functions sequentially on a given value of type `J`, returning the first non-empty result.
@@ -572,60 +645,151 @@ abstract class AbstractVisitor[V, J](journal: J)(implicit val ava: Journal[J, V]
 }
 
 /**
- * Abstract base class which extends IterableVisitor[V, J].
+ * An abstract class providing a framework for implementing a visitor pattern with keyed journals.
+ * It extends the `Visitor` trait and introduces additional functionality for journal management
+ * with implicit support for a `KeyedJournal` type class instance.
+ *
+ * TODO try to extend AbstractVisitor (although this might not be easy)
+ *
+ * CONSIDER can we extract a KeyedVisitor trait from this?
+ *
+ * @tparam A the type of value being visited, typically the key or attribute of a vertex.
+ * @tparam X the secondary type associated with the keyed journal entries.
+ * @tparam J the type of journal used to record the visited elements.
+ * @param journal an instance of the journal used to keep track of visited elements during traversal.
+ * @param ava     an implicit instance of `KeyedJournal[J, A, X]`, providing additional operations for keyed journals.
+ */
+abstract class AbstractKeyedVisitor[A, X, J](journal: J)(implicit val ava: KeyedJournal[J, A, X]) extends Visitor[A, J] {
+  self =>
+
+  /**
+   * Method to visit before processing the (child) A values.
+   *
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
+   */
+  def visitPre(a: A): Visitor[A, J] =
+    unit(preFunc(a)(journal) getOrElse journal)
+
+  /**
+   * Method to visit after processing the (child) A values.
+   *
+   * @param a (A) the value of this node (vertex).
+   * @return an updated Visitor[A, J].
+   */
+  def visitPost(a: A): Visitor[A, J] =
+    unit(postFunc(a)(journal) getOrElse journal)
+
+  /**
+   * Method to append a value of type `A` to a journal of type `J`, utilizing the implicit `Journal` type class instance.
+   *
+   * @return a function that takes a value of type `A`, then a journal of type `J`, and produces an optional updated journal.
+   */
+  protected def appendToJournal: A => J => Option[J] =
+    v => a => Some(ava.appendKey(a, v))
+
+  /**
+   * A method that represents a no-operation for updating a journal of type `J` with a value of type `A`.
+   * It always returns `None` regardless of the inputs.
+   *
+   * @return a function that takes a value of type `A` and a journal of type `J`, always producing `None`.
+   */
+  //noinspection MutatorLikeMethodIsParameterless
+  protected def doNothing: A => J => Option[J] =
+    _ => _ => None
+
+  /**
+   * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
+   *
+   * @param journal the journal to keep track of the visited elements.
+   * @return a new Visitor[A, J].
+   */
+  def unit(journal: J): AbstractKeyedVisitor[A, X, J]
+
+  /**
+   * Non-pure method to close this Visitor.
+   */
+  def close(): Unit =
+    journal match {
+      case x: AutoCloseable =>
+        x.close()
+      case _ =>
+    }
+}
+
+/**
+ * Abstract base class which extends IterableVisitor[A, J].
  *
  * @param journal the journal which will record all visits.
- * @tparam V the type to be visited, typically the (key) attribute type of a vertex.
+ * @tparam A the type to be visited, typically the (key) attribute type of a vertex.
  * @tparam J the type of the journal for this visitor.
- *           Requires implicit evidence of type IterableJournal[J, V].
+ *           Requires implicit evidence of type IterableJournal[J, A].
  */
-abstract class AbstractIterableVisitor[V, J <: Iterable[V]](journal: J)(implicit val avai: IterableJournal[J, V]) extends AbstractVisitor[V, J](journal) with IterableVisitor[V, J] {
+abstract class AbstractIterableVisitor[A, J <: Iterable[A]](journal: J)(implicit val avai: IterableJournal[J, A]) extends AbstractVisitor[A, J](journal) with IterableVisitor[A, J] {
   self =>
 
   /**
    * Returns an iterator over the elements in the journal.
    *
-   * @return an Iterator of type V, representing the elements in the journal.
+   * @return an Iterator of type A, representing the elements in the journal.
    */
-  def iterator: Iterator[V] =
+  def iterator: Iterator[A] =
     avai.iterator(journal)
 
   /**
-   * Method to visit before processing the (child) V values.
+   * Method to visit before processing the (child) A values.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated IterableVisitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated IterableVisitor[A, J].
    */
   // CONSIDER eliminate this asInstanceOf
-  override def visitPre(v: V): IterableVisitor[V, J] =
-    super.visitPre(v).asInstanceOf[IterableVisitor[V, J]]
+  override def visitPre(a: A): IterableVisitor[A, J] =
+    super.visitPre(a).asInstanceOf[IterableVisitor[A, J]]
 
   /**
-   * Method to visit after processing the (child) V values.
+   * Method to visit after processing the (child) A values.
    *
-   * @param v (V) the value of this node (vertex).
-   * @return an updated IterableVisitor[V, J].
+   * @param a (A) the value of this node (vertex).
+   * @return an updated IterableVisitor[A, J].
    */
   // TODO eliminate this asInstanceOf
-  override def visitPost(v: V): IterableVisitor[V, J] =
-    super.visitPost(v).asInstanceOf[IterableVisitor[V, J]]
+  override def visitPost(a: A): IterableVisitor[A, J] =
+    super.visitPost(a).asInstanceOf[IterableVisitor[A, J]]
 }
 
 /**
  * A type-class trait that provides functionality to allow iteration over elements for collections
  * that are subtypes of `Iterable`. The trait is designed to enable iterating over a journal-like
- * data structure, where the journal is itself an instance of `Iterable[V]`.
+ * data structure, where the journal is itself an instance of `Iterable[A]`.
  *
- * @tparam J the journal type, which must be a subtype of `Iterable[V]`.
- * @tparam V the type of elements contained in the journal.
+ * @tparam J the journal type, which must be a subtype of `Iterable[A]`.
+ * @tparam A the type of elements contained in the journal.
  */
-trait HasIterator[J <: Iterable[V], V] {
+trait HasIterator[J <: Iterable[A], A] {
   /**
    * Returns an iterator over the elements in the given journal.
    *
    * @param journal the journal of type `J` to be iterated over.
-   * @return an iterator of type `Iterator[V]` for the elements in the journal.
+   * @return an iterator of type `Iterator[A]` for the elements in the journal.
    */
-  def iterator(journal: J): Iterator[V] =
+  def iterator(journal: J): Iterator[A] =
     journal.iterator
+}
+
+/**
+ * A type-class trait that represents a type-safe abstraction to interact with a Map-like structure.
+ *
+ * @tparam J the type of the map-like structure that this trait can operate on
+ * @tparam K the type of the keys in the map
+ * @tparam X the type of the values in the map
+ */
+trait IsMap[J <: Map[K, X], K, X] {
+  /**
+   * Retrieves the value associated with the specified key from the given map-like structure.
+   *
+   * @param j the map-like structure to retrieve the value from
+   * @param k the key whose associated value is to be returned
+   * @return an Option containing the value associated with the given key if it exists, or None if the key is not present
+   */
+  def get(j: J, k: K): Option[X] = j.get(k)
 }

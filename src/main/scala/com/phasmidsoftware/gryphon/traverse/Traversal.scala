@@ -3,9 +3,8 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Edge, EdgeGraph}
 import com.phasmidsoftware.gryphon.util.GraphException
-import com.phasmidsoftware.gryphon.visit.{Journal, PostVisitor, Visitor}
+import com.phasmidsoftware.gryphon.visit.{MappedJournal, PostKeyedVisitor, Visitor}
 
-import scala.collection.mutable
 import scala.util.{Failure, Success, Try, Using}
 
 /**
@@ -48,51 +47,69 @@ object Traversal {
   }
 
   /**
-   * Executes a depth-first search (DFS) traversal starting from a specified vertex and maps the
-   * traversal to a result using a provided vertex-mapping function.
+   * Performs depth-first search (DFS) traversal on the vertices of a graph and applies a function
+   * to each vertex, returning the traversal result as a `Traversal`.
    *
-   * @param f           a function that maps each vertex of type `V` to a result of type `T`.
-   * @param traversable a graph-like structure that is traversable, with vertices of type `V`.
-   * @param start       the starting vertex of the depth-first search traversal.
-   * @return a `Traversal[V, E, T]` object representing the result of the DFS traversal with
-   *         transformed vertices.
+   * @param f           a mapping function applied to each vertex during the DFS traversal
+   * @param traversable the graph or data structure implementing the `core.Traversable` interface
+   *                    over vertex type `V` to be traversed
+   * @param start       the starting vertex for the DFS traversal
+   * @return a `Traversal[V, T]` object containing the results of applying function `f`
+   *         during the DFS traversal
    */
-  def vertexTraversalDfs[V, E, T](f: V => T)(traversable: core.Traversable[V])(start: V): Traversal[V, T] = {
-    implicit object ZZ extends Journal[mutable.Map[V, T], V] {
+  @deprecated def vertexTraversalDfs[V, E, T](f: V => T)(traversable: core.Traversable[V])(start: V): Traversal[V, T] = {
+    implicit object MappedJournalVT extends MappedJournal[Map[V, T], V, T] {
+      /**
+       * Computes and returns the result of applying the function `f` to the given key `k`.
+       *
+       * @param k the key of type `V` for which the function `f` is to be applied.
+       * @return the result of type `T` derived from applying the mapping function `f` to `k`.
+       */
+      def fulfill(k: V): T =
+        f(k)
+
       /**
        * An empty journal.
        */
-      def empty: mutable.Map[V, T] = mutable.Map.empty[V, T]
+      def empty: Map[V, T] =
+        Map.empty
 
       /**
        * Method to append a `V` value to this `Journal`.
        *
-       * @param map the journal to be appended to.
-       * @param v   an instance of `V` to be appended to `map`.
+       * @param j the journal to be appended to.
+       * @param v an instance of `V` to be appended to `j`.
        * @return a new `Journal`.
        */
-      def append(map: mutable.Map[V, T], v: V): mutable.Map[V, T] = {
-        val _ = map.put(v, f(v))
-        map
-      }
+      def append(j: Map[V, T], z: (V, T)): Map[V, T] =
+        j + z
     }
-    val result: Try[Visitor[V, mutable.Map[V, T]]] =
-      Using(PostVisitor[V, mutable.Map[V, T]]()) {
-        (visitor: Visitor[V, mutable.Map[V, T]]) =>
-          traversable.dfs[mutable.Map[V, T]](visitor)(start)
+    val result: Try[Visitor[V, Map[V, T]]] =
+      Using(PostKeyedVisitor.create[V, T, Map[V, T]]()) {
+        (visitor: Visitor[V, Map[V, T]]) =>
+          traversable.dfs[Map[V, T]](visitor)(start)
       }
     result match {
-      case Success(visitor: Visitor[V, mutable.Map[V, T]]) =>
-        val map: mutable.Map[V, T] = visitor.journal
+      case Success(visitor: Visitor[V, Map[V, T]]) =>
+        val map: Map[V, T] = visitor.journal
         map.keys.foldLeft(VertexTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
       case Failure(exception) =>
         throw exception
     }
   }
-
 }
 
-case class EdgeTraversal[V, E, T](ts: List[T]) extends Traversal[V, T] {
+/**
+ * Abstract base class for edge traversal within a graph.
+ * This class supports traversing edges in a graph-like structure by providing
+ * a specific implementation for edge traversal while delegating the vertex traversal
+ * to throw an exception, as it is not applicable for edge-based traversal.
+ *
+ * @tparam V the type representing a vertex in the graph
+ * @tparam T the type representing the result of the edge traversal
+ * @param ts a list of elements of type T representing traversal data, typically associated with edges
+ */
+abstract class AbstractEdgeTraversal[V, T](ts: List[T]) extends Traversal[V, T] {
   /**
    * Traverses a given vertex in the graph and returns the result of the traversal.
    *
@@ -109,6 +126,23 @@ case class EdgeTraversal[V, E, T](ts: List[T]) extends Traversal[V, T] {
    */
   def edgeTraverse(x: Int): T = ts(x)
 }
+
+/**
+ * A case class representing the concrete implementation of edge traversal for a graph-like structure.
+ *
+ * This class enables the traversal of edges by providing a list of precomputed results of type `T`
+ * associated with each edge.
+ *
+ * Edge traversal uses the defined behavior from the `AbstractEdgeTraversal` base class,
+ * where `vertexTraverse` throws an exception, and `edgeTraverse` retrieves the traversal result
+ * from the precomputed list based on the edge index.
+ *
+ * @tparam V the type representing a vertex in the graph.
+ * @tparam E the type representing an edge in the graph.
+ * @tparam T the type of results for the edge traversal.
+ * @param ts a list of elements of type `T` representing the computed results of edge traversal.
+ */
+case class EdgeTraversal[V, E, T](ts: List[T]) extends AbstractEdgeTraversal[V, T](ts)
 
 /**
  * A concrete implementation of the `Traversal` trait that uses a map to represent

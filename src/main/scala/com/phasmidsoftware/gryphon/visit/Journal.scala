@@ -6,16 +6,19 @@ package com.phasmidsoftware.gryphon.visit
 
 import java.io.FileWriter
 import scala.collection.immutable.Queue
+import scala.collection.mutable
 
 /**
- * Type-class trait to define the behavior of a Journal of `V` elements.
- * It is used in the `Visitor` trait as something that can receive the `V` elements.
+ * Type-class trait to define the behavior of a Journal of `Z` elements.
+ * It is used in the `Visitor` trait as something that can receive the `Z` elements.
  * `Journal` does not support an `Iterator`, since many journals might simply be a log file of some sort.
  *
+ * CONSIDER defining J as a wrapper type, i.e., J[_].
+ *
  * @tparam J the journal type.
- * @tparam V the underlying type of the journal.
+ * @tparam Z the underlying type of the journal.
  */
-trait Journal[J, V] {
+trait Journal[J, Z] {
 
   /**
    * An empty journal.
@@ -23,82 +26,118 @@ trait Journal[J, V] {
   def empty: J
 
   /**
-   * Method to append a `V` value to this `Journal`.
+   * Method to append a `Z` value to this `Journal`.
    *
    * @param j the journal to be appended to.
-   * @param v an instance of `V` to be appended to `j`.
+   * @param z an instance of `Z` to be appended to `j`.
    * @return a new `Journal`.
    */
-  def append(j: J, v: V): J
+  def append(j: J, z: Z): J
+}
+
+/**
+ * A type-class trait that extends the `Journal` trait, specifically designed to handle journals where
+ * each record is represented as a tuple containing a key of type `K` and a corresponding value of type `X`.
+ * The `KeyedJournal` introduces additional behavior to manage and process elements based on their keys.
+ *
+ * @tparam J The type of the journal.
+ * @tparam K The type of the key used for each entry in the journal.
+ * @tparam X The type of the value associated with a key in the journal.
+ */
+trait KeyedJournal[J, K, X] extends Journal[J, (K, X)] {
+  /**
+   * Retrieves a value that can then be associated with the given key in the journal.
+   *
+   * @param k The key of type `K` for which the associated value is to be retrieved.
+   * @return The value of type `X` associated with the provided key.
+   */
+  def fulfill(k: K): X
+
+  /**
+   * Appends a key-value pair to the journal, where the value is derived from the given key using the `fulfill` method.
+   *
+   * @param j The journal of type `J` to which the key-value pair will be appended.
+   * @param k The key of type `K` to be appended, along with its associated value.
+   * @return A new journal of type `J` with the specified key-value pair appended.
+   */
+  def appendKey(j: J, k: K): J = append(j, (k, fulfill(k)))
 }
 
 /**
  * Trait which combines the behaviors of `Journal` and `HasIterator`.
  *
- * @tparam J the (iterable) journal type for this `IterableJournal` (`J` must be a subclass of `Iterable[V]`).
- * @tparam V the underlying type of the journal.
+ * @tparam J the (iterable) journal type for this `IterableJournal` (`J` must be a subclass of `Iterable[X]`).
+ * @tparam X the underlying type of the journal.
  */
-trait IterableJournal[J <: Iterable[V], V] extends Journal[J, V] with HasIterator[J, V]
+trait IterableJournal[J <: Iterable[X], X] extends Journal[J, X] with HasIterator[J, X]
+
+/**
+ * Trait which combines the behaviors of `Journal` and `HasIterator`.
+ *
+ * @tparam J the (iterable) journal type for this `IterableJournal` (`J` must be a subclass of `Iterable[X]`).
+ * @tparam X the underlying type of the journal.
+ */
+trait MappedJournal[J <: Map[K, X], K, X] extends KeyedJournal[J, K, X] with HasIterator[J, (K, X)] with IsMap[J, K, X]
 
 /**
  * A trait that extends the functionality of `IterableJournal` to work with `Queue` as the journal type.
  *
- * @tparam V the type of elements stored in the queue.
+ * @tparam Z the type of elements stored in the queue.
  */
-trait IterableJournalQueue[V] extends IterableJournal[Queue[V], V] {
+trait IterableJournalQueue[Z] extends IterableJournal[Queue[Z], Z] {
   /**
-   * Represents an empty `Queue` of type `V`.
+   * Represents an empty `Queue` of type `Z`.
    * This defines the base case or starting state for operations
    * performed on the queue within the `IterableJournalQueue` trait.
    */
-  val empty: Queue[V] =
+  val empty: Queue[Z] =
     Queue.empty
 
   /**
    * Appends an element to the end of the specified queue.
    *
    * @param q the queue to which the element will be added
-   * @param v the element to append to the queue
+   * @param z the element to append to the queue
    * @return a new queue with the element appended
    */
-  def append(q: Queue[V], v: V): Queue[V] =
-    q.enqueue(v)
+  def append(q: Queue[Z], z: Z): Queue[Z] =
+    q.enqueue(z)
 }
 
 /**
  * A trait that extends the behavior of `IterableJournal` specifically for a stack-like data structure
- * using `List[V]` as the journal type.
+ * using `List[Z]` as the journal type.
  * This trait provides stack-specific implementations
  * such as appending elements in a last-in-first-out (LIFO) manner.
  *
- * @tparam V the type of the elements in the journal.
+ * @tparam Z the type of the elements in the journal.
  */
-trait IterableJournalStack[V] extends IterableJournal[List[V], V] {
+trait IterableJournalStack[Z] extends IterableJournal[List[Z], Z] {
   /**
-   * An empty journal of type `List[V]`.
+   * An empty journal of type `List[Z]`.
    * Represents the initial state of the stack, containing no elements.
    */
-  val empty: List[V] =
+  val empty: List[Z] =
     List.empty
 
   /**
    * Appends an element to the beginning of the given list in a last-in-first-out (LIFO) manner.
    *
    * @param q the list to which the element will be appended
-   * @param v the value to append to the list
+   * @param z the value to append to the list
    * @return a new list with the value appended to the beginning
    */
-  def append(q: List[V], v: V): List[V] =
-    v :: q
+  def append(q: List[Z], z: Z): List[Z] =
+    z :: q
 }
 
 /**
  * A type-class trait extending `Journal` to provide specific behavior for journals 
- * using `StringBuilder` as the journal type to store values of type `V`.
+ * using `StringBuilder` as the journal type to store values of type `Z`.
  *
- * @tparam V the underlying type of the values stored in the journal.
+ * @tparam Z the underlying type of the values stored in the journal.
  */
-trait StringBuilderJournal[V] extends Journal[StringBuilder, V] {
+trait StringBuilderJournal[Z] extends Journal[StringBuilder, Z] {
   /**
    * Creates and returns a new, empty StringBuilder instance.
    *
@@ -108,17 +147,24 @@ trait StringBuilderJournal[V] extends Journal[StringBuilder, V] {
     new StringBuilder()
 
   /**
-   * Appends a value of type `V` to the provided `StringBuilder` journal.
+   * Appends a value of type `Z` to the provided `StringBuilder` journal.
    *
    * @param j the `StringBuilder` instance to which the value will be appended
-   * @param v the value of type `V` to append to the `StringBuilder`
+   * @param z the value of type `Z` to append to the `StringBuilder`
    * @return the updated `StringBuilder` instance with the appended value
    */
-  def append(j: StringBuilder, v: V): StringBuilder =
-    j.append(s"$v\n")
+  def append(j: StringBuilder, z: Z): StringBuilder =
+    j.append(s"$z\n")
 }
 
-trait FileWriterJournal[V] extends Journal[FileWriter, V] {
+/**
+ * Trait representing a Journal specifically for `FileWriter` and values of type `Z`.
+ *
+ * This implementation uses a file named "FileWriterJournal.txt" when no explicit journal is provided.
+ *
+ * @tparam Z the type of the elements to be written to the journal.
+ */
+trait FileWriterJournal[Z] extends Journal[FileWriter, Z] {
   /**
    * This method is used only when no explicit Journal is defined for a Visitor[FileWriter, Int].
    *
@@ -128,14 +174,14 @@ trait FileWriterJournal[V] extends Journal[FileWriter, V] {
     new FileWriter("FileWriterJournal.txt")
 
   /**
-   * Method to append a V value to a journal.
+   * Method to append a Z value to a journal.
    *
    * @param j the journal to be appended to.
-   * @param v an instance of V to be appended to the journal j.
+   * @param z an instance of Z to be appended to the journal j.
    * @return a new journal.
    */
-  def append(j: FileWriter, v: V): FileWriter = {
-    j.append(s"$v\n")
+  def append(j: FileWriter, z: Z): FileWriter = {
+    j.append(s"$z\n")
     j
   }
 }
@@ -143,7 +189,7 @@ trait FileWriterJournal[V] extends Journal[FileWriter, V] {
 /**
  * Companion object to Journal.
  *
- * Here, you may find the various implicit objects that extend `Journal[J, V]`.
+ * Here, you may find the various implicit objects that extend `Journal[J, X]`.
  */
 object Journal {
   /**

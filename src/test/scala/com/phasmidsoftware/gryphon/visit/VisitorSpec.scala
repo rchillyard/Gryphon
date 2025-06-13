@@ -37,7 +37,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "implement visitPost twice and journal" in {
-    Using(Visitor.createPost[Int]) {
+    Using(Visitor.createPostQueue[Int]) {
       target =>
         val t1 = target.visitPost(1)
         t1.journal shouldBe Seq(1)

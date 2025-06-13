@@ -76,11 +76,11 @@ object Queueable {
      * Appends an element to the end of the given queue.
      *
      * @param vq the queue to which the element will be appended
-     * @param v  the element to append to the queue
+     * @param z  the element to append to the queue
      * @return a new queue with the element appended
      */
-    def append(vq: Queue[V], v: V): Queue[V] =
-      vq.appended(v)
+    def append(vq: Queue[V], z: V): Queue[V] =
+      vq.appended(z)
   }
 
   /**

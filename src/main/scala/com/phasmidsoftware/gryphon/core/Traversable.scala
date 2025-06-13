@@ -4,7 +4,11 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.visit.Visitor
+import com.phasmidsoftware.gryphon.traverse.{Traversal, VertexTraversal}
+import com.phasmidsoftware.gryphon.visit.{Journal, PostVisitor, Visitor}
+
+import scala.collection.mutable
+import scala.util.{Failure, Success, Try, Using}
 
 /**
  * Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfsMutable.
@@ -71,6 +75,36 @@ trait Traversable[V] {
    * @return a new Visitor[V, J].
    */
   def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J]
+
+  /**
+   * Traverses the vertices of a graph depth-first starting from the specified starting vertex
+   * and applies a transformation function to each vertex.
+   *
+   * TODO not currently used but we should copy the code from Traversal to here and use it.
+   *
+   * @param f     a function that takes a vertex of type `V` and transforms it into a value of type `T`.
+   * @param start the vertex from which the depth-first traversal begins.
+   * @param ev    an implicit evidence parameter of type `Journal[mutable.Map[V, T], V]`
+   *              representing the journal used during the traversal process.
+   * @tparam E the type of the edges in the graph.
+   * @tparam T the type resulting from applying the function `f` to the vertices.
+   * @return a `Traversal[V, T]` representing the result of the depth-first traversal and transformation.
+   */
+  def traverseVertexDfs[E, T](f: V => T)(start: V)(implicit ev: Journal[mutable.Map[V, T], V]): Traversal[V, T] = {
+    val result: Try[Visitor[V, mutable.Map[V, T]]] =
+      Using(PostVisitor[V, mutable.Map[V, T]]()) {
+        (visitor: Visitor[V, mutable.Map[V, T]]) =>
+          dfs[mutable.Map[V, T]](visitor)(start)
+      }
+    result match {
+      case Success(visitor: Visitor[V, mutable.Map[V, T]]) =>
+        val map: mutable.Map[V, T] = visitor.journal
+        map.keys.foldLeft(VertexTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
+      case Failure(exception) =>
+        throw exception
+    }
+  }
+
 
   //  /**
   //   * Method to run breadth-first-search with a mutable queue on this Traversable.

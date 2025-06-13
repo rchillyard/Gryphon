@@ -65,7 +65,7 @@ class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V
     val (good, bad) = FP.partition(parseIterator(stringParser)(ws) to Seq)
 
     val ok = bad.isEmpty || bad.forall {
-      case scala.util.Failure(e: EmptyStringException) => true
+      case scala.util.Failure(_: EmptyStringException) => true
       case _ => false
     }
 

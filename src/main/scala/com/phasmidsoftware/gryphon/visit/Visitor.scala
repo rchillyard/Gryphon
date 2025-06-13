@@ -11,10 +11,11 @@ import scala.collection.immutable.Queue
  * For DFS, `Visitor` supports two journal entries: pre- and post-recursion.
  * For BFS, only the "pre" visit is supported.
  *
- * Most journals are also iterable so that they can be retrieved after the traversal is complete.
+ * Most journals are also iterable or mapped, so that elements from the journal
+ * can be retrieved after the traversal is complete.
  * However, it is perfectly possible to have a journal which simply writes to a file (or something similar).
  *
- * @tparam A the type to be visited, typically the (key) attribute type of `Vertex`.
+ * @tparam A the type to be visited, typically the (key) attribute type for a `Vertex`.
  * @tparam J the type of the `Journal` for this `Visitor`.
  */
 trait Visitor[A, J] extends AutoCloseable {

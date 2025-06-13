@@ -105,7 +105,6 @@ trait Traversable[V] {
     }
   }
 
-
   //  /**
   //   * Method to run breadth-first-search with a mutable queue on this Traversable.
   //   *
@@ -118,6 +117,28 @@ trait Traversable[V] {
   //   */
   //  def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(goal: V => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
 }
+
+/**
+ * A trait representing a traversable structure that encompasses both vertices and edges in a graph.
+ * Extends the functionality of `Traversable` by including a method for iterating over the edges.
+ *
+ * This structure is useful for graph-like data where both vertex and edge traversal are required.
+ *
+ * @tparam V the type of the vertices in the traversable graph.
+ * @tparam E the type of the attribute associated with an edge.
+ */
+trait EdgeTraversable[V, E] extends Traversable[V] {
+  /**
+   * Retrieves an iterator over all the edges in the graph.
+   * The returned iterator provides sequential access to each edge, allowing traversal
+   * of all connections between vertices in the graph. Each edge contains an attribute
+   * of type `E` and connects vertices of type `V`.
+   *
+   * @return an `Iterator[Edge[E, V]]` that allows access to all edges in the graph.
+   */
+  def edges: Iterator[Edge[E, V]]
+}
+
 //
 ///**
 // * Trait to define the behavior of a graph-like structure which can be traversed by BFS in search of a goal.

@@ -112,14 +112,7 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]
  * @tparam V the type representing the attributes associated with the vertices in the graph.
  * @tparam E the type representing the attributes associated with the edges in the graph.
  */
-trait EdgeGraph[V, E] extends Graph[V] {
-  /**
-   * Retrieves all edges in the graph.
-   *
-   * @return an `Iterable` containing all edges of type `Edge[E, V]` present in the graph.
-   *         Each edge connects two vertices of type `V` and carries an attribute of type `E`.
-   */
-  def edges: Iterable[Edge[E, V]]
+trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E] {
 
   /**
    * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.

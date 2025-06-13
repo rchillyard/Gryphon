@@ -1,7 +1,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.gryphon.core.{Edge, EdgeGraph}
+import com.phasmidsoftware.gryphon.core.Edge
 import com.phasmidsoftware.gryphon.util.GraphException
 import com.phasmidsoftware.gryphon.visit.{MappedJournal, PostKeyedVisitor, Visitor}
 
@@ -36,15 +36,20 @@ trait Traversal[V, T] {
  * Provides graph traversal functionality using depth-first search (DFS) for vertex traversal.
  */
 object Traversal {
-  def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.Traversable[E]): Traversal[V, T] = traversable match {
-    case graph: EdgeGraph[V, E] =>
-      val ts: List[T] = graph.edges.foldLeft(List[T]()) {
-        (m, e) =>
-          f(e) :: m
-      }
-      EdgeTraversal(ts)
-    case _ => throw GraphException(s"edgeTraversal called on non-edge graph: $traversable")
-  }
+  /**
+   * Performs a traversal over the edges of a graph and applies a function to each edge, returning the results
+   * as a `Traversal` object.
+   *
+   * @param f           a function applied to each edge, transforming each `Edge[E, V]` into a value of type `T`
+   * @param traversable the graph or data structure implementing the `core.Traversable` interface over edge type `E`
+   * @tparam V the type of vertices connected by the edges in the graph
+   * @tparam E the type of the attributes associated with the edges in the graph
+   * @tparam T the resulting type after applying the function `f` to each edge
+   * @return a `Traversal[V, T]` containing the results of applying the function `f` to each edge of the graph
+   * @throws GraphException if the provided `traversable` does not represent an edge graph
+   */
+  def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.EdgeTraversable[V, E]): Traversal[V, T] =
+    EdgeTraversal(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
 
   /**
    * Performs depth-first search (DFS) traversal on the vertices of a graph and applies a function
@@ -78,7 +83,7 @@ object Traversal {
        * Method to append a `V` value to this `Journal`.
        *
        * @param j the journal to be appended to.
-       * @param v an instance of `V` to be appended to `j`.
+       * @param z an instance of `(V, T)` to be appended to `j`.
        * @return a new `Journal`.
        */
       def append(j: Map[V, T], z: (V, T)): Map[V, T] =

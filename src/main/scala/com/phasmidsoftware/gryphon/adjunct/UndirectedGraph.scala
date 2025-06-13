@@ -35,8 +35,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @return an iterable collection containing all edges of type `Edge[E, V]` in the graph.
    */
-  def edges: Iterable[UndirectedEdge[E, V]] =
-    (adjacencies map getUndirectedEdgeFromAdjacency).toSeq
+  def edges: Iterator[UndirectedEdge[E, V]] =
+    adjacencies map getUndirectedEdgeFromAdjacency
 
   /**
    * Retrieves an iterator of all adjacencies from the vertexMap in the graph.
@@ -91,7 +91,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
     case AdjacencyEdge(e: UndirectedEdge[E, V], false) =>
       e
     case x =>
-      throw new GraphException(s"unexpected edge type: $x")
+      throw GraphException(s"unexpected edge type: $x")
   }
 }
 

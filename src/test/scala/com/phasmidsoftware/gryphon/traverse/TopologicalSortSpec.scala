@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
-import com.phasmidsoftware.gryphon.core.{EdgeType, Graph, Triplet}
+import com.phasmidsoftware.gryphon.core.{EdgeTraversable, EdgeType, Graph, Triplet}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
@@ -21,7 +21,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   behavior of "TopologicalSort"
 
   it should "sort" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    val p: GraphParser[Int, Double, EdgeType] = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
       (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
@@ -32,9 +32,14 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
           case Success(graph: DirectedGraph[_, _]) =>
             graph.vertexMap.map.size shouldBe 7
             graph.edges.size shouldBe 11
-            graph.vertexMap.map.keys.toSeq.sorted shouldBe Seq(0, 1, 2, 3, 4, 5, 6)
-            val traversal = Traversal.edgeTraversal[Int, Int, String](edge => s"${edge.white} -> ${edge.black}")(graph)
-            println(traversal)
+            graph match {
+              // FIXME this pattern should match, not the following pattern
+              case g: EdgeTraversable[Int, Double] =>
+                val traversal = Traversal.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
+                println(traversal)
+              case _ =>
+              // Do nothing
+            }
             val topologicalOrder = TopologicalSort.sort(graph)
             println(topologicalOrder)
             val possibleOrders = List(

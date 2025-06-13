@@ -35,8 +35,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *
    * @return an iterable collection containing all edges of type `Edge[E, V]` in the graph.
    */
-  def edges: Iterable[DirectedEdge[E, V]] =
-    (adjacencies map getDirectedEdgeFromAdjacency).toSeq
+  def edges: Iterator[DirectedEdge[E, V]] =
+    adjacencies map getDirectedEdgeFromAdjacency
 
   /**
    * Retrieves an iterator of all adjacencies from the vertexMap in the graph.

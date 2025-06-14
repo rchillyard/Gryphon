@@ -78,18 +78,17 @@ trait Traversable[V] {
   def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J]
 
   /**
-   * Performs depth-first search (DFS) traversal on the vertices of a graph and applies a function
-   * to each vertex, returning the traversal result as a `Traversal`.
+   * Performs a depth-first search (DFS) traversal starting from the specified vertex
+   * and returns a mapping of vertices to their respective traversal results.
    *
-   * @param f     a mapping function applied to each vertex during the DFS traversal
-   * @param start the starting vertex for the DFS traversal
-   * @return a `Traversal[V, T]` object containing the results of applying function `f`
-   *         during the DFS traversal
+   * @param start the starting vertex for the DFS traversal.
+   * @param ev    an implicit instance of `MappedJournalMap` required for journal operations.
+   * @tparam E the edge type (not used directly in this method).
+   * @tparam T the type of the traversal result associated with each vertex.
+   * @return a `Traversal` object representing the mapping of vertices to traversal results.
+   * @throws exception if an error occurs during the DFS traversal.
    */
-  def vertexTraversalDfs[E, T](f: V => T)(start: V): Traversal[V, T] = {
-    implicit object MappedJournalVT extends MappedJournalMap[V, T] {
-      def fulfill(k: V): T = f(k)
-    }
+  def vertexMappedTraversalDfs[E, T](start: V)(implicit ev: MappedJournalMap[V, T]): Traversal[V, T] = {
     val result: Try[Visitor[V, Map[V, T]]] =
       Using(PostKeyedVisitor.create[V, T, Map[V, T]]()) {
         (visitor: Visitor[V, Map[V, T]]) =>

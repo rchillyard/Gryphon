@@ -87,7 +87,6 @@ trait MappedJournal[J <: Map[K, X], K, X] extends KeyedJournal[J, K, X] with Has
  * @tparam T the type of values in the map.
  */
 trait MappedJournalMap[V, T] extends MappedJournal[Map[V, T], V, T] {
-
   /**
    * An empty journal.
    */

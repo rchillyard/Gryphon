@@ -28,7 +28,7 @@ object TopologicalSort {
     val visitor: PostVisitor[V, List[V]] = Visitor.reversePost[V]
     val result = graph.dfsAll(visitor)
     // CONSIDER checking that the edges are properly aligned
-    result.journal
+    result.journals.head
   }
 
   /**

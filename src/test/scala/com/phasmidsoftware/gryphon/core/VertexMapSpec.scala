@@ -157,9 +157,10 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
       visitor =>
         val target = VertexMap[Int].addEdges(edgeList)
         val result: Visitor[Int, Queue[Int]] = target.dfs(visitor)(1)
-        result.journal.size shouldBe 3
-        result.journal.head shouldBe 1
-        result.journal.last shouldBe 3
+        val journal = result.journals.head
+        journal.size shouldBe 3
+        journal.head shouldBe 1
+        journal.last shouldBe 3
     }
   }
 
@@ -168,9 +169,10 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
       visitor =>
         val target = VertexMap[Int].addEdges(edgeList)
         val result: Visitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
-        result.journal.size shouldBe 3
-        result.journal.head shouldBe 1
-        result.journal.last shouldBe 3
+        val journal = result.journals.head
+        journal.size shouldBe 3
+        journal.head shouldBe 1
+        journal.last shouldBe 3
     }
   }
 }

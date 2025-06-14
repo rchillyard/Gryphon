@@ -30,7 +30,7 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
    * Recursively processes vertices starting from the given vertex `v`, applying a visitor function for each vertex
    * encountered prior to further recursion (or queue expansion).
    * The traversal stops when the `goal` function evaluates to true for a vertex.
-   * NOTE that this method has a concrete type `Int` instead of `V` (for testing), not a parameteric type.
+   * NOTE that this method has a concrete type `Int` instead of `V` (for testing), not a parametric type.
    *
    * This method uses an inner tail-recursive function to iterate over a queue of vertices,
    * applying the visitor's `visitPre` method at each step, and enqueues adjacent, unvisited vertices.
@@ -58,7 +58,7 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
 
   /**
    * Enqueues all unvisited vertices adjacent to the given vertex into the provided queue.
-   * NOTE that this method has a concrete type `Int` (for testing), not a parameteric type.
+   * NOTE that this method has a concrete type `Int` (for testing), not a parametric type.
    *
    * This method processes the adjacencies of the vertex `v` by iterating over them.
    * If an adjacent vertex has not yet been discovered, it is marked as discovered
@@ -84,7 +84,7 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
    * Retrieves the list of adjacencies for a given vertex if it exists in the graph.
    * This method searches `vxVm` for the specified vertex and, if found,
    * returns its associated adjacencies wrapped in an `Option`.
-   * NOTE that this method has a concrete type `Int` (for testing), not a parameteric type.
+   * NOTE that this method has a concrete type `Int` (for testing), not a parametric type.
    *
    * @param v the vertex identifier for which adjacencies are to be retrieved.
    * @return an `Option` containing the unordered collection of adjacencies for the given vertex,
@@ -103,9 +103,10 @@ class QueueableSpec extends AnyFlatSpec with Matchers {
     import Queueable.*
     val result = takeRecursively(visitor, 1)(x => x == 3)
     // TODO this is not working because we haven't entered the adjacencies for the vertices as is done in VertexMapSpec.
-    result.journal.size shouldBe 3
-    result.journal.head shouldBe 1
-    result.journal.head shouldBe 3
+    val journal = result.journals.head
+    journal.size shouldBe 3
+    journal.head shouldBe 1
+    journal.head shouldBe 3
   }
 
   it should "appendAll" in {

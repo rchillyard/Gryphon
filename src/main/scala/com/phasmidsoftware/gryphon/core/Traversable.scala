@@ -97,7 +97,8 @@ trait Traversable[V] {
       }
     result match {
       case Success(visitor: Visitor[V, Map[V, T]]) =>
-        val map: Map[V, T] = visitor.journal
+        // TODO check that this is really OK
+        val map: Map[V, T] = visitor.journals.head
         map.keys.foldLeft(VertexTraversal.empty[V, E, T]) { (m, v) => m + (v -> map(v)) }
       case Failure(exception) =>
         throw exception

@@ -19,11 +19,11 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(PostVisitor[Int, Queue[Int]]()) {
       target =>
         val t1 = target.visitPost(1)
-        t1.journal shouldBe Seq(1)
+        t1.journals.head shouldBe Seq(1)
         val t2 = t1.visitPre(1)
         t2 shouldBe t1
         val t3 = t2.visitPost(2)
-        t3.journal shouldBe Seq(1, 2)
+        t3.journals.head shouldBe Seq(1, 2)
     }
   }
 
@@ -31,7 +31,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(PostVisitor[Int, StringBuilder]()) {
       target =>
         val t1 = target.visitPost(1)
-        t1.journal.toString shouldBe "1\n"
+        t1.journals.head.toString shouldBe "1\n"
         val t2 = t1.visitPre(1)
     }
   }
@@ -40,9 +40,9 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(Visitor.createPostQueue[Int]) {
       target =>
         val t1 = target.visitPost(1)
-        t1.journal shouldBe Seq(1)
+        t1.journals.head shouldBe Seq(1)
         val t2 = t1.visitPost(2)
-        t2.journal shouldBe Queue(1, 2)
+        t2.journals.head shouldBe Queue(1, 2)
     }
   }
 
@@ -50,9 +50,9 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(Visitor.reversePost[Int]) {
       target =>
         val t1 = target.visitPost(1)
-        t1.journal shouldBe List(1)
+        t1.journals.head shouldBe List(1)
         val t2 = t1.visitPost(2)
-        t2.journal shouldBe List(2, 1)
+        t2.journals.head shouldBe List(2, 1)
     }
   }
 
@@ -63,10 +63,10 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
       target =>
         val t2 = target.visitPre(1)
         t2 shouldBe PreVisitor(Queue(1))
-        t2.journal shouldBe Seq(1)
+        t2.journals.head shouldBe Seq(1)
         val t3 = t2.visitPre(2)
         t3 shouldBe PreVisitor(Queue(1, 2))
-        t3.journal shouldBe Seq(1, 2)
+        t3.journals.head shouldBe Seq(1, 2)
     }
   }
 
@@ -74,9 +74,9 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(PreVisitor[Int, StringBuilder]()) {
       target =>
         val t1 = target.visitPre(1)
-        t1.journal.toString shouldBe "1\n"
+        t1.journals.head.toString shouldBe "1\n"
         val t2 = t1.visitPre(2)
-        t2.journal.toString shouldBe "1\n2\n"
+        t2.journals.head.toString shouldBe "1\n2\n"
     }
   }
 
@@ -84,9 +84,9 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(PreVisitor[Int, FileWriter]()) {
       target =>
         val t1 = target.visitPre(1)
-        t1.journal.toString shouldBe "1\n"
+        t1.journals.head.toString shouldBe "1\n"
         val t2 = t1.visitPre(2)
-        t2.journal.toString shouldBe "1\n2\n"
+        t2.journals.head.toString shouldBe "1\n2\n"
     }
   }
 
@@ -95,22 +95,22 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(PreVisitor[Int, FileWriter](journal)) {
       target =>
         val t1 = target.visitPre(1)
-        t1.journal.toString shouldBe "1\n"
+        t1.journals.head.toString shouldBe "1\n"
         val t2 = t1.visitPre(2)
-        t2.journal.toString shouldBe "1\n2\n"
+        t2.journals.head.toString shouldBe "1\n2\n"
       // NOTE: no need to close the journal because it's closed by the visitor in a Using block.
       // journal.close()
     }
     a[java.io.IOException] should be thrownBy journal.write("done")
   }
 
-  it should "implement visitPre twice and journal" in {
+  it should "implement visitPre twice and journals.head" in {
     Using(Visitor.createPre[Int]) {
       target =>
         val t1 = target.visitPre(1)
-        t1.journal shouldBe Seq(1)
+        t1.journals.head shouldBe Seq(1)
         val t2 = t1.visitPre(2)
-        t2.journal shouldBe Queue(1, 2)
+        t2.journals.head shouldBe Queue(1, 2)
     }
   }
 
@@ -191,11 +191,11 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Visitor"
 
-  it should "preFunc" in {
+  it should "function" in {
     Using(PreVisitor[Int, Queue[Int]]()) {
       target =>
         val queue = Queue.empty[Int]
-        val a1: Option[Queue[Int]] = target.preFunc(1)(queue)
+        val a1: Option[Queue[Int]] = target.function(1)(queue)
         a1 shouldBe Some(Queue(1))
     }
   }
@@ -205,7 +205,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
       preVisitor =>
         val postVisitor: PostVisitor[Int, Queue[Int]] = PostVisitor()
         val target: Visitor[Int, Queue[Int]] = preVisitor join postVisitor
-        target.visitPre(1).journal shouldBe Queue(1)
+        target.visitPre(1).journals.head shouldBe Queue(1)
     }
   }
 
@@ -215,15 +215,7 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
         val postVisitor = Visitor.reversePost[Int]
         val target: Visitor[Int, List[Int]] = preVisitor join postVisitor
         val z1: Visitor[Int, List[Int]] = target.visitPre(1)
-        z1.visitPost(2).journal shouldBe List(2, 1)
-    }
-  }
-
-  it should "join 3" in {
-    Using(Visitor.preAndPost[Int]) {
-      preVisitor =>
-        val z1: Visitor[Int, List[Int]] = preVisitor.visitPre(1)
-        z1.visitPost(2).journal shouldBe List(2, 1)
+        z1.visitPost(2).journals.head shouldBe List(2, 1)
     }
   }
 
@@ -231,8 +223,8 @@ class VisitorSpec extends AnyFlatSpec with should.Matchers {
     Using(PostVisitor[Int, Queue[Int]]()) {
       target =>
         val queue = Queue.empty[Int]
-        val a1: Option[Queue[Int]] = target.postFunc(1)(queue)
-        a1 shouldBe Some(Queue(1))
+        val a1: Queue[Int] = target.visitPre(1).journals.head
+        a1 shouldBe Queue(1)
     }
   }
 }

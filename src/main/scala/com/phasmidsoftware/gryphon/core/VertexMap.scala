@@ -35,10 +35,11 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * @param v the vertex for which adjacencies are to be computed
    * @return an iterator of vertices adjacent to the provided vertex
+   * @throws GraphException if the vertex is not found in the map
    */
   def adjacencies(v: V): Iterator[V] =
     val vo = get(v)
-    if (vo.isEmpty) logger.warn(s"vertex $v not found")
+    if (vo.isEmpty) throw GraphException(s"vertex $v not found")
     for (vv <- vo.iterator; va <- randomAdjacencies(vv)) yield va.vertex
 
   /**
@@ -46,6 +47,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * @param v the vertex for which undiscovered adjacencies are sought
    * @return an iterator over the vertices that are adjacent to the given vertex and undiscovered
+   * @throws GraphException if the vertex is not found in the map
    */
   def undiscoveredAdjacencies(v: V): Iterator[V] =
     filteredAdjacencies(undiscoveredVertex(_).isDefined)(v)
@@ -290,6 +292,22 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   }
 
   /**
+   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
+   * It utilizes a special visitor consisting of a tuple of vertices.
+   *
+   * @param f       A function that takes a vertex and returns a tuple containing two vertices.
+   * @param visitor A visitor function used to process graph elements during the DFS traversal.
+   * @param v       The starting vertex for the DFS traversal.
+   * @return The visitor after completing the DFS traversal.
+   */
+  def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] = {
+    initializeVisits(Some(v))
+    Using.resource(recursiveDFSA(x => (v, x))(visitor, v)) {
+      result => result
+    }
+  }
+
+  /**
    * Method to run goal-terminated breadth-first-search on this VertexMap.
    *
    * CONSIDER add relax method as in bfsMutable.
@@ -477,7 +495,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param queue     the queue into which the unvisited vertices will be appended
    * @param queueable the implicit type class to handle the behavior of the queue-like object
    * @return a new queue containing the original elements and the newly enqueued vertices
-   * @throws GraphException if the vertex `v` does not exist in the adjacency list
+   * @throws GraphException if the vertex is not found in the map
    */
   private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q =
     undiscoveredAdjacencies(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
@@ -518,6 +536,17 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     recurseOnVertex(v, visitor).visitPost(v)
 
   /**
+   * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
+   *
+   * @param visitor the Visitor[V, J].
+   * @param v       the vertex at which we run depth-first-search.
+   * @tparam J the Journal type of the Visitor.
+   * @return a new Visitor[V, J].
+   */
+  private def recursiveDFSA[A, J](f: V => A)(visitor: Visitor[A, J], v: V): Visitor[A, J] =
+    recurseOnVertexA(f)(v, visitor).visitPost(f(v))
+
+  /**
    * Recursively processes a vertex in the graph, traversing its adjacencies
    * while updating the provided visitor.
    * If the vertex is not found in the graph, an exception is thrown.
@@ -527,8 +556,24 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the type of the journal associated with the visitor.
    * @throws util.GraphException if the vertex is not found in the graph.
    */
-  private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) =
+  private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = {
     undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => recursiveDFS(jVv.visitPre(w), w))
+  }
+
+  /**
+   * Recursively processes a vertex in the graph, traversing its adjacencies
+   * while updating the provided visitor.
+   * If the vertex is not found in the graph, an exception is thrown.
+   *
+   * @param v       the vertex to be processed.
+   * @param visitor the visitor used to traverse and record information during the traversal.
+   * @tparam J the type of the journal associated with the visitor.
+   * @throws util.GraphException if the vertex is not found in the graph.
+   */
+  private def recurseOnVertexA[A, J](f: V => A)(v: V, visitor: Visitor[A, J]) = {
+    val g: (V => A) = { (x: V) => (v, x) }.asInstanceOf[V => A]
+    undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => recursiveDFSA(g)(jVv.visitPre(f(w)), w))
+  }
 
   /**
    * Generates a random iterator of adjacencies for the given vertex.

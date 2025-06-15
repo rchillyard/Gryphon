@@ -1,14 +1,17 @@
 // This file corresponds to Sedgewick & Wayne: Undirected DFS Example
+// First component
 0 = 5
 4 = 3
 0 = 1
-9 = 12
 6 = 4
 5 = 4
 0 = 2
+0 = 6
+5 = 3
+// Second component
+7 = 8
+// Third component
+9 = 12
 11 = 12
 9 = 10
-0 = 6
-7 = 8
 9 = 11
-5 = 3

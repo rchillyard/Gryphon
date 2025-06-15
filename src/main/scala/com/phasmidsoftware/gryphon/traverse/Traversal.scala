@@ -157,6 +157,6 @@ object VertexTraversal {
    * @tparam T The resulting type after traversing a vertex or an edge.
    * @return A new `VertexTraversal` instance with an empty map.
    */
-  def empty[V, E, T]: VertexTraversal[V, T] =
+  def empty[V, T]: VertexTraversal[V, T] =
     VertexTraversal(Map.empty[V, T])
 }

@@ -302,7 +302,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] = {
     initializeVisits(Some(v))
-    Using.resource(recursiveDFSA(x => (v, x))(visitor, v)) {
+    val function: V => (V, V) = (x => (v, x))
+    Using.resource(recursiveDFSA(function)(visitor, v)) {
       result => result
     }
   }
@@ -570,10 +571,11 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the type of the journal associated with the visitor.
    * @throws util.GraphException if the vertex is not found in the graph.
    */
-  private def recurseOnVertexA[A, J](f: V => A)(v: V, visitor: Visitor[A, J]) = {
-    val g: (V => A) = { (x: V) => (v, x) }.asInstanceOf[V => A]
-    undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => recursiveDFSA(g)(jVv.visitPre(f(w)), w))
-  }
+  private def recurseOnVertexA[A, J](f: V => A)(v: V, visitor: Visitor[A, J]) =
+    undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => {
+      val g: V => A = ((x: V) => (w, x)).asInstanceOf[V => A]
+      recursiveDFSA(g)(jVv.visitPre(f(w)), w)
+    })
 
   /**
    * Generates a random iterator of adjacencies for the given vertex.

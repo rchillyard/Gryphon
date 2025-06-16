@@ -69,7 +69,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
-            val traversal: VertexTraversal[Int, Int] = TopologicalSort.traversal(graph).asInstanceOf[VertexTraversal[Int, Int]]
+            val traversal: TopologicalSort[Int] = TopologicalSort.traversal(graph)
             println(traversal)
             val map = traversal.map
             map.size shouldBe 7

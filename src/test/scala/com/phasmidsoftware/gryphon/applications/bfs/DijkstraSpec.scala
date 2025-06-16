@@ -1,37 +1,43 @@
-///*
-// * Copyright (c) 2023. Phasmid Software
-// */
-//
-//package com.phasmidsoftware.gryphon.applications.bfs
-//
-//import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
-//import com.phasmidsoftware.gryphon.util.FP.resource
-//import org.scalatest.flatspec.AnyFlatSpec
-//import org.scalatest.matchers.should
-//
-//import scala.util.*
-//
-//class DijkstraSpec extends AnyFlatSpec with should.Matchers {
-//
-//  behavior of "Dijkstra"
-//
-//  it should "isReachable" in {
-//    val uy = resource("/dijkstra.graph")
-//    val graphBuilder = new GraphBuilder[Int, Double, Double]()
-//    val z = graphBuilder.createEdgeListTriple(uy)(DirectedOrderedEdgeCase.apply[Int, Double])
-//    val graph = DirectedGraph[Int, Double, DirectedOrderedEdge[Int, Double], Double]("DAG")
-//    val gy = graphBuilder.createGraphFromEdges[DirectedOrderedEdge[Int, Double]](graph)(z)
-//    gy match {
-//      case Success(g) =>
-//        val dijkstra: SP[Int, Double, DirectedOrderedEdge[Int, Double]] = Dijkstra(g)(0)
-//        dijkstra.isReachable(0) shouldBe true
-//      case Failure(x) => throw x
-//    }
-//
-//  }
-//
-//  it should "shortestPath" in {
-//
-//  }
-//
-//}
+/*
+ * Copyright (c) 2023. Phasmid Software
+ */
+
+package com.phasmidsoftware.gryphon.applications.bfs
+
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
+import com.phasmidsoftware.gryphon.core.{EdgeType, Graph, Triplet}
+import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.util.FP.{resource, sequence}
+import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.gryphon.visit.Visitor
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
+
+import scala.collection.immutable.Queue
+import scala.io.Source
+import scala.util.*
+
+class DijkstraSpec extends AnyFlatSpec with should.Matchers {
+
+  behavior of "Dijkstra"
+
+  it should "visit all vertices in dijkstra" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    val triedSource = Try(Source.fromResource("dijkstra.graph"))
+    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    }
+    zsy match {
+      case Success(triplets) =>
+        DirectedGraph.triplesToTryGraph(triplets) match {
+          case Success(graph: Graph[_]) =>
+            val visitor = Visitor.createPre[Int]
+            val result: Visitor[Int, Queue[Int]] = graph.bfs(visitor)(0)(_ => false)
+            val queue = result.journals.head
+            queue.size shouldBe 8
+          case Failure(exception) => fail(exception)
+        }
+      case Failure(exception) => fail(exception)
+    }
+  }
+}

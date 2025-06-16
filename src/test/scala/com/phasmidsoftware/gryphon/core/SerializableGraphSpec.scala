@@ -28,7 +28,7 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers {
     println(wsy)
     wsy.isSuccess shouldBe true
     val ws = wsy.get
-    ws.size shouldBe 16
+    ws.size shouldBe 17 // including first line as comment
     //    GraphParser[Int, Double].
     //    ws map {
     //      w =>
@@ -46,7 +46,7 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers {
       case Failure(e) => Failure(e)
     }
     triedStrings.isSuccess shouldBe true
-    triedStrings.get.size shouldBe 16
+    triedStrings.get.size shouldBe 17 // including comment line
   }
 
 }

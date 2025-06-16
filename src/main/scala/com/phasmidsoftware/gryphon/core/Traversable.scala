@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
 import com.phasmidsoftware.gryphon.traverse.{Traversal, VertexTraversal}
 import com.phasmidsoftware.gryphon.util.GraphException
 import com.phasmidsoftware.gryphon.visit.*
@@ -118,15 +119,17 @@ trait Traversable[V] {
   }
 
   /**
-   * Performs a depth-first search (DFS) traversal starting from the specified vertex
-   * and returns a mapping of vertices to their respective traversal results.
+   * Performs a depth-first search (DFS) traversal in a graph-like structure, starting from the specified vertex.
+   * It processes visited vertices with a given function and returns the traversal connections as a result.
    *
    * @param start the starting vertex for the DFS traversal.
-   * @param ev    an implicit instance of `MappedJournalMap` required for journal operations.
-   * @return a `Traversal` object representing the mapping of vertices to traversal results.
+   * @param e     a function that maps a vertex to an edge type `E`.
+   * @param ev    an implicit instance of `IterableJournalQueue` used for handling the journaling of traversal steps.
+   * @tparam E the type representing the edge attribute in the traversal.
+   * @return a `Connexions` object that encapsulates the mapping of vertices to their respective directed edges.
    * @throws exception if an error occurs during the DFS traversal.
    */
-  def vertexVertexIterableTraversalDfs(start: V)(implicit ev: IterableJournalQueue[(V, V)]): traverse.Connexions[V] = {
+  def vertexVertexIterableTraversalDfs[E](start: V)(e: V => E)(implicit ev: IterableJournalQueue[(V, V)]): traverse.Connexions[V, E] = {
     type VV = (V, V)
     type Journal = Queue[VV]
     type MyVisitor = Visitor[VV, Journal]
@@ -139,7 +142,10 @@ trait Traversable[V] {
       case Success(visitor: Visitor[VV, Journal]) =>
         // TODO check that this is really OK
         val journal: Journal = visitor.journals.head
-        journal.foldLeft(com.phasmidsoftware.gryphon.traverse.Connexions.empty[V]) { (q, vv) => q + (vv._2 -> vv) }
+        journal.foldLeft(com.phasmidsoftware.gryphon.traverse.Connexions.empty[V, E]) {
+          (q, vv) =>
+            q + (vv._2 -> DirectedEdge.create(e(vv._2), vv))
+        }
       case Failure(exception) =>
         throw exception
     }

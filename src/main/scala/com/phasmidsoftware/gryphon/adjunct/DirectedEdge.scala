@@ -37,4 +37,9 @@ case class DirectedEdge[E, V](attribute: E, from: V, to: V) extends Edge[E, V]:
    * @return the vertex where the edge terminates (the "black" vertex).
    */
   def black: V = to
-  
+
+object DirectedEdge:
+
+  //  def apply[E, V](attribute: E, from: V, to: V): DirectedEdge[E, V] = new DirectedEdge(attribute, from, to)
+
+  def create[E, V](attribute: E, vv: (V, V)): DirectedEdge[E, V] = new DirectedEdge(attribute, vv._1, vv._2)

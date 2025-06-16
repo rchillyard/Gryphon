@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
+import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.traverse.{Connexions, Traversal, VertexTraversal}
 import com.phasmidsoftware.gryphon.util.FP.sequence
@@ -57,15 +57,15 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
       case Success(triplets) =>
         UndirectedGraph.triplesToTryGraph(triplets) match {
           case Success(graph: Graph[_]) =>
-            val connexions: Connexions[Int] = Connexions.create(graph)(0)
+            val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(v => ())(0)
             println(connexions)
             connexions match {
               case Connexions(map) =>
                 map.size shouldBe 6
-                val values: Seq[(Int, Int)] = map.values.toSeq
-                values.contains(0 -> 2) shouldBe true
-                values.contains(1 -> 0) shouldBe false
-                values.contains(0 -> 5) shouldBe true // NOTE this might fail for some random seeds in VertexMap
+                val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
+                values.contains(DirectedEdge((), 0, 2)) shouldBe true
+                values.contains(DirectedEdge((), 1, 0)) shouldBe false
+                values.contains(DirectedEdge((), 0, 5)) shouldBe true // NOTE this might fail for some random seeds in VertexMap
               case _ =>
                 fail("vertexMappedTraversalDfs failed")
             }

@@ -31,6 +31,8 @@ trait Pairs[V, Z]:
  * of tuples `(V, V, Z)`, where the first element is the source vertex, the second is the target vertex,
  * and the third is the associated attribute.
  *
+ * CONSIDER renaming this as ProtoConnexions (or something like that).
+ *
  * @tparam V the type of the vertices in the connections.
  * @tparam Z the type of the additional attribute associated with each connection.
  * @constructor Creates an instance of `Connexions` initialized with a sequence of `(V, V, Z)` tuples.

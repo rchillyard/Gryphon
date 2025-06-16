@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
+import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, DirectedGraph}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
 import com.phasmidsoftware.gryphon.util.GraphException
@@ -111,6 +111,12 @@ abstract class AbstractVertexTraversal[V, T](map: Map[V, T]) extends Traversal[V
    */
   def edgeTraverse(x: Int): T = throw GraphException(s"edgeTraverse called on AbstractVertexTraversal: $x")
 
+  /**
+   * Constructs a traversal instance using the provided map of vertices and their associated traversal results.
+   *
+   * @param map a mapping where keys represent vertices of type `V`, and values represent traversal results of type `T`.
+   * @return a new `Traversal[V, T]` instance built from the specified map.
+   */
   def unit(map: Map[V, T]): Traversal[V, T]
 
   /**
@@ -146,6 +152,8 @@ case class EdgeTraversal[V, E, T](ts: List[T]) extends AbstractEdgeTraversal[V, 
 /**
  * A concrete implementation of the `Traversal` trait that uses a map to represent
  * vertex traversals. Each vertex in the graph is associated with a traversal result.
+ *
+ * CONSIDER this class and its companion object are only used for unit testing. They could be eliminated.
  *
  * @constructor Creates a `VertexTraversal` with the given map of vertices and their associated traversal outputs.
  * @param map A map where each key is a vertex of type `V`, and the value is the corresponding traversal result of type `T`.
@@ -199,17 +207,17 @@ object VertexTraversal {
  * Represents a particular traversal of vertices within a graph resulting from a depth-first-search
  * starting at a particular vertex.
  * Each vertex that is reached (not including the start vertex) is represented in the `connexions` `Map`
- * by a pair of vertices (as a tuple) where the first element is the start of a followed edge and the second
- * element will be the same as the key vertex.
+ * by a `DirectedEdge` where the "white" (first) vertex is the start of a followed edge and the "black" (second)
+ * vertex will be the same as the key vertex.
+ * NOTE that not all edges will be followed and different random seeds will result in different results.
  *
- * CONSIDER converting each pair into a Connexion
- * CONSIDER returning a directed, rooted tree of connexions.
+ * CONSIDER returning a directed, rooted tree of DirectedEdge.
  *
  * @param connexions a map where each key is a vertex of type `V` and its value is a tuple `(V, V)`
  *                   representing the result associated with traversal from this vertex.
  * @tparam V the type representing a vertex in the graph.
  */
-case class Connexions[V](connexions: Map[V, (V, V)]) extends AbstractVertexTraversal[V, (V, V)](connexions) {
+case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends AbstractVertexTraversal[V, DirectedEdge[E, V]](connexions) {
   /**
    * Creates a new `Traversal` instance with the specified map of vertices and their associated traversal results.
    *
@@ -217,7 +225,7 @@ case class Connexions[V](connexions: Map[V, (V, V)]) extends AbstractVertexTrave
    *            the result associated with traversal from this vertex.
    * @return a new `Traversal` instance of type `Traversal[V, (V, V)]` initialized with the provided map.
    */
-  def unit(map: Map[V, (V, V)]): Traversal[V, (V, V)] = copy(connexions = map)
+  def unit(map: Map[V, DirectedEdge[E, V]]): Traversal[V, DirectedEdge[E, V]] = copy(connexions = map)
 
   /**
    * Adds a new mapping of a vertex to its corresponding traversal result to the existing map,
@@ -227,7 +235,7 @@ case class Connexions[V](connexions: Map[V, (V, V)]) extends AbstractVertexTrave
    *          traversal result of type `T`.
    * @return a new `VertexTraversal` instance of type `VertexTraversal[V, E, T]` containing the updated map.
    */
-  override def +(t: (V, (V, V))): Connexions[V] = super.+(t).asInstanceOf[Connexions[V]]
+  override def +(t: (V, DirectedEdge[E, V])): Connexions[V, E] = super.+(t).asInstanceOf[Connexions[V, E]]
 }
 
 /**
@@ -237,16 +245,21 @@ case class Connexions[V](connexions: Map[V, (V, V)]) extends AbstractVertexTrave
  */
 object Connexions {
   /**
-   * Creates a `Connexions` instance by performing a depth-first traversal on the given graph
-   * starting from the specified vertex.
+   * Creates a `Connexions` instance representing a traversal of a graph using depth-first search (DFS).
+   * The traversal starts from the specified vertex, processes each vertex using the provided function,
+   * and returns the resulting connexions.
    *
-   * @param graph the traversable graph structure on which the traversal will be performed
-   * @param start the starting vertex for the depth-first traversal
-   * @return a `Connexions` instance representing the resulting traversal
+   * @param graph the graph-like structure to be traversed, of type `core.Traversable[V]`.
+   * @param f     a function that maps each vertex of type `V` to an edge of type `E`.
+   * @param start the starting vertex for the DFS traversal, of type `V`.
+   * @tparam V the type representing a vertex in the graph.
+   * @tparam E the type representing the edge attribute in the traversal.
+   * @return a `Connexions` object that encapsulates the result of the traversal,
+   *         mapping vertices to their respective directed edges.
    */
-  def create[V](graph: core.Traversable[V])(start: V): Connexions[V] = {
+  def create[V, E](graph: core.Traversable[V])(f: V => E)(start: V): Connexions[V, E] = {
     implicit object IterableJournalQueue extends IterableJournalQueue[(V, V)]
-    graph.vertexVertexIterableTraversalDfs(start)
+    graph.vertexVertexIterableTraversalDfs(start)(f)
   }
 
   /**
@@ -255,8 +268,8 @@ object Connexions {
    * @tparam V the type representing a vertex in the graph.
    * @return an empty `Connexions` instance.
    */
-  def empty[V]: Connexions[V] =
-    Connexions(Map.empty[V, (V, V)])
+  def empty[V, E]: Connexions[V, E] =
+    Connexions(Map.empty[V, DirectedEdge[E, V]])
 }
 
 /**

@@ -313,11 +313,11 @@ object TopologicalSort {
    * @return a sequence of vertices (`Seq[V]`) representing the topologically sorted order
    *         of the graph's vertices.
    */
-  def sort[V, E](graph: DirectedGraph[V, E])(implicit ev: Journal[List[V], V]): Seq[V] = {
-    val visitor: PostVisitor[V, List[V]] = Visitor.reversePost[V]
+  def sort[V, E](graph: DirectedGraph[V, E])(implicit ev: Journal[List[V], V]): Option[Seq[V]] = {
+    val visitor = Visitor.reversePost[V]
     val result = graph.dfsAll(visitor)
-    // CONSIDER checking that the edges are properly aligned
-    result.journals.head
+    val vs = result.journals.head
+    Option.when(acyclic(graph, vs))(vs)
   }
 
   /**
@@ -333,12 +333,37 @@ object TopologicalSort {
    * @param ev    an implicit `Journal` defining how to record and manage the visitation order
    *              of vertices in the graph during the traversal. The journal accumulates
    *              the vertices in a specific order.
-   * @return a sequence of vertices (`Seq[V]`) representing the topologically sorted order
-   *         of the graph's vertices.
+   * @return an optional sequence of vertices (`Seq[V]`) representing the topologically sorted order
+   *         of the graph's vertices. If the result is empty, it implies that the graph is cyclic.
    */
-  def traversal[V, E](graph: DirectedGraph[V, E])(implicit ev: Journal[List[V], V]): TopologicalSort[V] = {
-    val result = sort(graph)
-    val vertexOrder: Seq[(V, Int)] = for ((v, i) <- result.zipWithIndex) yield v -> i
-    TopologicalSort(vertexOrder.toMap)
+  def traversal[V, E](graph: DirectedGraph[V, E])(implicit ev: Journal[List[V], V]): Option[TopologicalSort[V]] = {
+    val maybeTopologicalOrder = sort(graph)
+    maybeTopologicalOrder match {
+      case Some(topologicalOrder) =>
+        val vertexOrder: Seq[(V, Int)] = for ((v, i) <- topologicalOrder.zipWithIndex) yield v -> i
+        Some(TopologicalSort(vertexOrder.toMap))
+      case None =>
+        None
+    }
   }
+
+  /**
+   * Determines whether a directed graph is acyclic based on a provided topological sort.
+   *
+   * This method verifies that in the given topological sort order, for every directed edge
+   * in the graph, the start vertex (`white`) appears before or at the same position as the
+   * end vertex (`black`). If this condition holds true for all edges, the graph is acyclic.
+   *
+   * @param graph           the directed graph to analyze, containing vertices of type `V` and edges
+   *                        with attributes of type `E`.
+   * @param topologicalSort a list of vertices representing a proposed topological sort order
+   *                        for the graph.
+   * @return true if the graph is acyclic according to the given topological sort; false otherwise.
+   */
+  private def acyclic[V, E](graph: DirectedGraph[V, E], topologicalSort: List[V]): Boolean =
+    (for {
+      edge <- graph.edges
+      pos1 = topologicalSort.indexOf(edge.white)
+      pos2 = topologicalSort.indexOf(edge.black)
+    } yield pos1 <= pos2) forall (z => z)
 }

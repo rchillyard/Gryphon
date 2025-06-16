@@ -33,14 +33,15 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
             graph.vertexMap.map.size shouldBe 7
             graph.edges.size shouldBe 11
             graph match {
-              // FIXME this pattern should match, not the following pattern
               case g: EdgeTraversable[Int, Double] =>
                 val traversal = Traversal.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
                 println(traversal)
               case _ =>
               // Do nothing
             }
-            val topologicalOrder = TopologicalSort.sort(graph)
+            val maybeTopologicalOrder = TopologicalSort.sort(graph)
+            maybeTopologicalOrder.isDefined shouldBe true
+            val topologicalOrder = maybeTopologicalOrder.get
             println(topologicalOrder)
             val possibleOrders = List(
               List(3, 6, 0, 1, 4, 5, 2),
@@ -59,7 +60,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     //          TopologicalSort.acyclic(graph.edges, sorted) shouldBe true
   }
 
-  it should "traversal" in {
+  it should "topological sort successfully" in {
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
@@ -69,35 +70,46 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
-            val traversal: TopologicalSort[Int] = TopologicalSort.traversal(graph)
-            println(traversal)
-            val map = traversal.map
-            map.size shouldBe 7
-            map(6) shouldBe 1
-            map(3) shouldBe 0
-            map(0) shouldBe 2
+            TopologicalSort.traversal(graph) match {
+              case Some(t@TopologicalSort(map)) =>
+                println(t)
+                map.size shouldBe 7
+                map(6) shouldBe 1
+                map(3) shouldBe 0
+                map(0) shouldBe 2
+              case None =>
+                fail("TopologicalSort.traversal failed (cyclic graph?)")
+            }
           case Failure(x) =>
             fail("parse failed: ", x)
           case _ => fail("parse failed: Graph is not an EdgeGraph")
         }
-
       case Failure(x) =>
         fail("parse failed", x)
     }
-    //          TopologicalSort.acyclic(graph.edges, sorted) shouldBe true
   }
-
-  //    it should "handle a directed graph" in {
-  //      val uy = resource("/directed.graph")
-  //      val graphBuilder = new GraphBuilder[Int, Unit, Unit]()
-  //      val z = graphBuilder.createEdgeListPair(uy)(DirectedEdge.apply[Int])
-  //      val graph = DirectedGraph[Int, Unit, DirectedEdge[Int, Unit], Unit]("DAG")
-  //      val gy = graphBuilder.createGraphFromEdges[DirectedEdge[Int, Unit]](graph)(z)
-  //      gy match {
-  //        case Success(g) =>
-  //          val sorted = TopologicalSort.sort(g)
-  //          TopologicalSort.acyclic(g.edges, sorted) shouldBe false
-  //        case Failure(x) => throw x
-  //      }
-  //    }
+  it should "topological sort failing" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    val triedSource = Try(Source.fromResource("directed.graph"))
+    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    }
+    zsy match {
+      case Success(triplets) =>
+        triplesToTryGraph[Int, Double](triplets) match {
+          case Success(graph: DirectedGraph[_, _]) =>
+            TopologicalSort.traversal(graph) match {
+              case Some(t@TopologicalSort(map)) =>
+                fail("TopologicalSort.traversal succeeded when it shouldn't (acyclic graph?)")
+              case None =>
+                succeed
+            }
+          case Failure(x) =>
+            fail("parse failed: ", x)
+          case _ => fail("parse failed: Graph is not an EdgeGraph")
+        }
+      case Failure(x) =>
+        fail("parse failed", x)
+    }
+  }
 }

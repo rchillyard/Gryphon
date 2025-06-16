@@ -57,7 +57,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
       case Success(triplets) =>
         UndirectedGraph.triplesToTryGraph(triplets) match {
           case Success(graph: Graph[_]) =>
-            val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(v => ())(0)
+            val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(_ => ())(0)
             println(connexions)
             connexions match {
               case Connexions(map) =>

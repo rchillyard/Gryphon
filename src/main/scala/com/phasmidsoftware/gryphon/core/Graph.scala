@@ -24,7 +24,8 @@ trait Graph[V] extends Traversable[V] {
 
   /**
    * Adds a new vertex to the graph and returns a new graph instance with the updated vertex map.
-   *
+   * NOTE: not used at present.
+   * 
    * @param vertex the vertex to be added to the graph.
    *               The vertex contains its attribute and adjacencies, 
    *               which define its connections within the graph.

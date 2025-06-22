@@ -16,7 +16,7 @@ import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
  *                    in a traversal.
  *                    Defaults to `false`.
  */
-case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: Boolean = false) extends Attribute[V]:
+case class Vertex[V](attribute: V, adjacencies: Adjacencies[V])(var discovered: Boolean = false) extends Attribute[V] with Discoverable[V]:
   /**
    * Adds a new adjacency to the current vertex and returns a new vertex instance with the
    * added adjacency included in the collection of adjacencies.

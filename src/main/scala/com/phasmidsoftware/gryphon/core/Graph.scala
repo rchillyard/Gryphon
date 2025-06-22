@@ -104,7 +104,31 @@ object Graph
  * @constructor Creates a new `AbstractGraph` instance with the specified `vertexMap`.
  * @param vertexMap the `VertexMap` instance that holds and organizes the vertices of the graph.
  */
-abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]
+abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
+
+  /**
+   * Retrieves an iterator of all adjacencies from the vertexMap in the graph.
+   * Each vertex's adjacencies are iterated over, yielding a sequence of adjacency objects.
+   *
+   * @return an iterator over adjacencies of type `Adjacency[V]` from the vertexMap in the graph.
+   */
+  def adjacencies: Iterator[Adjacency[V]] = for {
+    vv <- vertexMap.vertices.iterator
+    va <- vv.adjacencies.iterator
+  } yield va
+
+  /**
+   * Filters the adjacencies of a given vertex based on a specified predicate.
+   * The predicate determines which adjacencies of the vertex should be included in the result.
+   *
+   * @param predicate a function that takes a `Discoverable[V]` and returns a `Boolean`.
+   *                  This function is used to filter adjacencies based on custom conditions.
+   * @param v         the vertex whose adjacencies are to be filtered.
+   *                  The vertex is of type `V`, representing the attributes of a graph vertex.
+   * @return an `Iterator` of `Adjacency[V]`, containing the filtered adjacencies of the given vertex.
+   */
+  def filteredAdjacencies2(predicate: Discoverable[V] => Boolean)(v: V): Iterator[Adjacency[V]] = vertexMap.filteredAdjacencies2(predicate)(v)
+}
 
 /**
  * A trait representing a graph structure that incorporates both vertices and edges. 

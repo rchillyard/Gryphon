@@ -40,17 +40,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
     adjacencies map getDirectedEdgeFromAdjacency
 
   /**
-   * Retrieves an iterator of all adjacencies from the vertexMap in the graph.
-   * Each vertex's adjacencies are iterated over, yielding a sequence of adjacency objects.
-   *
-   * @return an iterator over adjacencies of type `Adjacency[V]` from the vertexMap in the graph.
-   */
-  def adjacencies: Iterator[Adjacency[V]] = for {
-    vv <- vertexMap.vertices.iterator
-    va <- vv.adjacencies.iterator
-  } yield va
-
-  /**
    * Creates a new directed graph using the provided vertex map.
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
@@ -76,8 +65,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V] =
-    vertexMap.undiscoveredAdjacencies(v)
+  def undiscoveredAdjacentVertices(v: V): Iterator[V] =
+    vertexMap.undiscoveredAdjacentVertices(v)
 
   /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
@@ -103,7 +92,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @param v       The starting vertex for the DFS traversal.
    * @return The visitor after completing the DFS traversal.
    */
-  override def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] =
+  def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] =
     vertexMap.dfsA(visitor)(v)
 }
 
@@ -175,7 +164,9 @@ object DirectedGraph {
           }
         val graph = DirectedGraph(vm)
         // TODO find another way to handle this anomaly
-        if (graph.adjacencies.size != triplets.triplets.size) System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")
+        // NOTE duplicated code in UndirectedGraph
+        if (graph.adjacencies.size != triplets.triplets.size)
+          System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")
         println(s"graph = $graph")
         Success(graph)
       case z =>

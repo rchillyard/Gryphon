@@ -19,7 +19,7 @@ package com.phasmidsoftware.gryphon.core
  *
  * @tparam V the underlying vertex attribute type.
  */
-trait Adjacency[V] {
+trait Adjacency[V] extends Discoverable[V] {
   /**
    * Retrieves the vertex associated with this adjacency.
    *
@@ -49,7 +49,7 @@ trait Adjacency[V] {
  *               This defines the connection point within the graph structure.
  * @tparam V the type of the vertex attribute.
  */
-case class AdjacencyVertex[V](vertex: V) extends Adjacency[V]:
+case class AdjacencyVertex[V](vertex: V) extends AbstractAdjacency[V]:
   /**
    * Retrieves an optional `Edge` associated with this adjacency.
    * The edge, if present, represents a connection between two vertices
@@ -89,7 +89,7 @@ object AdjacencyVertex:
  * @param flipped   an optional flag indicating if the directionality of the edge is reversed
  *                  (only relevant when the edge is undirected).
  */
-case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false) extends Adjacency[V] {
+case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false) extends AbstractAdjacency[V] {
   /**
    * Determines the vertex associated with this adjacency based on the nominal direction of the given edge.
    * If the edge is flipped, the originating vertex (`white`) is returned.
@@ -111,6 +111,55 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
     case _ =>
       None
   }
+}
+
+/**
+ * An abstract class representing a base implementation of the `Adjacency` trait for graph structures.
+ *
+ * This class introduces a `discovered` property that tracks whether the vertex associated with this adjacency
+ * has been visited or not during graph traversal. The `discovered` state can be manipulated through mutating methods
+ * and queried as needed.
+ *
+ * @tparam V the type of the vertex attribute associated with this adjacency.
+ * @constructor Creates a new instance with an optional initial `discovered` state, which defaults to `false`.
+ *
+ *              The core functionality of this class includes:
+ *              - Managing the discovery state of a vertex.
+ *              - Providing methods for resetting, marking, and querying the discovery state.
+ */
+abstract class AbstractAdjacency[V](var discovered: Boolean = false) extends Adjacency[V] {
+
+  /**
+   * Mutating method that resets the `discovered` state of this `Vertex` to `false`.
+   *
+   * @return Unit
+   */
+  def reset(): Adjacency[V] = {
+    discovered = false
+    this
+  }
+
+  /**
+   * Marks the current vertex as discovered by setting its internal `discovered` state to `true`.
+   * This operates by side-effect.
+   *
+   * @return the current vertex (`Vertex[V]`) instance with its `discovered` state updated.
+   */
+  def discover(): Adjacency[V] = {
+    discovered = true
+    this
+  }
+
+  /**
+   * Checks if the vertex is not discovered.
+   * NOTE that this must remain a def (not a lazy val) because the `discovered` property is mutable.
+   *
+   * This method inversely reflects the `discovered` property of a vertex.
+   * If a vertex is marked as not discovered, this method returns `true`.
+   *
+   * @return `true` if the vertex has not been discovered, `false` otherwise.
+   */
+  def undiscovered: Boolean = !discovered
 }
 
 /**

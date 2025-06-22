@@ -79,7 +79,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "undiscoveredAdjacencies" in {
+  it should "undiscoveredAdjacentVertices" in {
 
   }
 

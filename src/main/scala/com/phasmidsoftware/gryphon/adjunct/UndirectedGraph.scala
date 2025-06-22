@@ -40,17 +40,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
     adjacencies map getUndirectedEdgeFromAdjacency
 
   /**
-   * Retrieves an iterator of all adjacencies from the vertexMap in the graph.
-   * Each vertex's adjacencies are iterated over, yielding a sequence of adjacency objects.
-   *
-   * @return an iterator over adjacencies of type `Adjacency[V]` from the vertexMap in the graph.
-   */
-  def adjacencies: Iterator[Adjacency[V]] = for {
-    vv <- vertexMap.vertices.iterator
-    va <- vv.adjacencies.iterator
-  } yield va
-
-  /**
    * Creates a new directed graph using the provided vertex map.
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
@@ -78,8 +67,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * @return an iterator over the vertices adjacent to the specified vertex.
    * @throws GraphException if the vertex is not found in the map
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V] =
-    vertexMap.undiscoveredAdjacencies(v)
+  def undiscoveredAdjacentVertices(v: V): Iterator[V] =
+    vertexMap.undiscoveredAdjacentVertices(v)
 
   /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
@@ -105,7 +94,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * @param v       The starting vertex for the DFS traversal.
    * @return The visitor after completing the DFS traversal.
    */
-  override def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] =
+  def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] =
     vertexMap.dfsA(visitor)(v)
 }
 

@@ -11,7 +11,6 @@ import com.phasmidsoftware.gryphon.visit.*
 import com.phasmidsoftware.gryphon.{core, traverse}
 
 import scala.collection.immutable.Queue
-import scala.collection.mutable
 import scala.util.{Failure, Success, Try, Using}
 
 /**
@@ -31,6 +30,7 @@ trait Traversable[V] {
 
   /**
    * Filters the vertices adjacent to a given vertex based on a specified predicate.
+   * CONSIDER writing this in terms of filteredAdjacencies2 and then renaming.
    *
    * @param predicate a function that determines whether an adjacent vertex should be included.
    *                  It takes a vertex of type `V` and returns a boolean indicating whether the vertex satisfies the condition.
@@ -42,12 +42,23 @@ trait Traversable[V] {
     adjacencies(v).filter(predicate)
 
   /**
+   * This is the more general form of filteredAdjacencies.
+   *
+   * TODO rename this method to drop the 2
+   *
+   * @param predicate a predicate that evaluates a Discoverable[V]
+   * @param v         the attribute of a Vertex[V]
+   * @return an Iterator of Adjacency[V]
+   */
+  def filteredAdjacencies2(predicate: Discoverable[V] => Boolean)(v: V): Iterator[Adjacency[V]]
+
+  /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
    *
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V]
+  def undiscoveredAdjacentVertices(v: V): Iterator[V]
 
   /**
    * Method to run depth-first-search on this Traversable.
@@ -121,6 +132,7 @@ trait Traversable[V] {
   /**
    * Performs a depth-first search (DFS) traversal in a graph-like structure, starting from the specified vertex.
    * It processes visited vertices with a given function and returns the traversal connections as a result.
+   * CONSIDER do we really need to keep (V, V) in the queue? How about using a Map of V => V?
    *
    * @param start the starting vertex for the DFS traversal.
    * @param e     a function that maps a vertex to an edge type `E`.

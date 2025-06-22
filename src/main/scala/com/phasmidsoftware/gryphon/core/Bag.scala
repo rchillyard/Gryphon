@@ -13,39 +13,7 @@ import scala.util.Random
  * @tparam X the type of elements contained in the bag.
  *           As a covariant type parameter, `X` allows subtypes of the specified type to be used in the bag.
  */
-trait Bag[+X] {
-  /**
-   * Returns an iterator over the elements in this collection.
-   * NOTE that you should not expect the iterator to have any particular order.
-   *
-   * @return an iterator of type `Iterator[X]` that provides sequential access to the elements in the collection.
-   */
-  def iterator: Iterator[X]
-
-  /**
-   * Checks if the collection is empty.
-   * This method evaluates whether the `iterator` of the collection contains any elements.
-   *
-   * @return true if the collection contains no elements, false otherwise.
-   */
-  def isEmpty: Boolean =
-    iterator.isEmpty
-
-  /**
-   * Checks if the collection contains at least one element.
-   *
-   * @return true if the collection is not empty, false otherwise.
-   */
-  def nonEmpty: Boolean =
-    iterator.nonEmpty
-
-  /**
-   * Retrieves the number of elements in the collection.
-   *
-   * @return the total count of elements in the collection.
-   */
-  def size: Int =
-    iterator.size
+trait Bag[+X] extends IterableOnce[X] {
 
   /**
    * Checks if the specified element is present in the collection.
@@ -55,6 +23,18 @@ trait Bag[+X] {
    */
   def contains[Y >: X](y: Y): Boolean =
     iterator.contains(y)
+
+  /**
+   * Filters the elements of the Bag using the provided predicate function.
+   *
+   * This method returns a new Bag that contains only those elements
+   * for which the predicate function `p` evaluates to `true`.
+   *
+   * @param p a predicate function that takes an element of type `X` and returns a boolean,
+   *          indicating whether the element satisfies the condition or not.
+   * @return an instance of `Bag[X]` containing the elements that satisfy the predicate.
+   */
+  def filter(p: X => Boolean): Bag[X]
 
   /**
    * Adds a new element to the bag, creating a new bag instance that includes the added element.
@@ -69,16 +49,16 @@ trait Bag[+X] {
 }
 
 /**
- * A concrete implementation of the `Bag` trait that uses a `Seq` to store elements.
+ * An abstract implementation of the `Bag` trait that uses a `Seq` to store elements.
  * This class provides a collection-like structure where elements can be added,
  * and iteration over the stored elements is supported.
  *
- * @tparam X the type of elements contained within the `ListBag`.
+ * @tparam X the type of elements contained within the `AbstractBag[X]`.
  *           The type is covariant to allow `ListBag[A]` to be used as `ListBag[B]`
  *           if `A` is a subtype of `B`.
  * @param xs a sequence of elements of type `X`, representing the contents of this `ListBag`.
  */
-case class ListBag[X](xs: Seq[X]) extends Bag[X] {
+abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
 
   /**
    * Returns an iterator over the elements contained in this `ListBag`.
@@ -92,6 +72,18 @@ case class ListBag[X](xs: Seq[X]) extends Bag[X] {
   }
 
   /**
+   * Filters the elements of the Bag using the provided predicate function.
+   *
+   * This method returns a new Bag that contains only those elements
+   * for which the predicate function `p` evaluates to `true`.
+   *
+   * @param p a predicate function that takes an element of type `X` and returns a boolean,
+   *          indicating whether the element satisfies the condition or not.
+   * @return an instance of `Bag[X]` containing the elements that satisfy the predicate.
+   */
+  def filter(p: X => Boolean): Bag[X] = unit(xs.filter(p))
+
+  /**
    * Adds a new element to the bag, creating a new bag instance that includes the added element.
    *
    * @param y the element to be added to the bag. The element can be of type `Y`,
@@ -100,7 +92,38 @@ case class ListBag[X](xs: Seq[X]) extends Bag[X] {
    *         and the newly added element.
    */
   def +[Y >: X](y: Y): Bag[Y] =
-    ListBag(xs :+ y)
+    unit(xs :+ y)
+
+  /**
+   * Creates a new `Bag` containing the elements from the provided sequence.
+   *
+   * @param xs the sequence of elements to populate the new `Bag`. The type of elements in the sequence
+   *           must be the same as or a supertype of the elements in the current context.
+   * @return a new instance of `Bag[Z]` containing the elements from the input sequence.
+   */
+  def unit[Z >: X](xs: Seq[Z]): Bag[Z]
+}
+
+/**
+ * A concrete implementation of the `Bag` trait that uses a `Seq` to store elements.
+ * This class provides a collection-like structure where elements can be added,
+ * and iteration over the stored elements is supported.
+ *
+ * @tparam X the type of elements contained within the `ListBag`.
+ *           The type is covariant to allow `ListBag[A]` to be used as `ListBag[B]`
+ *           if `A` is a subtype of `B`.
+ * @param xs a sequence of elements of type `X`, representing the contents of this `ListBag`.
+ */
+case class ListBag[X](xs: Seq[X]) extends AbstractBag[X](xs) {
+
+  /**
+   * Creates a new `Bag` containing the elements from the provided sequence.
+   *
+   * @param xs the sequence of elements to populate the new `Bag`. The type of elements in the sequence
+   *           must be the same as or a supertype of the elements in the current context.
+   * @return a new instance of `Bag[Z]` containing the elements from the input sequence.
+   */
+  def unit[Z >: X](xs: Seq[Z]): Bag[Z] = ListBag(xs)
 }
 
 /**

@@ -164,7 +164,19 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "bfs" in {
+  it should "simple bfs" in {
+    Using(Visitor.createPre[Int]) {
+      visitor =>
+        val target = VertexMap[Int].addEdges(edgeList)
+        val result: Visitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
+        val journal = result.journals.head
+        journal.size shouldBe 3
+        journal.head shouldBe 1
+        journal.last shouldBe 3
+    }
+  }
+
+  it should "complex bfs" in {
     Using(Visitor.createPre[Int]) {
       visitor =>
         val target = VertexMap[Int].addEdges(edgeList)

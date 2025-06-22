@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.gryphon.visit
 
+import com.phasmidsoftware.gryphon.util.PriorityQueueImmutable
+
 import scala.collection.immutable.Queue
 
 /**
@@ -36,7 +38,7 @@ trait Visitor[A, J] extends AutoCloseable {
    *
    * @return true if the visitor is in the "post" state, false otherwise.
    */
-  protected def isPost: Boolean = !isPre
+  private def isPost: Boolean = !isPre
 
   /**
    * Defines the function that is the basis of this Visitor.
@@ -53,7 +55,8 @@ trait Visitor[A, J] extends AutoCloseable {
    * @param a (`A`) the type being visited.
    * @return an updated `Visitor[A, J]`.
    */
-  def visitPre(a: A): Visitor[A, J] = doVisit(a, isPre, true)
+  def visitPre(a: A): Visitor[A, J] =
+    doVisit(a, isPre, true)
 
   /**
    * Method to visit AFTER processing the (child) A values in DFS.
@@ -62,7 +65,8 @@ trait Visitor[A, J] extends AutoCloseable {
    * @param a (A) the value of this node (vertex).
    * @return an updated Visitor[A, J].
    */
-  def visitPost(a: A): Visitor[A, J] = doVisit(a, isPost, false)
+  def visitPost(a: A): Visitor[A, J] =
+    doVisit(a, isPost, false)
 
   /**
    * The journal of all the pre- and post-invocations.
@@ -141,7 +145,13 @@ trait Visitor[A, J] extends AutoCloseable {
    * @param pre        True if this is a pre-visit, otherwise false.
    */
   private def doVisit(a: A, doFunction: Boolean, pre: Boolean) =
-    unit(if (doFunction) function(a)(journal) getOrElse journal else journal, next map (v => if (pre) v.visitPre(a) else v.visitPost(a)))
+    unit(
+      if (doFunction)
+        function(a)(journal) getOrElse journal
+      else
+        journal,
+      next map (v => if (pre) v.visitPre(a) else v.visitPost(a))
+    )
 }
 
 /**
@@ -161,6 +171,16 @@ object Visitor {
    */
   def createPre[A](implicit ev: Journal[Queue[A], A]): PreVisitor[A, Queue[A]] =
     PreVisitor[A, Queue[A]]()
+
+  /**
+   * Method to create a PreVisitor based on a PriorityQueue.
+   *
+   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
+   *           requires evidence of a Journal...
+   * @return a PreVisitor of A and PriorityQueue[A]
+   */
+  def createPrioritizedPre[A: Ordering](implicit ev: Journal[PriorityQueueImmutable[A], A]): PreVisitor[A, PriorityQueueImmutable[A]] =
+    PreVisitor[A, PriorityQueueImmutable[A]]()
 
   /**
    * Method to create a reverse PreVisitor.
@@ -273,7 +293,8 @@ case class PreVisitor[A, J](journal: J, next: Option[Visitor[A, J]] = None)(impl
    * @param maybeVisitor an optional next visitor to use for further processing.
    * @return a new `Visitor[A, J]` instance with the updated journal and next visitor.
    */
-  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] = copy(journal = journal, next = maybeVisitor)
+  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] =
+    copy(journal = journal, next = maybeVisitor)
 
   /**
    * Method to construct a new Visitor[A, J] based on this visitor and the given journal.
@@ -339,7 +360,8 @@ case class PostVisitor[A, J](journal: J, next: Option[Visitor[A, J]] = None)(imp
    * @param maybeVisitor An optional `Visitor[A, J]` instance to be used as the next visitor in the chain.
    * @return A new or updated `Visitor[A, J]` instance with the specified journal and next visitor.
    */
-  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] = copy(journal = journal, next = maybeVisitor)
+  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] =
+    copy(journal = journal, next = maybeVisitor)
 }
 
 /**
@@ -397,7 +419,8 @@ case class PreVisitorIterable[A, J <: Iterable[A]](journal: J, next: Option[Visi
    * @param maybeVisitor An optional existing `Visitor[A, J]` instance to be used as the next visitor.
    * @return A new or updated `Visitor[A, J]` instance.
    */
-  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] = copy(journal = journal, next = maybeVisitor)
+  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] =
+    copy(journal = journal, next = maybeVisitor)
 }
 
 /**
@@ -458,7 +481,8 @@ case class PostVisitorIterable[A, J <: Iterable[A]](journal: J, next: Option[Vis
    * @param maybeVisitor An optional `Visitor[A, J]` instance to be set as the next visitor.
    * @return A new `Visitor[A, J]` instance with the specified journal and next visitor.
    */
-  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] = copy(journal = journal, next = maybeVisitor)
+  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] =
+    copy(journal = journal, next = maybeVisitor)
 }
 
 /**
@@ -525,7 +549,8 @@ case class PreKeyedVisitor[A, X, J](journal: J, next: Option[Visitor[A, J]] = No
    * @param maybeVisitor An optional next `Visitor[A, J]` to define the subsequent processing step.
    * @return A new `Visitor[A, J]` instance with the specified journal and next visitor.
    */
-  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] = copy(journal = journal, next = maybeVisitor)
+  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] =
+    copy(journal = journal, next = maybeVisitor)
 }
 
 /**
@@ -545,7 +570,6 @@ object PreKeyedVisitor {
    */
   def create[A, X, J]()(implicit ev: KeyedJournal[J, A, X]): PreKeyedVisitor[A, X, J] =
     PreKeyedVisitor(ev.empty)
-
 }
 
 /**
@@ -585,7 +609,8 @@ case class PostKeyedVisitor[A, X, J](journal: J, next: Option[Visitor[A, J]] = N
    * @param maybeVisitor An optional next `Visitor[A, J]` to define the subsequent processing step.
    * @return A new `Visitor[A, J]` instance with the specified journal and next visitor.
    */
-  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] = copy(journal = journal, next = maybeVisitor)
+  def unit(journal: J, maybeVisitor: Option[Visitor[A, J]]): Visitor[A, J] =
+    copy(journal = journal, next = maybeVisitor)
 }
 
 /**
@@ -605,7 +630,6 @@ object PostKeyedVisitor {
    */
   def create[A, X, J]()(implicit ev: KeyedJournal[J, A, X]): PostKeyedVisitor[A, X, J] =
     PostKeyedVisitor(ev.empty)
-
 }
 
 /**
@@ -622,7 +646,8 @@ trait IterableVisitor[A, J <: Iterable[A]] extends Visitor[A, J] with IterableOn
    * @param a the element of type `A` to be visited.
    * @return an updated instance of `IterableVisitor[A, J]`.
    */
-  override def visitPre(a: A): IterableVisitor[A, J] = super.visitPre(a).asInstanceOf[IterableVisitor[A, J]]
+  override def visitPre(a: A): IterableVisitor[A, J] =
+    super.visitPre(a).asInstanceOf[IterableVisitor[A, J]]
 
   /**
    * Visits the current node after processing its child nodes in a depth-first traversal.
@@ -631,7 +656,8 @@ trait IterableVisitor[A, J <: Iterable[A]] extends Visitor[A, J] with IterableOn
    * @param a the value of the current node to be visited.
    * @return an updated IterableVisitor[A, J] representing the new state of the visitor.
    */
-  override def visitPost(a: A): IterableVisitor[A, J] = super.visitPost(a).asInstanceOf[IterableVisitor[A, J]]
+  override def visitPost(a: A): IterableVisitor[A, J] =
+    super.visitPost(a).asInstanceOf[IterableVisitor[A, J]]
 }
 
 /**
@@ -708,24 +734,6 @@ abstract class AbstractIterableVisitor[A, J <: Iterable[A]](journal: J, next: Op
    */
   def iterator: Iterator[A] =
     avai.iterator(journal)
-
-  /**
-   * Method to visit before processing the (child) A values.
-   *
-   * @param a (A) the value of this node (vertex).
-   * @return an updated IterableVisitor[A, J].
-   */
-  override def visitPre(a: A): IterableVisitor[A, J] =
-    super.visitPre(a)
-
-  /**
-   * Method to visit after processing the (child) A values.
-   *
-   * @param a (A) the value of this node (vertex).
-   * @return an updated IterableVisitor[A, J].
-   */
-  override def visitPost(a: A): IterableVisitor[A, J] =
-    super.visitPost(a)
 }
 
 /**

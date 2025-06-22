@@ -49,8 +49,20 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return an iterator over the vertices that are adjacent to the given vertex and undiscovered
    * @throws GraphException if the vertex is not found in the map
    */
-  def undiscoveredAdjacencies(v: V): Iterator[V] =
+  def undiscoveredAdjacentVertices(v: V): Iterator[V] =
     filteredAdjacencies(undiscoveredVertex(_).isDefined)(v)
+
+  /**
+   * Filters the adjacencies of a given vertex based on a specified predicate.
+   *
+   * @param predicate A function that determines whether a given adjacency should be included.
+   *                  It takes a `Discoverable[V]` and returns a Boolean, where `true` includes
+   *                  the adjacency and `false` excludes it.
+   * @param v         The vertex whose adjacencies will be filtered.
+   * @return An iterator of adjacencies that satisfy the selected predicate for the given vertex.
+   */
+  def filteredAdjacencies2(predicate: Discoverable[V] => Boolean)(v: V): Iterator[Adjacency[V]] =
+    map(v).adjacencies.filter(predicate).iterator
 
   /**
    * Returns a string representation of the object.
@@ -295,14 +307,13 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
    * It utilizes a special visitor consisting of a tuple of vertices.
    *
-   * @param f       A function that takes a vertex and returns a tuple containing two vertices.
    * @param visitor A visitor function used to process graph elements during the DFS traversal.
    * @param v       The starting vertex for the DFS traversal.
    * @return The visitor after completing the DFS traversal.
    */
   def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] = {
     initializeVisits(Some(v))
-    val function: V => (V, V) = (x => (v, x))
+    val function: V => (V, V) = x => (v, x)
     Using.resource(recursiveDFSA(function)(visitor, v)) {
       result => result
     }
@@ -327,6 +338,13 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     result
   }
 
+  def bfse[E, J](visitor: Visitor[Edge[E, V], J])(v: V)(goal: V => Boolean): Visitor[Edge[E, V], J] = {
+    initializeVisits(Some(v)) // initialize the edge, not the vertices
+    implicit object queuable extends QueueableQueue[Edge[E, V]]
+    val result = doBFSE[E, J, Queue[Edge[E, V]]](visitor, v)(goal)
+    result.close()
+    result
+  }
   /**
    * Performs a Depth-First Search (DFS) ensuring that all vertices are discovered.
    *
@@ -473,7 +491,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
       case Some((head, _)) if goal(head) =>
         result.visitPre(head)
       case Some((head, tail)) =>
-        inner(result.visitPre(head), enqueueUnvisitedVertices(head, tail))
+        inner(result.visitPre(head), enqueueUntraversedEdges(head, tail))
       case _ =>
         result
     }
@@ -481,6 +499,48 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     inner(visitor, queueable.append(queueable.empty, v))
   }
 
+  private def doBFSE[E, J, Q](visitor: Visitor[Edge[E, V], J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, Edge[E, V]]): Visitor[Edge[E, V], J] = {
+    //    if (goal(v))
+    visitor
+    //    else {
+    //      val q: Queue[Edge[E, V]] = enqueueUntraversedEdges[Edge[E, V], Queue[Edge[E, V]]](v, visitor.journal)
+    //      if (q.isEmpty)
+    //        visitor
+    //      else
+    //        val (e, w) = q.dequeue
+    //        e match {
+    //          case DirectedEdge(_, _, w) =>
+    //            doBFSE(visitor.visitPre(e), w)(goal).visitPost(e)
+    //          case UndirectedEdge(_, _, _) =>
+    //            doBFSE(visitor.visitPre(e), to)(goal).visitPost(e)
+    //        }
+    //    }
+    //    @tailrec
+    //    def inner(result: Visitor[E, J], work: Q): Visitor[Edge[E, V], J] = {
+    //      queueable.take(work) match {
+    //      case Some((head, q)) =>
+    //        val (e, w) = head match {
+    //          case DirectedEdge(a,_,c) =>
+    //            (a, c)
+    //          case x@UndirectedEdge(a,b,c) =>
+    //              x.other(v)
+    //
+    //        }
+    //        val (a,b,c) = head
+    //        val edgeType = head.edgeType
+    //        val white = head.white
+    //        val black = head.black
+    //        inner(result.visitPre(head), enqueueUntraversedEdges(head, tail))
+    //      case _ =>
+    //        result
+    //    }
+    //    }
+    //
+    //    inner(visitor, queueable.empty)
+  }
+
+  private def enqueueUntraversedEdges[E, Q](v: V, queue: Q)(implicit queueable: Queueable[Q, E]): Q =
+    queue // undiscoveredAdjacencies(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
 
   /**
    * Enqueues all unvisited vertices adjacent to the given vertex into the provided queue.
@@ -490,7 +550,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * and appended to the queue. If the vertex `v` does not exist in the adjacency list,
    * an exception is thrown.
    *
-   * TODO use undiscoveredAdjacencies
+   * TODO use undiscoveredAdjacentVertices
    *
    * @param v         the vertex whose unvisited adjacent vertices are to be enqueued
    * @param queue     the queue into which the unvisited vertices will be appended
@@ -499,7 +559,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws GraphException if the vertex is not found in the map
    */
   private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q =
-    undiscoveredAdjacencies(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
+    undiscoveredAdjacentVertices(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
 
   /**
    * Initializes the visit status of all vertices in the map by resetting their state.
@@ -558,7 +618,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws util.GraphException if the vertex is not found in the graph.
    */
   private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = {
-    undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => recursiveDFS(jVv.visitPre(w), w))
+    undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => recursiveDFS(jVv.visitPre(w), w))
   }
 
   /**
@@ -572,7 +632,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws util.GraphException if the vertex is not found in the graph.
    */
   private def recurseOnVertexA[A, J](f: V => A)(v: V, visitor: Visitor[A, J]) =
-    undiscoveredAdjacencies(v).foldLeft(visitor)((jVv, w) => {
+    undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => {
       val g: V => A = ((x: V) => (w, x)).asInstanceOf[V => A]
       recursiveDFSA(g)(jVv.visitPre(f(w)), w)
     })

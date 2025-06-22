@@ -44,8 +44,19 @@ trait Unordered[+T] {
    * @return an iterator that provides sequential access to each element of type `T`
    *         in the collection.
    */
-
   def iterator: Iterator[T]
+
+  /**
+   * Filters the elements of the collection using the provided predicate function.
+   *
+   * This method returns a new collection that contains only those elements
+   * for which the predicate function `p` evaluates to `true`.
+   *
+   * @param p a predicate function that takes an element of type `T` and returns a boolean,
+   *          indicating whether the element satisfies the condition or not.
+   * @return an instance of `Unordered[T]` containing the elements that satisfy the predicate.
+   */
+  def filter(p: T => Boolean): Unordered[T]
 
   /**
    * Adds the specified element to the unordered collection.
@@ -54,9 +65,83 @@ trait Unordered[+T] {
    * @return a new instance of `Unordered` with the specified element added
    * @tparam U a supertype of T
    */
-
   def +[U >: T](u: U): Unordered[U]
 }
+
+/**
+ * A case class representing an unordered collection of elements in the form of a Set.
+ *
+ * @tparam T the type of the elements contained in the set.
+ * @param elements a set of elements of type `T` forming the basis of the adjacency set.
+ *
+ *                 This class extends the `Unordered` trait, providing a concrete
+ *                 implementation for unordered data structures.
+ *
+ *                 The `Unordered_Set` is immutable, meaning that any operation resulting
+ *                 in modification (such as adding a new element) will return a new instance
+ *                 of `Unordered_Set` without changing the original instance.
+ */
+abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordered[T]:
+  /**
+   * Checks if the unordered collection of elements is empty.
+   *
+   * @return `true` if the collection contains no elements, `false` otherwise.
+   */
+  def isEmpty: Boolean =
+    iterator.isEmpty
+
+  /**
+   * Retrieves the number of elements contained in this collection.
+   *
+   * @return the total count of elements as an integer.
+   */
+  def size: Int =
+    iterator.size
+
+  /**
+   * Returns an iterator over the elements in the adjacency set.
+   * NOTE that the order of the elements in the iterator is unpredictable.
+   *
+   * @return an `Iterator[T]` over the elements of type `T` contained in the set.
+   */
+  def iterator: Iterator[T] =
+    elements.iterator
+
+  /**
+   * Filters the elements of the collection using the provided predicate function.
+   *
+   * This method returns a new collection that contains only those elements
+   * for which the predicate function `p` evaluates to `true`.
+   *
+   * @param p a predicate function that takes an element of type `T` and returns a boolean,
+   *          indicating whether the element satisfies the condition or not.
+   * @return an instance of `Unordered[T]` containing the elements that satisfy the predicate.
+   */
+  def filter(p: T => Boolean): Unordered[T] =
+    unit(iterator.filter(p).toSeq)
+
+  /**
+   * Adds the specified element to the unordered collection.
+   *
+   * @param u the element to be added to the collection
+   * @return a new instance of `Unordered` with the specified element added
+   * @tparam U a supertype of T
+   */
+  def +[U >: T](u: U): Unordered[U] =
+    unit(elements.iterator.toSeq :+ u)
+
+  /**
+   * Creates a new instance of `Unordered` containing the specified sequence of elements.
+   *
+   * This method allows the initialization of an unordered collection with a given sequence
+   * of elements. The order of elements in the input sequence is not preserved or relevant
+   * in the resulting unordered collection.
+   *
+   * @param elements a sequence of elements of type `U` to be added to the unordered collection
+   * @tparam U a supertype of `T`, representing the type of elements in the input sequence
+   * @return a new instance of `Unordered[U]` containing the specified elements
+   */
+  def unit[U >: T](elements: Seq[U]): Unordered[U]
 
 /**
  * A case class representing an unordered collection of elements in the form of a Set.
@@ -71,20 +156,7 @@ trait Unordered[+T] {
  *                 in modification (such as adding a new element) will return a new instance 
  *                 of `Unordered_Set` without changing the original instance.
  */
-case class Unordered_Bag[+T](elements: Bag[T]) extends Unordered[T]:
-  /**
-   * Checks if the unordered collection of elements is empty.
-   *
-   * @return `true` if the collection contains no elements, `false` otherwise.
-   */
-  def isEmpty: Boolean = elements.isEmpty
-
-  /**
-   * Retrieves the number of elements contained in this collection.
-   *
-   * @return the total count of elements as an integer.
-   */
-  def size: Int = elements.size
+case class Unordered_Bag[+T](elements: Bag[T]) extends AbstractUnordered[T](elements):
 
   /**
    * Checks if the specified element is present in the set.
@@ -97,25 +169,20 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends Unordered[T]:
     elements.contains(u)
 
   /**
-   * Returns an iterator over the elements in the adjacency set.
-   * NOTE that the order of the elements in the iterator is unpredictable.
+   * Creates a new instance of `Unordered` with the specified sequence of elements.
    *
-   * @return an `Iterator[T]` over the elements of type `T` contained in the set.
-   */
-  def iterator: Iterator[T] =
-    elements.iterator
-
-  /**
-   * Adds a specified element to the unordered collection, resulting in a new instance
-   * of `Unordered` that includes the added element.
+   * This method allows creating a new unordered collection by copying the current
+   * instance and replacing its underlying element set with a newly created `Bag`
+   * containing the provided sequence of elements.
    *
-   * @param u the element to be checked for presence in the set.
-   * @tparam U the type of `u` and a supertype of `T`.
-   * @return a new instance of `Unordered` containing the specified element in addition
-   *         to the existing elements
+   * @param elements the sequence of elements to populate the new unordered collection.
+   *                 These elements will be used to construct a new `Bag`, which will
+   *                 replace the current one in the copied instance.
+   * @tparam U the type of the elements in the provided sequence, which must be a
+   *           supertype of the current element type `T`.
+   * @return a new instance of `Unordered[U]` containing the specified elements.
    */
-  def +[U >: T](u: U): Unordered[U] =
-    copy(elements = elements + u)
+  def unit[U >: T](elements: Seq[U]): Unordered[U] = copy(elements = Bag.create(elements: _*))
 
 /**
  * Companion object for the `Unordered_Bag` class providing factory methods to create instances of `Unordered`
@@ -169,22 +236,7 @@ object Unordered_Bag {
  *                 in modification (such as adding a new element) will return a new instance 
  *                 of `Unordered_Set` without changing the original instance.
  */
-case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
-  /**
-   * Checks if the set of elements is empty.
-   *
-   * @return `true` if the set contains no elements, otherwise `false`.
-   */
-  def isEmpty: Boolean =
-    elements.isEmpty
-
-  /**
-   * Returns the number of elements in the set.
-   *
-   * @return the size of the set as an integer.
-   */
-  def size: Int =
-    elements.size
+case class Unordered_Set[T](elements: Set[T]) extends AbstractUnordered[T](elements):
 
   /**
    * Checks whether the specified element is contained within the set.
@@ -197,27 +249,18 @@ case class Unordered_Set[T](elements: Set[T]) extends Unordered[T]:
     elements.asInstanceOf[Set[U]].contains(u)
 
   /**
-   * Returns an iterator over the elements in the adjacency set.
-   * NOTE that the order of the elements in the iterator is unpredictable.
+   * Creates a new unordered collection containing the provided elements.
    *
-   * @return an `Iterator[T]` over the elements of type `T` contained in the set.
-   */
-  def iterator: Iterator[T] =
-    elements.iterator
-
-  /**
-   * Adds the specified element to the unordered collection, returning a new instance 
-   * of the collection with the element included. The original collection remains unchanged.
+   * This method accepts a sequence of elements, converts them into a set
+   * (ensuring uniqueness), and returns a new instance of `Unordered` with
+   * these elements.
    *
-   * @param u the element to be added to the collection. Its type must conform to or extend
-   *          the type `T` of the elements in the collection, or be a supertype of `T`.
-   * @return a new `Unordered` instance containing the specified element along with the
-   *         elements of the original collection.
-   * @tparam U a supertype of `T` that represents the type of the element being added.
+   * @param elements a sequence of elements to be included in the new unordered collection.
+   *                 The type of elements must conform to or be a supertype of the existing
+   *                 elements in the collection.
+   * @return a new `Unordered` instance containing the specified elements.
    */
-  // CONSIDER eliminate this asInstanceOf
-  def +[U >: T](u: U): Unordered[U] =
-    copy(elements = elements.asInstanceOf[Set[U]] + u)
+  def unit[U >: T](elements: Seq[U]): Unordered[U] = copy(elements = Set(elements: _*))
 
 /**
  * A companion object for `Unordered_Set`, providing factory methods to create instances of

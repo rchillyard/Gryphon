@@ -113,7 +113,7 @@ object Parseable {
      * @return A compiled regular expression.
      *         The result matches one or more word characters (`()`).
      */
-    override def regex: Regex =
+    def regex: Regex =
       """\(\)""".r
 
     /**
@@ -184,7 +184,7 @@ object Parseable {
      * @return A compiled regular expression.
      *         By default, the result matches one or more word characters (`\w+`).
      */
-    override def regex: Regex =
+    def regex: Regex =
       """yes|true|no|false/i""".r
 
     /**
@@ -343,7 +343,7 @@ object Parseable {
      *
      * @return A `Regex` pattern that matches valid numeric representations, such as "42", "3.14", or ".5".
      */
-    override def regex: Regex =
+    def regex: Regex =
       """(\d+(\.\d*)?|\d*\.\d+)""".r
 
     /**

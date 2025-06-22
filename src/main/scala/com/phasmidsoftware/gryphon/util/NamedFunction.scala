@@ -13,5 +13,5 @@ package com.phasmidsoftware.gryphon.util
  * @tparam R The return type of the function.
  */
 case class NamedFunction[T, R](name: String)(f: T => R) extends (T => R) {
-  override def apply(t: T): R = f(t)
+  def apply(t: T): R = f(t)
 }

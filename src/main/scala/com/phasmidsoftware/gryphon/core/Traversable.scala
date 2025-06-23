@@ -103,6 +103,20 @@ trait Traversable[V] {
   def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J]
 
   /**
+   * Executes a breadth-first search (BFS) traversal of a graph, visiting edges instead of vertices.
+   * The traversal starts from the specified vertex `v` and continues until all reachable edges
+   * are visited or the goal function returns true for a destination vertex.
+   *
+   * @param visitor the visitor responsible for processing edges during the traversal. It is of type `Visitor[Edge[E, V], J]`.
+   * @param v       the starting vertex from which the BFS traversal begins.
+   * @param goal    a function that takes a vertex of type `V` and returns true if the vertex satisfies the goal condition, terminating the traversal.
+   * @tparam E the type of the edge attribute in the graph.
+   * @tparam J the journal type that facilitates recording traversal progress.
+   * @return the visitor after completing the BFS traversal, which may contain information about the visited edges.
+   */
+  def bfse[E, J](visitor: Visitor[Edge[E, V], J])(v: V)(goal: V => Boolean): Visitor[Edge[E, V], J]
+
+  /**
    * Performs a depth-first search (DFS) traversal starting from the specified vertex
    * and returns a mapping of vertices to their respective traversal results.
    *

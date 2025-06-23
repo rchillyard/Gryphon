@@ -128,6 +128,20 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
    * @return an `Iterator` of `Adjacency[V]`, containing the filtered adjacencies of the given vertex.
    */
   def filteredAdjacencies2(predicate: Discoverable[V] => Boolean)(v: V): Iterator[Adjacency[V]] = vertexMap.filteredAdjacencies2(predicate)(v)
+
+  /**
+   * Performs a breadth-first search exploration (BFSE) on the graph starting from a given vertex,
+   * using the provided visitor to process edges and maintain a journal of the traversal.
+   *
+   * @param visitor the `Visitor` instance of type `Visitor[Edge[E, V], J]` responsible for processing the edges
+   *                and maintaining a journal during the traversal.
+   * @param v       the starting vertex `V` for the breadth-first search exploration.
+   * @param goal    a function `V => Boolean` used to determine the goal condition during the search.
+   *                The traversal will evaluate whether each visited vertex satisfies this condition.
+   * @return an updated `Visitor[Edge[E, V], J]` containing the results and journal from the traversal.
+   */
+  def bfse[E, J](visitor: Visitor[Edge[E, V], J])(v: V)(goal: V => Boolean): Visitor[Edge[E, V], J] =
+    vertexMap.bfse(visitor)(v)(goal)
 }
 
 /**

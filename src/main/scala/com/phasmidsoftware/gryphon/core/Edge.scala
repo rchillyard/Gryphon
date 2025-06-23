@@ -27,6 +27,28 @@ trait Edge[E, V] extends Attribute[E] with Connexion[V] {
 }
 
 /**
+ * A trait that represents an ordered edge in a graph structure.
+ *
+ * This trait extends the `Edge` interface by providing an ordering mechanism
+ * based on the edge's attribute of type `E`. It also implements the Scala `Ordered` trait
+ * to enable comparisons between edges.
+ *
+ * @tparam E the type of the attribute associated with the edge. This attribute is used for
+ *           determining the order of the edges.
+ * @tparam V the type of the vertices connected by the edge.
+ */
+trait OrderedEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
+  /**
+   * Compares this edge with another edge based on their attributes using the specified ordering.
+   *
+   * @param that     the edge to compare against.
+   * @param ordering the implicit ordering instance that defines the comparison behavior for the edge attributes.
+   * @return an integer where a negative value indicates this edge's attribute is less than the other edge's attribute,
+   *         zero indicates they are equal, and a positive value indicates this edge's attribute is greater.
+   */
+  def compare(that: Edge[E, V])(implicit ordering: Ordering[E]): Int = ordering.compare(this.attribute, that.attribute)
+}
+/**
  * A trait representing the type of an edge, indicating whether it is directed or undirected.
  * Or something else?
  * It provides a method to determine if the edge is one-way, and a `toString` method

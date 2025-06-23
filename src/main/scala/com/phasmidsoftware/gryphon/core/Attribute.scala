@@ -16,6 +16,28 @@ trait Attribute[+A] {
 }
 
 /**
+ * A trait that extends `Attribute` to enable comparison between attributes of type `A` and others of compatible types.
+ *
+ * @tparam A the type of the attribute that this trait represents. Must be comparable using Scala's `Ordering`.
+ */
+trait OrderedAttribute[A] extends Attribute[A] {
+  /**
+   * Compares this attribute with another attribute, returning an integer to indicate
+   * their relative order. The comparison is performed using an implicit `Ordering`
+   * for the type of the attributes.
+   *
+   * @param other the other `Attribute` instance to compare against.
+   *              It must have an attribute of type `T`, where `T` is a supertype of `A`
+   *              and has an implicit `Ordering` available.
+   * @return an integer indicating the relative order of the two attributes:
+   *         - a negative integer if this attribute is less than the `other` attribute,
+   *         - zero if they are equal,
+   *         - a positive integer if this attribute is greater than the `other` attribute.
+   */
+  def compare[T >: A : Ordering](other: Attribute[T]): Int = implicitly[Ordering[T]].compare(attribute, other.attribute)
+}
+
+/**
  * A type-class trait defining a mechanism to associate an attribute of type `A` with an entity of type `T`.
  *
  * The `Attributed` trait provides an abstraction to retrieve an attribute from a given object.
@@ -33,5 +55,3 @@ trait Attributed[T, A] {
    */
   def attribute(t: T): A
 }
-
-

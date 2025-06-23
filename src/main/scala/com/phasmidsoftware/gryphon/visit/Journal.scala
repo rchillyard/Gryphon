@@ -4,6 +4,9 @@
 
 package com.phasmidsoftware.gryphon.visit
 
+import com.phasmidsoftware.gryphon.core.OrderedEdge
+import com.phasmidsoftware.gryphon.util.PriorityQueueImmutable
+
 import java.io.FileWriter
 import scala.collection.immutable.Queue
 import scala.collection.mutable
@@ -210,6 +213,25 @@ trait FileWriterJournal[Z] extends Journal[FileWriter, Z] {
     j
   }
 }
+
+/**
+ * A specialization of the `Journal` type class for maintaining an immutable priority queue of `OrderedEdge` elements.
+ *
+ * This trait provides functionality for creating an empty immutable priority queue and appending
+ * `OrderedEdge` elements to it. The underlying data structure is a priority queue that respects the ordering
+ * defined for `OrderedEdge`.
+ *
+ * @tparam E the type of the attribute associated with edges, used for determining their priority.
+ * @tparam V the type of vertices connected by the edges.
+ */
+trait PriorityQueueJournal[E, V] extends Journal[PriorityQueueImmutable[OrderedEdge[E, V]], OrderedEdge[E, V]] {
+  def empty: PriorityQueueImmutable[OrderedEdge[E, V]] =
+    PriorityQueueImmutable(scala.collection.mutable.PriorityQueue.empty[OrderedEdge[E, V]])
+
+  def append(j: PriorityQueueImmutable[OrderedEdge[E, V]], z: OrderedEdge[E, V]): PriorityQueueImmutable[OrderedEdge[E, V]] =
+    j.insert(z)
+}
+
 
 /**
  * Companion object to Journal.

@@ -14,7 +14,7 @@ import scala.collection.mutable.PriorityQueue
  * @tparam Q the queue type.
  * @tparam V the underlying type of the journal.
  */
-trait Queueable[Q, V] extends Journal[Q, V] {
+trait Queueable[Q, V] extends SimpleJournal[Q, V] {
 
   /**
    * Take the oldest element from a queue-like object.

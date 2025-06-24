@@ -4,8 +4,6 @@
 
 package com.phasmidsoftware.gryphon.visit
 
-import com.phasmidsoftware.gryphon.util.PriorityQueueImmutable
-
 import scala.collection.immutable.Queue
 
 /**
@@ -169,18 +167,18 @@ object Visitor {
    *           requires evidence of a Journal...
    * @return a PreVisitor of A and Queue[A]
    */
-  def createPre[A](implicit ev: Journal[Queue[A], A]): PreVisitor[A, Queue[A]] =
+  def createPre[A](implicit ev: SimpleJournal[Queue[A], A]): PreVisitor[A, Queue[A]] =
     PreVisitor[A, Queue[A]]()
-
-  /**
-   * Method to create a PreVisitor based on a PriorityQueue.
-   *
-   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
-   *           requires evidence of a Journal...
-   * @return a PreVisitor of A and PriorityQueue[A]
-   */
-  def createPrioritizedPre[A: Ordering](implicit ev: Journal[PriorityQueueImmutable[A], A]): PreVisitor[A, PriorityQueueImmutable[A]] =
-    PreVisitor[A, PriorityQueueImmutable[A]]()
+  //
+  //  /**
+  //   * Method to create a PreVisitor based on a PriorityQueue.
+  //   *
+  //   * @tparam A the type to be visited, typically the (key) attribute type of vertex.
+  //   *           requires evidence of a Journal...
+  //   * @return a PreVisitor of A and PriorityQueue[A]
+  //   */
+  //  def createPrioritizedPre[A: Ordering](implicit ev: Journal[PriorityQueueImmutable[A], A, A]): PreVisitor[A, PriorityQueueImmutable[A]] =
+  //    PreVisitor[A, PriorityQueueImmutable[A]]()
 
   /**
    * Method to create a reverse PreVisitor.
@@ -191,7 +189,7 @@ object Visitor {
    *           Requires implicit evidence of type Journal...
    * @return a PreVisitor of A and List[A]
    */
-  def reversePre[A](implicit ev: Journal[List[A], A]): PreVisitor[A, List[A]] =
+  def reversePre[A](implicit ev: SimpleJournal[List[A], A]): PreVisitor[A, List[A]] =
     PreVisitor(ev.empty)
 
   /**
@@ -203,7 +201,7 @@ object Visitor {
    *           Requires implicit evidence of type Journal...
    * @return a PostVisitor of A and Queue[A]
    */
-  def createPostQueue[A](implicit ev: Journal[Queue[A], A]): PostVisitor[A, Queue[A]] =
+  def createPostQueue[A](implicit ev: SimpleJournal[Queue[A], A]): PostVisitor[A, Queue[A]] =
     PostVisitor[A, Queue[A]]()
 
   /**
@@ -215,7 +213,7 @@ object Visitor {
    *           Requires implicit evidence of type Journal...
    * @return a PostVisitor of A and List[A]
    */
-  def reversePost[A](implicit ev: Journal[List[A], A]): PostVisitor[A, List[A]] =
+  def reversePost[A](implicit ev: SimpleJournal[List[A], A]): PostVisitor[A, List[A]] =
     PostVisitor(ev.empty)
 
   /**
@@ -267,7 +265,7 @@ object Visitor {
  * @tparam J the type of the journal.
  *           Requires implicit evidence of type Journal[J, A].
  */
-case class PreVisitor[A, J](journal: J, next: Option[Visitor[A, J]] = None)(implicit val ev: Journal[J, A]) extends AbstractVisitor[A, J](journal, next) {
+case class PreVisitor[A, J](journal: J, next: Option[Visitor[A, J]] = None)(implicit val ev: SimpleJournal[J, A]) extends AbstractVisitor[A, J](journal, next) {
 
   /**
    * Indicates whether this visitor is a pre-order visitor.
@@ -319,7 +317,7 @@ object PreVisitor {
    * @tparam J the type of the journal used to record the processing of elements of type `A`.
    * @return a new `PreVisitor` instance initialized with an empty journal.
    */
-  def apply[A, J]()(implicit ev: Journal[J, A]): PreVisitor[A, J] =
+  def apply[A, J]()(implicit ev: SimpleJournal[J, A]): PreVisitor[A, J] =
     PreVisitor(ev.empty)
 }
 
@@ -331,7 +329,7 @@ object PreVisitor {
  * @tparam J the type of the journal.
  *           Requires implicit evidence of type Journal[J, A].
  */
-case class PostVisitor[A, J](journal: J, next: Option[Visitor[A, J]] = None)(implicit val ev: Journal[J, A]) extends AbstractVisitor[A, J](journal, next) {
+case class PostVisitor[A, J](journal: J, next: Option[Visitor[A, J]] = None)(implicit val ev: SimpleJournal[J, A]) extends AbstractVisitor[A, J](journal, next) {
 
   /**
    * Determines if the visitor operates in 'pre-visit' mode.
@@ -376,7 +374,7 @@ object PostVisitor {
    * @tparam J the type of the journal.
    * @return a new `PostVisitor` instance with an empty journal.
    */
-  def apply[A, J]()(implicit ev: Journal[J, A]): PostVisitor[A, J] =
+  def apply[A, J]()(implicit ev: SimpleJournal[J, A]): PostVisitor[A, J] =
     PostVisitor(ev.empty)
 }
 
@@ -668,7 +666,7 @@ trait IterableVisitor[A, J <: Iterable[A]] extends Visitor[A, J] with IterableOn
  * @tparam J the type of the journal for this visitor.
  *           Requires implicit evidence of type Journal[J, A].
  */
-abstract class AbstractVisitor[A, J](journal: J, next: Option[Visitor[A, J]])(implicit val ava: Journal[J, A]) extends Visitor[A, J] {
+abstract class AbstractVisitor[A, J](journal: J, next: Option[Visitor[A, J]])(implicit val ava: SimpleJournal[J, A]) extends Visitor[A, J] {
   self =>
   /**
    * Method to append a value of type `A` to a journal of type `J`, utilizing the implicit `Journal` type class instance.

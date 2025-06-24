@@ -49,7 +49,7 @@ object TopologicalSort {
    * @return a sequence of vertices (`Seq[V]`) representing the topologically sorted order
    *         of the graph's vertices.
    */
-  def sort[V, E](graph: DirectedGraph[V, E])(implicit ev: Journal[List[V], V]): Option[Seq[V]] = {
+  def sort[V, E](graph: DirectedGraph[V, E])(implicit ev: SimpleJournal[List[V], V]): Option[Seq[V]] = {
     val visitor = Visitor.reversePost[V]
     val result = graph.dfsAll(visitor)
     val vs = result.journals.head
@@ -72,7 +72,7 @@ object TopologicalSort {
    * @return an optional sequence of vertices (`Seq[V]`) representing the topologically sorted order
    *         of the graph's vertices. If the result is empty, it implies that the graph is cyclic.
    */
-  def traversal[V, E](graph: DirectedGraph[V, E])(implicit ev: Journal[List[V], V]): Option[TopologicalSort[V]] = {
+  def traversal[V, E](graph: DirectedGraph[V, E])(implicit ev: SimpleJournal[List[V], V]): Option[TopologicalSort[V]] = {
     val maybeTopologicalOrder = sort(graph)
     maybeTopologicalOrder match {
       case Some(topologicalOrder) =>

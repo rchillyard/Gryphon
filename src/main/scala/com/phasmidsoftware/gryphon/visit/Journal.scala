@@ -13,15 +13,23 @@ import scala.collection.mutable
 
 /**
  * Type-class trait to define the behavior of a Journal of `Z` elements.
- * It is used in the `Visitor` trait as something that can receive the `Z` elements.
+ * It is used in the `Visitor` trait as something that can receive the `A`
+ * instances which can be converted into `Z` elements.
  * `Journal` does not support an `Iterator`, since many journals might simply be a log file of some sort.
  *
- * CONSIDER defining J as a wrapper type, i.e., J[_].
- *
- * @tparam J the journal type.
- * @tparam Z the underlying type of the journal.
+ * @tparam J the type of the journal
+ * @tparam A the type to be converted
+ * @tparam Z the target type after conversion
  */
-trait Journal[J, Z] {
+trait Journal[J, A, Z] {
+
+  /**
+   * Converts an instance of type `A` to an instance of type `Z`.
+   *
+   * @param a the input value of type `A` to be converted.
+   * @return the resulting value of type `Z` after conversion.
+   */
+  def convert(a: A): Z
 
   /**
    * An empty journal.
@@ -39,6 +47,26 @@ trait Journal[J, Z] {
 }
 
 /**
+ * A simplified implementation of the `Journal` type-class that enforces
+ * the input type `A` and output type `Z` to be the same.
+ *
+ * This trait is particularly useful for scenarios where no transformation
+ * of the journal entries is required, and the input type `A` is retained.
+ *
+ * @tparam J the type of the journal
+ * @tparam A the type of the entries in the journal
+ */
+trait SimpleJournal[J, A] extends Journal[J, A, A] {
+  /**
+   * Identity method.
+   *
+   * @param a the input value of type `A` to be converted.
+   * @return the input value.
+   */
+  def convert(a: A): A = a
+}
+
+/**
  * A type-class trait that extends the `Journal` trait, specifically designed to handle journals where
  * each record is represented as a tuple containing a key of type `K` and a corresponding value of type `X`.
  * The `KeyedJournal` introduces additional behavior to manage and process elements based on their keys.
@@ -47,7 +75,7 @@ trait Journal[J, Z] {
  * @tparam K The type of the key used for each entry in the journal.
  * @tparam X The type of the value associated with a key in the journal.
  */
-trait KeyedJournal[J, K, X] extends Journal[J, (K, X)] {
+trait KeyedJournal[J, K, X] extends Journal[J, K, (K, X)] {
   /**
    * Retrieves a value that can then be associated with the given key in the journal.
    *
@@ -55,6 +83,14 @@ trait KeyedJournal[J, K, X] extends Journal[J, (K, X)] {
    * @return The value of type `X` associated with the provided key.
    */
   def fulfill(k: K): X
+
+  /**
+   * Converts an instance of type `A` to an instance of type `Z`.
+   *
+   * @param a the input value of type `A` to be converted.
+   * @return the resulting value of type `Z` after conversion.
+   */
+  def convert(a: K): (K, X) = a -> fulfill(a)
 
   /**
    * Appends a key-value pair to the journal, where the value is derived from the given key using the `fulfill` method.
@@ -72,7 +108,7 @@ trait KeyedJournal[J, K, X] extends Journal[J, (K, X)] {
  * @tparam J the (iterable) journal type for this `IterableJournal` (`J` must be a subclass of `Iterable[X]`).
  * @tparam X the underlying type of the journal.
  */
-trait IterableJournal[J <: Iterable[X], X] extends Journal[J, X] with HasIterator[J, X]
+trait IterableJournal[J <: Iterable[X], X] extends SimpleJournal[J, X] with HasIterator[J, X]
 
 /**
  * Trait which combines the behaviors of `Journal` and `HasIterator`.
@@ -113,6 +149,7 @@ trait MappedJournalMap[V, T] extends MappedJournal[Map[V, T], V, T] {
  * @tparam Z the type of elements stored in the queue.
  */
 trait IterableJournalQueue[Z] extends IterableJournal[Queue[Z], Z] {
+
   /**
    * Represents an empty `Queue` of type `Z`.
    * This defines the base case or starting state for operations
@@ -165,7 +202,8 @@ trait IterableJournalStack[Z] extends IterableJournal[List[Z], Z] {
  *
  * @tparam Z the underlying type of the values stored in the journal.
  */
-trait StringBuilderJournal[Z] extends Journal[StringBuilder, Z] {
+trait StringBuilderJournal[Z] extends SimpleJournal[StringBuilder, Z] {
+
   /**
    * Creates and returns a new, empty StringBuilder instance.
    *
@@ -192,7 +230,7 @@ trait StringBuilderJournal[Z] extends Journal[StringBuilder, Z] {
  *
  * @tparam Z the type of the elements to be written to the journal.
  */
-trait FileWriterJournal[Z] extends Journal[FileWriter, Z] {
+trait FileWriterJournal[Z] extends SimpleJournal[FileWriter, Z] {
   /**
    * This method is used only when no explicit Journal is defined for a Visitor[FileWriter, Int].
    *
@@ -224,7 +262,7 @@ trait FileWriterJournal[Z] extends Journal[FileWriter, Z] {
  * @tparam E the type of the attribute associated with edges, used for determining their priority.
  * @tparam V the type of vertices connected by the edges.
  */
-trait PriorityQueueJournal[E, V] extends Journal[PriorityQueueImmutable[OrderedEdge[E, V]], OrderedEdge[E, V]] {
+trait PriorityQueueJournal[E, V] extends Journal[PriorityQueueImmutable[OrderedEdge[E, V]], E, OrderedEdge[E, V]] {
   def empty: PriorityQueueImmutable[OrderedEdge[E, V]] =
     PriorityQueueImmutable(scala.collection.mutable.PriorityQueue.empty[OrderedEdge[E, V]])
 

@@ -4,13 +4,12 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
 import com.phasmidsoftware.gryphon.traverse.{Traversal, VertexTraversal}
 import com.phasmidsoftware.gryphon.util.GraphException
-import com.phasmidsoftware.gryphon.visit.*
 import com.phasmidsoftware.gryphon.{core, traverse}
+import com.phasmidsoftware.visitor
+import com.phasmidsoftware.visitor.*
 
-import scala.collection.immutable.Queue
 import scala.util.{Failure, Success, Try, Using}
 
 /**
@@ -63,12 +62,25 @@ trait Traversable[V] {
   /**
    * Method to run depth-first-search on this Traversable.
    *
-   * @param visitor the visitor, of type Visitor[V, J].
+   * @param visitor the visitor, of type DfsVisitor[V].
    * @param v       the starting vertex.
    * @tparam J the journal type.
-   * @return a new Visitor[V, J].
+   * @return a new DfsVisitor[V].
    */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+  def dfs(visitor: DfsVisitor[V])(v: V): DfsVisitor[V]
+
+  /**
+   * Performs a depth-first search mapping traversal on a graph-like structure.
+   * This method applies a transformation function to the current vertex and continues
+   * the traversal to its adjacent vertices based on the supplied visitor.
+   *
+   * @param visitor the visitor of type `DfsVisitorMapped[V, T]` that keeps track of the traversal state and visited vertices.
+   * @param f       a transformation function that maps a vertex of type `V` to a result of type `T`.
+   * @param v       the starting vertex of the traversal.
+   * @tparam T the type of the result produced by the transformation function.
+   * @return an updated `DfsVisitorMapped[V, T]` containing the traversal state and mapping results.
+   */
+  def dfsFunction[T](visitor: DfsVisitorMapped[V, T])(f: V => T)(v: V): DfsVisitorMapped[V, T]
 
   /**
    * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited.
@@ -77,17 +89,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J]
-
-  /**
-   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
-   * It utilizes a special visitor consisting of a tuple of vertices.
-   *
-   * @param visitor A visitor function used to process graph elements during the DFS traversal.
-   * @param v       The starting vertex for the DFS traversal.
-   * @return The visitor after completing the DFS traversal.
-   */
-  def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J]
+  def dfsAll(visitor: DfsVisitor[V]): DfsVisitor[V]
 
   /**
    * Method to run goal-terminated breadth-first-search on this VertexMap.
@@ -100,7 +102,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J]
+  def bfs(visitor: Visitor[V])(v: V)(goal: V => Boolean): Visitor[V]
 
   /**
    * Executes a breadth-first search (BFS) traversal of a graph, visiting edges instead of vertices.
@@ -114,7 +116,7 @@ trait Traversable[V] {
    * @tparam J the journal type that facilitates recording traversal progress.
    * @return the visitor after completing the BFS traversal, which may contain information about the visited edges.
    */
-  def bfse[E, J](visitor: Visitor[Edge[E, V], J])(v: V)(goal: V => Boolean): Visitor[Edge[E, V], J]
+  def bfse[E](visitor: Visitor[Edge[E, V]])(v: V)(goal: V => Boolean): Visitor[Edge[E, V]]
 
   /**
    * Performs a depth-first search (DFS) traversal starting from the specified vertex
@@ -127,19 +129,20 @@ trait Traversable[V] {
    * @return a `Traversal` object representing the mapping of vertices to traversal results.
    * @throws exception if an error occurs during the DFS traversal.
    */
-  def vertexMappedTraversalDfs[E, T](start: V)(implicit ev: MappedJournalMap[V, T]): Traversal[V, T] = {
-    val result: Try[Visitor[V, Map[V, T]]] =
-      Using(PostKeyedVisitor.create[V, T, Map[V, T]]()) {
-        (visitor: Visitor[V, Map[V, T]]) =>
-          dfs[Map[V, T]](visitor)(start)
-      }
+  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Traversal[V, T] = {
+    val result: Try[VertexTraversal[V, T]] = Using(DfsVisitor[(V, T)](
+      Map(Post -> MapJournal.empty[V, T]),
+      (v, _) =>
+        val z: Iterator[V] = undiscoveredAdjacentVertices(v)
+        (z map (vv => (vv, f(vv)))).toSeq
+    )) {
+      visitor =>
+        val mapJournal: MapJournal[V, T] = visitor.mapJournals.head.asInstanceOf[MapJournal[V, T]] // XXX We know there's exactly one MapJournal
+        mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) { case (m, (v: V, t: T)) => m + (v -> t) }
+    }
     result match {
-      case Success(visitor: Visitor[V, Map[V, T]]) =>
-        // TODO check that this is really OK
-        val map: Map[V, T] = visitor.journals.head
-        map.keys.foldLeft(VertexTraversal.empty[V, T]) { (m, v) => m + (v -> map(v)) }
-      case Failure(exception) =>
-        throw exception
+      case Success(traversal: VertexTraversal[V, T]) => traversal
+      case Failure(exception) => throw exception
     }
   }
 
@@ -155,26 +158,25 @@ trait Traversable[V] {
    * @return a `Connexions` object that encapsulates the mapping of vertices to their respective directed edges.
    * @throws exception if an error occurs during the DFS traversal.
    */
-  def vertexVertexIterableTraversalDfs[E](start: V)(e: V => E)(implicit ev: IterableJournalQueue[(V, V)]): traverse.Connexions[V, E] = {
-    type VV = (V, V)
-    type Journal = Queue[VV]
-    type MyVisitor = Visitor[VV, Journal]
-    val result: Try[MyVisitor] =
-      Using(PreVisitor[VV, Journal]()) {
-        (visitor: MyVisitor) =>
-          dfsA[Journal](visitor)(start)
-      }
-    result match {
-      case Success(visitor: Visitor[VV, Journal]) =>
-        // TODO check that this is really OK
-        val journal: Journal = visitor.journals.head
-        journal.foldLeft(com.phasmidsoftware.gryphon.traverse.Connexions.empty[V, E]) {
-          (q, vv) =>
-            q + (vv._2 -> DirectedEdge.create(e(vv._2), vv))
-        }
-      case Failure(exception) =>
-        throw exception
-    }
+  def vertexVertexIterableTraversalDfs[E](start: V)(e: V => E): traverse.Connexions[V, E] = {
+    traverse.Connexions.apply[V, E](Map()) // TODO flesh this out as below
+    //    type VV = (V, V)
+    //    type MyVisitor = Visitor[VV]
+    //    val result: Try[MyVisitor] =
+    //      Using(SimpleVisitor[VV](QueueJournal.empty[(V, V)], Pre)) {
+    //        (visitor: MyVisitor) =>
+    //          dfsTuple(visitor)(start)
+    //      }
+    //    result match {
+    //      case Success(visitor: Visitor[VV]) =>
+    //        visitor.journals.flatten.foldLeft(com.phasmidsoftware.gryphon.traverse.Connexions.empty[V, E]) {
+    //          (q, vv) =>
+    //            q + (vv._2 -> DirectedEdge.create(e(vv._2), vv))
+    //
+    //        }
+    //      case Failure(exception) =>
+    //        throw exception
+    //    }
   }
 
   //  /**

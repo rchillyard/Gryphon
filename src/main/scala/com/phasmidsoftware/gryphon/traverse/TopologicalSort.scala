@@ -4,7 +4,7 @@ import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, DirectedGraph}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
 import com.phasmidsoftware.gryphon.util.GraphException
-import com.phasmidsoftware.gryphon.visit.*
+import com.phasmidsoftware.visitor.*
 
 import scala.util.{Failure, Success, Try, Using}
 
@@ -36,7 +36,7 @@ object TopologicalSort {
   /**
    * Performs a topological sort on the given directed graph.
    *
-   * The method uses a depth-first search (DFS) traversal to visit all vertices of the graph.
+   * The method uses a depth-first search (DFS) traversal to oldvisit all vertices of the graph.
    * It collects vertices in reverse postorder using a specialized `PostVisitor`, ensuring
    * that every vertex appears before its successors in the resulting sequence.
    *
@@ -49,17 +49,20 @@ object TopologicalSort {
    * @return a sequence of vertices (`Seq[V]`) representing the topologically sorted order
    *         of the graph's vertices.
    */
-  def sort[V, E](graph: DirectedGraph[V, E])(implicit ev: SimpleJournal[List[V], V]): Option[Seq[V]] = {
-    val visitor = Visitor.reversePost[V]
+  def sort[V, E](graph: DirectedGraph[V, E]): Option[Seq[V]] = {
+    val visitor = DfsVisitor(Map(Post -> ListJournal.empty[V]),
+      v => graph.undiscoveredAdjacentVertices(v).toSeq
+    )
     val result = graph.dfsAll(visitor)
-    val vs = result.journals.head
-    Option.when(acyclic(graph, vs))(vs)
+    val journals: Iterable[IterableJournal[V]] = result.iterableJournals
+    val vs: ListJournal[V] = journals.head.asInstanceOf[ListJournal[V]]
+    Option.when(acyclic(graph, vs.list))(vs.list)
   }
 
   /**
    * Performs a topological sort on the given directed graph.
    *
-   * The method uses a depth-first search (DFS) traversal to visit all vertices of the graph.
+   * The method uses a depth-first search (DFS) traversal to oldvisit all vertices of the graph.
    * It collects vertices in reverse postorder using a specialized `PostVisitor`, ensuring
    * that every vertex appears before its successors in the resulting sequence.
    *
@@ -72,7 +75,7 @@ object TopologicalSort {
    * @return an optional sequence of vertices (`Seq[V]`) representing the topologically sorted order
    *         of the graph's vertices. If the result is empty, it implies that the graph is cyclic.
    */
-  def traversal[V, E](graph: DirectedGraph[V, E])(implicit ev: SimpleJournal[List[V], V]): Option[TopologicalSort[V]] = {
+  def traversal[V, E](graph: DirectedGraph[V, E]): Option[TopologicalSort[V]] = {
     val maybeTopologicalOrder = sort(graph)
     maybeTopologicalOrder match {
       case Some(topologicalOrder) =>

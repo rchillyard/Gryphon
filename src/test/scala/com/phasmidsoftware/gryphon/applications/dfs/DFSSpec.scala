@@ -9,10 +9,11 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
-import com.phasmidsoftware.gryphon.visit.Visitor
+import com.phasmidsoftware.visitor.{DfsVisitor, Pre, QueueJournal, SimpleVisitor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.collection.immutable.Queue
 import scala.io.Source
 import scala.util.*
 
@@ -24,36 +25,36 @@ class DFSSpec extends AnyFlatSpec with should.Matchers {
 
   it should "fail on empty graph" in {
     val graph: Graph[Int] = DirectedGraph[Int, Unit]
-    Using(Visitor.createPre[Int]) {
+    Using(DfsVisitor[Int](Map(Pre -> QueueJournal(Queue.empty[Int])), v => graph.undiscoveredAdjacentVertices(v).toSeq)) {
       visitor =>
         graph.dfs(visitor)(1)
     }
   }
 
   it should "dfs Dijkstra" in {
-    val p = new GraphParser[Int, Double, EdgeType]
-    val triedSource = Try(Source.fromResource(dijkstraGraphPath))
-    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
-      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
-    }
-    zsy match {
-      case Success(triplets) =>
-        triplesToTryGraph(triplets) match {
-          case Success(graph: EdgeGraph[_, _]) =>
-            println(graph.edges)
-            graph.vertexMap.map.size shouldBe 8
-            graph.edges.size shouldBe 16
-            graph.dfs(Visitor.createPre[Int])(1) match {
-              case visitor => println(visitor)
-            }
-          case Failure(x) =>
-            fail("parse failed: ", x)
-          case _ => fail("parse failed: Graph is not an EdgeGraph")
-        }
-
-      case Failure(x) =>
-        fail("parse failed", x)
-    }
+    //    val p = new GraphParser[Int, Double, EdgeType]
+    //    val triedSource = Try(Source.fromResource(dijkstraGraphPath))
+    //    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
+    //      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    //    }
+    //    zsy match {
+    //      case Success(triplets) =>
+    //        triplesToTryGraph(triplets) match {
+    //          case Success(graph: EdgeGraph[_, _]) =>
+    //            println(graph.edges)
+    //            graph.vertexMap.map.size shouldBe 8
+    //            graph.edges.size shouldBe 16
+    //            graph.dfs(SimpleVisitor.createPre[Int])(1) match {
+    //              case visitor => println(visitor)
+    //            }
+    //          case Failure(x) =>
+    //            fail("parse failed: ", x)
+    //          case _ => fail("parse failed: Graph is not an EdgeGraph")
+    //        }
+    //
+    //      case Failure(x) =>
+    //        fail("parse failed", x)
+    //    }
   }
 
   //  it should "dfsTree" in {

@@ -8,8 +8,7 @@ import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util
 import com.phasmidsoftware.gryphon.util.RandomIterator.*
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
-import com.phasmidsoftware.gryphon.visit.Queueable.QueueableQueue
-import com.phasmidsoftware.gryphon.visit.{MutableQueueable, Queueable, Visitor}
+import com.phasmidsoftware.visitor.*
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.annotation.tailrec
@@ -82,26 +81,26 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * The result is a new vertex with the adjacency added to it.
    */
   val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
-
-  /**
-   * Processes a vertex within a vertex map by applying a specified function to a given vertex
-   * and an additional parameter.
-   *
-   * @param f A function that takes a vertex and an additional parameter of type X,
-   *          then return processed vertex.
-   * @param v The key of the vertex to be processed, of type V.
-   * @param x An additional parameter of type X that is passed to the function f.
-   * @tparam X The type of the additional parameter.
-   * @return A new VertexMap[V] with the processed vertex if the key v exists,
-   *         or the original VertexMap[V] if the key does not exist.
-   */
-  def modifyVertexX[X](f: X => Vertex[V] => Vertex[V])(v: V)(x: X): VertexMap[V] =
-    get(v) map (vv => f(x)(vv)) match {
-      case Some(vv) =>
-        this + vv
-      case None =>
-        this
-    }
+  //
+  //  /**
+  //   * Processes a vertex within a vertex map by applying a specified function to a given vertex
+  //   * and an additional parameter.
+  //   *
+  //   * @param f A function that takes a vertex and an additional parameter of type X,
+  //   *          then return processed vertex.
+  //   * @param v The key of the vertex to be processed, of type V.
+  //   * @param x An additional parameter of type X that is passed to the function f.
+  //   * @tparam X The type of the additional parameter.
+  //   * @return A new VertexMap[V] with the processed vertex if the key v exists,
+  //   *         or the original VertexMap[V] if the key does not exist.
+  //   */
+  //  def modifyVertexX[X](f: X => Vertex[V] => Vertex[V])(v: V)(x: X): VertexMap[V] =
+  //    get(v) map (vv => f(x)(vv)) match {
+  //      case Some(vv) =>
+  //        this + vv
+  //      case None =>
+  //        this
+  //    }
 
   /**
    * Modifies a vertex in this `VertexMap`, if it exists, using the provided function.
@@ -287,20 +286,46 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    */
   def addVertexPairs[E](pairs: Seq[(V, V, EdgeType)]): VertexMap[V] =
     pairs.map(p => (p._1, p._2, p._3)).foldLeft[VertexMap[V]](this) { (vm, pair) => vm + pair }
+  //
+  //  /**
+  //   * Method to run depth-first-search on this `VertexMap`.
+  //   *
+  //   * @param visitor the visitor, of type Visitor[V, J].
+  //   * @param v       the starting vertex.
+  //   * @tparam J the journal type.
+  //   * @return a new Visitor[V, J].
+  //   */
+  //  def dfsOld(visitor: Visitor[V])(v: V): Visitor[V] = {
+  //    initializeVisits(Some(v))
+  //    Using.resource(recursiveDFS(visitor, v)) {
+  //      result => result
+  //    }
+  //  }
 
   /**
-   * Method to run depth-first-search on this `VertexMap`.
+   * Method to run depth-first-search on this Traversable.
    *
    * @param visitor the visitor, of type Visitor[V, J].
    * @param v       the starting vertex.
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] = {
+  def dfs(visitor: DfsVisitor[V])(v: V): DfsVisitor[V] = {
     initializeVisits(Some(v))
-    Using.resource(recursiveDFS(visitor, v)) {
-      result => result
-    }
+    visitor.dfs(v)
+  }
+
+  /**
+   * Performs a depth-first search (DFS) traversal starting from the given vertex using the provided visitor and mapping function.
+   *
+   * @param visitor An instance of DfsVisitorMapped which handles the visiting logic during the traversal.
+   * @param f       A function to map the visited vertex of type V to a value of type T.
+   * @param v       The starting vertex of the DFS traversal.
+   * @return The updated DfsVisitorMapped instance after performing the traversal.
+   */
+  def dfsFunction[T](visitor: DfsVisitorMapped[V, T])(f: V => T)(v: V): DfsVisitorMapped[V, T] = {
+    initializeVisits(Some(v))
+    visitor.dfs(v)
   }
 
   /**
@@ -311,7 +336,44 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v       The starting vertex for the DFS traversal.
    * @return The visitor after completing the DFS traversal.
    */
-  def dfsA[J](visitor: Visitor[(V, V), J])(v: V): Visitor[(V, V), J] = {
+  def dfsTuple(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] = ???
+  //
+  //  /**
+  //   * Performs a depth-first search (DFS) traversal using a visitor that operates on tuples of vertices and a generic type.
+  //   *
+  //   * @param visitor a visitor of type Visitor[(V, T)] used to process graph elements during the DFS traversal.
+  //   * @param v       the starting vertex for the DFS traversal.
+  //   * @return the updated visitor after completing the DFS traversal.
+  //   */
+  //  def dfsFunction[T](visitor: Visitor[(V, T)])(f: V => T)(v: V): Visitor[(V, T)] = {
+  //    initializeVisits(Some(v))
+  //    visitor.dfs
+  //  }
+
+
+  /**
+   * Performs a depth-first search (DFS) traversal using a visitor that operates on tuples of vertices and a generic type.
+   *
+   * @param visitor a visitor of type Visitor[(V, T)] used to process graph elements during the DFS traversal.
+   * @param v       the starting vertex for the DFS traversal.
+   * @return the updated visitor after completing the DFS traversal.
+   */
+  //  def dfsFunctionOld[T](visitor: Visitor[(V, T)])(f: V => T)(v: V): Visitor[(V, T)] = {
+  //    initializeVisits(Some(v))
+  //    Using.resource(recursiveDFSFunction(visitor, v, f)) {
+  //      result => result
+  //    }
+  //  }
+
+  /**
+   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
+   * It utilizes a special visitor consisting of a tuple of vertices.
+   *
+   * @param visitor A visitor function used to process graph elements during the DFS traversal.
+   * @param v       The starting vertex for the DFS traversal.
+   * @return The visitor after completing the DFS traversal.
+   */
+  def dfsA(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] = {
     initializeVisits(Some(v))
     val function: V => (V, V) = x => (v, x)
     Using.resource(recursiveDFSA(function)(visitor, v)) {
@@ -330,18 +392,16 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] = {
+  def bfs(visitor: Visitor[V])(v: V)(goal: V => Boolean): Visitor[V] = {
     initializeVisits(Some(v))
-    implicit object queuable extends QueueableQueue[V]
-    val result: Visitor[V, J] = doBFSImmutable[J, Queue[V]](visitor, v)(goal)
+    val result: Visitor[V] = doBFSImmutable(visitor, Queue(v))(goal)
     result.close()
     result
   }
 
-  def bfse[E, J](visitor: Visitor[Edge[E, V], J])(v: V)(goal: V => Boolean): Visitor[Edge[E, V], J] = {
+  def bfse[E](visitor: Visitor[Edge[E, V]])(v: V)(goal: V => Boolean): Visitor[Edge[E, V]] = {
     initializeVisits(Some(v)) // initialize the edge, not the vertices
-    implicit object queuable extends QueueableQueue[Edge[E, V]]
-    val result = doBFSE[E, J, Queue[Edge[E, V]]](visitor, v)(goal)
+    val result = doBFSE[E](visitor, v)(goal)
     result.close()
     result
   }
@@ -351,11 +411,11 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param visitor the visitor that processes the vertices during the DFS traversal
    * @return the updated visitor after processing all undiscovered vertices
    */
-  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] = {
+  def dfsAll(visitor: DfsVisitor[V]): DfsVisitor[V] = {
     initializeVisits(None)
 
     @tailrec
-    def inner(q: Visitor[V, J]): Visitor[V, J] =
+    def inner(q: DfsVisitor[V]): DfsVisitor[V] =
       anyUndiscoveredVertex(map) match {
         case Some(v) =>
           inner(recursiveDFS(q, v.attribute))
@@ -379,7 +439,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam Q the type of the queue used internally for managing vertices during the traversal.
    * @return an updated `Visitor[V, J]` instance that reflects the traversal state after completing the BFS.
    */
-  def bfsMutable[J, Q](visitor: Visitor[V, J])(vs: Seq[V])(goal: Vertex[V] => Boolean)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J] = ???
+  def bfsMutable(visitor: Visitor[V])(vs: Seq[V])(goal: Vertex[V] => Boolean): Visitor[V] = ???
   //    FP.sequence(vs map map.get) match {
   //      case Some(vvs) => 
   //        val queue: Q = ev.empty
@@ -485,21 +545,30 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the type representing the journal of the `Visitor`.
    * @return an updated `Visitor` instance after processing all discovered vertices in the graph.
    */
-  private def doBFSImmutable[J, Q](visitor: Visitor[V, J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, V]): Visitor[V, J] = {
+  private def doBFSImmutable(visitor: Visitor[V], queue: Queue[V])(goal: V => Boolean): Visitor[V] = {
     @tailrec
-    def inner(result: Visitor[V, J], work: Q): Visitor[V, J] = queueable.take(work) match {
-      case Some((head, _)) if goal(head) =>
-        result.visitPre(head)
-      case Some((head, tail)) =>
-        inner(result.visitPre(head), enqueueUntraversedEdges(head, tail))
-      case _ =>
-        result
+    def inner(result: Visitor[V], work: Queue[V]): Visitor[V] = {
+      work match {
+        case q if q.isEmpty =>
+          result
+        case q =>
+          val (v, q1) = q.dequeue
+          if (goal(v)) result.visit(Pre)(v)
+          else {
+            val (a, b) = undiscoveredAdjacentVertices(v).foldLeft(result -> q1) {
+              case ((r, p), w) =>
+                get(w).foreach(v => v.discover())
+                r.visit(Pre)(w) -> p.enqueue(w)
+            }
+            inner(a, b)
+          }
+      }
     }
 
-    inner(visitor, queueable.append(queueable.empty, v))
+    inner(visitor, queue)
   }
 
-  private def doBFSE[E, J, Q](visitor: Visitor[Edge[E, V], J], v: V)(goal: V => Boolean)(implicit queueable: Queueable[Q, Edge[E, V]]): Visitor[Edge[E, V], J] = {
+  private def doBFSE[E](visitor: Visitor[Edge[E, V]], v: V)(goal: V => Boolean): Visitor[Edge[E, V]] = {
     //    if (goal(v))
     visitor
     //    else {
@@ -539,7 +608,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     //    inner(visitor, queueable.empty)
   }
 
-  private def enqueueUntraversedEdges[E, Q](v: V, queue: Q)(implicit queueable: Queueable[Q, E]): Q =
+  private def enqueueUntraversedEdges[E, Q](v: V, queue: Q): Q =
     queue // undiscoveredAdjacencies(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
 
   /**
@@ -558,17 +627,17 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return a new queue containing the original elements and the newly enqueued vertices
    * @throws GraphException if the vertex is not found in the map
    */
-  private def enqueueUnvisitedVertices[Q](v: V, queue: Q)(implicit queueable: Queueable[Q, V]): Q =
-    undiscoveredAdjacentVertices(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
+  private def enqueueUnvisitedVertices[Q](v: V, queue: Q): Q = ???
+  //    undiscoveredAdjacentVertices(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
 
   /**
-   * Initializes the visit status of all vertices in the map by resetting their state.
+   * Initializes the oldvisit status of all vertices in the map by resetting their state.
    *
    * @param vo an optional vertex that can be used for additional initialization, if required.
    * @tparam J the type parameter representing any journal or auxiliary type used with the method.
    * @return Unit since this method performs a side effect operation and does not return a value.
    */
-  private def initializeVisits[J](vo: Option[V]): Vertex[V] = {
+  private def initializeVisits(vo: Option[V]): Vertex[V] = {
     map.values foreach (_.reset())
     vo match {
       case Some(v) =>
@@ -586,26 +655,37 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   }
 
   /**
-   * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
+   * Non-tail-recursive method to run DFS on the vertex V with the given DfsVisitor.
    *
-   * @param visitor the Visitor[V, J].
+   * @param visitor the DfsVisitor[V, J].
    * @param v       the vertex at which we run depth-first-search.
-   * @tparam J the Journal type of the Visitor.
-   * @return a new Visitor[V, J].
+   * @tparam J the Journal type of the DfsVisitor.
+   * @return a new DfsVisitor[V, J].
    */
-  private def recursiveDFS[J](visitor: Visitor[V, J], v: V): Visitor[V, J] =
-    recurseOnVertex(v, visitor).visitPost(v)
+  private def recursiveDFS(visitor: DfsVisitor[V], v: V): DfsVisitor[V] =
+    recurseOnVertex(v, visitor).visit(Post)(v)
+
+  //
+  //  /**
+  //   * Non-tail-recursive method to run DFS on the vertex V with the given DfsVisitor.
+  //   *
+  //   * @param visitor the DfsVisitor[V, J].
+  //   * @param v       the vertex at which we run depth-first-search.
+  //   * @return a new DfsVisitor[V, J].
+  //   */
+  //  private def recursiveDFSFunction[T](visitor: DfsVisitor[(V,T)], v: V, f: V=>T): DfsVisitor[(V,T)] =
+  //    recurseOnVertexFunction(v, f, visitor).visit(Post)(v -> f(v))
 
   /**
-   * Non-tail-recursive method to run DFS on the vertex V with the given Visitor.
+   * Non-tail-recursive method to run DFS on the vertex V with the given DfsVisitor.
    *
-   * @param visitor the Visitor[V, J].
+   * @param visitor the DfsVisitor[V, J].
    * @param v       the vertex at which we run depth-first-search.
-   * @tparam J the Journal type of the Visitor.
-   * @return a new Visitor[V, J].
+   * @tparam J the Journal type of the DfsVisitor.
+   * @return a new DfsVisitor[V, J].
    */
-  private def recursiveDFSA[A, J](f: V => A)(visitor: Visitor[A, J], v: V): Visitor[A, J] =
-    recurseOnVertexA(f)(v, visitor).visitPost(f(v))
+  private def recursiveDFSA[A](f: V => A)(visitor: DfsVisitor[A], v: V): DfsVisitor[A] =
+    recurseOnVertexA(f)(v, visitor).visit(Post)(f(v))
 
   /**
    * Recursively processes a vertex in the graph, traversing its adjacencies
@@ -617,8 +697,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the type of the journal associated with the visitor.
    * @throws util.GraphException if the vertex is not found in the graph.
    */
-  private def recurseOnVertex[J](v: V, visitor: Visitor[V, J]) = {
-    undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => recursiveDFS(jVv.visitPre(w), w))
+  private def recurseOnVertex(v: V, visitor: DfsVisitor[V]) = {
+    undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => recursiveDFS(jVv.visit(Pre)(w), w))
   }
 
   /**
@@ -628,13 +708,26 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * @param v       the vertex to be processed.
    * @param visitor the visitor used to traverse and record information during the traversal.
+   * @throws util.GraphException if the vertex is not found in the graph.
+   */
+  //  private def recurseOnVertexFunction[T](v: V, f: V=>T, visitor: DfsVisitor[(V, T)]) = {
+  //    undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => recursiveDFSFunction(jVv.visit(Pre)(w),w, f)))
+  //  }
+
+  /**
+   * Recursively processes a vertex in the graph, traversing its adjacencies
+   * while updating the provided visitor.
+   * If the vertex is not found in the graph, an exception is thrown.
+   *
+   * @param v       the vertex to be processed.
+   * @param visitor the visitor used to traverse and record information during the traversal.
    * @tparam J the type of the journal associated with the visitor.
    * @throws util.GraphException if the vertex is not found in the graph.
    */
-  private def recurseOnVertexA[A, J](f: V => A)(v: V, visitor: Visitor[A, J]) =
+  private def recurseOnVertexA[A](f: V => A)(v: V, visitor: DfsVisitor[A]) =
     undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => {
       val g: V => A = ((x: V) => (w, x)).asInstanceOf[V => A]
-      recursiveDFSA(g)(jVv.visitPre(f(w)), w)
+      recursiveDFSA(g)(jVv.visit(Pre)(f(w)), w)
     })
 
   /**
@@ -644,7 +737,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @tparam J the type parameter representing the relationship or type of adjacencies
    * @return a randomized iterator of the vertex's adjacencies
    */
-  private def randomAdjacencies[J](vv: Vertex[V]) = RandomIterator(vv.adjacencies.iterator)(random)
+  private def randomAdjacencies(vv: Vertex[V]) = RandomIterator(vv.adjacencies.iterator)(random)
 
 /**
  * Companion object for creating instances of `VertexMap` and providing

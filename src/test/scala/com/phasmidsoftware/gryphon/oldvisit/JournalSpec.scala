@@ -2,7 +2,7 @@
  * Copyright (c) 2024. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.visit
+package com.phasmidsoftware.gryphon.oldvisit
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

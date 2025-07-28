@@ -4,7 +4,6 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.Edge
 import com.phasmidsoftware.gryphon.util.GraphException
-import com.phasmidsoftware.gryphon.visit.*
 
 /**
  * A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.
@@ -260,7 +259,6 @@ object Connexions {
    *         mapping vertices to their respective directed edges.
    */
   def create[V, E](graph: core.Traversable[V])(f: V => E)(start: V): Connexions[V, E] = {
-    implicit object IterableJournalQueue extends IterableJournalQueue[(V, V)]
     graph.vertexVertexIterableTraversalDfs(start)(f)
   }
 

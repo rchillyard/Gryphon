@@ -1,6 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.visit.Visitor
+import com.phasmidsoftware.visitor.{DfsVisitor, DfsVisitorMapped, Visitor}
+
 
 /**
  * A trait representing an abstract graph structure composed of vertices.
@@ -13,6 +14,87 @@ import com.phasmidsoftware.gryphon.visit.Visitor
  *           new vertices to the graph, and defining custom behaviors for graph implementations.
  */
 trait Graph[V] extends Traversable[V] {
+  //
+  //  /**
+  //   * Method to run depth-first-search on this Traversable.
+  //   *
+  //   * @param visitor the visitor, of type Visitor[V, J].
+  //   * @param v       the starting vertex.
+  //   * @tparam J the journal type.
+  //   * @return a new Visitor[V, J].
+  //   */
+  //  def dfs(visitor: Visitor[V])(v: V): Visitor[V] = vertexMap.dfs(visitor)(v)
+
+  /**
+   * Method to run depth-first-search on this Traversable.
+   *
+   * @param visitor the visitor, of type DfsVisitor[V].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @return a new DfsVisitor[V].
+   */
+  def dfs(visitor: DfsVisitor[V])(v: V): DfsVisitor[V] = vertexMap.dfs(visitor)(v)
+
+  /**
+   * Performs a depth-first search mapping traversal on a graph-like structure.
+   * This method applies a transformation function to the current vertex and continues
+   * the traversal to its adjacent vertices based on the supplied visitor.
+   *
+   * @param visitor the visitor of type `DfsVisitorMapped[V, T]` that keeps track of the traversal state and visited vertices.
+   * @param f       a transformation function that maps a vertex of type `V` to a result of type `T`.
+   * @param v       the starting vertex of the traversal.
+   * @tparam T the type of the result produced by the transformation function.
+   * @return an updated `DfsVisitorMapped[V, T]` containing the traversal state and mapping results.
+   */
+  def dfsFunction[T](visitor: DfsVisitorMapped[V, T])(f: V => T)(v: V): DfsVisitorMapped[V, T] =
+    vertexMap.dfsFunction(visitor)(f)(v)
+
+  /**
+   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def dfsAll(visitor: DfsVisitor[V]): DfsVisitor[V] =
+    vertexMap.dfsAll(visitor)
+
+  /**
+   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
+   * It utilizes a special visitor consisting of a tuple of vertices.
+   *
+   * @param visitor A visitor function used to process graph elements during the DFS traversal.
+   * @param v       The starting vertex for the DFS traversal.
+   * @return The visitor after completing the DFS traversal.
+   */
+  def dfsTuple(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] =
+    vertexMap.dfsTuple(visitor)(v)
+
+  /**
+   * Method to run goal-terminated breadth-first-search on this VertexMap.
+   *
+   * CONSIDER add relax method as in bfsMutable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @param goal    a function which will return true when the goal is reached.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def bfs(visitor: Visitor[V])(v: V)(goal: V => Boolean): Visitor[V] = vertexMap.bfs(visitor)(v)(goal)
+
+  /**
+   * Executes a breadth-first search (BFS) traversal of a graph, visiting edges instead of vertices.
+   * The traversal starts from the specified vertex `v` and continues until all reachable edges
+   * are visited or the goal function returns true for a destination vertex.
+   *
+   * @param visitor the visitor responsible for processing edges during the traversal. It is of type `Visitor[Edge[E, V], J]`.
+   * @param v       the starting vertex from which the BFS traversal begins.
+   * @param goal    a function that takes a vertex of type `V` and returns true if the vertex satisfies the goal condition, terminating the traversal.
+   * @tparam E the type of the edge attribute in the graph.
+   * @return the visitor after completing the BFS traversal, which may contain information about the visited edges.
+   */
+  def bfse[E](visitor: Visitor[Edge[E, V]])(v: V)(goal: V => Boolean): Visitor[Edge[E, V]] = vertexMap.bfse(visitor)(v)(goal)
 
   /**
    * Retrieves the vertex map representation of the graph.
@@ -25,7 +107,7 @@ trait Graph[V] extends Traversable[V] {
   /**
    * Adds a new vertex to the graph and returns a new graph instance with the updated vertex map.
    * NOTE: not used at present.
-   * 
+   *
    * @param vertex the vertex to be added to the graph.
    *               The vertex contains its attribute and adjacencies, 
    *               which define its connections within the graph.
@@ -41,41 +123,6 @@ trait Graph[V] extends Traversable[V] {
    * @return a new instance of the graph based on the given vertex map
    */
   def unit(vertexMap: VertexMap[V]): Graph[V]
-
-  /**
-   * Method to run depth-first-search on this Traversable.
-   *
-   * @param visitor the visitor, of type Visitor[V, J].
-   * @param v       the starting vertex value.
-   * @tparam J the journal type.
-   * @return a new Visitor[V, J].
-   */
-  def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J] =
-    vertexMap.dfs(visitor)(v)
-
-  /**
-   * Method to run depth-first-search on this Traversable, ensuring that every vertex is visited.
-   *
-   * @param visitor the visitor, of type Visitor[V, J].
-   * @tparam J the journal type.
-   * @return a new Visitor[V, J].
-   */
-  def dfsAll[J](visitor: Visitor[V, J]): Visitor[V, J] =
-    vertexMap.dfsAll(visitor)
-
-  /**
-   * Method to run goal-terminated breadth-first-search on this VertexMap.
-   *
-   * CONSIDER add relax method as in bfsMutable.
-   *
-   * @param visitor the visitor, of type Visitor[V, J].
-   * @param v       the starting vertex.
-   * @param goal    a function which will return true when the goal is reached.
-   * @tparam J the journal type.
-   * @return a new Visitor[V, J].
-   */
-  def bfs[J](visitor: Visitor[V, J])(v: V)(goal: V => Boolean): Visitor[V, J] =
-    vertexMap.bfs(visitor)(v)(goal)
 }
 
 /**
@@ -129,19 +176,19 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
    */
   def filteredAdjacencies2(predicate: Discoverable[V] => Boolean)(v: V): Iterator[Adjacency[V]] = vertexMap.filteredAdjacencies2(predicate)(v)
 
-  /**
-   * Performs a breadth-first search exploration (BFSE) on the graph starting from a given vertex,
-   * using the provided visitor to process edges and maintain a journal of the traversal.
-   *
-   * @param visitor the `Visitor` instance of type `Visitor[Edge[E, V], J]` responsible for processing the edges
-   *                and maintaining a journal during the traversal.
-   * @param v       the starting vertex `V` for the breadth-first search exploration.
-   * @param goal    a function `V => Boolean` used to determine the goal condition during the search.
-   *                The traversal will evaluate whether each visited vertex satisfies this condition.
-   * @return an updated `Visitor[Edge[E, V], J]` containing the results and journal from the traversal.
-   */
-  def bfse[E, J](visitor: Visitor[Edge[E, V], J])(v: V)(goal: V => Boolean): Visitor[Edge[E, V], J] =
-    vertexMap.bfse(visitor)(v)(goal)
+  //  /**
+  //   * Performs a breadth-first search exploration (BFSE) on the graph starting from a given vertex,
+  //   * using the provided visitor to process edges and maintain a journal of the traversal.
+  //   *
+  //   * @param visitor the `Visitor` instance of type `Visitor[Edge[E, V], J]` responsible for processing the edges
+  //   *                and maintaining a journal during the traversal.
+  //   * @param v       the starting vertex `V` for the breadth-first search exploration.
+  //   * @param goal    a function `V => Boolean` used to determine the goal condition during the search.
+  //   *                The traversal will evaluate whether each visited vertex satisfies this condition.
+  //   * @return an updated `Visitor[Edge[E, V], J]` containing the results and journal from the traversal.
+  //   */
+  //  def bfse[E, J](visitor: Visitor[Edge[E, V]])(v: V)(goal: V => Boolean): Visitor[Edge[E, V]] =
+  //    vertexMap.bfse(visitor)(v)(goal)
 }
 
 /**

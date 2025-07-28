@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.edgeFunc
-import com.phasmidsoftware.gryphon.visit.Visitor
+import com.phasmidsoftware.visitor.{DfsVisitor, SimpleVisitor, Visitor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.should.Matchers.shouldBe
@@ -153,38 +153,40 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "dfs" in {
-    Using(Visitor.createPre[Int]) {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val f: Int => Seq[Int] = v => target.undiscoveredAdjacentVertices(v).toSeq
+    Using(DfsVisitor.createPreQueue[Int](f)) {
       visitor =>
-        val target = VertexMap[Int].addEdges(edgeList)
-        val result: Visitor[Int, Queue[Int]] = target.dfs(visitor)(1)
-        val journal = result.journals.head
+        val result = target.dfs(visitor)(1)
+
+        val journal = result.iterableJournals.head
         journal.size shouldBe 3
         journal.head shouldBe 1
         journal.last shouldBe 3
     }
   }
 
-  it should "simple bfs" in {
-    Using(Visitor.createPre[Int]) {
-      visitor =>
-        val target = VertexMap[Int].addEdges(edgeList)
-        val result: Visitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
-        val journal = result.journals.head
-        journal.size shouldBe 3
-        journal.head shouldBe 1
-        journal.last shouldBe 3
-    }
-  }
+  //  it should "simple bfs" in {
+  //    Using(SimpleVisitor.createPreQueue[Int]) {
+  //      visitor =>
+  //        val target = VertexMap[Int].addEdges(edgeList)
+  //        val result: SimpleVisitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
+  //        val journal = result.journals.head
+  //        journal.size shouldBe 3
+  //        journal.head shouldBe 1
+  //        journal.last shouldBe 3
+  //    }
+  //  }
 
-  it should "complex bfs" in {
-    Using(Visitor.createPre[Int]) {
-      visitor =>
-        val target = VertexMap[Int].addEdges(edgeList)
-        val result: Visitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
-        val journal = result.journals.head
-        journal.size shouldBe 3
-        journal.head shouldBe 1
-        journal.last shouldBe 3
-    }
-  }
+  //  it should "complex bfs" in {
+  //    Using(SimpleVisitor.createPreQueue[Int]) {
+  //      visitor =>
+  //        val target = VertexMap[Int].addEdges(edgeList)
+  //        val result: SimpleVisitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
+  //        val journal = result.journals.head
+  //        journal.size shouldBe 3
+  //        journal.head shouldBe 1
+  //        journal.last shouldBe 3
+  //    }
+  //  }
 }

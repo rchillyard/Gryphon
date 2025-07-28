@@ -405,6 +405,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     result.close()
     result
   }
+
   /**
    * Performs a Depth-First Search (DFS) ensuring that all vertices are discovered.
    *

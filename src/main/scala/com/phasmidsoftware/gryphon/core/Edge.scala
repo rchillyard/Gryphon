@@ -48,6 +48,7 @@ trait OrderedEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
    */
   def compare(that: Edge[E, V])(implicit ordering: Ordering[E]): Int = ordering.compare(this.attribute, that.attribute)
 }
+
 /**
  * A trait representing the type of an edge, indicating whether it is directed or undirected.
  * Or something else?

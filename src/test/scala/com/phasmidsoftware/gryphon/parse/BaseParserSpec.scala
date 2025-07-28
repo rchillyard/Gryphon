@@ -15,7 +15,7 @@ class BaseParserSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "parseOptional" in {
-    p.parseAll(p.optional, "1") should matchPattern { case p.Success(p.~(Some(1),None), _) => }
+    p.parseAll(p.optional, "1") should matchPattern { case p.Success(p.~(Some(1), None), _) => }
     p.parseAll(p.optional, "//") should matchPattern { case p.Success(p.~(None, Some("")), _) => }
     p.parseAll(p.optional, "// 1") should matchPattern { case p.Success(p.~(None, Some("1")), _) => }
   }

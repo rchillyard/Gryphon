@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.visitor.{DfsVisitor, DfsVisitorMapped, Visitor}
+import com.phasmidsoftware.visitor.{BfsVisitor, DfsVisitor, DfsVisitorMapped, Visitor}
 
 
 /**
@@ -60,28 +60,14 @@ trait Graph[V] extends Traversable[V] {
     vertexMap.dfsAll(visitor)
 
   /**
-   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
-   * It utilizes a special visitor consisting of a tuple of vertices.
+   * Performs a breadth-first search (BFS) traversal on a graph, starting from the given vertex.
+   * The traversal uses a visitor of type `BfsVisitor[V]` to maintain the state and process the vertices during the search.
    *
-   * @param visitor A visitor function used to process graph elements during the DFS traversal.
-   * @param v       The starting vertex for the DFS traversal.
-   * @return The visitor after completing the DFS traversal.
+   * @param visitor the visitor responsible for tracking the BFS traversal state and acting upon visited vertices.
+   * @param v       the starting vertex for the BFS traversal.
+   * @return an updated `BfsVisitor[V]` instance containing the traversal state after the BFS completes.
    */
-  def dfsTuple(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] =
-    vertexMap.dfsTuple(visitor)(v)
-
-  /**
-   * Method to run goal-terminated breadth-first-search on this VertexMap.
-   *
-   * CONSIDER add relax method as in bfsMutable.
-   *
-   * @param visitor the visitor, of type Visitor[V, J].
-   * @param v       the starting vertex.
-   * @param goal    a function which will return true when the goal is reached.
-   * @tparam J the journal type.
-   * @return a new Visitor[V, J].
-   */
-  def bfs(visitor: Visitor[V])(v: V)(goal: V => Boolean): Visitor[V] = vertexMap.bfs(visitor)(v)(goal)
+  def bfs(visitor: BfsVisitor[V])(v: V): BfsVisitor[V] = vertexMap.bfs(visitor)(v)
 
   /**
    * Executes a breadth-first search (BFS) traversal of a graph, visiting edges instead of vertices.

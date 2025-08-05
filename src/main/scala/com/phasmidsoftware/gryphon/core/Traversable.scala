@@ -98,11 +98,10 @@ trait Traversable[V] {
    *
    * @param visitor the visitor, of type Visitor[V, J].
    * @param v       the starting vertex.
-   * @param goal    a function which will return true when the goal is reached.
    * @tparam J the journal type.
    * @return a new Visitor[V, J].
    */
-  def bfs(visitor: Visitor[V])(v: V)(goal: V => Boolean): Visitor[V]
+  def bfs(visitor: BfsVisitor[V])(v: V): BfsVisitor[V]
 
   /**
    * Executes a breadth-first search (BFS) traversal of a graph, visiting edges instead of vertices.
@@ -130,19 +129,23 @@ trait Traversable[V] {
    * @throws exception if an error occurs during the DFS traversal.
    */
   def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Traversal[V, T] = {
-    val result: Try[VertexTraversal[V, T]] = Using(DfsVisitor[(V, T)](
-      Map(Post -> MapJournal.empty[V, T]),
-      (v, _) =>
-        val z: Iterator[V] = undiscoveredAdjacentVertices(v)
-        (z map (vv => (vv, f(vv)))).toSeq
+    val result: Try[VertexTraversal[V, T]] = Using(DfsVisitorMapped.createPostFunctionMapJournal[V, T](
+      f,
+      v => undiscoveredAdjacentVertices(v).toSeq
     )) {
       visitor =>
-        val mapJournal: MapJournal[V, T] = visitor.mapJournals.head.asInstanceOf[MapJournal[V, T]] // XXX We know there's exactly one MapJournal
-        mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) { case (m, (v: V, t: T)) => m + (v -> t) }
+        // XXX We know there's exactly one MapJournal
+        val mapJournal: AbstractMapJournal[V, T] = visitor.dfs(start).mapJournals.head
+        mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) {
+          case (m, vv: V) =>
+            m + (vv -> f(vv))
+        }
     }
     result match {
-      case Success(traversal: VertexTraversal[V, T]) => traversal
-      case Failure(exception) => throw exception
+      case Success(traversal: VertexTraversal[V, T]) =>
+        traversal
+      case Failure(exception) =>
+        throw exception
     }
   }
 

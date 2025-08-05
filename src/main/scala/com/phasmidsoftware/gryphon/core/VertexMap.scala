@@ -80,7 +80,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * The result is a new vertex with the adjacency added to it.
    */
-  val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
+  private val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
+  
   //
   //  /**
   //   * Processes a vertex within a vertex map by applying a specified function to a given vertex
@@ -336,49 +337,29 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @param v       The starting vertex for the DFS traversal.
    * @return The visitor after completing the DFS traversal.
    */
-  def dfsTuple(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] = ???
-  //
-  //  /**
-  //   * Performs a depth-first search (DFS) traversal using a visitor that operates on tuples of vertices and a generic type.
-  //   *
-  //   * @param visitor a visitor of type Visitor[(V, T)] used to process graph elements during the DFS traversal.
-  //   * @param v       the starting vertex for the DFS traversal.
-  //   * @return the updated visitor after completing the DFS traversal.
-  //   */
-  //  def dfsFunction[T](visitor: Visitor[(V, T)])(f: V => T)(v: V): Visitor[(V, T)] = {
-  //    initializeVisits(Some(v))
-  //    visitor.dfs
-  //  }
-
-
-  /**
-   * Performs a depth-first search (DFS) traversal using a visitor that operates on tuples of vertices and a generic type.
-   *
-   * @param visitor a visitor of type Visitor[(V, T)] used to process graph elements during the DFS traversal.
-   * @param v       the starting vertex for the DFS traversal.
-   * @return the updated visitor after completing the DFS traversal.
-   */
-  //  def dfsFunctionOld[T](visitor: Visitor[(V, T)])(f: V => T)(v: V): Visitor[(V, T)] = {
-  //    initializeVisits(Some(v))
-  //    Using.resource(recursiveDFSFunction(visitor, v, f)) {
-  //      result => result
-  //    }
-  //  }
-
-  /**
-   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
-   * It utilizes a special visitor consisting of a tuple of vertices.
-   *
-   * @param visitor A visitor function used to process graph elements during the DFS traversal.
-   * @param v       The starting vertex for the DFS traversal.
-   * @return The visitor after completing the DFS traversal.
-   */
   def dfsA(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] = {
     initializeVisits(Some(v))
     val function: V => (V, V) = x => (v, x)
     Using.resource(recursiveDFSA(function)(visitor, v)) {
       result => result
     }
+  }
+
+  /**
+   * Method to run goal-terminated breadth-first-search on this VertexMap.
+   *
+   * CONSIDER add relax method as in bfsMutable.
+   *
+   * @param visitor the visitor, of type Visitor[V, J].
+   * @param v       the starting vertex.
+   * @tparam J the journal type.
+   * @return a new Visitor[V, J].
+   */
+  def bfs(visitor: BfsVisitor[V])(v: V): BfsVisitor[V] = {
+    initializeVisits(Some(v))
+    val result: BfsVisitor[V] = visitor.bfs(v)
+    result.close()
+    result
   }
 
   /**

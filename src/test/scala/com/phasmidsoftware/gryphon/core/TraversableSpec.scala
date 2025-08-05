@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.traverse.{Connexions, Traversal, VertexTraversal}
+import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversal}
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
@@ -32,11 +32,14 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
       case Success(triplets) =>
         UndirectedGraph.triplesToTryGraph(triplets) match {
           case Success(graph: Graph[_]) =>
-          //            val traversal = graph.vertexMappedTraversalDfs(0)
-          //            traversal match {
-          //              case VertexTraversal(map) => map.size shouldBe 7 // TODO CHECK this
-          //              case _ => fail("vertexMappedTraversalDfs failed")
-          //            }
+            graph.vertexMappedTraversalDfs(v => v.toString)(0) match {
+              case VertexTraversal(map) =>
+                map.size shouldBe 7 // TODO CHECK this
+                map(0) shouldBe "0"
+                map(6) shouldBe "6"
+              case _ =>
+                fail("vertexMappedTraversalDfs failed")
+            }
           case Failure(exception) => fail(exception)
         }
       case Failure(exception) => fail(exception)

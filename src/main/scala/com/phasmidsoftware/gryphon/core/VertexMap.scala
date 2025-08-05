@@ -81,7 +81,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * The result is a new vertex with the adjacency added to it.
    */
   private val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
-  
+
   //
   //  /**
   //   * Processes a vertex within a vertex map by applying a specified function to a given vertex

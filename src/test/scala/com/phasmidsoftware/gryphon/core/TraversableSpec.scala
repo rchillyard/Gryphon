@@ -33,12 +33,14 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
         UndirectedGraph.triplesToTryGraph(triplets) match {
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v.toString)(0) match {
-              case VertexTraversal(map) =>
+              case Success(VertexTraversal(map)) =>
                 map.size shouldBe 7 // TODO CHECK this
                 map(0) shouldBe "0"
                 map(6) shouldBe "6"
-              case _ =>
-                fail("vertexMappedTraversalDfs failed")
+              case Success(x) =>
+                fail(s"vertexMappedTraversalDfs failed: $x")
+              case Failure(exception) =>
+                fail(exception)
             }
           case Failure(exception) => fail(exception)
         }

@@ -10,7 +10,7 @@ import com.phasmidsoftware.gryphon.{core, traverse}
 import com.phasmidsoftware.visitor
 import com.phasmidsoftware.visitor.*
 
-import scala.util.{Failure, Success, Try, Using}
+import scala.util.{Try, Using}
 
 /**
  * Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfsMutable.
@@ -128,25 +128,20 @@ trait Traversable[V] {
    * @return a `Traversal` object representing the mapping of vertices to traversal results.
    * @throws exception if an error occurs during the DFS traversal.
    */
-  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Traversal[V, T] = {
-    val result: Try[VertexTraversal[V, T]] = Using(DfsVisitorMapped.createPostFunctionMapJournal[V, T](
-      f,
-      v => undiscoveredAdjacentVertices(v).toSeq
-    )) {
-      visitor =>
-        // XXX We know there's exactly one MapJournal
-        val mapJournal: AbstractMapJournal[V, T] = visitor.dfs(start).mapJournals.head
-        mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) {
-          case (m, vv: V) =>
-            m + (vv -> f(vv))
-        }
+  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Try[Traversal[V, T]] = {
+    def undiscoveredVertexSequence(v: V): Seq[V] = undiscoveredAdjacentVertices(v).toSeq
+
+    def doDFS(visitor: DfsVisitorMapped[V, T]): VertexTraversal[V, T] = {
+      // XXX We know there's exactly one MapJournal
+      val mapJournal: AbstractMapJournal[V, T] = visitor.dfs(start).mapJournals.head
+      mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) {
+        case (m, vv) =>
+          m + (vv -> f(vv))
+      }
     }
-    result match {
-      case Success(traversal: VertexTraversal[V, T]) =>
-        traversal
-      case Failure(exception) =>
-        throw exception
-    }
+
+    val dfsVisitor = DfsVisitorMapped.createPostFunctionMapJournal[V, T](f, undiscoveredVertexSequence)
+    Using(dfsVisitor)(doDFS)
   }
 
   /**

@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
-import com.phasmidsoftware.visitor.{DfsVisitor, SimpleVisitor, Visitor}
 
 import scala.util.{Failure, Success, Try}
 
@@ -50,14 +49,13 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
     DirectedGraph(vertexMap)
 
   /**
-   * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
+   * Retrieves the vertices adjacent to the specified vertex in the graph.
    *
-   * @param v the vertex whose adjacent vertices are to be returned.
-   * @return an iterator over the vertices adjacent to the specified vertex.
-   * @throws GraphException if the vertex is not found in the map
+   * @param v the vertex whose adjacent vertices are to be returned
+   * @return an iterator of vertices adjacent to the specified vertex
    */
-  def adjacencies(v: V): Iterator[V] =
-    vertexMap.adjacencies(v)
+  def adjacentVertices(v: V): Iterator[V] =
+    vertexMap.adjacentVertices(v)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -85,17 +83,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
     case x =>
       throw GraphException(s"unexpected edge type: $x")
   }
-  //
-  //  /**
-  //   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
-  //   * It utilizes a special visitor consisting of a tuple of vertices.
-  //   *
-  //   * @param visitor A visitor function used to process graph elements during the DFS traversal.
-  //   * @param v       The starting vertex for the DFS traversal.
-  //   * @return The visitor after completing the DFS traversal.
-  //   */
-  //  def dfsTuple(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] =
-  //    vertexMap.dfsTuple(visitor)(v)
 }
 
 /**

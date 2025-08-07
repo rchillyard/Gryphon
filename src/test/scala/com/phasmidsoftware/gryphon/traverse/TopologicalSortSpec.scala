@@ -60,7 +60,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     //          TopologicalSort.acyclic(graph.edges, sorted) shouldBe true
   }
 
-  ignore should "topological sort successfully" in {
+  it should "topological sort successfully" in {
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {

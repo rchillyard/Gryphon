@@ -3,6 +3,8 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Hierarchical trait defining a (single) attribute of type A.
  *
+ * CONSIDER this doesn't seem to be used now
+ *
  * @tparam A an attribute
  */
 trait Attribute[+A] {
@@ -34,7 +36,8 @@ trait OrderedAttribute[A] extends Attribute[A] {
    *         - zero if they are equal,
    *         - a positive integer if this attribute is greater than the `other` attribute.
    */
-  def compare[T >: A : Ordering](other: Attribute[T]): Int = implicitly[Ordering[T]].compare(attribute, other.attribute)
+  def compare[T >: A : Ordering](other: Attribute[T]): Int =
+    implicitly[Ordering[T]].compare(attribute, other.attribute)
 }
 
 /**

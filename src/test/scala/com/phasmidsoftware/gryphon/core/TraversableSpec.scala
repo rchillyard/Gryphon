@@ -16,10 +16,10 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
 
   case class VertexRecord(from: Int)
 
-  behavior of "TraversableSpec"
+  behavior of "Traversable"
 
-  it should "filteredAdjacencies" in {
-
+  it should "filteredAdjacentVertices" in {
+    // TODO implement me
   }
 
   it should "vertexMappedTraversalDfs" in {
@@ -48,7 +48,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
     }
   }
 
-  ignore should "Connexions.create" in {
+  it should "Connexions.create" in {
     val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dfsu.graph"))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
@@ -58,17 +58,15 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
       case Success(triplets) =>
         UndirectedGraph.triplesToTryGraph(triplets) match {
           case Success(graph: Graph[_]) =>
-            val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(_ => ())(0)
+            val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(0)
             println(connexions)
             connexions match {
               case Connexions(map) =>
                 map.size shouldBe 6
                 val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
-                values.contains(DirectedEdge((), 0, 2)) shouldBe true
-                values.contains(DirectedEdge((), 1, 0)) shouldBe false
-                values.contains(DirectedEdge((), 0, 5)) shouldBe true // NOTE this might fail for some random seeds in VertexMap
-              case _ =>
-                fail("vertexMappedTraversalDfs failed")
+                values.contains(DirectedEdge(None, 0, 2)) shouldBe true
+                values.contains(DirectedEdge(None, 1, 0)) shouldBe false
+                values.contains(DirectedEdge(None, 0, 5)) shouldBe true // NOTE this might fail for some random seeds in VertexMap
             }
           case Failure(exception) => fail(exception)
         }
@@ -77,23 +75,23 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "dfsAll" in {
-
+    // TODO implement me
   }
 
   it should "undiscoveredAdjacentVertices" in {
-
+    // TODO implement me
   }
 
   it should "bfs" in {
-
+    // TODO implement me
   }
 
   it should "dfs" in {
-
+    // TODO implement me
   }
 
   it should "adjacencies" in {
-
+    // TODO implement me
   }
 
 }

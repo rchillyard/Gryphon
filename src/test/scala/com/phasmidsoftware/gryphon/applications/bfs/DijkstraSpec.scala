@@ -19,7 +19,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Dijkstra"
 
-  ignore should "oldvisit all vertices in dijkstra" in {
+  it should "oldvisit all vertices in dijkstra" in {
     //    val p = new GraphParser[Int, Double, EdgeType]
     //    val triedSource = Try(Source.fromResource("dijkstra.graph"))
     //    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {

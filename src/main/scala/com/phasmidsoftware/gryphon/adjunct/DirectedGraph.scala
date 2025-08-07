@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
-import com.phasmidsoftware.visitor.{DfsVisitor, SimpleVisitor, Visitor}
 
 import scala.util.{Failure, Success, Try}
 
@@ -55,8 +54,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @param v the vertex whose adjacent vertices are to be returned.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
-  def adjacencies(v: V): Iterator[V] =
-    vertexMap.adjacencies(v)
+  def adjacentVertices(v: V): Iterator[V] =
+    vertexMap.adjacentVertices(v)
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -77,23 +76,12 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
-  private val getDirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], DirectedEdge[E, V]] = {
+  val getDirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], DirectedEdge[E, V]] = {
     case AdjacencyEdge(e: DirectedEdge[E, V], false) =>
       e
     case x =>
       throw GraphException(s"unexpected edge type: $x")
   }
-
-  //  /**
-  //   * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
-  //   * It utilizes a special visitor consisting of a tuple of vertices.
-  //   *
-  //   * @param visitor A visitor function used to process graph elements during the DFS traversal.
-  //   * @param v       The starting vertex for the DFS traversal.
-  //   * @return The visitor after completing the DFS traversal.
-  //   */
-  //  def dfsTuple(visitor: DfsVisitor[(V, V)])(v: V): DfsVisitor[(V, V)] =
-  //    vertexMap.dfsTuple(visitor)(v)
 }
 
 /**

@@ -46,7 +46,8 @@ trait OrderedEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
    * @return an integer where a negative value indicates this edge's attribute is less than the other edge's attribute,
    *         zero indicates they are equal, and a positive value indicates this edge's attribute is greater.
    */
-  def compare(that: Edge[E, V])(implicit ordering: Ordering[E]): Int = ordering.compare(this.attribute, that.attribute)
+  def compare(that: Edge[E, V])(implicit ordering: Ordering[E]): Int =
+    ordering.compare(this.attribute, that.attribute)
 }
 
 /**

@@ -81,7 +81,8 @@ abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
    *          indicating whether the element satisfies the condition or not.
    * @return an instance of `Bag[X]` containing the elements that satisfy the predicate.
    */
-  def filter(p: X => Boolean): Bag[X] = unit(xs.filter(p))
+  def filter(p: X => Boolean): Bag[X] =
+    unit(xs.filter(p))
 
   /**
    * Adds a new element to the bag, creating a new bag instance that includes the added element.
@@ -123,7 +124,8 @@ case class ListBag[X](xs: Seq[X]) extends AbstractBag[X](xs) {
    *           must be the same as or a supertype of the elements in the current context.
    * @return a new instance of `Bag[Z]` containing the elements from the input sequence.
    */
-  def unit[Z >: X](xs: Seq[Z]): Bag[Z] = ListBag(xs)
+  def unit[Z >: X](xs: Seq[Z]): Bag[Z] =
+    ListBag(xs)
 }
 
 /**

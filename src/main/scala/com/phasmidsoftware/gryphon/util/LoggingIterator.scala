@@ -29,5 +29,6 @@ case class ViewableIterator[X](xs: Seq[X]) extends Iterator[X] {
 }
 
 object ViewableIterator {
-  def apply[X](xs: Iterator[X]): ViewableIterator[X] = new ViewableIterator(xs to Seq)
+  def apply[X](xs: Iterator[X]): ViewableIterator[X] =
+    new ViewableIterator(xs to Seq)
 }

@@ -251,16 +251,14 @@ object Connexions {
    * and returns the resulting connexions.
    *
    * @param graph the graph-like structure to be traversed, of type `core.Traversable[V]`.
-   * @param f     a function that maps each vertex of type `V` to an edge of type `E`.
    * @param start the starting vertex for the DFS traversal, of type `V`.
    * @tparam V the type representing a vertex in the graph.
    * @tparam E the type representing the edge attribute in the traversal.
    * @return a `Connexions` object that encapsulates the result of the traversal,
    *         mapping vertices to their respective directed edges.
    */
-  def create[V, E](graph: core.Traversable[V])(f: V => E)(start: V): Connexions[V, E] = {
-    graph.vertexVertexIterableTraversalDfs(start)(f)
-  }
+  def create[V, E](graph: core.Traversable[V])(start: V): Connexions[V, E] =
+    graph.vertexVertexIterableTraversalDfs(start)
 
   /**
    * Creates an empty instance of the `Connexions` class, representing a traversal with no vertices or edges.

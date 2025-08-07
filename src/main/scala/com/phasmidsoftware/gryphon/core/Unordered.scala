@@ -182,7 +182,8 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends AbstractUnordered[T](elem
    *           supertype of the current element type `T`.
    * @return a new instance of `Unordered[U]` containing the specified elements.
    */
-  def unit[U >: T](elements: Seq[U]): Unordered[U] = copy(elements = Bag.create(elements: _*))
+  def unit[U >: T](elements: Seq[U]): Unordered[U] =
+    copy(elements = Bag.create(elements: _*))
 
 /**
  * Companion object for the `Unordered_Bag` class providing factory methods to create instances of `Unordered`
@@ -242,7 +243,7 @@ case class Unordered_Set[T](elements: Set[T]) extends AbstractUnordered[T](eleme
    * Checks whether the specified element is contained within the set.
    *
    * @param u the element to search for within the set. Its type must conform to or extend
-   *          the type `T` of the elements in the set, or be a supertype of `T`.
+   *          the type `T` of the elements in the set or be a supertype of `T`.
    * @return `true` if the element exists within the set, otherwise `false`.
    */
   def contains[U >: T](u: U): Boolean =

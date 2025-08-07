@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.traverse.{Connexions, Traversal, VertexTraversal}
 import com.phasmidsoftware.gryphon.util.GraphException
 import com.phasmidsoftware.gryphon.{core, traverse}
@@ -162,43 +161,26 @@ trait Traversable[V] {
   }
 
   /**
-   * Performs a depth-first search (DFS) traversal in a graph-like structure, starting from the specified vertex.
-   * It processes visited vertices with a given function and returns the traversal connections as a result.
-   * CONSIDER do we really need to keep (V, V) in the queue? How about using a Map of V => V?
+   * Retrieves the connections (edges) originating from the specified starting vertex in a graph.
+   * The method performs a depth-first search (DFS) traversal to discover and construct these
+   * connections while handling various edge types like directed and undirected edges.
    *
-   * @param start the starting vertex for the DFS traversal.
-   * @tparam E the type representing the edge attribute in the traversal.
-   * @return a `Connexions` object that encapsulates the mapping of vertices to their respective directed edges.
-   * @throws exception if an error occurs during the DFS traversal.
+   * @param start the starting vertex for computing the connections in the graph.
+   * @tparam E the type of the edges in the graph.
+   * @return a `Connexions[V, E]` object representing the discovered connections from the start vertex.
+   *         This includes both directed and undirected edges, appropriately handled.
    */
-  def vertexVertexIterableTraversalDfs[E](start: V): Connexions[V, E] = {
-    val undiscoveredAdjacency: Discoverable[V] => Boolean = {
-      case a: Adjacency[V] => undiscoveredVertex(a.vertex).isDefined
-    }
-    val f: V => Seq[Adjacency[V]] = v => filteredAdjacencies(undiscoveredAdjacency)(v).toSeq
-    val visitor: DfsOriginVisitor[V, Adjacency[V]] = DfsOriginVisitor.createPostMapJournal[V, Adjacency[V]](f, _.vertex)
-    val z: DfsOriginVisitor[V, Adjacency[V]] = visitor.dfs(start)
-    val primaryJournal: AbstractMapJournal[V, Option[Adjacency[V]]] = z.mapJournals.head
-    val result: Connexions[V, E] = primaryJournal.entries.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
-      case (m, (v, Some(AdjacencyEdge[V
-      , E
-      ] (connexion, _)
-      ) ) ) =>
-      connexion match {
-        case d@DirectedEdge[E, V] (_, _, _) =>
-      m + (v, d)
-        case u@UndirectedEdge[E, V] (q, _, _) =>
-      m + (v, DirectedEdge (q, u.other (v), v) )
-        case _ =>
-          throw GraphException(s"vertexVertexIterableTraversalDfs: unexpected connexion: $connexion")
-      }
-      case (m, (v, None))
-      =>
-      m
+  def getConnexions[E](start: V): Connexions[V, E] = {
+    val f: V => Seq[Adjacency[V]] = v => filteredAdjacencies(a => !a.discovered)(v).toSeq
+    val visitor = DfsOriginVisitor.createPostMapJournal[V, Adjacency[V]](f, _.vertex).dfs(start)
+    visitor.mapJournals.head.entries.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
+      case (m, (v, Some(AdjacencyEdge[V, E] (connexion, _)) ) ) =>
+        m addConnexion (v, connexion)
+      case (m, (v, None)) =>
+        m
       case _ =>
-        throw GraphException(s"vertexVertexIterableTraversalDfs: unexpected entry: $entry")
+        throw GraphException(s"getConnexions: unexpected entry: $entry")
     }
-    result
   }
 }
 

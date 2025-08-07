@@ -1,8 +1,8 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
+import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.gryphon.core.Edge
+import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
 import com.phasmidsoftware.gryphon.util.GraphException
 
 /**
@@ -228,6 +228,25 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
     copy(connexions = map)
 
   /**
+   * Adds a connexion between the specified vertex and another vertex defined in the given `Connexion` instance.
+   * If the `Connexion` is directed, it is added as-is. If the `Connexion` is undirected, it is converted into a directed connexion
+   * pointing from the specified vertex to the other vertex before being added.
+   *
+   * @param v         the vertex to which the connexion is to be added.
+   * @param connexion the `Connexion` instance representing the connection details (directed or undirected) between the vertices.
+   * @return a new `Connexions[V, E]` instance with the updated connexion added.
+   * @throws GraphException if the provided connexion type is unexpected.
+   */
+  def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
+    case d@DirectedEdge[E, V] (_, _, _) =>
+      copy(connexions = connexions + (v -> d))
+    case u@UndirectedEdge[E, V] (q, _, _) =>
+      copy(connexions = connexions + (v -> DirectedEdge (q, u.other (v), v)))
+    case _ =>
+      throw GraphException(s"getConnexions: unexpected connexion: $connexion")
+  }
+
+  /**
    * Adds a new mapping of a vertex to its corresponding traversal result to the existing map,
    * returning a new `VertexTraversal` instance with the updated mapping.
    *
@@ -258,7 +277,7 @@ object Connexions {
    *         mapping vertices to their respective directed edges.
    */
   def create[V, E](graph: core.Traversable[V])(start: V): Connexions[V, E] =
-    graph.vertexVertexIterableTraversalDfs(start)
+    graph.getConnexions(start)
 
   /**
    * Creates an empty instance of the `Connexions` class, representing a traversal with no vertices or edges.

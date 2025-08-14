@@ -112,13 +112,14 @@ trait Traversable[V] {
 
   /**
    * Performs a breadth-first search (BFS) traversal of a graph-like structure starting from the specified vertex.
-   * The traversal uses the provided visitor to track the state and progress during the traversal.
+   * The traversal updates the BFS visitor state and may return a vertex discovered during the process.
    *
-   * @param visitor the BFS visitor of type `BfsVisitor[V]` responsible for tracking traversal state and visited vertices.
+   * @param visitor the BFS visitor of type `BfsVisitor[V]` responsible for tracking the visited vertices and traversal state.
    * @param v       the starting vertex for the BFS traversal.
-   * @return the updated `BfsVisitor[V]` containing the state after the traversal.
+   * @return a tuple containing the updated `BfsVisitor[V]` after the traversal, and an `Option[V]` representing
+   *         a vertex discovered during the traversal, if any.
    */
-  def bfs(visitor: BfsVisitor[V])(v: V): BfsVisitor[V]
+  def bfs(visitor: BfsVisitor[V])(v: V): (BfsVisitor[V], Option[V])
 
   /**
    * Executes a breadth-first search (BFS) traversal of a graph, visiting edges instead of vertices.
@@ -167,7 +168,7 @@ trait Traversable[V] {
    *
    * @param start the starting vertex for computing the connections in the graph.
    * @tparam E the type of the edges in the graph.
-   * @return a `Connexions[V, E]` object representing the discovered connections from the start vertex.
+   * @return a `Connexions[V, E]` object representing the discovered connexions from the start vertex.
    *         This includes both directed and undirected edges, appropriately handled.
    */
   def getConnexions[E](start: V): Connexions[V, E] = {
@@ -176,7 +177,7 @@ trait Traversable[V] {
     visitor.mapJournals.head.entries.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
       case (m, (v, Some(AdjacencyEdge[V, E] (connexion, _)) ) ) =>
         m addConnexion (v, connexion)
-      case (m, (v, None)) =>
+      case (m, (_, None)) =>
         m
       case _ =>
         throw GraphException(s"getConnexions: unexpected entry: $entry")

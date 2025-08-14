@@ -47,14 +47,13 @@ trait Graph[V] extends Traversable[V] {
     vertexMap.dfsAll(visitor)
 
   /**
-   * Performs a breadth-first search (BFS) traversal on a graph, starting from the given vertex.
-   * The traversal uses a visitor of type `BfsVisitor[V]` to maintain the state and process the vertices during the search.
+   * Performs a breadth-first search (BFS) traversal starting from the specified vertex.
    *
-   * @param visitor the visitor responsible for tracking the BFS traversal state and acting upon visited vertices.
-   * @param v       the starting vertex for the BFS traversal.
-   * @return an updated `BfsVisitor[V]` instance containing the traversal state after the BFS completes.
+   * @param visitor the BFS visitor instance responsible for managing the traversal state and operations
+   * @param v       the starting vertex for the BFS traversal
+   * @return a tuple containing the updated BFS visitor instance and an optional goal vertex if found
    */
-  def bfs(visitor: BfsVisitor[V])(v: V): BfsVisitor[V] =
+  def bfs(visitor: BfsVisitor[V])(v: V): (BfsVisitor[V], Option[V]) =
     vertexMap.bfs(visitor)(v)
 
   /**

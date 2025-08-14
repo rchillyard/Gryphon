@@ -2,21 +2,17 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.edgeFunc
-import com.phasmidsoftware.visitor.{BfsVisitor, DfsVisitor, SimpleVisitor, Visitor}
+import com.phasmidsoftware.visitor.{BfsVisitor, DfsVisitor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.should.Matchers.shouldBe
 
-import scala.collection.immutable.Queue
 import scala.util.Using
 
 class VertexMapSpec extends AnyFlatSpec with Matchers {
 
   behavior of "VertexMap"
 
-  private val v1: Vertex[Int] = Vertex.createWithBag(1)
-  private val v2: Vertex[Int] = Vertex.createWithBag(2)
-  private val v3: Vertex[Int] = Vertex.createWithBag(3)
   private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(DirectedEdge("A", 1, 2), DirectedEdge("B", 2, 3)))
   private val tripletsDirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Directed), Triplet(2, 3, None, Directed))
   private val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Undirected), Triplet(2, 3, None, Undirected))
@@ -158,7 +154,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     Using(DfsVisitor.createPreQueue[Int](f)) {
       visitor =>
         val result = target.dfs(visitor)(1)
-
         val journal = result.iterableJournals.head
         journal.size shouldBe 3
         journal.head shouldBe 1
@@ -170,9 +165,9 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     val target = VertexMap[Int].addEdges(edgeList)
     val f: Int => Seq[Int] = v => target.undiscoveredAdjacentVertices(v).toSeq
     val goal: Int => Boolean = v => v == 3
-    Using(BfsVisitor.createQueue[Int](f, goal)) {
+    Using(BfsVisitor.createWithQueue[Int](f, goal)) {
       visitor =>
-        val result: BfsVisitor[Int] = target.bfs(visitor)(1)
+        val (result, _) = target.bfs(visitor)(1)
         val journal = result.iterableJournals.head
         journal.size shouldBe 3
         journal.head shouldBe 1

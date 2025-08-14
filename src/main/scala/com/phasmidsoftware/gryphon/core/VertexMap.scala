@@ -304,15 +304,13 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   /**
    * Performs a breadth-first search (BFS) traversal starting from the given vertex.
    *
-   * @param visitor the BFS visitor instance used to perform operations during traversal
-   * @param v       the starting vertex for breadth-first search
-   * @return the BFS visitor instance after completing the traversal and performing specified operations
+   * @param visitor the visitor object which defines the behavior during the traversal
+   * @param v       the starting vertex for the BFS traversal
+   * @return a tuple containing the modified visitor after traversal and an optional next vertex to visit
    */
-  def bfs(visitor: BfsVisitor[V])(v: V): BfsVisitor[V] = {
+  def bfs(visitor: BfsVisitor[V])(v: V): (BfsVisitor[V], Option[V]) = {
     initializeVisits(Some(v))
-    val result: BfsVisitor[V] = visitor.bfs(v)
-    result.close()
-    result
+    visitor.bfs(v)
   }
 
   /**
@@ -521,28 +519,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     //    inner(visitor, queueable.empty)
   }
 
-  private def enqueueUntraversedEdges[E, Q](v: V, queue: Q): Q =
-    queue // undiscoveredAdjacencies(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
-
-  /**
-   * Enqueues all unvisited vertices adjacent to the given vertex into the provided queue.
-   *
-   * This method processes the adjacencies of the vertex `v` by iterating over them.
-   * If an adjacent vertex has not yet been discovered, it is marked as discovered
-   * and appended to the queue. If the vertex `v` does not exist in the adjacency list,
-   * an exception is thrown.
-   *
-   * TODO use undiscoveredAdjacentVertices
-   *
-   * @param v         the vertex whose unvisited adjacent vertices are to be enqueued
-   * @param queue     the queue into which the unvisited vertices will be appended
-   * @param queueable the implicit type class to handle the behavior of the queue-like object
-   * @return a new queue containing the original elements and the newly enqueued vertices
-   * @throws GraphException if the vertex is not found in the map
-   */
-  private def enqueueUnvisitedVertices[Q](v: V, queue: Q): Q = ???
-  //    undiscoveredAdjacentVertices(v).foldLeft(queue) { (q, v) => queueable.append(q, v) }
-
   /**
    * Initializes the visits for all vertices in the graph and resets the state for a specific vertex, if provided.
    *
@@ -604,7 +580,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    *
    * @param f       A function that transforms a vertex `V` into a value of type `A`.
    * @param v       The starting vertex for the DFS traversal.
-   * @param visitor The DFS visitor state to keep track of the traversal.
+   * @param visitor The DFS visitor to keep track of the traversal.
    */
   private def recurseOnVertexA[A](f: V => A)(v: V, visitor: DfsVisitor[A]) =
     undiscoveredAdjacentVertices(v).foldLeft(visitor)((jVv, w) => {

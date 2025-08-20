@@ -29,6 +29,8 @@ trait Edge[E, V] extends Attribute[E] with Connexion[V] {
 /**
  * A trait that represents an ordered edge in a graph structure.
  *
+ * CONSIDER do we really need this? I don't think so
+ *
  * This trait extends the `Edge` interface by providing an ordering mechanism
  * based on the edge's attribute of type `E`. It also implements the Scala `Ordered` trait
  * to enable comparisons between edges.
@@ -37,7 +39,7 @@ trait Edge[E, V] extends Attribute[E] with Connexion[V] {
  *           determining the order of the edges.
  * @tparam V the type of the vertices connected by the edge.
  */
-trait OrderedEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
+trait OrderableEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
   /**
    * Compares this edge with another edge based on their attributes using the specified ordering.
    *

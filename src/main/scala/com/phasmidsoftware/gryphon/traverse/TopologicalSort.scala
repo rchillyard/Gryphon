@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, DirectedGraph}
+import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
 import com.phasmidsoftware.gryphon.util.GraphException

@@ -288,6 +288,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   /**
    * Performs a special Depth-First Search (DFS) on a graph starting from the given vertex `v`.
    * It utilizes a special visitor consisting of a tuple of vertices.
+   * 
+   * TODO this needs work (not currently called)
    *
    * @param visitor A visitor function used to process graph elements during the DFS traversal.
    * @param v       The starting vertex for the DFS traversal.
@@ -458,7 +460,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
           else {
             val (a, b) = undiscoveredAdjacentVertices(v).foldLeft(result -> q1) {
               case ((r, p), w) =>
-                get(w).foreach(v => v.discover())
+                get(w).foreach { case v: Discoverable[_] => v.discover() }
                 r.visit(Pre)(w) -> p.enqueue(w)
             }
             inner(a, b)
@@ -527,16 +529,18 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @throws GraphException If the provided vertex `vo` is not found in the map.
    */
   private def initializeVisits(vo: Option[V]): Vertex[V] = {
-    map.values foreach (_.reset())
+    map.values foreach { case v: DiscoverableVertex[_] => v.reset() }
     vo match {
       case Some(v) =>
         get(v) match {
-          case Some(vv) =>
+          case Some(vv@DiscoverableVertex(_, _)) =>
             vv.reset()
           case None =>
             logger.warn(s"Vertex $v not found in map.")
             // TODO understand why the exception is not thrown
             throw GraphException(s"Vertex $v not found in map.")
+          case _ =>
+            throw GraphException(s"Vertex $v not discoverable.")
         }
       case None =>
         null
@@ -665,9 +669,11 @@ object VertexMap:
    * @return an `Option` containing the `Vertex[V]` if it was undiscovered, or `None` if the vertex
    *         was already discovered.
    */
-  def maybeUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]], v: V): Option[Vertex[V]] = {
-    val vertex = vvVm(v)
-    Option.when(vertex.undiscovered)(vertex) map (_.discover())
+  def maybeUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]], v: V): Option[Vertex[V]] = vvVm(v) match {
+    case v: DiscoverableVertex[_] =>
+      Option.when(v.undiscovered)(v) map (_.discover())
+    case _ =>
+      None
   }
 
   /**
@@ -682,7 +688,12 @@ object VertexMap:
    *         or `None` if no undiscovered vertices are found in the map.
    */
   def anyUndiscoveredVertex[V](vvVm: Map[V, Vertex[V]]): Option[Vertex[V]] =
-    vvVm.values.find(_.undiscovered) map (_.discover())
+    vvVm.values.find {
+      case d: AbstractDiscoverableVertex[_] =>
+        val undiscovered = d.undiscovered
+        d.discover()
+        undiscovered
+    }
 
   /**
    * Updates a map of vertex attributes to `Vertex` instances by processing a collection of triplets.

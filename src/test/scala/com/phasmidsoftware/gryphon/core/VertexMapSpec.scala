@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.edgeFunc
 import com.phasmidsoftware.visitor.{BfsVisitor, DfsVisitor}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,7 +13,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
 
   behavior of "VertexMap"
 
-  private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(DirectedEdge("A", 1, 2), DirectedEdge("B", 2, 3)))
+  private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(AttributedDirectedEdge("A", 1, 2), AttributedDirectedEdge("B", 2, 3)))
   private val tripletsDirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Directed), Triplet(2, 3, None, Directed))
   private val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Undirected), Triplet(2, 3, None, Undirected))
   private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
@@ -100,12 +100,12 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
 
   it should "empty $plus DirectedEdge" in {
     val target: VertexMap[Int] = VertexMap[Int]
-    val updated = target + DirectedEdge("C", 4, 2)
+    val updated = target + AttributedDirectedEdge("C", 4, 2)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
-    updated.get(2) should matchPattern { case Some(Vertex(2, Unordered_Set(_))) => }
+    updated.get(2) should matchPattern { case Some(DiscoverableVertex(2, Unordered_Set(_))) => }
     updated(2).adjacencies.iterator.hasNext shouldBe false
-    updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(DirectedEdge("C", 4, 2)))
+    updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(AttributedDirectedEdge("C", 4, 2)))
   }
 
   it should "empty $plus UndirectedEdge" in {
@@ -113,7 +113,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     val updated = target + UndirectedEdge("C", 4, 2)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
-    updated.get(2) should matchPattern { case Some(Vertex(2, Unordered_Set(_))) => }
+    updated.get(2) should matchPattern { case Some(DiscoverableVertex(2, Unordered_Set(_))) => }
     updated(2).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2), true))
     updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2)))
   }
@@ -134,12 +134,12 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   }
   it should "get" in {
     val target = VertexMap[Int].addEdges(edgeList)
-    target.get(1) should matchPattern { case Some(Vertex(1, _)) => }
+    target.get(1) should matchPattern { case Some(DiscoverableVertex(1, _)) => }
   }
 
   it should "getOrElse" in {
     val target = VertexMap[Int].addEdges(edgeList)
-    target.getOrElse(1, defaultVertex) should matchPattern { case Vertex(1, _) => }
+    target.getOrElse(1, defaultVertex) should matchPattern { case DiscoverableVertex(1, _) => }
     target.getOrElse(4, defaultVertex) shouldBe defaultVertex
   }
 

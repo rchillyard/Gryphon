@@ -12,6 +12,7 @@ import com.phasmidsoftware.visitor.*
 import com.phasmidsoftware.visitor.DfsVisitorMapped.createPostFunctionMapJournal
 
 import java.util.Map.entry
+import scala.collection.immutable.Queue
 import scala.util.{Try, Using}
 
 /**
@@ -20,6 +21,14 @@ import scala.util.{Try, Using}
  * @tparam V the underlying key (attribute) type for a vertex.
  */
 trait Traversable[V] {
+
+  /**
+   * Retrieves the vertex associated with the given key.
+   *
+   * @param key the key of type V for which the associated vertex is to be retrieved
+   * @return an Option containing the associated Vertex if found, or None if there is no vertex associated with the given key
+   */
+  def get(key: V): Option[Vertex[V]]
 
   /**
    * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
@@ -159,6 +168,34 @@ trait Traversable[V] {
 
     val dfsVisitor = DfsVisitorMapped.createPostFunctionMapJournal[V, T](f, undiscoveredVertexSequence)
     Using(dfsVisitor)(doDFS)
+  }
+
+  /**
+   * Performs a depth-first search (DFS) traversal on a graph-like structure starting from the specified vertex.
+   * Applies a provided transformation function to each visited vertex and generates a traversal result.
+   *
+   * @param f     a transformation function that maps a vertex of type `V` to a result of type `T`.
+   *              This function is applied to each vertex during the DFS traversal.
+   * @param start the starting vertex for the DFS traversal.
+   * @tparam E the type of edges in the graph.
+   * @tparam T the type of the result produced by the transformation function.
+   * @return `Try` containing the resulting `Traversal[V, T]` if the traversal succeeds,
+   *         or a failure if an error occurs during the traversal.
+   */
+  def vertexMappedTraversalBfs[E, T](f: V => T)(start: V): Try[Traversal[V, T]] = {
+
+    def doBFS(visitor: BfsQueueVisitorMapped[V, T]): VertexTraversal[V, T] = {
+      val (v, go) = visitor.bfs(start)
+      // XXX We know there's exactly one MapJournal
+      val mapJournal: AbstractMapJournal[V, T] = v.mapJournals.head
+      mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) {
+        case (m, vv) =>
+          m + (vv, f(vv))
+      }
+    }
+
+    val dfsVisitor = BfsQueueVisitorMapped[V, T](Queue.empty, Map(Pre -> MapJournal.empty), f, undiscoveredVertexSequence, _ => false)
+    Using(dfsVisitor)(doBFS)
   }
 
   /**

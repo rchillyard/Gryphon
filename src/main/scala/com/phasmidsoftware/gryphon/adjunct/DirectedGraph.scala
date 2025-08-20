@@ -17,17 +17,21 @@ import scala.util.{Failure, Success, Try}
 case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V](vertexMap) with EdgeGraph[V, E] {
 
   /**
-   * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies
-   * accordingly. The edge is connected between its `from` and `black` vertices.
+   * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.
+   * The type of the edge (e.g., directed, undirected, or orderable) determines how it is added to the graph.
    *
-   * CONSIDER eliminating this method.
-   *
-   * @param edge the edge to be added to the graph. It contains a starting vertex (`from`),
-   *             an ending vertex (`black`), and an associated attribute that defines the edge.
-   * @return a new instance of the graph that includes the specified edge and updated vertices.
+   * @param edge the edge to be added, which is an instance of `Edge[E, V]`. The edge defines the connection
+   *             between two vertices of type `V` and may have a direction and an associated attribute of type `E`.
+   * @return a new `EdgeGraph[V, E]` instance that includes the newly added edge. The returned graph preserves
+   *         all existing edges and vertices.
+   * @throws GraphException if the provided edge type is unexpected or unsupported.
    */
-  def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = {
-    copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+  def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = edge match {
+    case edge: DirectedEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+    case edge: OrderableEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+    case UndirectedEdge(attribute, white, black) =>
+      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white)) // TODO we need to add this edge twice (once in each direction)
+    case _ => throw GraphException(s"unexpected edge type: $edge")
   }
 
   /**
@@ -36,7 +40,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * @return an iterable collection containing all edges of type `Edge[E, V]` in the graph.
    */
   def edges: Iterator[DirectedEdge[E, V]] =
-    adjacencies map getDirectedEdgeFromAdjacency
+    adjacencies map DirectedGraph.getDirectedEdgeFromAdjacency[E, V]
 
   /**
    * Creates a new directed graph using the provided vertex map.
@@ -66,22 +70,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    */
   def undiscoveredAdjacentVertices(v: V): Iterator[V] =
     vertexMap.undiscoveredAdjacentVertices(v)
-
-  /**
-   * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
-   * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
-   *
-   * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
-   * indicating an unsupported or an invalid-edge type.
-   *
-   * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
-   */
-  val getDirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], DirectedEdge[E, V]] = {
-    case AdjacencyEdge(e: DirectedEdge[E, V], false) =>
-      e
-    case x =>
-      throw GraphException(s"unexpected edge type: $x")
-  }
 }
 
 /**
@@ -118,6 +106,24 @@ object DirectedGraph {
     apply[V, E](VertexMap[V])
 
   /**
+   * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
+   * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
+   *
+   * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
+   * indicating an unsupported or an invalid-edge type.
+   *
+   * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
+   */
+  def getDirectedEdgeFromAdjacency[E, V](va: Adjacency[V]): DirectedEdge[E, V] = va match {
+    case AdjacencyEdge(e: DirectedEdge[E, V], false) =>
+      e
+    case AdjacencyEdge(e: VertexPair[V], false) =>
+      OrderedEdge(e.white, e.black).asInstanceOf[DirectedEdge[E, V]] // E should be Unit
+    case x =>
+      throw GraphException(s"unexpected edge type: $x")
+  }
+
+  /**
    * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.
    *
    * Each triplet in the input sequence consists of two vertices (source and target)
@@ -145,8 +151,10 @@ object DirectedGraph {
               // TODO find another way to handle this anomaly
               if (!t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is not directed.")
               z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
-                  (vv1, vv2, e) =>
-                    AdjacencyEdge(DirectedEdge(e, vv1.attribute, vv2.attribute))
+                  case (vv1, vv2, Some(e)) =>
+                    AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
+                  case (vv1, vv2, None) =>
+                    AdjacencyEdge(VertexPair(vv1.attribute, vv2.attribute))
                 }(false)
                 (t)
           }

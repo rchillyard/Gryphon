@@ -6,7 +6,7 @@ import org.scalatest.matchers.should
 class VertexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Vertex"
-  val target: Vertex[Int] = Vertex.create(1)
+  val target: DiscoverableVertex[Int] = Vertex.create(1)
 
   it should "discovered" in {
     target.discovered shouldBe false

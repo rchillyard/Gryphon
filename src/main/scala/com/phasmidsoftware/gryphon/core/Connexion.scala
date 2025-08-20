@@ -32,4 +32,16 @@ trait Connexion[V] {
   def black: V
 }
 
+/**
+ * A case class representing a specific instance of a `Connexion` between two vertices in a graph.
+ *
+ * This class extends the `Connexion` trait, providing a concrete representation of a connection
+ * between two vertices, identified as `white` and `black`. These terms are used to distinguish
+ * the two vertices in an abstract way, without implying any ordering or directional meaning.
+ *
+ * @tparam V the type of the vertices forming the connection. This parameter allows flexibility
+ *           to support any user-defined type representing a vertex.
+ * @param white the first vertex in the connection, referred to as `white`.
+ * @param black the second vertex in the connection, referred to as `black`.
+ */
 case class VertexPair[V](white: V, black: V) extends Connexion[V]

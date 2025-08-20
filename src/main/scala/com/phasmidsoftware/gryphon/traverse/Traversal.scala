@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
 import com.phasmidsoftware.gryphon.util.GraphException
@@ -238,10 +238,10 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    * @throws GraphException if the provided connexion type is unexpected.
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
-    case d@DirectedEdge[E, V] (_, _, _) =>
+    case d@AttributedDirectedEdge[E, V] (_, _, _) =>
       copy(connexions = connexions + (v -> d))
     case u@UndirectedEdge[E, V] (q, _, _) =>
-      copy(connexions = connexions + (v -> DirectedEdge (q, u.other (v), v)))
+  copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
     case _ =>
       throw GraphException(s"getConnexions: unexpected connexion: $connexion")
   }

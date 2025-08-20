@@ -160,6 +160,14 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V] {
    */
   def undiscoveredVertex(v: V): Option[Vertex[V]] =
     vertexMap.undiscoveredVertex(v)
+
+  /**
+   * Retrieves the vertex associated with the given key.
+   *
+   * @param key the key of type V for which the associated vertex is to be retrieved
+   * @return an Option containing the associated Vertex if found, or None if there is no vertex associated with the given key
+   */
+  def get(key: V): Option[Vertex[V]] = vertexMap.get(key)
 }
 
 /**

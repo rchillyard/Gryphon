@@ -1,6 +1,6 @@
 package com.phasmidsoftware
 
-import com.phasmidsoftware.gryphon.adjunct.{DirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.adjunct.{OrderedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core.*
 
 package object gryphon {
@@ -18,7 +18,7 @@ package object gryphon {
    */
   val edgeFunc: EdgeType => ProtoConnexion[Unit, Int] => Connexion[Int] = {
     case Directed =>
-      DirectedEdge[Unit, Int]
+      (_, b, c) => OrderedEdge[Int](b, c)
     case Undirected =>
       UndirectedEdge[Unit, Int]
     case Undefined =>

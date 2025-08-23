@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
-import com.phasmidsoftware.gryphon.core.{EdgeTraversable, EdgeType, Graph, Triplet}
+import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
@@ -28,7 +28,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](triplets) match {
+        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             graph.vertexMap.map.size shouldBe 7
             graph.edges.size shouldBe 11
@@ -68,7 +68,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](triplets) match {
+        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
               case Some(t@TopologicalSort(map)) =>
@@ -95,7 +95,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](triplets) match {
+        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
               case Some(t@TopologicalSort(map)) =>

@@ -159,14 +159,14 @@ trait Traversable[V] {
 
     def doDFS(visitor: DfsVisitorMapped[V, T]): VertexTraversal[V, T] = {
       // XXX We know there's exactly one MapJournal
-      val mapJournal: AbstractMapJournal[V, T] = visitor.dfs(start).mapJournals.head
+      val mapJournal: AbstractMapJournal[V, Option[T]] = visitor.dfs(start).mapJournals.head
       mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) {
         case (m, vv) =>
           m + (vv, f(vv))
       }
     }
 
-    val dfsVisitor = DfsVisitorMapped.createPostFunctionMapJournal[V, T](f, undiscoveredVertexSequence)
+    val dfsVisitor = DfsVisitorMapped.createPostFunctionMapJournal[V, T](v => Some(f(v)), undiscoveredVertexSequence)
     Using(dfsVisitor)(doDFS)
   }
 
@@ -174,7 +174,7 @@ trait Traversable[V] {
    * Performs a depth-first search (DFS) traversal on a graph-like structure starting from the specified vertex.
    * Applies a provided transformation function to each visited vertex and generates a traversal result.
    *
-   * @param f     a transformation function that maps a vertex of type `V` to a result of type `T`.
+   * @param fulfill a transformation function that maps a vertex of type `V` to a result of type `T`.
    *              This function is applied to each vertex during the DFS traversal.
    * @param start the starting vertex for the DFS traversal.
    * @tparam E the type of edges in the graph.
@@ -182,19 +182,19 @@ trait Traversable[V] {
    * @return `Try` containing the resulting `Traversal[V, T]` if the traversal succeeds,
    *         or a failure if an error occurs during the traversal.
    */
-  def vertexMappedTraversalBfs[E, T](f: V => T)(start: V): Try[Traversal[V, T]] = {
+  def vertexMappedTraversalBfs[E, T](fulfill: V => T)(start: V): Try[Traversal[V, T]] = {
 
     def doBFS(visitor: BfsQueueVisitorMapped[V, T]): VertexTraversal[V, T] = {
       val (v, go) = visitor.bfs(start)
       // XXX We know there's exactly one MapJournal
-      val mapJournal: AbstractMapJournal[V, T] = v.mapJournals.head
+      val mapJournal: AbstractMapJournal[V, Option[T]] = v.mapJournals.head
       mapJournal.keys.foldLeft(VertexTraversal.empty[V, T]) {
         case (m, vv) =>
-          m + (vv, f(vv))
+          m + (vv, fulfill(vv))
       }
     }
 
-    val dfsVisitor = BfsQueueVisitorMapped[V, T](Queue.empty, Map(Pre -> MapJournal.empty), f, undiscoveredVertexSequence, _ => false)
+    val dfsVisitor = BfsQueueVisitorMapped[V, T](Queue.empty, Map(Pre -> MapJournal.empty), _ => v => Some(fulfill(v)), undiscoveredVertexSequence, _ => false)
     Using(dfsVisitor)(doBFS)
   }
 

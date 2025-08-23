@@ -7,6 +7,8 @@ import scala.collection.mutable
  * Represents a priority queue data structure that can store elements of type `T` with priorities determined
  * by the implicit `Ordering[T]` type class.
  * NOTE that this case class is immutable but it depends on a mutable PriorityQueue.
+ * 
+ * NOTE not used. Use MinPQ or MaxPQ instead.
  *
  * @tparam T the type of elements stored in the priority queue
  *           (must have an implicit ordering defined for comparison)
@@ -21,8 +23,8 @@ case class PriorityQueueImmutable[T: Ordering](private val pq: mutable.PriorityQ
   def isEmpty: Boolean = pq.isEmpty
 
   /**
-   * Removes and returns the highest-priority element from the priority queue, if it is not empty.
-   * If the queue is empty, returns `None` and the current priority queue instance unchanged.
+   * Removes and returns the highest-priority element from the priority queue if it is not empty.
+   * If the queue is empty, it returns None,`` and the unchanged current priority queue.
    * If the queue is not empty, returns the highest-priority element wrapped in `Some`
    * and a new priority queue instance without that element.
    *

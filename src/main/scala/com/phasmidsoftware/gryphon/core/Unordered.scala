@@ -59,6 +59,20 @@ trait Unordered[+T] {
   def filter(p: T => Boolean): Unordered[T]
 
   /**
+   * Finds the first element in the collection that satisfies the given predicate function.
+   *
+   * This method traverses the unordered collection to identify the first element for which
+   * the provided predicate function `p` evaluates to `true`. If such an element is found,
+   * it is returned wrapped in an `Option`. If no such element exists, `None` is returned.
+   *
+   * @param p a predicate function that takes an element of type `T` and returns a boolean,
+   *          indicating whether the element satisfies the condition.
+   * @return an `Option` containing the first element that satisfies the predicate, or `None`
+   *         if no such element exists in the collection.
+   */
+  def find(p: T => Boolean): Option[T]
+
+  /**
    * Adds the specified element to the unordered collection.
    *
    * @param u the element to be added to the collection
@@ -119,6 +133,20 @@ abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordere
    */
   def filter(p: T => Boolean): Unordered[T] =
     unit(iterator.filter(p).toSeq)
+
+  /**
+   * Finds the first element in the collection that satisfies the given predicate function.
+   *
+   * This method traverses the unordered collection to identify the first element for which
+   * the provided predicate function `p` evaluates to `true`. If such an element is found,
+   * it is returned wrapped in an `Option`. If no such element exists, `None` is returned.
+   *
+   * @param p a predicate function that takes an element of type `T` and returns a boolean,
+   *          indicating whether the element satisfies the condition.
+   * @return an `Option` containing the first element that satisfies the predicate, or `None`
+   *         if no such element exists in the collection.
+   */
+  def find(p: T => Boolean): Option[T] = iterator.find(p)
 
   /**
    * Adds the specified element to the unordered collection.

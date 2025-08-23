@@ -61,7 +61,7 @@ object AttributedDirectedEdge:
    * @param vv        a tuple representing the starting and ending vertices of the edge.
    * @return an instance of `AttributedDirectedEdge` with the specified attribute and vertices.
    */
-  def create[E, V](attribute: E, vv: (V, V)): AttributedDirectedEdge[E, V] = new AttributedDirectedEdge(attribute, vv._1, vv._2)
+  def create[E, V](attribute: E, vv: (V, V)): DirectedEdge[E, V] = AttributedDirectedEdge(attribute, vv._1, vv._2)
 
 /**
  * Represents a directed edge in a graph connecting two vertices of type `V`.

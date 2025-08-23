@@ -29,8 +29,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = edge match {
     case edge: DirectedEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
     case edge: OrderableEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case UndirectedEdge(attribute, white, black) =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white)) // TODO we need to add this edge twice (once in each direction)
+    case edge@UndirectedEdge(_, white, _) =>
+      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(white)) // TODO we need to add this edge twice (once in each direction)
     case _ => throw GraphException(s"unexpected edge type: $edge")
   }
 
@@ -142,7 +142,7 @@ object DirectedGraph {
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
-  def triplesToTryGraph[V, E](triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
+  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
     SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match {
       case triplets: Triplets[V, E, EdgeType] =>
         val vm: VertexMap[V] =
@@ -150,7 +150,7 @@ object DirectedGraph {
             (z, t) =>
               // TODO find another way to handle this anomaly
               if (!t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is not directed.")
-              z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
+              z.createVerticesFromTriplet[E, EdgeType](f) {
                   case (vv1, vv2, Some(e)) =>
                     AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
                   case (vv1, vv2, None) =>

@@ -22,8 +22,8 @@ trait Parseable[T] {
    * in the corresponding `Parseable[T]` instance.
    *
    * @param input the string to be parsed into an instance of type `T`
-   * @return a `Try` wrapping the resulting parsed object of type `T` if successful,
-   *         or a `Failure` with the corresponding exception if parsing fails
+   * @return `Try` wrapping the resulting parsed object of type `T` if successful,
+   *         or `Failure` with the corresponding exception if parsing fails
    */
   def parse(input: String): Try[T]
 
@@ -201,7 +201,7 @@ object Parseable {
    * This object defines a method to parse a `String` into a `Boolean` value using the `toBooleanOption` method.
    * It is used as an implicit instance where the `Parseable[Boolean]` is required.
    *
-   * Parsing accepts strings like "true" or "false" (case-insensitive), and returns
+   * Parsing accepts strings like "true" or "false" (case-insensitive) and returns
    * an `Option` containing the corresponding `Boolean` value if successful.
    *
    * Extends the `ParseableBoolean` trait, which provides the parsing logic for the `Boolean` type.

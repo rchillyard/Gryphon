@@ -24,10 +24,10 @@ trait SerializableGraph[V, E, Z]:
 
   /**
    * Serializes the sequence of triplets into a string representation.
-   * Each triplet is converted to a comma-separated string of its elements and the
+   * Each triplet is converted to a comma-separated string of its elements, and the
    * entire sequence is joined using newline characters.
    *
-   * @return a string representation of the triplets, where each triplet is serialized as "source,target,attribute"
+   * @return a string representation of the triplets, where each triplet is serialized as "source, target, attribute"
    *         and each serialized triplet is separated by a newline.
    */
   def serialize: String =

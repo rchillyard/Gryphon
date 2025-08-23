@@ -33,7 +33,7 @@ trait Adjacency[V] extends Discoverable[V] {
    *
    * @return an `Option[Edge[_, V]]` that contains the `Edge` if present, or `None` if no edge is associated.
    */
-  def maybeEdge: Option[Edge[_, V]]
+  def maybeEdge[E]: Option[Edge[E, V]]
 }
 
 /**
@@ -59,7 +59,7 @@ case class AdjacencyVertex[V](vertex: V) extends AbstractAdjacency[V]:
    *
    * @return an `Option` containing the `Edge` if present, or `None` if no edge is associated.
    */
-  def maybeEdge: Option[Edge[_, V]] = None
+  def maybeEdge[E]: Option[Edge[E, V]] = None
 
 /**
  * Companion object for the `AdjacencyVertex` class.
@@ -105,8 +105,8 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
    *
    * @return an `Option` containing the connexion if it is an edge; `None` otherwise.
    */
-  def maybeEdge: Option[Edge[_, V]] = connexion match {
-    case e: Edge[_, V] =>
+  def maybeEdge[E2]: Option[Edge[E2, V]] = connexion match {
+    case e: Edge[E2, V] =>
       Some(e)
     case _ =>
       None
@@ -121,7 +121,7 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
  * and queried as needed.
  *
  * @tparam V the type of the vertex attribute associated with this adjacency.
- * @constructor Creates a new instance with an optional initial `discovered` state, which defaults to `false`.
+ * @constructor Creates a new instance with an initial `discovered` state, which defaults to `false`.
  *
  *              The core functionality of this class includes:
  *              - Managing the discovery state of a vertex.
@@ -141,7 +141,7 @@ abstract class AbstractAdjacency[V](var discovered: Boolean = false) extends Adj
 
   /**
    * Marks the current vertex as discovered by setting its internal `discovered` state to `true`.
-   * This operates by side-effect.
+   * This operates by side effect.
    *
    * @return the current vertex (`Vertex[V]`) instance with its `discovered` state updated.
    */

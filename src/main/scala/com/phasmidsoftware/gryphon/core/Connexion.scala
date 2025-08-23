@@ -35,7 +35,7 @@ trait Connexion[V] {
 /**
  * A case class representing a specific instance of a `Connexion` between two vertices in a graph.
  *
- * This class extends the `Connexion` trait, providing a concrete representation of a connection
+ * This class extends the `Connexion` trait, providing a concrete representation of a connexion
  * between two vertices, identified as `white` and `black`. These terms are used to distinguish
  * the two vertices in an abstract way, without implying any ordering or directional meaning.
  *

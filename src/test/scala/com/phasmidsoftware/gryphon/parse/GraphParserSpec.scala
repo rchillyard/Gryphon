@@ -53,7 +53,7 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph(triplets) match {
+        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: EdgeGraph[_, _]) =>
             println(graph.edges)
             graph.vertexMap.map.size shouldBe 8

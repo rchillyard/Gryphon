@@ -19,7 +19,7 @@ trait Traversal[V, T] {
    * @param v the vertex to be traversed.
    * @return the result of the traversal for the provided vertex.
    */
-  def vertexTraverse(v: V): T
+  def vertexTraverse(v: V): Option[T]
 
   /**
    * Traverses an indexed edge within a graph-like structure and produces a result of type T.
@@ -67,7 +67,7 @@ abstract class AbstractEdgeTraversal[V, T](ts: List[T]) extends Traversal[V, T] 
    * @param v the vertex to be traversed.
    * @return the result of the traversal for the provided vertex.
    */
-  def vertexTraverse(v: V): T = throw GraphException(s"vertexTraverse called on EdgeTraversal: $v")
+  def vertexTraverse(v: V): Option[T] = None
 
   /**
    * Traverses a specified edge within a graph-like structure and produces a result of type T.
@@ -97,8 +97,8 @@ abstract class AbstractVertexTraversal[V, T](map: Map[V, T]) extends Traversal[V
    * @return the traversal result of type `T` associated with the provided vertex.
    * @throws NoSuchElementException if the vertex does not exist in the map.
    */
-  def vertexTraverse(v: V): T =
-    map.getOrElse(v, throw new NoSuchElementException(s"no such element: $v"))
+  def vertexTraverse(v: V): Option[T] =
+    map.get(v)
 
   /**
    * Traverses a specified edge within a graph-like structure and produces a result of type T.
@@ -233,7 +233,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    * pointing from the specified vertex to the other vertex before being added.
    *
    * @param v         the vertex to which the connexion is to be added.
-   * @param connexion the `Connexion` instance representing the connection details (directed or undirected) between the vertices.
+   * @param connexion the `Connexion` instance representing the connexion details (directed or undirected) between the vertices.
    * @return a new `Connexions[V, E]` instance with the updated connexion added.
    * @throws GraphException if the provided connexion type is unexpected.
    */

@@ -34,6 +34,7 @@ object ShortestPaths {
     // NOTE: in Dijkstra, we find the shortest paths to ALL vertices so the goal function always yields false
     val goal: DRV => Boolean = _ => false
     val message = Pre
+    Logging.setLogging(true)
     val visitor = BfsPQVisitorMapped(MinPQ.empty[DRV], Map(message -> MapJournal.empty[DRV, Option[Edge]]), makeEdge, undiscoveredEdges(traversable), goal)
     traversable.get(start) match {
       case Some(drv: DRV) =>
@@ -71,7 +72,7 @@ object ShortestPaths {
   def undiscoveredEdges[V, E: Numeric](traversable: core.Traversable[V])(vd: DiscoverableRelaxableVertex[V, E]): Seq[DiscoverableRelaxableVertex[V, E]] = {
     val en = implicitly[Numeric[E]]
     val vertex = vd.attribute
-    val distance = vd.r
+    val distance = vd.maybeR.getOrElse(en.zero) // This should always be nonEmpty
     val iterator: Iterator[Adjacency[V]] = traversable.filteredAdjacencies(a => !a.discovered)(vertex)
     val result: Iterator[Option[Edge[_, V]]] = iterator map { a => a.maybeEdge }
     val xs: Iterator[Edge[E, V]] = result.flatten.asInstanceOf[Iterator[Edge[E, V]]]
@@ -79,9 +80,9 @@ object ShortestPaths {
       case AttributedDirectedEdge(e, _, to) =>
         traversable.get(to) match {
           case Some(d@DiscoverableVertex[V] (v1, _) ) =>
-        DiscoverableRelaxableVertex (d)
-          case Some(d@DiscoverableRelaxableVertex[V, E] (v1, _, r) ) =>
-        d.relax (en.plus (e, distance) )
+            DiscoverableRelaxableVertex (d)
+          case Some(d@DiscoverableRelaxableVertex[V, E] (v1, _)) =>
+            d.relax (en.plus (e, distance) )
           case Some(x) =>
             throw new IllegalArgumentException(s"ShortestPaths.undiscoveredEdges: incorrect DiscoverableRelaxableVertex: ${x.getClass}")
           case None =>
@@ -102,14 +103,17 @@ object ShortestPaths {
    * @return an `Option[DirectedEdge[E, V]]` containing the constructed directed edge if a valid
    *         adjacency and edge are found; otherwise, `None`.
    */
-  private def makeEdge[V, E](vo: Option[DiscoverableRelaxableVertex[V, E]])(v: DiscoverableRelaxableVertex[V, E]): Option[DirectedEdge[E, V]] = vo match {
+  private def makeEdge[V, E: Numeric](vo: Option[DiscoverableRelaxableVertex[V, E]])(v: DiscoverableRelaxableVertex[V, E]): Option[DirectedEdge[E, V]] = vo match {
     case Some(drv) =>
+      val en = implicitly[Numeric[E]]
 //      println(s"makeEdge: drv = $drv, v = $v, r = ${v.r}, attribute = ${v.attribute}, drv.r = ${drv.r}, drv.attribute = ${drv.attribute}")
       // CONSIDER this might not be unique in which case how do we know we got the correct one?
       val adj: Option[Adjacency[V]] = drv.adjacencies.find(a => a.vertex == v.attribute)
       for {
         a <- adj
         e <- a.maybeEdge[E]
+        d = en.plus(drv.maybeR.getOrElse(en.zero), e.attribute)
+        vDash = v.relax(d)
       } yield AttributedDirectedEdge(e.attribute, drv.attribute, v.attribute)
     case None =>
       None

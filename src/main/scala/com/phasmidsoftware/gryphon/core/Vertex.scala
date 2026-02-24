@@ -37,6 +37,18 @@ trait Vertex[V] extends Attribute[V] {
    *         current vertex, but with the specified adjacency added to the adjacencies.
    */
   def +(a: Adjacency[V]): Vertex[V]
+  
+  /**
+   * Renders the current vertex as a string representation.
+   *
+   * This method provides a mechanism to visually or textually describe 
+   * the vertex, which may include information such as the vertex's attribute 
+   * and its adjacencies. The exact format of the string is determined 
+   * by the implementation.
+   *
+   * @return a string representation of the vertex.
+   */
+  def render: String
 }
 
 /**
@@ -104,7 +116,7 @@ object Vertex {
    *         collection of `AdjacencyEdge[V, E]`.
    */
   def createRelaxableWithSet[V, R: Numeric](attribute: V): DiscoverableRelaxableVertex[V, R] =
-    DiscoverableRelaxableVertex(attribute, emptyAdjacenciesSet[V], implicitly[Numeric[R]].zero)(false)
+    DiscoverableRelaxableVertex(attribute, emptyAdjacenciesSet[V])(false, None)
 }
 
 /**
@@ -209,6 +221,14 @@ case class DiscoverableVertex[V](attribute: V, adjacencies: Adjacencies[V])(var 
    */
   def undiscovered: Boolean = !discovered
 
+  /**
+   * Renders a string representation of the vertex by combining its attribute value and its discovered state.
+   *
+   * @return A string in the format "v<attribute>(discover=<discovered state>)", where `<attribute>` corresponds 
+   *         to the vertex attribute and `<discovered state>` is a boolean indicating if the vertex has been discovered.
+   */
+  def render: String = s"v$attribute(discovered=$discovered)"
+
   override def toString: String =
     s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"
 }
@@ -227,11 +247,15 @@ case class DiscoverableVertex[V](attribute: V, adjacencies: Adjacencies[V])(var 
  * @tparam R the type of the relaxable property, which must have an implicit `Ordering` in scope.
  * @param attribute   the data or value associated with this vertex.
  * @param adjacencies the collection representing connections of this vertex to others in the graph.
- * @param r           the initial value of the relaxable property.
+ * @param maybeR           the optional value of the relaxable property.
  * @param discovered  the initial discovery state of the vertex (default is `false`).
  */
-case class DiscoverableRelaxableVertex[V, R: Ordering](attribute: V, adjacencies: Adjacencies[V], r: R)(var discovered: Boolean = false) extends AbstractDiscoverableVertex[V](attribute, adjacencies) with Ordered[DiscoverableRelaxableVertex[V, R]] {
-  def compare(that: DiscoverableRelaxableVertex[V, R]): Int = implicitly[Ordering[R]].compare(r, that.r)
+case class DiscoverableRelaxableVertex[V, R: Ordering](attribute: V, adjacencies: Adjacencies[V])(var discovered: Boolean = false, var maybeR: Option[R] = None) extends AbstractDiscoverableVertex[V](attribute, adjacencies) with Ordered[DiscoverableRelaxableVertex[V, R]] {
+  def compare(that: DiscoverableRelaxableVertex[V, R]): Int = (
+    for {
+      t <- maybeR
+      o <- that.maybeR
+   } yield implicitly[Ordering[R]].compare(t, o)).getOrElse(0)
 
   /**
    * Creates a new instance of `DiscoverableVertex` with the specified adjacencies.
@@ -240,7 +264,7 @@ case class DiscoverableRelaxableVertex[V, R: Ordering](attribute: V, adjacencies
    * @return A new `DiscoverableVertex` instance with the updated adjacencies while preserving the current `discovered` state.
    */
   def unit(adjacencies: Adjacencies[V]): DiscoverableRelaxableVertex[V, R] =
-    copy(adjacencies = adjacencies)(discovered)
+    copy(adjacencies = adjacencies)(discovered, maybeR)
 
   /**
    * Updates the relaxable property of the vertex to the given value if the specified
@@ -250,9 +274,9 @@ case class DiscoverableRelaxableVertex[V, R: Ordering](attribute: V, adjacencies
    * @return a new instance of `DiscoverableRelaxableVertex[V, R]` with the updated relaxable value
    *         if the provided value is smaller; otherwise, the original vertex instance.
    */
-  def relax(r: R): DiscoverableRelaxableVertex[V, R] =
-    if (r < this.r)
-      copy(r = r)(discovered)
+  def relax(r: R): DiscoverableRelaxableVertex[V, R] = 
+    if (maybeR.isEmpty || r < maybeR.get)
+      copy()(discovered, maybeR = Some(r))
     else
       this
 
@@ -288,8 +312,16 @@ case class DiscoverableRelaxableVertex[V, R: Ordering](attribute: V, adjacencies
    */
   def undiscovered: Boolean = !discovered
 
+  /**
+   * Renders a string representation of the vertex by combining its attribute value and its discovered state.
+   *
+   * @return A string in the format "v<attribute>(discover=<discovered state>)", where `<attribute>` corresponds 
+   *         to the vertex attribute and `<discovered state>` is a boolean indicating if the vertex has been discovered.
+   */
+  def render: String = s"v$attribute(maybeR=$maybeR, discovered=$discovered)"
+
   override def toString: String =
-    s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"
+    s"v$attribute with maybeR=$maybeR and adjacencies: ${mkStringLimitIterator(adjacencies.iterator)} and discovered = $discovered"
 }
 
 /**
@@ -321,5 +353,5 @@ object DiscoverableRelaxableVertex {
    *         and a default relaxable value of zero.
    */
   def apply[V, R: Numeric](attribute: V, adjacencies: Adjacencies[V]): DiscoverableRelaxableVertex[V, R] =
-    DiscoverableRelaxableVertex(attribute, adjacencies, implicitly[Numeric[R]].zero)(false)
+    DiscoverableRelaxableVertex(attribute, adjacencies)(false, None)
 }

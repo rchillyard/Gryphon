@@ -62,7 +62,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
    * @return a string representation of the map.
    */
   override def toString: String =
-    map.toString
+    map map ((v,vv) => s"v:$v, vv:${vv.render}") mkString ("[", ", ", "]")
 
   /**
    * A function value that represents adding an adjacency to a vertex.

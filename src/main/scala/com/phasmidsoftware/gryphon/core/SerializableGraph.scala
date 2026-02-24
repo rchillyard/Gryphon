@@ -31,7 +31,7 @@ trait SerializableGraph[V, E, Z]:
    *         and each serialized triplet is separated by a newline.
    */
   def serialize: String =
-    triplets.map(t => s"${t._1},${t._2},${t._3}").mkString("\n")
+    triplets.map(t => s"${t.from},${t.to},${t.maybeAttribute}").mkString("\n")
 
 /**
  * Object providing factory methods for creating instances of the `SerializableGraph` trait.

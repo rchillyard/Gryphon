@@ -83,17 +83,12 @@ trait Unordered[+T] {
 }
 
 /**
- * A case class representing an unordered collection of elements in the form of a Set.
+  * Abstract base class providing common implementations for unordered collections.
+  * Concrete subclasses (`Unordered_Bag` and `Unordered_Set`) differ in their
+  * underlying storage and duplicate-handling behaviour.
  *
- * @tparam T the type of the elements contained in the set.
- * @param elements a set of elements of type `T` forming the basis of the adjacency set.
- *
- *                 This class extends the `Unordered` trait, providing a concrete
- *                 implementation for unordered data structures.
- *
- *                 The `Unordered_Set` is immutable, meaning that any operation resulting
- *                 in modification (such as adding a new element) will return a new instance
- *                 of `Unordered_Set` without changing the original instance.
+  * @tparam T the type of elements contained in the collection (covariant).
+  * @param elements the underlying storage, accessed via `IterableOnce`.
  */
 abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordered[T]:
   /**

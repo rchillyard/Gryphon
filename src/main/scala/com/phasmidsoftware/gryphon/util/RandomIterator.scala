@@ -37,7 +37,7 @@ case class RandomIterator[T](private val iterable: Iterable[T])(implicit random:
   random.nextLong() // XXX burn the first value
 
   private val list: mutable.ListBuffer[T] =
-    mutable.ListBuffer(iterable.toSeq: _*)
+    mutable.ListBuffer(iterable.toSeq *)
 }
 
 /**

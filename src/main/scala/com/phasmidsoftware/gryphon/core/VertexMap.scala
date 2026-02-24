@@ -224,10 +224,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     * Creates vertices and adjacencies from a triplet.
     */
   def createVerticesFromTriplet[E, Z](f: V => Vertex[V])(g: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V])(condition: Boolean)(triplet: Triplet[V, E, Z]): VertexMap[V] =
-    val vv1: Vertex[V] = getOrCreate(f)(triplet._1)
-    val vv2: Vertex[V] = getOrCreate(f)(triplet._2)
-    val va: Adjacency[V] = g(vv1, vv2, triplet._3)
-    val vao: Option[Adjacency[V]] = Option.when(condition)(g(vv2, vv1, triplet._3))
+    val vv1: Vertex[V] = getOrCreate(f)(triplet.from)
+    val vv2: Vertex[V] = getOrCreate(f)(triplet.to)
+    val va: Adjacency[V] = g(vv1, vv2, triplet.maybeAttribute)
+    val vao: Option[Adjacency[V]] = Option.when(condition)(g(vv2, vv1, triplet.maybeAttribute))
     this + (vv1 + va) + vao.fold(vv2)(vv2 + _)
 
   /**
@@ -282,7 +282,7 @@ object VertexMap:
   private def addTripletsToMap[V, E, Z](f: Triplet[V, E, Z] => (Vertex[V], Vertex[V]))(map: Map[V, Vertex[V]])(triplets: Triplets[V, E, Z]): Map[V, Vertex[V]] =
     triplets.triplets.foldLeft[Map[V, Vertex[V]]](map) { (vm, t) =>
       val (vv1, vv2) = f(t)
-      vm + (t._1 -> vv1) + (t._2 -> vv2)
+      vm + (t.from -> vv1) + (t.to -> vv2)
     }
 
   val logger: Logger = LoggerFactory.getLogger("VertexMap")

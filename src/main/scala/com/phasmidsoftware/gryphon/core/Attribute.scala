@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Hierarchical trait defining a (single) attribute of type A.
  *
- * CONSIDER this doesn't seem to be used now
+  * Used as a base trait by `Vertex` and `Edge` to expose their defining attribute.
  *
  * @tparam A an attribute
  */

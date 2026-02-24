@@ -27,7 +27,7 @@ trait Connexion[V] {
    * If this is a `DirectedEdge`, this vertex represents the end.
    * If this is an `UndirectedEdge`, see the note above for `white`.
    *
-   * @return the "white" vertex.
+    * @return the "black" vertex.
    */
   def black: V
 }

@@ -7,13 +7,7 @@ class VertexSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Vertex"
   val target: DiscoverableVertex[Int] = Vertex.create(1)
-
-  it should "discovered" in {
-    target.discovered shouldBe false
-    target.discovered = true
-    target.discovered shouldBe true
-  }
-
+  
   it should "adjacencies" in {
     target.adjacencies shouldBe Unordered_Bag(Bag.empty)
   }

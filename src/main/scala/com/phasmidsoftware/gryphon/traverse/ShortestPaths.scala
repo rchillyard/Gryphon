@@ -3,119 +3,84 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.visitor.*
+import com.phasmidsoftware.visitor.core.{Traversal as VisitorTraversal, *, given}
+
+import scala.collection.mutable
 
 /**
- * Provides utilities for computing shortest paths within a graph structure. The objects and methods
- * in this singleton focus on graph traversal and shortest path calculation, leveraging Dijkstra's
- * algorithm and related concepts.
- *
- * CONSIDER re-writing this as a class that extends Traversal. Then we could create type aliases for the whole class (DRV, etc.)
- */
-object ShortestPaths {
+  * Computes shortest paths in a weighted directed graph using Dijkstra's algorithm,
+  * built on the Visitor V1.2.0 typeclass engine.
+  *
+  * The traversal node type is V. Cost and predecessor state are maintained in
+  * mutable maps updated via Evaluable as each vertex is settled.
+  * Traversal.bestFirst drives the priority-queue exploration.
+  */
+object ShortestPaths:
 
   /**
-   * Computes the shortest paths from a starting vertex to all other vertices in the given traversable graph
-   * using Dijkstra's algorithm.
-   *
-   * @param traversable the graph representation to be traversed, which must support operations related
-   *                    to discoverable and relaxable vertices.
-   * @param start       the starting vertex from which the shortest paths are computed.
-   * @tparam V the type of the vertices in the graph.
-   * @tparam E the type of the edge weights in the graph. This must support numeric operations.
-   * @return a traversal containing the shortest paths from the starting vertex to all reachable vertices,
-   *         represented as directed edges.
-   * @throws IllegalArgumentException if the starting vertex is missing or invalid, or if the journal
-   *                                  required for path traversal is not found.
-   */
-  def dijkstra[V, E: Numeric](traversable: core.Traversable[V], start: V): Traversal[V, DirectedEdge[E, V]] = {
-    type DRV = DiscoverableRelaxableVertex[V, E]
-    type Edge = DirectedEdge[E, V]
-    // NOTE: in Dijkstra, we find the shortest paths to ALL vertices so the goal function always yields false
-    val goal: DRV => Boolean = _ => false
-    val message = Pre
-    Logging.setLogging(true)
-    val visitor = BfsPQVisitorMapped(MinPQ.empty[DRV], Map(message -> MapJournal.empty[DRV, Option[Edge]]), makeEdge, undiscoveredEdges(traversable), goal)
-    traversable.get(start) match {
-      case Some(drv: DRV) =>
-        val (visited, _): (BfsPQVisitorMapped[DRV, Edge], Option[DRV]) = visitor.bfs(drv)
-        visited.mapAppendables.get(message) match {
-          case Some(journal: AbstractMapJournal[DRV, Option[Edge]]) =>
-            val z: Iterable[(V, Edge)] = for {
-              (vd, q) <- journal.entries
-              p <- q
-            } yield vd.attribute -> p
-            VertexTraversal(z.toMap)
-          case None =>
-            throw new IllegalArgumentException("ShortestPaths.dijkstra: missing journal")
-        }
-      case _ =>
-        throw new IllegalArgumentException(s"ShortestPaths.dijkstra: missing or invalid start vertex: $start")
-    }
-  }
-
-  /**
-   * Identifies and returns edges in a traversable graph that are not yet discovered,
-   * starting from a given discoverable and relaxable vertex.
-   *
-   * @param traversable the graph structure that provides access to vertices
-   *                    and their adjacencies, enabling traversal and filtering operations.
-   * @param vd          a `DiscoverableRelaxableVertex` representing the current vertex,
-   *                    which contains the vertex's attribute, its relaxed distance, and discovery status.
-   * @tparam V the type of the vertices in the graph.
-   * @tparam E the type of the edge weights in the graph. Must support numeric operations.
-   * @return a sequence of `DiscoverableRelaxableVertex` objects that represents the vertices
-   *         reachable via undiscovered edges from the current vertex, with their states updated appropriately.
-   * @throws IllegalArgumentException if the graph contains invalid or missing vertex data, or if an edge
-   *                                  does not conform to the expected structure for the operation to succeed.
-   */
-  def undiscoveredEdges[V, E: Numeric](traversable: core.Traversable[V])(vd: DiscoverableRelaxableVertex[V, E]): Seq[DiscoverableRelaxableVertex[V, E]] = {
+    * Runs Dijkstra's algorithm from start, returning the shortest-path tree as a
+    * VertexTraversal mapping each settled vertex to its incoming edge.
+    *
+    * @param traversable the weighted directed graph.
+    * @param start       the source vertex.
+    * @tparam V the vertex type.
+    * @tparam E the edge-weight type; must be Numeric and Ordering.
+    * @return a VertexTraversal[V, DirectedEdge[E, V]] where each vertex maps to the
+    *         cheapest incoming edge, or None for the start vertex itself.
+    */
+  def dijkstra[V, E: Numeric : Ordering](traversable: core.Traversable[V], start: V): Traversal[V, DirectedEdge[E, V]] =
     val en = implicitly[Numeric[E]]
-    val vertex = vd.attribute
-    val distance = vd.maybeR.getOrElse(en.zero) // This should always be nonEmpty
-    val iterator: Iterator[Adjacency[V]] = traversable.filteredAdjacencies(a => !a.discovered)(vertex)
-    val result: Iterator[Option[Edge[_, V]]] = iterator map { a => a.maybeEdge }
-    val xs: Iterator[Edge[E, V]] = result.flatten.asInstanceOf[Iterator[Edge[E, V]]]
-    val ys: Iterator[DiscoverableRelaxableVertex[V, E]] = xs map {
-      case AttributedDirectedEdge(e, _, to) =>
-        traversable.get(to) match {
-          case Some(d@DiscoverableVertex[V] (v1, _) ) =>
-            DiscoverableRelaxableVertex (d)
-          case Some(d@DiscoverableRelaxableVertex[V, E] (v1, _)) =>
-            d.relax (en.plus (e, distance) )
-          case Some(x) =>
-            throw new IllegalArgumentException(s"ShortestPaths.undiscoveredEdges: incorrect DiscoverableRelaxableVertex: ${x.getClass}")
-          case None =>
-            throw new IllegalArgumentException(s"ShortestPaths.undiscoveredEdges: missing DiscoverableRelaxableVertex")
-        }
-      case _ =>
-        throw new IllegalArgumentException("ShortestPaths.undiscoveredEdges: unexpected Edge")
-    }
-    ys.toSeq
-  }
+
+    // Best known cost and incoming edge for each settled vertex.
+    val cost: mutable.Map[V, E] = mutable.Map(start -> en.zero)
+    val pred: mutable.Map[V, DirectedEdge[E, V]] = mutable.Map.empty
+
+    // Relax all outgoing attributed directed edges from v.
+    def relax(v: V): Unit =
+      val c = cost.getOrElse(v, en.zero)
+      for
+        adj <- traversable.filteredAdjacencies(_ => true)(v)
+        e <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[E, V] => e }
+        newCost = en.plus(c, e.attribute)
+        if cost.get(e.black).forall(en.lt(newCost, _))
+      do
+        cost(e.black) = newCost
+        pred(e.black) = e
+
+    // Seed costs for start's neighbours before traversal so the PrioQueue
+    // has meaningful ordering from the very first dequeue.
+    relax(start)
+
+    // PrioQueue orders vertices by current best cost; unknown vertices sort last.
+    given Ordering[V] = Ordering.by(v => cost.getOrElse(v, en.fromInt(Int.MaxValue)))
+
+    // Evaluable: called when v is settled — record pred and relax outgoing edges.
+    given Evaluable[V, DirectedEdge[E, V]] with
+      def evaluate(v: V): Option[DirectedEdge[E, V]] =
+        val result = pred.get(v)
+        relax(v)
+        result
+
+    given GraphNeighbours[V] = new GraphNeighbours[V]:
+      def neighbours(v: V): Iterator[V] = traversable.adjacentVertices(v)
+
+    val result = VisitorTraversal.bestFirst(
+      start,
+      JournaledVisitor.withQueueJournal[V, DirectedEdge[E, V]]
+    )
+
+    // start has no predecessor; all other settled vertices have Some(edge).
+    VertexTraversal(
+      result.result.iterator.collect { case (v, Some(edge)) => v -> edge }.toMap
+    )
 
   /**
-   * Constructs a directed edge between the specified vertices if a valid adjacency and associated edge exist.
-   *
-   * @param vo an optional instance of `DiscoverableRelaxableVertex`, representing the source vertex.
-   *           If `None`, the method returns `None`.
-   * @param v  a `DiscoverableRelaxableVertex` representing the destination vertex.
-   * @return an `Option[DirectedEdge[E, V]]` containing the constructed directed edge if a valid
-   *         adjacency and edge are found; otherwise, `None`.
-   */
-  private def makeEdge[V, E: Numeric](vo: Option[DiscoverableRelaxableVertex[V, E]])(v: DiscoverableRelaxableVertex[V, E]): Option[DirectedEdge[E, V]] = vo match {
-    case Some(drv) =>
-      val en = implicitly[Numeric[E]]
-//      println(s"makeEdge: drv = $drv, v = $v, r = ${v.r}, attribute = ${v.attribute}, drv.r = ${drv.r}, drv.attribute = ${drv.attribute}")
-      // CONSIDER this might not be unique in which case how do we know we got the correct one?
-      val adj: Option[Adjacency[V]] = drv.adjacencies.find(a => a.vertex == v.attribute)
-      for {
-        a <- adj
-        e <- a.maybeEdge[E]
-        d = en.plus(drv.maybeR.getOrElse(en.zero), e.attribute)
-        vDash = v.relax(d)
-      } yield AttributedDirectedEdge(e.attribute, drv.attribute, v.attribute)
-    case None =>
-      None
-  }
-}
+    * Returns the vertices reachable via attributed directed edges from v.
+    * Useful for testing and inspection; the traversal engine manages visited
+    * state internally via VisitedSet.
+    */
+  def undiscoveredEdges[V, E: Numeric](traversable: core.Traversable[V])(v: V): Seq[V] =
+    traversable.filteredAdjacencies(_ => true)(v)
+      .flatMap(_.maybeEdge[E])
+      .collect { case e: AttributedDirectedEdge[E, V] => e.black }
+      .toSeq

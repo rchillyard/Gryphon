@@ -211,7 +211,7 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends AbstractUnordered[T](elem
    * @return a new instance of `Unordered[U]` containing the specified elements.
    */
   def unit[U >: T](elements: Seq[U]): Unordered[U] =
-    copy(elements = Bag.create(elements: _*))
+    copy(elements = Bag.create(elements *))
 
 /**
  * Companion object for the `Unordered_Bag` class providing factory methods to create instances of `Unordered`
@@ -289,7 +289,7 @@ case class Unordered_Set[T](elements: Set[T]) extends AbstractUnordered[T](eleme
    *                 elements in the collection.
    * @return a new `Unordered` instance containing the specified elements.
    */
-  def unit[U >: T](elements: Seq[U]): Unordered[U] = copy(elements = Set(elements: _*))
+  def unit[U >: T](elements: Seq[U]): Unordered[U] = copy(elements = Set(elements *))
 
 /**
  * A companion object for `Unordered_Set`, providing factory methods to create instances of

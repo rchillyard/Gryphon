@@ -54,26 +54,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
     DirectedGraph(vertexMap)
 
   /**
-   * Retrieves the vertices adjacent to the specified vertex in the graph.
-   *
-   * @param v the vertex whose adjacent vertices are to be returned
-   * @return an iterator of vertices adjacent to the specified vertex
-   */
-  def adjacentVertices(v: V): Iterator[V] =
-    vertexMap.adjacentVertices(v)
-
-  /**
-   * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
-   * NOTE this method relies on the side-effect of setting the `discovered` flag on the vertex.
-   *
-   * @param v the vertex whose adjacent vertices are to be returned.
-   * @return an iterator over the vertices adjacent to the specified vertex.
-   * @throws GraphException if the vertex is not found in the map
-   */
-  def undiscoveredAdjacentVertices(v: V): Iterator[V] =
-    vertexMap.undiscoveredAdjacentVertices(v)
-
-  /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
    * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
    *
@@ -83,7 +63,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
   private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[E, V]] = {
-    case AdjacencyEdge(e: UndirectedEdge[E, V], false) =>
+    case AdjacencyEdge(e: UndirectedEdge[E, V] @unchecked, false) =>
       e
     case x =>
       throw GraphException(s"unexpected edge type: $x")

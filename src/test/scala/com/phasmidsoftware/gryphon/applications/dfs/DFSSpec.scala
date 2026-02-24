@@ -5,30 +5,22 @@
 package com.phasmidsoftware.gryphon.applications.dfs
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
-import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.util.TryUsing
-import com.phasmidsoftware.visitor.{DfsVisitor, Pre, QueueJournal, SimpleVisitor}
+import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import scala.collection.immutable.Queue
-import scala.io.Source
-import scala.util.*
 
 class DFSSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "DFS"
 
-  val dijkstraGraphPath = "dijkstra.graph"
-
   it should "fail on empty graph" in {
     val graph: Graph[Int] = DirectedGraph[Int, Unit]
-    Using(DfsVisitor[Int](Map(Pre -> QueueJournal(Queue.empty[Int])), v => graph.undiscoveredAdjacentVertices(v).toSeq)) {
-      visitor =>
-        graph.dfs(visitor)(1)
-    }
+    given Evaluable[Int, Int] with
+      def evaluate(v: Int): Option[Int] = Some(v)
+    val visitor = JournaledVisitor.withQueueJournal[Int, Int]
+    // dfs on an empty graph from vertex 1 should throw or return an empty result
+    an[Exception] should be thrownBy graph.dfs(visitor)(1)
   }
 
   it should "dfs Dijkstra" in {

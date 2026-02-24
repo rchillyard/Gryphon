@@ -2,14 +2,11 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.edgeFunc
-import com.phasmidsoftware.visitor.{BfsVisitor, DfsVisitor}
+import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.should.Matchers.shouldBe
 
-import scala.util.Using
-
-class VertexMapSpec extends AnyFlatSpec with Matchers {
+class VertexMapSpec extends AnyFlatSpec with Matchers:
 
   behavior of "VertexMap"
 
@@ -19,6 +16,10 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
   private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
   private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
+
+  // Shared Evaluable instance for traversal tests
+  private given Evaluable[Int, Int] with
+    def evaluate(v: Int): Option[Int] = Some(v)
 
   it should "implement createVerticesFromTriplet undirected" in {
     val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsUndirected)
@@ -103,7 +104,8 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     val updated = target + AttributedDirectedEdge("C", 4, 2)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
-    updated.get(2) should matchPattern { case Some(DiscoverableVertex(2, Unordered_Set(_))) => }
+    // SimpleVertex is aliased as DiscoverableVertex for backward compatibility
+    updated.get(2) should matchPattern { case Some(SimpleVertex(2, Unordered_Set(_))) => }
     updated(2).adjacencies.iterator.hasNext shouldBe false
     updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(AttributedDirectedEdge("C", 4, 2)))
   }
@@ -113,7 +115,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     val updated = target + UndirectedEdge("C", 4, 2)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
-    updated.get(2) should matchPattern { case Some(DiscoverableVertex(2, Unordered_Set(_))) => }
+    updated.get(2) should matchPattern { case Some(SimpleVertex(2, Unordered_Set(_))) => }
     updated(2).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2), true))
     updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2)))
   }
@@ -132,14 +134,15 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
     val vertex0: Vertex[Int] = target.applyOrElse(4, _ => defaultVertex)
     vertex0.attribute shouldBe 0
   }
+
   it should "get" in {
     val target = VertexMap[Int].addEdges(edgeList)
-    target.get(1) should matchPattern { case Some(DiscoverableVertex(1, _)) => }
+    target.get(1) should matchPattern { case Some(SimpleVertex(1, _)) => }
   }
 
   it should "getOrElse" in {
     val target = VertexMap[Int].addEdges(edgeList)
-    target.getOrElse(1, defaultVertex) should matchPattern { case DiscoverableVertex(1, _) => }
+    target.getOrElse(1, defaultVertex) should matchPattern { case SimpleVertex(1, _) => }
     target.getOrElse(4, defaultVertex) shouldBe defaultVertex
   }
 
@@ -150,40 +153,22 @@ class VertexMapSpec extends AnyFlatSpec with Matchers {
 
   it should "dfs" in {
     val target = VertexMap[Int].addEdges(edgeList)
-    val f: Int => Seq[Int] = v => target.undiscoveredAdjacentVertices(v).toSeq
-    Using(DfsVisitor.createPreQueue[Int](f)) {
-      visitor =>
-        val result = target.dfs(visitor)(1)
-        val journal = result.iterableJournals.head
-        journal.size shouldBe 3
-        journal.head shouldBe 1
-        journal.last shouldBe 3
-    }
+    val visitor = JournaledVisitor.withQueueJournal[Int, Int]
+    val result = target.dfs(visitor)(1)
+    // QueueJournal preserves visit order; directed 1->2->3 so expect all 3 vertices
+    val journal = result.result
+    journal.size shouldBe 3
+    journal.iterator.next()._1 shouldBe 1
+    journal.iterator.toList.last._1 shouldBe 3
   }
 
   it should "simple bfs" in {
     val target = VertexMap[Int].addEdges(edgeList)
-    val f: Int => Seq[Int] = v => target.undiscoveredAdjacentVertices(v).toSeq
-    val goal: Int => Boolean = v => v == 3
-    Using(BfsVisitor.createWithQueue[Int](f, goal)) {
-      visitor =>
-        val (result, _) = target.bfs(visitor)(1)
-        val journal = result.iterableJournals.head
-        journal.size shouldBe 3
-        journal.head shouldBe 1
-        journal.last shouldBe 3
-    }
+    val goal: Int => Boolean = _ == 3
+    val visitor = JournaledVisitor.withQueueJournal[Int, Int]
+    val result = target.bfs(visitor)(1, goal)
+    val journal = result.result
+    journal.size shouldBe 3
+    journal.iterator.next()._1 shouldBe 1
+    journal.iterator.toList.last._1 shouldBe 3
   }
-
-  //  it should "complex bfs" in {
-  //    Using(SimpleVisitor.createPreQueue[Int]) {
-  //      visitor =>
-  //        val target = VertexMap[Int].addEdges(edgeList)
-  //        val result: SimpleVisitor[Int, Queue[Int]] = target.bfs(visitor)(1)(x => x == 3)
-  //        val journal = result.journals.head
-  //        journal.size shouldBe 3
-  //        journal.head shouldBe 1
-  //        journal.last shouldBe 3
-  //    }
-  //  }
-}

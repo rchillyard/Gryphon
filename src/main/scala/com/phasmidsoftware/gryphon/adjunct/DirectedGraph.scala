@@ -51,25 +51,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    */
   def unit(vertexMap: VertexMap[V]): Graph[V] =
     DirectedGraph(vertexMap)
-
-  /**
-   * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
-   *
-   * @param v the vertex whose adjacent vertices are to be returned.
-   * @return an iterator over the vertices adjacent to the specified vertex.
-   */
-  def adjacentVertices(v: V): Iterator[V] =
-    vertexMap.adjacentVertices(v)
-
-  /**
-   * Retrieves the adjacent vertices connected to the specified vertex in the graph-like structure.
-   * NOTE this method relies on the side-effect of setting the `discovered` flag on the vertex.
-   *
-   * @param v the vertex whose adjacent vertices are to be returned.
-   * @return an iterator over the vertices adjacent to the specified vertex.
-   */
-  def undiscoveredAdjacentVertices(v: V): Iterator[V] =
-    vertexMap.undiscoveredAdjacentVertices(v)
 }
 
 /**

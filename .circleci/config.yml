@@ -19,8 +19,9 @@ jobs:
       TERM: dumb
 
     steps:
-      - checkout
-
+      - run:
+          name: Checkout
+          command: git clone https://github.com/rchillyard/Gryphon.git .
       # Restore cached dependencies
       - restore_cache:
           keys:

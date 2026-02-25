@@ -1,143 +1,202 @@
-/*
- * Copyright (c) 2023. Phasmid Software
- */
-
 package com.phasmidsoftware.gryphon.core
 
-/**
- * Trait to model the behavior of a Vertex.
- *
- * @tparam V the key (attribute) type of this Vertex.
- * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
- * @tparam P the (mutable) property of this Vertex.
- */
-trait Vertex[V, +X <: EdgeLike[V], P] extends VertexLike[V] with Property[P] {
-    /**
-     * Method to add an edge (x) to this Vertex.
-     *
-     * @param y the EdgeLike[V] object to be added this Vertex.
-     * @tparam Y a super-type of X.
-     * @return a Vertex[V, Y]
-     */
-    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y, P]
+import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
 
-    /**
-     * The adjacency list, an AdjacencyList[X], for this Vertex.
-     */
-    val adjacent: AdjacencyList[X]
-
-    /**
-     * The (out) degree of this Vertex.
-     *
-     * @return the size of adjacent.
-     */
-    def degree: Int = adjacent.size
-
-    def discovered: Boolean
-
-    def reset(): Unit
-}
+import scala.math.Ordered.orderingToOrdered
 
 /**
- * Trait to model the behavior of a vertex-like object.
- *
- * @tparam V the (covariant) attribute type.
- */
-trait VertexLike[+V] extends Attributed[V]
+  * Represents a vertex in a graph, containing an attribute of type `V` and a collection
+  * of adjacencies denoting its connections to other vertices.
+  *
+  * `Vertex` is immutable. The mutable `discovered` flag has been removed from all
+  * implementations; visited-node tracking is now handled by the immutable `VisitedSet[V]`
+  * typeclass inside the Visitor V1.2.0 traversal engine.
+  *
+  * @tparam V the type of the attribute associated with the vertex.
+  */
+trait Vertex[V] extends Attribute[V]:
+  /**
+    * Retrieves the collection of adjacencies associated with the vertex.
+    *
+    * @return an instance of `Adjacencies[V]` representing the connections from this vertex.
+    */
+  def adjacencies: Adjacencies[V]
+
+  /**
+    * Adds a new adjacency to this vertex, returning a new vertex instance.
+    *
+    * @param a the adjacency to be added.
+    * @return a new `Vertex[V]` with the adjacency included.
+    */
+  def +(a: Adjacency[V]): Vertex[V]
+
+  /**
+    * Renders the vertex as a human-readable string.
+    *
+    * @return a string representation of the vertex.
+    */
+  def render: String
 
 /**
- * Abstract base class to represent an vertex.
- *
- * @tparam V the key (attribute) type of this Vertex.
- * @tparam X the "edge" type for the adjacent edges of this Vertex. A sub-type of EdgeLike[V].
- */
-abstract class AbstractVertex[V, X <: EdgeLike[V], P] extends Vertex[V, X, P] {
+  * Companion object for `Vertex`, providing factory methods.
+  */
+object Vertex:
+  /**
+    * Creates a `SimpleVertex` with the given attribute and adjacencies.
+    *
+    * @param attribute the data associated with this vertex.
+    * @param vau       the initial adjacency collection (defaults to an empty Bag).
+    * @return a new `SimpleVertex[V]`.
+    */
+  def create[V](attribute: V, vau: Adjacencies[V] = emptyAdjacenciesBag[V]): SimpleVertex[V] =
+    SimpleVertex(attribute, vau)
 
-    private var visited: Boolean = false
-    private var property: Option[P] = None
+  /**
+    * Creates a `SimpleVertex` with an empty Bag-backed adjacency collection.
+    *
+    * @param attribute the data associated with this vertex.
+    * @return a new `SimpleVertex[V]`.
+    */
+  def createWithBag[V](attribute: V): SimpleVertex[V] =
+    create(attribute, emptyAdjacenciesBag[V])
 
-    override def toString: String = s"visited: $visited, property: $property"
+  /**
+    * Creates a `SimpleVertex` with an empty Set-backed adjacency collection.
+    * Appropriate when edges (rather than bare vertices) form the adjacencies.
+    *
+    * @param attribute the data associated with this vertex.
+    * @return a new `SimpleVertex[V]`.
+    */
+  def createWithSet[V](attribute: V): SimpleVertex[V] =
+    create(attribute, emptyAdjacenciesSet[V])
 
-    def discovered: Boolean = {
-        val result = visited
-        visited = true
-        result
-    }
-
-    def reset(): Unit = {
-        visited = false
-    }
-
-    /**
-     * Method to yield the current value of this property.
-     *
-     * @return property.
-     */
-    def getProperty: Option[P] = property
-
-    /**
-     * Mutating method to set the property.
-     *
-     * @param p the new value of the property.
-     */
-    def setProperty(p: Option[P]): Unit = {
-        property = p
-    }
-
-    /**
-     * Method to add an edge to this AbstractVertex.
-     *
-     * @param y the edge to add.
-     * @tparam Y a super-type of X.
-     * @return a new AbstractVertex which includes the new edge in its adjacency list.
-     */
-    def addEdge[Y >: X <: EdgeLike[V]](y: Y): Vertex[V, Y, P] = unit(AdjacencyList(y +: adjacent.xs))
-
-    /**
-     * Method to construct a new AbstractVertex.
-     *
-     * @param adjacent an AdjacencyList[Y].
-     * @tparam Y the edge-type of the resulting AbstractVertex
-     * @return a new AbstractVertex[V, Y].
-     */
-    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y, P]
-}
+  /**
+    * Creates a `RelaxableVertex` with an empty Set-backed adjacency collection.
+    * Suitable for Dijkstra-style algorithms that need to relax edge weights.
+    *
+    * @param attribute the data associated with this vertex.
+    * @tparam R the type of the relaxable property; must have a `Numeric` instance.
+    * @return a new `RelaxableVertex[V, R]`.
+    */
+  def createRelaxableWithSet[V, R: Numeric](attribute: V): RelaxableVertex[V, R] =
+    RelaxableVertex(attribute, emptyAdjacenciesSet[V])()
 
 /**
- * Case class to represent a concrete Vertex.
- * NOTE: clients usually will not need to reference this class directly: instead use Vertex.empty.
- *
- * @param attribute (V) the attribute/key of the resulting Vertex.
- * @param adjacent  (X) the adjacency list of the resulting Vertex.
- * @tparam V the key (attribute) type of this Vertex.
- * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
- */
-case class VertexCase[V, X <: EdgeLike[V], P](attribute: V, adjacent: AdjacencyList[X]) extends AbstractVertex[V, X, P] {
+  * Base class for all concrete vertex implementations.
+  *
+  * @tparam V the type of the vertex attribute.
+  * @param attribute   the data associated with this vertex.
+  * @param adjacencies the collection of adjacencies.
+  */
+abstract class AbstractVertex[V](val attribute: V, val adjacencies: Adjacencies[V]) extends Vertex[V]:
+  /**
+    * Adds an adjacency, delegating construction to `unit`.
+    */
+  def +(a: Adjacency[V]): AbstractVertex[V] = unit(adjacencies + a)
 
-    /**
-     * Method to construct a new ConcreteVersion based on the types V and X.
-     *
-     * @param adjacent an AdjacencyList[Y].
-     * @tparam W the vertex-type of the result (W must be a super-type of V).
-     * @tparam Y the edge-type of the resulting AbstractVertex
-     * @return a new VertexCase[W, Y].
-     */
-    def unit[W >: V, Y <: EdgeLike[W]](adjacent: AdjacencyList[Y]): AbstractVertex[W, Y, P] = VertexCase(attribute, adjacent)
-
-    override def toString: String = s"VertexCase($attribute, $adjacent, ${super.toString}"
-}
+  /**
+    * Constructs a new instance of this vertex type with the given adjacencies,
+    * preserving all other fields.
+    *
+    * @param adjacencies the updated adjacency collection.
+    * @return a new vertex of the same concrete type.
+    */
+  def unit(adjacencies: Adjacencies[V]): AbstractVertex[V]
 
 /**
- * Object to provide non-instance vertex properties.
- */
-object Vertex {
-    /**
-     * Method to construct an empty Vertex.
-     *
-     * @param a (V) the (key) attribute of the result.
-     * @tparam V the underlying vertex-type of the result.
-     * @tparam X the "edge" type for the adjacent edges of this Vertex (a sub-type of EdgeLike[V]).
-     * @return an empty VertexCase[V, X].
-     */
-    def empty[V, X <: EdgeLike[V], P](a: V): Vertex[V, X, P] = VertexCase(a, AdjacencyList.empty)
-}
+  * A plain vertex carrying only an attribute and adjacencies.
+  * Replaces the old `DiscoverableVertex` now that the `discovered` flag has been removed.
+  *
+  * @tparam V the type of the vertex attribute.
+  * @param attribute   the data associated with this vertex.
+  * @param adjacencies the collection of adjacencies.
+  */
+case class SimpleVertex[V](override val attribute: V, override val adjacencies: Adjacencies[V])
+  extends AbstractVertex[V](attribute, adjacencies):
+
+  def unit(adjacencies: Adjacencies[V]): SimpleVertex[V] =
+    copy(adjacencies = adjacencies)
+
+  def render: String = s"v$attribute"
+
+  override def toString: String =
+    s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)}"
+
+/**
+  * A vertex that additionally carries an optional relaxable property `maybeR`, used in
+  * Dijkstra-style shortest-path algorithms.
+  *
+  * The `discovered` flag has been removed; only the relaxable property `maybeR` is retained
+  * as mutable state (Dijkstra relaxation requires in-place update semantics on the vertex).
+  *
+  * @tparam V the type of the vertex attribute.
+  * @tparam R the type of the relaxable property; must have an `Ordering`.
+  * @param attribute   the data associated with this vertex.
+  * @param adjacencies the collection of adjacencies.
+  * @param maybeR      the current best-known cost to reach this vertex, if set.
+  */
+case class RelaxableVertex[V, R: Ordering](
+                                            override val attribute: V,
+                                            override val adjacencies: Adjacencies[V]
+                                          )(var maybeR: Option[R] = None)
+  extends AbstractVertex[V](attribute, adjacencies)
+    with Ordered[RelaxableVertex[V, R]]:
+
+  def compare(that: RelaxableVertex[V, R]): Int =
+    (for t <- maybeR; o <- that.maybeR
+      yield implicitly[Ordering[R]].compare(t, o)).getOrElse(0)
+
+  def unit(adjacencies: Adjacencies[V]): RelaxableVertex[V, R] =
+    copy(adjacencies = adjacencies)(maybeR)
+
+  /**
+    * Updates `maybeR` to `r` if `r` is smaller than the current value (or if unset).
+    *
+    * @param r the candidate relaxation value.
+    * @return this vertex (mutated in place) if relaxed, otherwise this vertex unchanged.
+    */
+  def relax(r: R): RelaxableVertex[V, R] =
+    if maybeR.isEmpty || r < maybeR.get then
+      maybeR = Some(r)
+      this
+    else this
+
+  def render: String = s"v$attribute(maybeR=$maybeR)"
+
+  override def toString: String =
+    s"v$attribute with maybeR=$maybeR and adjacencies: ${mkStringLimitIterator(adjacencies.iterator)}"
+
+/**
+  * Companion object for `RelaxableVertex`, providing factory methods.
+  */
+object RelaxableVertex:
+  /**
+    * Creates a `RelaxableVertex` from an existing `SimpleVertex`, transferring its
+    * attribute and adjacencies. `maybeR` is initialised to `None`.
+    *
+    * @param v the source `SimpleVertex`.
+    * @return a new `RelaxableVertex[V, R]`.
+    */
+  def apply[V, R: Numeric](v: SimpleVertex[V]): RelaxableVertex[V, R] =
+    apply(v.attribute, v.adjacencies)()
+
+  /**
+    * Creates a `RelaxableVertex` with the given attribute and adjacencies.
+    * `maybeR` is initialised to `None`.
+    */
+  def apply[V, R: Numeric](attribute: V, adjacencies: Adjacencies[V]): RelaxableVertex[V, R] =
+    RelaxableVertex(attribute, adjacencies)()
+
+// ---------------------------------------------------------------------------
+// Backward-compatibility type aliases
+//
+// The old `DiscoverableVertex` and `DiscoverableRelaxableVertex` names are
+// preserved as aliases so that call sites outside this file continue to
+// compile without changes during the migration.
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use [[SimpleVertex]] instead. */
+type DiscoverableVertex[V] = SimpleVertex[V]
+
+/** @deprecated Use [[RelaxableVertex]] instead. */
+type DiscoverableRelaxableVertex[V, R] = RelaxableVertex[V, R]

@@ -1,204 +1,61 @@
-/*
- * Copyright (c) 2023. Phasmid Software
- */
-
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
+import org.scalatest.matchers.should.Matchers
 
-class EdgeSpec extends AnyFlatSpec with should.Matchers {
+class EdgeSpec extends AnyFlatSpec with Matchers:
 
-    private val red: Color = Color("red")
-    private val blue: Color = Color("blue")
+  behavior of "EdgeType"
 
-    behavior of "VertexPairCase"
+  it should "Directed.oneWay is true" in {
+    Directed.oneWay shouldBe true
+  }
 
-    it should "vertices" in {
-        val target: VertexPairCase[Color] = VertexPairCase(red, blue)
-        target.vertices shouldBe(red, blue)
-    }
+  it should "Undirected.oneWay is false" in {
+    Undirected.oneWay shouldBe false
+  }
 
-    it should "attribute" in {
-        val target: VertexPairCase[Color] = VertexPairCase(red, blue)
-        target.attribute shouldBe()
-    }
+  it should "Undefined.oneWay is false" in {
+    Undefined.oneWay shouldBe false
+  }
 
-    it should "toString" in {
-        val target: VertexPairCase[Color] = VertexPairCase(red, blue)
-        target.toString shouldBe "Color(red):Color(blue)"
-    }
+  behavior of "AttributedDirectedEdge"
 
-    behavior of "DirectedEdgeCase"
+  it should "have correct white, black and attribute" in {
+    val e = AttributedDirectedEdge(3.14, 1, 2)
+    e.white shouldBe 1
+    e.black shouldBe 2
+    e.attribute shouldBe 3.14
+  }
 
-    it should "apply" in {
-        val target: DirectedEdgeCase[Color, Color] = DirectedEdgeCase(red, blue, Color("green"))
-        //noinspection RedundantNewCaseClass
-        target shouldBe new DirectedEdgeCase(red, blue, Color("green")) // leave "new" intact
-    }
+  it should "have Directed edgeType" in {
+    AttributedDirectedEdge("w", 0, 1).edgeType shouldBe Directed
+  }
 
-    it should "from" in {
-        val target: DirectedEdgeCase[Color, String] = DirectedEdgeCase(red, blue, "isa")
-        target.from shouldBe red
-    }
+  behavior of "UndirectedEdge"
 
-    it should "to" in {
-        val target: DirectedEdgeCase[String, String] = DirectedEdgeCase("A", "B", "isa")
-        target.to shouldBe "B"
-    }
+  it should "have correct white, black and attribute" in {
+    val e = UndirectedEdge(99, "A", "B")
+    e.white shouldBe "A"
+    e.black shouldBe "B"
+    e.attribute shouldBe 99
+  }
 
-    it should "vertices" in {
-        val target: DirectedEdgeCase[String, String] = DirectedEdgeCase("A", "B", "isa")
-        target.vertices shouldBe("A", "B")
-    }
+  it should "have Undirected edgeType" in {
+    UndirectedEdge(0.0, 1, 2).edgeType shouldBe Undirected
+  }
 
-    it should "attribute" in {
-        val target: DirectedEdgeCase[String, String] = DirectedEdgeCase("A", "B", "isa")
-        target.attribute shouldBe "isa"
-    }
+  behavior of "EdgeType.ParseableEdgeType"
 
-    it should "toString" in {
-        val target: DirectedEdgeCase[String, String] = DirectedEdgeCase("A", "B", "isa")
-        target.toString shouldBe "A--(isa)-->B"
-    }
+  it should "parse '>' as Directed" in {
+    EdgeType.ParseableEdgeType.parse(">").get shouldBe Directed
+  }
 
-    behavior of "DirectedOrderedEdgeCase"
+  it should "parse '=' as Undirected" in {
+    EdgeType.ParseableEdgeType.parse("=").get shouldBe Undirected
+  }
 
-    it should "from" in {
-        val target: DirectedOrderedEdgeCase[String, String] = DirectedOrderedEdgeCase("A", "B", "isa")
-        target.from shouldBe "A"
-    }
-
-    it should "to" in {
-        val target: DirectedOrderedEdgeCase[String, String] = DirectedOrderedEdgeCase("A", "B", "isa")
-        target.to shouldBe "B"
-    }
-
-    it should "vertices" in {
-        val target: DirectedOrderedEdgeCase[String, String] = DirectedOrderedEdgeCase("A", "B", "isa")
-        target.vertices shouldBe("A", "B")
-    }
-
-    it should "attribute" in {
-        val target: DirectedOrderedEdgeCase[String, String] = DirectedOrderedEdgeCase("A", "B", "isa")
-        target.attribute shouldBe "isa"
-    }
-
-    it should "compare with other edge" in {
-        val target: DirectedOrderedEdgeCase[String, Int] = DirectedOrderedEdgeCase("A", "B", 1)
-        val comparand: DirectedOrderedEdgeCase[String, Int] = DirectedOrderedEdgeCase("A", "B", 2)
-        target.compare(comparand) shouldBe -1
-    }
-
-    it should "toString" in {
-        val target: DirectedOrderedEdgeCase[String, String] = DirectedOrderedEdgeCase("A", "B", "isa")
-        target.toString shouldBe "A--(isa)-->B"
-    }
-
-    behavior of "UndirectedEdgeCase"
-
-    it should "apply" in {
-        val target: UndirectedEdgeCase[String, Color] = UndirectedEdgeCase("A", "B", Color("C"))
-        //noinspection RedundantNewCaseClass
-        target shouldBe new UndirectedEdgeCase("A", "B", Color("C")) // leave "new" intact
-    }
-
-    it should "v1" in {
-        val target: UndirectedEdgeCase[String, String] = UndirectedEdgeCase("A", "B", "isa")
-        target.v1 shouldBe "A"
-    }
-
-    it should "v2" in {
-        val target: UndirectedEdgeCase[String, String] = UndirectedEdgeCase("A", "B", "isa")
-        target.v2 shouldBe "B"
-    }
-
-    it should "vertices" in {
-        UndirectedEdgeCase("A", "B", "isa").vertices shouldBe("A", "B")
-        UndirectedEdgeCase("B", "A", "isa").vertices shouldBe("A", "B")
-    }
-
-    it should "vertex" in {
-        UndirectedEdgeCase("A", "B", "isa").vertex shouldBe "A"
-        UndirectedEdgeCase("B", "A", "isa").vertex shouldBe "B"
-    }
-
-    it should "other" in {
-        val ab = UndirectedEdgeCase("A", "B", "isa")
-        ab.other(ab.vertex) shouldBe Some("B")
-        val ba = UndirectedEdgeCase("B", "A", "has")
-        ba.other(ba.vertex) shouldBe Some("A")
-    }
-
-    it should "attribute" in {
-        val target: UndirectedEdgeCase[String, String] = UndirectedEdgeCase("A", "B", "isa")
-        target.attribute shouldBe "isa"
-    }
-
-    it should "toString" in {
-        val target: UndirectedEdgeCase[String, String] = UndirectedEdgeCase("A", "B", "isa")
-        target.toString shouldBe "A<--(isa)-->B"
-    }
-
-    behavior of "UndirectedOrderedEdgeCase"
-
-    it should "v1" in {
-        val target: UndirectedOrderedEdgeCase[String, String] = UndirectedOrderedEdgeCase("A", "B", "isa")
-        target.v1 shouldBe "A"
-    }
-
-    it should "v2" in {
-        val target: UndirectedOrderedEdgeCase[String, String] = UndirectedOrderedEdgeCase("A", "B", "isa")
-        target.v2 shouldBe "B"
-    }
-
-    it should "vertices" in {
-        val target: UndirectedOrderedEdgeCase[String, String] = UndirectedOrderedEdgeCase("A", "B", "isa")
-        target.vertices shouldBe("A", "B")
-    }
-
-    it should "attribute" in {
-        val target: UndirectedOrderedEdgeCase[String, String] = UndirectedOrderedEdgeCase("A", "B", "isa")
-        target.attribute shouldBe "isa"
-    }
-
-    it should "vertex" in {
-        UndirectedOrderedEdgeCase("A", "B", "isa").vertex shouldBe "A"
-        UndirectedOrderedEdgeCase("B", "A", "isa").vertex shouldBe "B"
-    }
-
-    it should "other" in {
-        val ab = UndirectedOrderedEdgeCase("A", "B", "isa")
-        ab.other(ab.vertex) shouldBe Some("B")
-        val ba = UndirectedOrderedEdgeCase("B", "A", "has")
-        ba.other(ba.vertex) shouldBe Some("A")
-        ba.other("C") shouldBe None
-    }
-
-    it should "otherVertex" in {
-        val ab = UndirectedOrderedEdgeCase("A", "B", "isa")
-        ab.otherVertex(ab.vertex) shouldBe "B"
-        val ba = UndirectedOrderedEdgeCase("B", "A", "has")
-        ba.otherVertex(ba.vertex) shouldBe "A"
-        a[GraphException] should be thrownBy ba.otherVertex("C")
-    }
-
-    it should "compare with other edge" in {
-        val target: UndirectedOrderedEdgeCase[String, Int] = UndirectedOrderedEdgeCase("A", "B", 1)
-        val comparand: UndirectedOrderedEdgeCase[String, Int] = UndirectedOrderedEdgeCase("A", "B", 2)
-        target.compare(comparand) shouldBe -1
-    }
-
-    it should "toString" in {
-        val target: UndirectedOrderedEdgeCase[String, String] = UndirectedOrderedEdgeCase("A", "B", "isa")
-        target.toString shouldBe "A<--(isa)-->B"
-    }
-
-}
-
-/**
- * Case class for testing where we have an attribute that does not have an order.
- *
- * @param name the name of the color.
- */
-case class Color(name: String)
+  it should "parse unknown string as Undefined" in {
+    EdgeType.ParseableEdgeType.parse("?").get shouldBe Undefined
+  }

@@ -1,124 +1,174 @@
-/*
- * Copyright (c) 2023. Phasmid Software
- */
-
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.edgeFunc
+import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
-import scala.collection.immutable.{HashMap, Queue}
+import org.scalatest.matchers.should.Matchers
 
-class VertexMapSpec extends AnyFlatSpec with should.Matchers {
+class VertexMapSpec extends AnyFlatSpec with Matchers:
 
-    private val vertexA = "A"
-    private val vertexB = "B"
+  behavior of "VertexMap"
 
-    behavior of "VertexMap"
+  private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(AttributedDirectedEdge("A", 1, 2), AttributedDirectedEdge("B", 2, 3)))
+  private val tripletsDirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Directed), Triplet(2, 3, None, Directed))
+  private val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Undirected), Triplet(2, 3, None, Undirected))
+  private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
+  private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
+  private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
-    it should "dfs" in {
-        import Journal._
-        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addEdge("B", DirectedEdgeCase("B", "C", 2)).addVertex("C")
-        val visitor = Visitor.createPre[String]
-        val result = target.dfs(visitor)("A")
-        result.journal shouldBe Queue("A", "B", "C")
-    }
+  // Shared Evaluable instance for traversal tests
+  private given Evaluable[Int, Int] with
+    def evaluate(v: Int): Option[Int] = Some(v)
 
-    it should "bfs" in {
-        import Journal._
-        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
-        val visitor = Visitor.createPre[String]
-        val result = target.bfs(visitor)("A")
-        result.journal shouldBe Queue("A", "C", "D", "B")
-    }
+  it should "implement createVerticesFromTriplet undirected" in {
+    val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsUndirected)
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 2
+  }
 
-    it should "bfsMutable" in {
-        import Journal._
-        val vertexMap: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        val target = vertexMap.addEdge("A", DirectedEdgeCase("A", "B", 1)).addVertex("B").addEdge("A", DirectedEdgeCase("A", "D", 3)).addVertex("D").addEdge("A", DirectedEdgeCase("A", "C", 2)).addVertex("C")
-        val visitor = Visitor.createPreQueue[String]
-        val result = target.bfsMutable(visitor)("A")
-        result match {
-            case x: IterableVisitor[String, _] => x.iterator.toSeq shouldBe Seq("A", "C", "D", "B")
-        }
-    }
+  it should "implement createVerticesFromTriplet directed" in {
+    val target: VertexMap[Int] = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsDirected)
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 1
+  }
 
-    behavior of "OrderedVertexMapCase"
+  it should "implement createFromVertexPairList, contains, apply, and vertices 1" in {
+    val target = VertexMap.createFromVertexPairList(vertexPairListDirected) // 1 -> 2, 2 -> 3
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 1
+  }
 
-    it should "keys" in {
-        val target: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        target.keys shouldBe Set.empty
-    }
+  it should "implement createFromVertexPairList, contains, apply, and vertices 2" in {
+    val target = VertexMap.createFromVertexPairList(vertexPairListUndirected) // 1 -> 2, 2 -> 3
+    target.vertices.size shouldBe 3
+    target.contains(1) shouldBe true
+    target.contains(2) shouldBe true
+    target.contains(3) shouldBe true
+    println(target)
+    val v1 = target.apply(1)
+    val v2 = target.apply(2)
+    val v3 = target.apply(3)
+    v1.attribute shouldBe 1
+    v2.attribute shouldBe 2
+    v3.attribute shouldBe 3
+    v2.adjacencies.iterator.size shouldBe 2
+  }
 
-    it should "values" in {
-        val target: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        target.values.isEmpty shouldBe true
-    }
+  it should "empty $plus Vertex" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+    val updated = target + Vertex.createWithBag(4)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+  }
 
-    it should "addEdge" in {
-        val target: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        val edge: DirectedEdgeCase[String, Int] = DirectedEdgeCase(vertexA, vertexB, 42)
-        val targetUpdated = target.addEdge(vertexA, edge)
-        targetUpdated.keys shouldBe Set(vertexA)
-        targetUpdated.values.toSeq shouldBe Seq(VertexCase[String, DirectedEdgeCase[String, Int], Unit]("A", AdjacencyList(List(edge))))
-        targetUpdated.edges shouldBe Seq(edge)
-    }
+  it should "$plus Vertex" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val updated = target + Vertex.createWithBag(4)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+  }
 
-    it should "addVertex" in {
-        val target: VertexMap[String, DirectedEdgeCase[String, Int], Unit] = OrderedVertexMap.empty
-        val targetUpdated = target.addVertex(vertexA)
-        targetUpdated.keys shouldBe Set(vertexA)
-        targetUpdated.edges.isEmpty shouldBe true
-    }
+  it should "empty $plus DirectedEdge" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+    val updated = target + AttributedDirectedEdge("C", 4, 2)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+    // SimpleVertex is aliased as DiscoverableVertex for backward compatibility
+    updated.get(2) should matchPattern { case Some(SimpleVertex(2, Unordered_Set(_))) => }
+    updated(2).adjacencies.iterator.hasNext shouldBe false
+    updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(AttributedDirectedEdge("C", 4, 2)))
+  }
 
-    behavior of "UnorderedVertexMapCase"
+  it should "empty $plus UndirectedEdge" in {
+    val target: VertexMap[Int] = VertexMap[Int]
+    val updated = target + UndirectedEdge("C", 4, 2)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+    updated.get(2) should matchPattern { case Some(SimpleVertex(2, Unordered_Set(_))) => }
+    updated(2).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2), true))
+    updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(UndirectedEdge("C", 4, 2)))
+  }
 
-    private val red: Color = Color("red")
-    private val blue: Color = Color("blue")
-    private val green: Color = Color("green")
+  it should "$plus Edge" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val updated = target + Vertex.createWithBag(4)
+    updated.contains(4) shouldBe true
+    updated.apply(4).attribute shouldBe 4
+  }
 
-    it should "keys" in {
-        val target: VertexMap[Color, DirectedEdgeCase[Color, Int], Unit] = UnorderedVertexMap.empty
-        target.keys shouldBe Set.empty
-    }
+  it should "applyOrElse" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val vertex1: Vertex[Int] = target.applyOrElse(1, _ => defaultVertex)
+    vertex1.attribute shouldBe 1
+    val vertex0: Vertex[Int] = target.applyOrElse(4, _ => defaultVertex)
+    vertex0.attribute shouldBe 0
+  }
 
-    it should "values" in {
-        val target: VertexMap[Color, DirectedEdgeCase[Color, Int], Unit] = UnorderedVertexMap.empty
-        target.values.isEmpty shouldBe true
-    }
+  it should "get" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    target.get(1) should matchPattern { case Some(SimpleVertex(1, _)) => }
+  }
 
-    it should "addEdge" in {
-        val target: VertexMap[Color, DirectedEdgeCase[Color, Int], Unit] = UnorderedVertexMap.empty
-        val edge: DirectedEdgeCase[Color, Int] = DirectedEdgeCase(red, blue, 42)
-        val targetUpdated = target.addEdge(red, edge)
-        targetUpdated.keys shouldBe Set(red)
-        targetUpdated.edges shouldBe Seq(edge)
-    }
+  it should "getOrElse" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    target.getOrElse(1, defaultVertex) should matchPattern { case SimpleVertex(1, _) => }
+    target.getOrElse(4, defaultVertex) shouldBe defaultVertex
+  }
 
-    it should "addVertex" in {
-        val target: VertexMap[Color, DirectedEdgeCase[Color, Int], Unit] = UnorderedVertexMap.empty
-        val targetUpdated = target.addVertex(red)
-        targetUpdated.keys shouldBe Set(red)
-        targetUpdated.edges.isEmpty shouldBe true
-    }
+  it should "keySet" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    target.keySet shouldBe Set(1, 2, 3)
+  }
 
-    it should "buildMap" in {
-        // TODO eliminate this asInstanceOf
-        val target: BaseVertexMap[Color, DirectedEdge[Color, Int], Unit] = UnorderedVertexMap.empty[Color, DirectedEdge[Color, Int], Unit].asInstanceOf[BaseVertexMap[Color, DirectedEdge[Color, Int], Unit]]
-        val edge42: DirectedEdge[Color, Int] = DirectedEdgeCase(red, blue, 42)
-        val edge17: DirectedEdge[Color, Int] = DirectedEdgeCase(red, green, 17)
-        val m1 = new HashMap[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]]()
-        val vRed: Vertex[Color, DirectedEdge[Color, Int], Unit] = Vertex.empty(red)
-        val m2: Map[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]] = target.buildMap(m1, red, edge42, vRed)
-        m2 shouldBe new HashMap[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]] + (red -> VertexCase[Color, DirectedEdge[Color, Int], Unit](red, AdjacencyList(List(edge42))))
-        val vBlue: Vertex[Color, DirectedEdge[Color, Int], Unit] = Vertex.empty(blue)
-        val vGreen: Vertex[Color, DirectedEdge[Color, Int], Unit] = Vertex.empty(green)
-        val m3: Map[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]] = target.buildMap(m2, blue, edge42, vBlue)
-        m3 shouldBe m2 + (blue -> VertexCase[Color, DirectedEdge[Color, Int], Unit](blue, AdjacencyList(List(edge42))))
-        val m4: Map[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]] = target.buildMap(m3, red, edge17, vRed)
-        m4 shouldBe m3 + (red -> VertexCase[Color, DirectedEdge[Color, Int], Unit](red, AdjacencyList(List(edge17))))
-        val m5: Map[Color, Vertex[Color, DirectedEdge[Color, Int], Unit]] = target.buildMap(m4, green, edge17, vGreen)
-        m5 shouldBe m4 + (green -> VertexCase[Color, DirectedEdge[Color, Int], Unit](green, AdjacencyList(List(edge17))))
-    }
-}
+  it should "dfs" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val visitor = JournaledVisitor.withQueueJournal[Int, Int]
+    val result = target.dfs(visitor)(1)
+    // QueueJournal preserves visit order; directed 1->2->3 so expect all 3 vertices
+    val journal = result.result
+    journal.size shouldBe 3
+    journal.iterator.next()._1 shouldBe 1
+    journal.iterator.toList.last._1 shouldBe 3
+  }
+
+  it should "simple bfs" in {
+    val target = VertexMap[Int].addEdges(edgeList)
+    val goal: Int => Boolean = _ == 3
+    val visitor = JournaledVisitor.withQueueJournal[Int, Int]
+    val result = target.bfs(visitor)(1, goal)
+    val journal = result.result
+    journal.size shouldBe 3
+    journal.iterator.next()._1 shouldBe 1
+    journal.iterator.toList.last._1 shouldBe 3
+  }

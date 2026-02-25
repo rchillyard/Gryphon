@@ -4,42 +4,241 @@
 
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversal, Traversal as GryphonTraversal}
+import com.phasmidsoftware.visitor.core.{Traversal as VisitorTraversal, *, given}
+
+import scala.util.Try
+
 /**
- * Trait to define the behavior of a graph-like structure which can be traversed by dfs, bfs, etc.
- *
- * @tparam V the underlying key (attribute) type for a vertex.
- */
+  * Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfs.
+  *
+  * The traversal engine is provided by Visitor V1.2.0. The mutable `discovered` flag pattern
+  * has been replaced by the immutable `VisitedSet[V]` typeclass. Callers continue to pass a
+  * `Visitor` in and receive an updated `Visitor` back; the new typeclass machinery is an
+  * implementation detail.
+  *
+  * @tparam V the underlying key (attribute) type for a vertex.
+  */
 trait Traversable[V] {
 
-    /**
-     * Method to run depth-first-search on this Traversable.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def dfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+  /**
+    * Retrieves the vertex associated with the given key.
+    *
+    * @param key the key of type V for which the associated vertex is to be retrieved.
+    * @return an Option containing the associated Vertex if found, or None if not.
+    */
+  def get(key: V): Option[Vertex[V]]
 
-    /**
-     * Method to run breadth-first-search on this Traversable.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @return a new Visitor[V, J].
-     */
-    def bfs[J](visitor: Visitor[V, J])(v: V): Visitor[V, J]
+  /**
+    * Retrieves the adjacent vertices connected to the specified vertex.
+    *
+    * @param v the vertex whose adjacent vertices are to be returned.
+    * @return an iterator over the vertices adjacent to the specified vertex.
+    */
+  def adjacentVertices(v: V): Iterator[V]
 
-    /**
-     * Method to run breadth-first-search with a mutable queue on this Traversable.
-     *
-     * @param visitor the visitor, of type Visitor[V, J].
-     * @param v       the starting vertex.
-     * @tparam J the journal type.
-     * @tparam Q the type of the mutable queue for navigating this Traversable.
-     *           Requires implicit evidence of MutableQueueable[Q, V].
-     * @return a new Visitor[V, J].
-     */
-    def bfsMutable[J, Q](visitor: Visitor[V, J])(v: V)(implicit ev: MutableQueueable[Q, V]): Visitor[V, J]
+  /**
+    * Filters the adjacent vertices of a given vertex based on a specified predicate.
+    *
+    * @param predicate a function that evaluates each adjacent vertex and returns true
+    *                  if the vertex satisfies the specified condition.
+    *
+    * @param v         the vertex whose adjacent vertices are to be filtered.
+    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
+    */
+  def filteredAdjacentVertices(predicate: V => Boolean)(v: V): Iterator[V] =
+    adjacentVertices(v).filter(predicate)
+
+  /**
+    * Filters the adjacencies of a given vertex based on a specified predicate.
+    *
+    * @param predicate a function that evaluates each `Adjacency[V]`
+    *                  and returns true if the adjacency satisfies the specified condition.
+    * @param v         the vertex whose adjacencies are to be filtered.
+    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
+    */
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]]
+
+  /**
+    * Performs a depth-first search (DFS) traversal starting from the specified vertex.
+    *
+    * Internally uses `Traversal.dfs` from Visitor V1.2.0.  A `given GraphNeighbours[V]`
+    * is derived from `adjacentVertices` and a `given Evaluable[V, R]` must be in scope
+    * at the call site (or provided implicitly by the implementation).
+    *
+    * @param visitor the visitor, accumulating results into its journal.
+    * @param v       the starting vertex.
+    * @tparam R the result type extracted from each node by `Evaluable`.
+    * @tparam J the journal type.
+    * @return the updated visitor after traversal.
+    */
+  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V)(using Evaluable[V, R]): Visitor[V, R, J]
+
+  /**
+    * Performs a DFS traversal for all vertices in the graph using the supplied visitor.
+    * Vertices not reachable from the first traversal are visited in subsequent passes.
+    *
+    * @param visitor the visitor, accumulating results into its journal.
+    * @tparam R the result type extracted from each node.
+    * @tparam J the journal type.
+    * @return the updated visitor after traversing all vertices.
+    */
+  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using Evaluable[V, R]): Visitor[V, R, J]
+
+  /**
+    * Performs a breadth-first search (BFS) traversal starting from the specified vertex.
+    *
+    * @param visitor the visitor, accumulating results into its journal.
+    * @param v       the starting vertex.
+    * @param goal    an optional early-termination predicate; traversal halts after recording
+    *                the first node for which `goal` returns true.
+    *
+    * @tparam R the result type extracted from each node.
+    * @tparam J the journal type.
+    * @return the updated visitor after traversal.
+    */
+  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using Evaluable[V, R]): Visitor[V, R, J]
+
+  /**
+    * Performs a BFS traversal visiting edges rather than vertices, starting from `v`.
+    * Traversal stops when `goal` returns true for a destination vertex.
+    *
+    * @param visitor the visitor responsible for processing edges.
+    * @param v       the starting vertex.
+    * @param goal    early-termination predicate on destination vertices.
+    * @tparam E the type of the edge attribute.
+    * @tparam R the result type.
+    * @tparam J the journal type.
+    * @return the visitor after traversal.
+    */
+  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using Evaluable[Edge[E, V], R]): Visitor[Edge[E, V], R, J]
+
+  /**
+    * Performs a DFS traversal applying `f` to each visited vertex and returns a
+    * `VertexTraversal` mapping each vertex to its result.
+    *
+    * @param f     transformation function applied to each vertex.
+    * @param start the starting vertex.
+    * @tparam E unused edge type parameter (retained for API compatibility).
+    * @tparam T the result type produced by `f`.
+    * @return `Try[Traversal[V, T]]` containing the traversal result or a failure.
+    */
+  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Try[GryphonTraversal[V, T]] = {
+    given Evaluable[V, T] with
+      def evaluate(v: V): Option[T] = Some(f(v))
+
+    given GraphNeighbours[V] = graphNeighbours
+
+    val visitor = JournaledVisitor.withQueueJournal[V, T]
+    val result = VisitorTraversal.dfs(start, visitor)
+    Try {
+      result.result.foldLeft(VertexTraversal.empty[V, T]) {
+        case (acc, (v, Some(r))) => acc + (v, r)
+        case (acc, _) => acc
+      }
+    }
+  }
+
+  /**
+    * Performs a BFS traversal applying `fulfill` to each visited vertex and returns a
+    * `VertexTraversal` mapping each vertex to its result.
+    *
+    * @param fulfill transformation function applied to each vertex.
+    * @param start   the starting vertex.
+    * @tparam E unused edge type parameter (retained for API compatibility).
+    * @tparam T the result type produced by `fulfill`.
+    * @return `Try[Traversal[V, T]]` containing the traversal result or a failure.
+    */
+  def vertexMappedTraversalBfs[E, T](fulfill: V => T)(start: V): Try[GryphonTraversal[V, T]] = {
+    given Evaluable[V, T] with
+      def evaluate(v: V): Option[T] = Some(fulfill(v))
+
+    given GraphNeighbours[V] = graphNeighbours
+
+    val visitor = JournaledVisitor.withQueueJournal[V, T]
+    val result = VisitorTraversal.bfs(start, visitor)
+    Try {
+      result.result.foldLeft(VertexTraversal.empty[V, T]) {
+        case (acc, (v, Some(r))) => acc + (v, r)
+        case (acc, _) => acc
+      }
+    }
+  }
+
+  /**
+    * Retrieves the connexions (edges) reachable from `start` via DFS.
+    *
+    * @param start the starting vertex.
+    * @tparam E the type of the edges in the graph.
+    * @return a `Connexions[V, E]` object representing the discovered connexions.
+    */
+  def getConnexions[E](start: V): Connexions[V, E] = {
+    // The V1.2.0 engine does not expose parent information through Evaluable,
+    // so we run a manual DFS that explicitly tracks the incoming adjacency for
+    // each discovered vertex (i.e. the edge used to reach it from its DFS parent).
+    import scala.annotation.tailrec
+    import scala.collection.mutable
+
+    // Stack holds (child, incomingAdjacency) pairs.
+    // start has no incoming adjacency (it is the root).
+    val visited = mutable.Set.empty[V]
+    val result = mutable.Map.empty[V, Option[Adjacency[V]]]
+
+    @tailrec
+    def loop(stack: List[(V, Option[Adjacency[V]])]): Unit = stack match
+      case Nil => ()
+      case (v, incoming) :: rest =>
+        if visited.contains(v) then loop(rest)
+        else
+          visited += v
+          result(v) = incoming
+          // Push unvisited neighbours with the adjacency used to reach them.
+          val children: List[(V, Option[Adjacency[V]])] =
+            filteredAdjacencies(_ => true)(v)
+              .filterNot(a => visited.contains(a.vertex))
+              .map(a => (a.vertex, Some(a)))
+              .toList
+          loop(children ::: rest)
+
+    loop(List((start, None)))
+
+    result.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
+      case (acc, (child, Some(AdjacencyEdge[V
+      , E
+      ] (connexion, flipped)
+      ) ) ) =>
+      // When flipped, the connexion's nominal direction is child->parent,
+      // so we reconstruct it as parent->child using the parent recorded in result.
+      val effectiveConnexion: Connexion[V] =
+        if flipped then VertexPair(connexion.black, child)
+        else connexion
+      acc.addConnexion(child, effectiveConnexion)
+      case (acc, _) =>
+        acc
+    }
+  }
+
+  /**
+    * Derives a `GraphNeighbours[V]` instance from `adjacentVertices`.
+    * Used internally by the default implementations of `vertexMappedTraversalDfs`,
+    * `vertexMappedTraversalBfs`, and `getConnexions`.
+    */
+  protected def graphNeighbours: GraphNeighbours[V] = new GraphNeighbours[V] {
+    def neighbours(v: V): Iterator[V] = adjacentVertices(v)
+  }
+}
+
+/**
+  * A trait representing a traversable structure that encompasses both vertices and edges.
+  *
+  * @tparam V the type of the vertices.
+  * @tparam E the type of the attribute associated with an edge.
+  */
+trait EdgeTraversable[V, E] extends Traversable[V] {
+  /**
+    * Retrieves an iterator over all the edges in the graph.
+    *
+    * @return an `Iterator[Edge[E, V]]` over all edges.
+    */
+  def edges: Iterator[Edge[E, V]]
 }

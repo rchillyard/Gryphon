@@ -1,389 +1,199 @@
-/*
- * Copyright (c) 2023. Phasmid Software
- */
-
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.util.Util
+import com.phasmidsoftware.gryphon.parse.Parseable
+
+import scala.util.matching.Regex
+import scala.util.{Success, Try}
 
 /**
- * Trait to model the behavior of an Edge.
+ * Defines an abstraction for an edge in a graph structure that connects two vertices.
+ * An `Edge` may be directed or undirected, and it carries an attribute of type `E`.
  *
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
- */
-trait Edge[+V, +E] extends EdgeLike[V] with Attributed[E]
-
-/**
- * Trait to model the behavior of an edge-like object, that's to say something with two vertices of type <code>V</code>.
+ * The connection is established between two vertices of type `V`, referred to as `white` and `black`.
+ * The type (directionality) of the edge, as well as whether it allows traversal in one or both directions,
+ * is given by the `edgeType` field.
  *
- * @tparam V the (covariant) Vertex key type.
+ * @tparam E the type of the attribute associated with the edge.
+ * @tparam V the type of the vertices connected by the edge.
  */
-trait EdgeLike[+V] {
+trait Edge[E, V] extends Attribute[E] with Connexion[V] {
 
-    /**
-     * The two vertices of this Edge in a (possibly) arbitrary but deterministic order.
-     *
-     * NOTE: the order used will be based on an instance of Ordering[V] provided.
-     * CONSIDER not requiring that V support Ordering[V].
-     *
-     */
-    val vertices: (V, V)
-
-    /**
-     * Method to return the other end of this undirected edge from the given vertex <code>v</code>.
-     * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
-     *
-     * @param w (V) the given vertex key (attribute).
-     * @return an optional vertex key.
-     */
-    def other[W >: V](w: W): Option[W]
-
-    /**
-     * Method to determine if w is one of the vertices of this EdgeLike object.
-     *
-     * @param w (>: V) the given vertex key (attribute).
-     * @return true if w is a vertex else false.
-     */
-    def meets[W >: V](w: W): Boolean = vertices._1 == w || vertices._2 == w
-
-    /**
-     * Method to get the other vertex of this edge when we are reasonably sure that the other vertex is defined.
-     *
-     * @param w (>: V) the given vertex key (attribute).
-     * @return the vertex at the other end of this edge from v.
-     */
-    def otherVertex[W >: V](w: W): W = Util.getOrThrow(other(w), GraphException(s"Edge.otherVertex: $w does not belong to edge $this "))
+  /**
+   * Retrieves the type of the edge (e.g., directed or undirected).
+   *
+   * @return an instance of `EdgeType` that describes whether the edge is directed (one-way) or undirected (two-way).
+   */
+  def edgeType: EdgeType
 }
 
 /**
- * Trait to define the behavior of an EdgeLike object which is directed.
+ * A trait that represents an ordered edge in a graph structure.
  *
- * @tparam V the (covariant) Vertex key type.
+  * Extends the `Edge` interface by providing an ordering mechanism
+ * based on the edge's attribute of type `E`. It also implements the Scala `Ordered` trait
+ * to enable comparisons between edges.
+ *
+ * @tparam E the type of the attribute associated with the edge. This attribute is used for
+ *           determining the order of the edges.
+ * @tparam V the type of the vertices connected by the edge.
  */
-trait Directed[+V] extends EdgeLike[V] {
-    /**
-     * @return (V) start vertex attribute (key).
-     */
-    def from: V
-
-    /**
-     * @return (V) end vertex attribute (key).
-     */
-    def to: V
+trait OrderableEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
+  /**
+   * Compares this edge with another edge based on their attributes using the specified ordering.
+   *
+   * @param that     the edge to compare against.
+   * @param ordering the implicit ordering instance that defines the comparison behavior for the edge attributes.
+   * @return an integer where a negative value indicates this edge's attribute is less than the other edge's attribute,
+   *         zero indicates they are equal, and a positive value indicates this edge's attribute is greater.
+   */
+  def compare(that: Edge[E, V])(implicit ordering: Ordering[E]): Int =
+    ordering.compare(this.attribute, that.attribute)
 }
 
 /**
- * Trait to define the behavior of an EdgeLike object which is undirected.
- *
- * @tparam V the (covariant) Vertex key type.
+ * A trait representing the type of an edge, indicating whether it is directed or undirected.
+ * Or something else?
+ * It provides a method to determine if the edge is one-way, and a `toString` method
+ * for human-readable representation of the edge type.
  */
-trait Undirected[+V] extends EdgeLike[V] {
-    /**
-     * Value of one of the vertices.
-     * This method is deterministic thus always gives the same result for a particular edge.
-     */
-    val vertex: V
+trait EdgeType:
+  /**
+   * Indicates whether the edge type is one-way.
+   *
+   * @return true if the edge is directed (one-way), false if the edge is undirected.
+   */
+  def oneWay: Boolean
+
+/**
+ * The `Directed` object represents a directed edge type in a graph,
+ * where the edge has a specific direction (one-way).
+ * It extends the `EdgeType` trait and implements the `oneWay` method,
+ * which always returns true to indicate that the edge is directed.
+ */
+object Directed extends EdgeType {
+  /**
+   * Indicates whether the edge is one-way (directed).
+   *
+   * @return true, as this method always returns true to signify that the edge is directed.
+   */
+  def oneWay: Boolean = true
+
+  override def toString: String = "Directed"
 }
 
 /**
- * Trait to represent an UndirectedEdge.
- *
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ * The `Undirected` object represents an undirected edge type in a graph.
+ * It extends the `EdgeType` trait and overrides the `oneWay` method
+ * to indicate that edges of this type are not one-way.
  */
-trait UndirectedEdge[+V, +E] extends Edge[V, E] with Undirected[V]
+object Undirected extends EdgeType {
+  /**
+   * Indicates whether the edge type is directional (one-way).
+   *
+   * @return false, as the edge type is not one-way.
+   */
+  def oneWay: Boolean = false
+
+  override def toString: String = "Undirected"
+}
 
 /**
- * Trait to represent a DirectedEdge.
+ * Represents the "Undefined" edge type in a graph.
  *
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ * The `Undefined` edge type is considered undirected, as determined by the `oneWay` method,
+ * which always returns `false`. This implies that there is no specific directionality
+ * for edges of this type.
+ *
+ * This object provides a concrete implementation of the `EdgeType` trait, overriding the `oneWay`
+ * method to indicate the lack of directionality.
  */
-trait DirectedEdge[+V, +E] extends Edge[V, E] with Directed[V]
+object Undefined extends EdgeType {
+  /**
+   * Determines if the edge type is one-way.
+   *
+   * This method always returns `false`, indicating that the edge type is undirected.
+   *
+   * @return false, indicating the edge type is not one-way.
+   */
+  def oneWay: Boolean = false
+
+  override def toString: String = "Undefined"
+}
 
 /**
- * Trait to represent an undirected ordered edge.
+ * The `EdgeType` object provides utilities and definitions for working with edge types in a graph,
+ * including traits and implicit parsers. Edge types include `Directed`, `Undirected`, and `Undefined`.
  *
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
+ * It includes a companion object for parsing strings into `EdgeType` instances using the `ParseableEdgeType` trait.
+ * This allows for flexible and structured parsing of textual representations of edge types into their corresponding instances.
  */
-trait UndirectedOrderedEdge[+V, E] extends UndirectedEdge[V, E] with Ordering[E]
+object EdgeType {
 
-/**
- * Trait to represent an directed ordered edge.
- *
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
- */
-trait DirectedOrderedEdge[+V, E] extends DirectedEdge[V, E] with Ordering[E]
-
-/**
- * Class to represent a directed edge from <code>from</code> to <code>to</code>.
- *
- * @param from      (V) start vertex attribute (key).
- * @param to        (V) the end vertex attribute (key).
- * @param attribute (E) the edge attribute
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- * @tparam E the Edge type, i.e. the type of its attribute.
- */
-case class DirectedEdgeCase[V, E](from: V, to: V, attribute: E) extends BaseDirectedEdge[V, E](from, to, attribute)
-
-/**
- * Class to represent a directed, ordered edge from <code>from</code> to <code>to</code>.
- * For example, an edge with a weighting.
- *
- * @param from      (V) start vertex attribute (key).
- * @param to        (V) the end vertex attribute (key).
- * @param attribute (E) the edge attribute
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- * @tparam E the Edge type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[E].
- */
-case class DirectedOrderedEdgeCase[V, E: Ordering](from: V, to: V, attribute: E) extends BaseDirectedOrderedEdge[V, E](from, to, attribute)
-
-/**
- * Class to represent an undirected edge between <code>v1</code> and <code>v2</code>.
- *
- * @param v1        (V) a vertex attribute (key).
- * @param v2        (V) the other vertex attribute (key).
- * @param attribute (E) the edge attribute
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[V].
- * @tparam E the Edge type, i.e. the type of its attribute.
- */
-case class UndirectedEdgeCase[V: Ordering, E](v1: V, v2: V, attribute: E) extends BaseUndirectedEdge[V, E](v1, v2, attribute)
-
-/**
- * Class to represent an undirected, ordered edge between <code>v1</code> and <code>v2</code>.
- *
- * @param v1        (V) a vertex attribute (key).
- * @param v2        (V) the other vertex attribute (key).
- * @param attribute (E) the edge attribute
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[V].
- * @tparam E the Edge type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[E].
- */
-case class UndirectedOrderedEdgeCase[V: Ordering, E: Ordering](v1: V, v2: V, attribute: E) extends BaseUndirectedOrderedEdge[V, E](v1, v2, attribute)
-
-/**
- * Abstract base class to represent an undirected edge.
- *
- * @param _v1        (V) one vertex attribute (key).
- * @param _v2        (V) the other vertex attribute (key).
- * @param _attribute (E) the edge attribute.
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[V].
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
- */
-abstract class BaseUndirectedEdge[+V: Ordering, +E](_v1: V, _v2: V, val _attribute: E) extends UndirectedEdge[V, E] {
+  /**
+   * A trait that extends `Parseable` for parsing strings into instances of `EdgeType`.
+   *
+   * This trait provides specific parsing functionality and default values for `EdgeType`.
+   * It includes methods to define the regex pattern for parsing, the default `EdgeType`
+   * value, and a descriptive message about the type. The `parse` method attempts to
+   * convert a given string into a valid `EdgeType` instance, returning failure if
+   * the input does not conform to the expected format.
+   */
+  trait ParseableEdgeType extends Parseable[EdgeType] {
     /**
-     * Value of _v1.
+     * The regular expression used for parsing a `Parseable[T]`.
      *
-     * NOTE could equally take the value of <code>_v2</code> but note that method vertices relies on this being deterministic.
+     * @return A compiled regular expression.
+     *         By default, the result matches one or more word characters (`\w+`).
      */
-    val vertex: V = _v1
+    def regex: Regex =
+      """[=<->.]+""".r
 
     /**
-     * Method to return the other end of this edge from the given vertex <code>v</code>.
-     * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
+     * Returns a message providing details about of type `T`.
      *
-     * @param w (V) the given vertex key (attribute).
-     * @return an optional vertex key.
+     * @return The message.
      */
-    def other[W >: V](w: W): Option[W] = Option.when(w == _v1)(_v2) orElse Option.when(w == _v2)(_v1)
+    def message: String =
+      "EdgeType"
 
     /**
-     * Method to get the two vertices of this edge in some deterministic order, based on the implicit value of Ordering[V].
+     * Attempts to parse a string into an `EdgeType`.
+     *
+     * This method maps specific string patterns to predefined `EdgeType` instances:
+     * - "." corresponds to `Directed`.
+     * - "=" corresponds to `Undirected`.
+     * If the string does not match these patterns, a failure is returned with an exception.
+     *
+     * @param s the input string to be parsed into an `EdgeType`
+     * @return a `Try[EdgeType]` representing success with a parsed `EdgeType` or failure with an exception
      */
-    val vertices: (V, V) = {
-        val v = if (implicitly[Ordering[V]].compare(_v1, _v2) <= 0) _v1 else _v2
-        v -> otherVertex(v) // XXX this is guaranteed to have a defined value so will not throw an exception
+    def parse(s: String): Try[EdgeType] = s match {
+      case ">" =>
+        Success(Directed)
+      case "=" =>
+        Success(Undirected)
+      case _ =>
+        Success(Undefined)
     }
 
     /**
-     * Method to render this Edge as a String.
+     * Returns a default value of type `T`.
      *
-     * @return a String of form: v1<--e-->v2
+     * @return the default value of type `T`, typically representing an "empty" or "none" state.
      */
-    override def toString: String = {
-        val tuple = vertices
-        s"${tuple._1}<--(${_attribute})-->${tuple._2}"
-    }
-}
+    def none: EdgeType = Directed
+  }
 
-/**
- * Abstract base class for a directed edge.
- *
- * @param _from      (V) the start vertex attribute (key).
- * @param _to        (V) the end vertex attribute (key).
- * @param _attribute (E) the edge attribute.
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- * @tparam E the (covariant) Edge type, i.e. the type of its attribute.
- */
-abstract class BaseDirectedEdge[+V, +E](val _from: V, val _to: V, val _attribute: E) extends DirectedEdge[V, E] {
-    /**
-     * The two vertices in the natural order: _from, _to.
-     */
-    val vertices: (V, V) = _from -> _to
-
-    /**
-     * Method to return the "to"" end of this directed edge provided that the given vertex
-     * is is the same as _from (in which case None) will be returned.
-     *
-     * @param w (V) the given vertex key (attribute).
-     * @return an optional vertex key.
-     */
-    def other[W >: V](w: W): Option[W] = Option.when(w == _from)(_to)
-
-    override def toString: String = s"${_from}--(${_attribute})-->${_to}"
-}
-
-/**
- * Abstract base class for an undirected, ordered edge.
- * For example, an edge with a weighting.
- *
- * @param _v1        (V) one vertex attribute (key).
- * @param _v2        (V) the other vertex attribute (key).
- * @param _attribute (E) the edge attribute.
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[V].
- * @tparam E the Edge type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[E].
- */
-abstract class BaseUndirectedOrderedEdge[V: Ordering, E: Ordering](_v1: V, _v2: V, override val _attribute: E) extends BaseUndirectedEdge[V, E](_v1, _v2, _attribute) with UndirectedOrderedEdge[V, E] with Ordered[Edge[V, E]] {
-
-    /**
-     * Method to compare x (E) attribute with y (E).
-     *
-     * CONSIDER do we actually need this?
-     *
-     * @param e1 an E value.
-     * @param e2 an E value.
-     * @return -1, 0, or 1 depending on the ordering of e1 and e2.
-     */
-    def compare(e1: E, e2: E): Int = implicitly[Ordering[E]].compare(e1, e2)
-
-    /**
-     * Method to compare this edge with that edge.
-     *
-     * CONSIDER do we actually need this?
-     *
-     * @param that another edge.
-     * @return -1, 0, or 1 depending on the ordering of this and that edges.
-     */
-    def compare(that: Edge[V, E]): Int = OrderedEdge.compare(this, that)
-}
-
-/**
- * Abstract base class for an directed, ordered edge.
- * For example, an edge with a weighting.
- *
- * @param _from      (V) start vertex attribute (key).
- * @param _to        (V) the end vertex attribute (key).
- * @param _attribute (E) the edge attribute
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- * @tparam E the Edge type, i.e. the type of its attribute.
- *           Requires implicit evidence of type Ordering[E].
- */
-abstract class BaseDirectedOrderedEdge[V, E: Ordering](override val _from: V, override val _to: V, override val _attribute: E) extends BaseDirectedEdge[V, E](_from, _to, _attribute) with DirectedOrderedEdge[V, E] with Ordered[Edge[V, E]] {
-
-    /**
-     * Method to compare x (E) attribute with y (E).
-     *
-     * CONSIDER do we actually need this?
-     *
-     * @param e1 an E value.
-     * @param e2 an E value.
-     * @return -1, 0, or 1 depending on the ordering of e1 and e2.
-     */
-    def compare(e1: E, e2: E): Int = implicitly[Ordering[E]].compare(e1, e2)
-
-    /**
-     * Method to compare this edge with that edge.
-     *
-     * @param that another edge.
-     * @return -1, 0, or 1 depending on the ordering of this and that edges.
-     */
-    def compare(that: Edge[V, E]): Int = OrderedEdge.compare(this, that)
-}
-
-/**
- * Trait to describe a vertex pair that has no explicit edge connecting them.
- *
- * CONSIDER redefining using EdgeLike.
- *
- * @tparam V the (covariant) Vertex key type, i.e. the type of its attribute.
- */
-trait VertexPair[+V] extends Edge[V, Unit] {
-    def invert: VertexPair[V]
-
-    def unit[W >: V](v1: W, v2: W): VertexPair[W]
-}
-
-/**
- * Class to represent a vertex pair, for example, as a connection in the Union-Find problem.
- *
- * @param v1 a vertex.
- * @param v2 another vertex.
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- */
-case class VertexPairCase[V](v1: V, v2: V) extends BaseVertexPair[V](v1, v2) {
-    def unit[W >: V](v1: W, v2: W): VertexPair[W] = VertexPairCase(v1, v2)
-}
-
-/**
- * Abstract base class to represent a connection between a pair of vertices that are not connected by an explicit edge object.
- * This class is intended for edge-less graphs such as are found in the Union-Find problem.
- *
- * @param _v1 one of the vertices.
- * @param _v2 the other vertex.
- * @tparam V the Vertex key type, i.e. the type of its attribute.
- */
-abstract class BaseVertexPair[+V](_v1: V, _v2: V) extends VertexPair[V] {
-    /**
-     * @return ().
-     */
-    val attribute: Unit = ()
-
-    /**
-     * The two vertices of this Edge as a tuple: (_v1, _v2)
-     */
-    val vertices: (V, V) = _v1 -> _v2
-
-
-    def invert: VertexPair[V] = unit(_v2, _v1)
-
-    /**
-     * Method to return the other end of this edge from the given vertex <code>v</code>.
-     * If the value of <code>v</code> is neither <code>_v1</code> nor <code>_v2</code>, then None will be returned.
-     *
-     * CONSIDER merging this class with BaseUndirectedEdge.
-     *
-     * TESTME
-     *
-     * @param w (V) the given vertex key (attribute).
-     * @return an optional vertex key.
-     */
-    def other[W >: V](w: W): Option[W]
-    = Option.when(w == _v1)(_v2) orElse Option.when(w == _v2)(_v1)
-
-    override def toString: String = s"${_v1}:${_v2}"
-}
-
-/**
- * Object to provide non-instance methods for an ordered edge.
- */
-object OrderedEdge {
-    /**
-     * Method to return an Int whose sign communicates how edge x compares to edge y.
-     *
-     * @param x an edge to be compared.
-     * @param y the other edge to be compared.
-     * @tparam V the vertex type
-     * @tparam E the edge-type.
-     *           Requires implicit evidence of type Ordering[E].
-     */
-    def compare[V, E: Ordering](x: Edge[V, E], y: Edge[V, E]): Int = implicitly[Ordering[E]].compare(x.attribute, y.attribute)
+  /**
+   * Companion object for the `ParseableEdgeType` trait, providing an implicit instance of it.
+   *
+   * This object enables the parsing of strings into instances of `EdgeType` using the functionality
+   * defined in the `ParseableEdgeType` trait. It allows users to implicitly convert strings into
+   * `EdgeType` objects by defining a default implicit instance of the parser.
+   *
+   * The `ParseableEdgeType` provides specific parsing rules for string representations of `EdgeType` and
+   * ensures the parsing process adheres to defined formats and constraints. It includes methods for
+   * matching specific patterns, returning descriptive messages, and handling invalid inputs gracefully.
+   */
+  implicit object ParseableEdgeType extends ParseableEdgeType
 }

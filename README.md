@@ -77,6 +77,8 @@ The first commit took place 2023/04/11 and the last commit to the forked repo wa
 
 Versions
 ========
-The current version is 0.1.1
+The current version is 0.1.2
+
+Version 0.1.1 added DFS and generally refactored much of the core.
 
 Version 0.1.0 supports the Prim application, and provides dfs and bfs graph traversal.

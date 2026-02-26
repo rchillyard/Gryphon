@@ -1,14 +1,11 @@
-# Scala CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/sample-config/ for more details
-#
-version: 2
+# CircleCI configuration for Gryphon
+version: 2.1
+
 jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/openjdk:11-jdk
-
+      - image: cimg/openjdk:17.0
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -22,21 +19,40 @@ jobs:
       TERM: dumb
 
     steps:
-      - checkout
-
-      # Download and cache dependencies
+      - run:
+          name: Checkout
+          command: git clone https://github.com/rchillyard/Gryphon.git .
+      # Restore cached dependencies
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "build.sbt" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: cat /dev/null | sbt test:compile
+      # Compile
+      - run:
+          name: Compile
+          command: cat /dev/null | sbt compile
 
+      # Save dependency cache
       - save_cache:
           paths:
-            - ~/.m2
-          key: v1-dependencies--{{ checksum "build.sbt" }}
+            - ~/.sbt
+            - ~/.ivy2/cache
+            - ~/.cache/coursier
+          key: v1-dependencies-{{ checksum "build.sbt" }}
 
-      # run tests!
-      - run: cat /dev/null | sbt test:test
+      # Run tests
+      - run:
+          name: Test
+          command: cat /dev/null | sbt test
+
+      # Generate scaladoc (catches doc warnings in CI)
+      - run:
+          name: Doc
+          command: cat /dev/null | sbt doc
+
+workflows:
+  build-and-test:
+    jobs:
+      - build

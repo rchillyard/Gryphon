@@ -1,4 +1,4 @@
-ThisBuild / version := "0.2.2"
+ThisBuild / version := "0.2.3"
 
 ThisBuild / scalaVersion := "3.7.4"
 
@@ -13,7 +13,7 @@ lazy val scalaParserCombinatorsVersion = "2.4.0"
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "2.0.17",
   "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
-  ("com.phasmidsoftware" % "tableparser-core_2.13" % "1.2.4")
+  ("com.phasmidsoftware" % "tableparser-core_2.13" % "1.2.5")
           .exclude("com.phasmidsoftware", "flog_2.13")
           .exclude("org.scala-lang.modules", "scala-parser-combinators_2.13"),
   "com.phasmidsoftware" %% "visitor" % "1.2.0",

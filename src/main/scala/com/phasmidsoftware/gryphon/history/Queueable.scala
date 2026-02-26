@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2026. Phasmid Software 
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.history
 
+import com.phasmidsoftware.gryphon.history.{MutableQueueable, PriorityQueueable, Queueable}
+import com.phasmidsoftware.gryphon.history.Journal
 import scala.collection.immutable.Queue
 import scala.collection.mutable
 import scala.collection.mutable.PriorityQueue

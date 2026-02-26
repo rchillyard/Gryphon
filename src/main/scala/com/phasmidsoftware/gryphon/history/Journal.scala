@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2026. Phasmid Software 
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.history
 
+import com.phasmidsoftware.gryphon.core.*
 import java.io.FileWriter
 import scala.collection.immutable.Queue
 

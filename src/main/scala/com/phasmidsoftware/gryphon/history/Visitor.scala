@@ -2,8 +2,7 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.core
-
+import com.phasmidsoftware.gryphon.history.{IterableJournal, Journal}
 import scala.collection.immutable.Queue
 
 /**

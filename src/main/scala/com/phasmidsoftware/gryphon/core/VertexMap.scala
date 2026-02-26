@@ -4,7 +4,6 @@ import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
 import com.phasmidsoftware.visitor.core.{*, given}
 import org.slf4j.{Logger, LoggerFactory}
-
 import scala.annotation.tailrec
 import scala.util.Random
 
@@ -19,7 +18,7 @@ import scala.util.Random
   * @tparam V the type representing the vertex attributes (invariant).
   * @param map a mapping from vertex attributes to their associated Vertex instances.
   */
-case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Random()) extends Traversable[V]:
+case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Random()) extends Traversable[V]:
 
   // -----------------------------------------------------------------------
   // Traversable implementation
@@ -137,7 +136,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
     * Adds a vertex to the VertexMap.
     */
   def +(vertex: Vertex[V]): VertexMap[V] =
-    copy(map = map + (vertex.attribute -> vertex))
+    VertexMap(map = map + (vertex.attribute -> vertex))(random)
 
   /**
     * Adds a directed or undirected edge to the vertex map.
@@ -269,7 +268,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]], private val random: Random = Ran
   */
 object VertexMap:
 
-  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
+  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)()
 
   def apply[V]: VertexMap[V] = apply(Map.empty[V, Vertex[V]])
 

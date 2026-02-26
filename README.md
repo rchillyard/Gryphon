@@ -10,11 +10,20 @@ Gryphon Graph Library
 Gryphon is a library for representing and traversing graphs.
 
 The core concepts are in the package com.phasmidsoftware.gryphon.core.
-As always, consult the spec files (under test directory) to learn how to use the library.
+As always, consult the spec files (under the `test` directory) to learn how to use the library.
+
+Important Note
+==============
+This library is still in development.
+It is not yet ready for production use.
+As of version 0.2.2, it is not yet on Maven Central.
+Version 0.2.2 is available on GitHub and depends on a new Visitor project (https://github.com/rchillyard/Visitor), which IS on Maven Central.
+We are working through adapting the original Gryphon code to the new Visitor-based code.
+Much of the remaining information in this document is out of date.
 
 Attributed
 ----------
-Attributed is a trait which supports an attribute of some type.
+Attributed is a trait that supports an attribute of some type.
 Attributed types are _Graph_, _Edge_, _Vertex_.
 
 Graph

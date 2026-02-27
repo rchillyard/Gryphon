@@ -2,8 +2,6 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.applications.mst
-
 import com.phasmidsoftware.gryphon.core.Edge
 
 trait SP[V, E, X <: Edge[V, E]] {

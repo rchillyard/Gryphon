@@ -1,4 +1,4 @@
-package com.phasmidsoftware.gryphon.util
+package com.phasmidsoftware.gryphon.history
 
 /**
  * A case class that represents a named function.

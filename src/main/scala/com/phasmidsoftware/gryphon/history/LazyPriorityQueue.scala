@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2026. Phasmid Software 
  */
 
-package com.phasmidsoftware.gryphon.util
+package com.phasmidsoftware.gryphon.history
 
 import scala.annotation.tailrec
 import scala.collection.mutable

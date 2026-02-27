@@ -1,4 +1,4 @@
-package com.phasmidsoftware.gryphon.util
+package com.phasmidsoftware.gryphon.history
 
 import scala.collection.immutable.Queue
 import scala.collection.mutable

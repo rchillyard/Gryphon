@@ -7,7 +7,6 @@
 //import com.phasmidsoftware.util.FP.resource
 //import scala.util.{Failure, Success}
 //
-//// CONSIDER move this to applications oldcore
 //object PrimDemo extends App {
 //
 //  private val resourceName = "/prim.graph"

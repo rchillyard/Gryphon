@@ -70,10 +70,10 @@ object SerializableGraph {
    *              The first element of the tuple is the source vertex, and the second element is the target vertex.
    * @tparam V the type associated with the vertices in the graph.
    * @tparam Z the generic type for edge type.
-   * @return a `Connexions[V]` representing the graph constructed from the specified vertex pairs.
+   * @return a `ProtoConnexions[V]` representing the graph constructed from the specified vertex pairs.
    */
   def createFromPairs[V, Z](pairs: Seq[(V, V, Z)]): SerializableGraph[V, Unit, Z] =
-    Connexions(pairs)
+    ProtoConnexions(pairs)
 }
 
 /**

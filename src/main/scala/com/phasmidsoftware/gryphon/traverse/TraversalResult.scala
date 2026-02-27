@@ -245,7 +245,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
     case d@AttributedDirectedEdge[E, V] (_, _, _) =>
       copy(connexions = connexions + (v -> d))
     case u@UndirectedEdge[E, V] (q, _, _) =>
-  copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
+      copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
     case _ =>
       throw GraphException(s"getConnexions: unexpected connexion: $connexion")
   }
@@ -264,13 +264,13 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
 }
 
 /**
- * Provides utility methods for creating and managing instances of the `Connexions` class,
+ * Provides utility methods for creating and managing instances of the `ProtoConnexions` class,
  * which represents a specific traversal of vertices within a graph resulting from
  * a depth-first search starting at a particular vertex.
  */
 object Connexions {
   /**
-   * Creates a `Connexions` instance representing a traversal of a graph using depth-first search (DFS).
+   * Creates a `ProtoConnexions` instance representing a traversal of a graph using depth-first search (DFS).
    * The traversal starts from the specified vertex, processes each vertex using the provided function,
    * and returns the resulting connexions.
    *
@@ -278,17 +278,17 @@ object Connexions {
    * @param start the starting vertex for the DFS traversal, of type `V`.
    * @tparam V the type representing a vertex in the graph.
    * @tparam E the type representing the edge attribute in the traversal.
-   * @return a `Connexions` object that encapsulates the result of the traversal,
+   * @return a `ProtoConnexions` object that encapsulates the result of the traversal,
    *         mapping vertices to their respective directed edges.
    */
   def create[V, E](graph: core.Traversable[V])(start: V): Connexions[V, E] =
     graph.getConnexions(start)
 
   /**
-   * Creates an empty instance of the `Connexions` class, representing a traversal with no vertices or edges.
+   * Creates an empty instance of the `ProtoConnexions` class, representing a traversal with no vertices or edges.
    *
    * @tparam V the type representing a vertex in the graph.
-   * @return an empty `Connexions` instance.
+   * @return an empty `ProtoConnexions` instance.
    */
   def empty[V, E]: Connexions[V, E] =
     Connexions(Map.empty[V, DirectedEdge[E, V]])

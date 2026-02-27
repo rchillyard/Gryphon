@@ -17,7 +17,7 @@
 //
 //    val emptyBaseAdjacency: OrderedBaseAdjacency[Int, Connexion[Int]] = OrderedBaseAdjacency.empty[Int, Connexion[Int]]
 //    val connexions: BaseConnexions[Int, DirectedConnexion[Int]] = BaseConnexionsCase[Int, DirectedConnexionCase[Int]](Bag.create(DirectedConnexionCase[Int](0, 1)))
-//    val tuple: (Int, Connexions[Int, DirectedConnexion[Int], Unit]) = 0 -> connexions
+//    val tuple: (Int, ProtoConnexions[Int, DirectedConnexion[Int], Unit]) = 0 -> connexions
 //    val a: Adjacency[Int, Connexion[Int], Unit] = emptyBaseAdjacency + tuple
 //    a.adjacent(0).connexions.iterator.next() shouldBe DirectedConnexionCase(0, 1)
 //  }

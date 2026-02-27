@@ -2,7 +2,7 @@
  * Copyright (c) 2023-2026. Phasmid Software
  */
 
-package com.phasmidsoftware.gryphon.history
+package com.phasmidsoftware.gryphon.core
 
 /**
  * Class which represents an adjacency list.

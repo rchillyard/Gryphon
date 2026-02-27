@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2023. Phasmid Software
+ * Copyright (c) 2023-2026. Phasmid Software 
  */
 
-package com.phasmidsoftware.gryphon.core
+package com.phasmidsoftware.gryphon.util
 
 /**
  * Trait to define a type class which supports the zero (identity) method.

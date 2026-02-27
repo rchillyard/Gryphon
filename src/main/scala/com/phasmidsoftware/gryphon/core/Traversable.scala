@@ -118,11 +118,10 @@ trait Traversable[V] {
     *
     * @param f     transformation function applied to each vertex.
     * @param start the starting vertex.
-    * @tparam E unused edge type parameter (retained for API compatibility).
     * @tparam T the result type produced by `f`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
     */
-  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Try[TraversalResult[V, T]] = {
+  def vertexMappedTraversalDfs[T](f: V => T)(start: V): Try[TraversalResult[V, T]] = {
     given Evaluable[V, T] with
       def evaluate(v: V): Option[T] = Some(f(v))
 
@@ -144,11 +143,10 @@ trait Traversable[V] {
     *
     * @param fulfill transformation function applied to each vertex.
     * @param start   the starting vertex.
-    * @tparam E unused edge type parameter (retained for API compatibility).
     * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
     */
-  def vertexMappedTraversalBfs[E, T](fulfill: V => T)(start: V): Try[TraversalResult[V, T]] = {
+  def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V): Try[TraversalResult[V, T]] = {
     given Evaluable[V, T] with
       def evaluate(v: V): Option[T] = Some(fulfill(v))
 

@@ -105,7 +105,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
       case Failure(exception) => fail(exception)
   }
 
-  it should "Connexions.create" in {
+  it should "ProtoConnexions.create" in {
     val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dfsu.graph"))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)

@@ -4,9 +4,8 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversal, Traversal as GryphonTraversal}
-import com.phasmidsoftware.visitor.core.{Traversal as VisitorTraversal, *, given}
-
+import com.phasmidsoftware.gryphon.traverse.{Connexions, TraversalResult, VertexTraversalResult}
+import com.phasmidsoftware.visitor.core.{Traversal, *, given}
 import scala.util.Try
 
 /**
@@ -115,24 +114,24 @@ trait Traversable[V] {
 
   /**
     * Performs a DFS traversal applying `f` to each visited vertex and returns a
-    * `VertexTraversal` mapping each vertex to its result.
+   * `VertexTraversalResult` mapping each vertex to its result.
     *
     * @param f     transformation function applied to each vertex.
     * @param start the starting vertex.
     * @tparam E unused edge type parameter (retained for API compatibility).
     * @tparam T the result type produced by `f`.
-    * @return `Try[Traversal[V, T]]` containing the traversal result or a failure.
+   * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
     */
-  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Try[GryphonTraversal[V, T]] = {
+  def vertexMappedTraversalDfs[E, T](f: V => T)(start: V): Try[TraversalResult[V, T]] = {
     given Evaluable[V, T] with
       def evaluate(v: V): Option[T] = Some(f(v))
 
     given GraphNeighbours[V] = graphNeighbours
 
     val visitor = JournaledVisitor.withQueueJournal[V, T]
-    val result = VisitorTraversal.dfs(start, visitor)
+    val result = Traversal.dfs(start, visitor)
     Try {
-      result.result.foldLeft(VertexTraversal.empty[V, T]) {
+      result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
         case (acc, (v, Some(r))) => acc + (v, r)
         case (acc, _) => acc
       }
@@ -141,24 +140,24 @@ trait Traversable[V] {
 
   /**
     * Performs a BFS traversal applying `fulfill` to each visited vertex and returns a
-    * `VertexTraversal` mapping each vertex to its result.
+   * `VertexTraversalResult` mapping each vertex to its result.
     *
     * @param fulfill transformation function applied to each vertex.
     * @param start   the starting vertex.
     * @tparam E unused edge type parameter (retained for API compatibility).
     * @tparam T the result type produced by `fulfill`.
-    * @return `Try[Traversal[V, T]]` containing the traversal result or a failure.
+   * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
     */
-  def vertexMappedTraversalBfs[E, T](fulfill: V => T)(start: V): Try[GryphonTraversal[V, T]] = {
+  def vertexMappedTraversalBfs[E, T](fulfill: V => T)(start: V): Try[TraversalResult[V, T]] = {
     given Evaluable[V, T] with
       def evaluate(v: V): Option[T] = Some(fulfill(v))
 
     given GraphNeighbours[V] = graphNeighbours
 
     val visitor = JournaledVisitor.withQueueJournal[V, T]
-    val result = VisitorTraversal.bfs(start, visitor)
+    val result = Traversal.bfs(start, visitor)
     Try {
-      result.result.foldLeft(VertexTraversal.empty[V, T]) {
+      result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
         case (acc, (v, Some(r))) => acc + (v, r)
         case (acc, _) => acc
       }

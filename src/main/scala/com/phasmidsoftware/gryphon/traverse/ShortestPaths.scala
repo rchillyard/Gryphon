@@ -2,8 +2,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge}
 import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.visitor.core.{Traversal as VisitorTraversal, *, given}
+import com.phasmidsoftware.visitor.core.{Traversal, *, given}
 
 import scala.collection.mutable
 
@@ -19,16 +18,16 @@ object ShortestPaths:
 
   /**
     * Runs Dijkstra's algorithm from start, returning the shortest-path tree as a
-    * VertexTraversal mapping each settled vertex to its incoming edge.
+   * VertexTraversalResult mapping each settled vertex to its incoming edge.
     *
     * @param traversable the weighted directed graph.
     * @param start       the source vertex.
     * @tparam V the vertex type.
     * @tparam E the edge-weight type; must be Numeric and Ordering.
-    * @return a VertexTraversal[V, DirectedEdge[E, V]] where each vertex maps to the
+   * @return  a VertexTraversalResult[V, DirectedEdge[E, V]] where each vertex maps to the
     *         cheapest incoming edge, or None for the start vertex itself.
     */
-  def dijkstra[V, E: Numeric : Ordering](traversable: core.Traversable[V], start: V): Traversal[V, DirectedEdge[E, V]] =
+  def dijkstra[V, E: {Numeric, Ordering}](traversable: core.Traversable[V], start: V): TraversalResult[V, DirectedEdge[E, V]] =
     val en = implicitly[Numeric[E]]
 
     // Best known cost and incoming edge for each settled vertex.
@@ -64,13 +63,13 @@ object ShortestPaths:
     given GraphNeighbours[V] = new GraphNeighbours[V]:
       def neighbours(v: V): Iterator[V] = traversable.adjacentVertices(v)
 
-    val result = VisitorTraversal.bestFirst(
+    val result = Traversal.bestFirst(
       start,
       JournaledVisitor.withQueueJournal[V, DirectedEdge[E, V]]
     )
 
     // start has no predecessor; all other settled vertices have Some(edge).
-    VertexTraversal(
+    VertexTraversalResult(
       result.result.iterator.collect { case (v, Some(edge)) => v -> edge }.toMap
     )
 

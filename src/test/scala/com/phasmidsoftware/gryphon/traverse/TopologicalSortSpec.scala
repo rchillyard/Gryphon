@@ -11,8 +11,6 @@ import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
-
 import scala.io.Source
 import scala.util.*
 
@@ -34,7 +32,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
             graph.edges.size shouldBe 11
             graph match {
               case g: EdgeTraversable[Int, Double] =>
-                val traversal = Traversal.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
+                val traversal = TraversalResult.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
                 println(traversal)
               case _ =>
               // Do nothing

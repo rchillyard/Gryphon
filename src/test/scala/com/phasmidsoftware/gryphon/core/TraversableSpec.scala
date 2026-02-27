@@ -2,14 +2,13 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversal}
+import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversalResult}
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.matchers.should.Matchers.shouldBe
-
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -96,7 +95,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
         UndirectedGraph.triplesToTryGraph(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v.toString)(0) match
-              case Success(VertexTraversal(map)) =>
+              case Success(VertexTraversalResult(map)) =>
                 map.size shouldBe 7
                 map(0) shouldBe "0"
                 map(6) shouldBe "6"

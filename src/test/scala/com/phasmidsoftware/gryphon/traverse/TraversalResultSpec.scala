@@ -9,13 +9,12 @@ import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-class TraversalSpec extends AnyFlatSpec with Matchers:
+class TraversalResultSpec extends AnyFlatSpec with Matchers:
 
-  behavior of "Traversal"
+  behavior of "TraversalResult"
 
   it should "vertexMappedTraversalDfs on small undirected graph" in {
     val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] =
@@ -23,7 +22,7 @@ class TraversalSpec extends AnyFlatSpec with Matchers:
     val vm = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsUndirected)
     val graph = UndirectedGraph[Int, Unit](vm)
     graph.vertexMappedTraversalDfs(v => v * 10)(1) match
-      case Success(VertexTraversal(map)) =>
+      case Success(VertexTraversalResult(map)) =>
         map.size shouldBe 3
         map(1) shouldBe 10
         map(2) shouldBe 20
@@ -43,7 +42,7 @@ class TraversalSpec extends AnyFlatSpec with Matchers:
         UndirectedGraph.triplesToTryGraph(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v.toString)(0) match
-              case Success(VertexTraversal(map)) =>
+              case Success(VertexTraversalResult(map)) =>
                 map.size shouldBe 7
                 map(0) shouldBe "0"
               case Success(x) => fail(s"unexpected result: $x")
@@ -58,7 +57,7 @@ class TraversalSpec extends AnyFlatSpec with Matchers:
     val vm = VertexMap[Int].addTriplets[Unit, EdgeType](Vertex.createWithSet, edgeFunc)(tripletsUndirected)
     val graph = UndirectedGraph[Int, Unit](vm)
     graph.vertexMappedTraversalBfs(v => v * 10)(1) match
-      case Success(VertexTraversal(map)) =>
+      case Success(VertexTraversalResult(map)) =>
         map.size shouldBe 3
         map(1) shouldBe 10
         map(2) shouldBe 20

@@ -1,7 +1,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
-import com.phasmidsoftware.visitor.core.{Traversal as VisitorTraversal, *, given}
+import com.phasmidsoftware.visitor.core.{Traversal, *, given}
 
 /**
   * Represents a topological sort of a directed graph, mapping each vertex to its
@@ -10,14 +10,14 @@ import com.phasmidsoftware.visitor.core.{Traversal as VisitorTraversal, *, given
   * @param map a mapping of vertices of type `V` to their position (Int) in topological order.
   * @tparam V the type representing a vertex in the graph.
   */
-case class TopologicalSort[V](map: Map[V, Int]) extends AbstractVertexTraversal[V, Int](map):
+case class TopologicalSort[V](map: Map[V, Int]) extends AbstractVertexTraversalResult[V, Int](map):
   /**
     * Creates a new instance with the provided vertex-to-position mapping.
     *
     * @param m the updated mapping.
-    * @return a new `Traversal[V, Int]`.
+   * @return a new `TraversalResult[V, Int]`.
     */
-  def unit(m: Map[V, Int]): Traversal[V, Int] = copy(map = m)
+  def unit(m: Map[V, Int]): TraversalResult[V, Int] = copy(map = m)
 
 /**
   * Provides functionality for topological sorting of directed graphs using the
@@ -62,7 +62,7 @@ object TopologicalSort:
       else
         val next = unvisited.head
         val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
-        val result = VisitorTraversal.dfs(next, vis, DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs)
+        val result = Traversal.dfs(next, vis, DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs)
         val nowVisited = visited ++ result.result.map(_._1)
         loop(result, nowVisited + next)
 

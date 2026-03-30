@@ -54,10 +54,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * @param visitor the visitor to accumulate results.
    * @param v       the starting vertex.
    */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V)(using ev: Evaluable[V, R]): Visitor[V, R, J] =
+  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R]): Visitor[V, R, J] =
     given GraphNeighbours[V] = graphNeighbours
 
-    Traversal.dfs(v, visitor)
+    Traversal.dfs(v, visitor, order)
 
   /**
    * Performs DFS for all vertices in the graph, including those not reachable from any

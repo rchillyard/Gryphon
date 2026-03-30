@@ -71,7 +71,7 @@ trait Traversable[V] {
     * @tparam J the journal type.
     * @return the updated visitor after traversal.
     */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V)(using Evaluable[V, R]): Visitor[V, R, J]
+  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R]): Visitor[V, R, J]
 
   /**
     * Performs a DFS traversal for all vertices in the graph using the supplied visitor.

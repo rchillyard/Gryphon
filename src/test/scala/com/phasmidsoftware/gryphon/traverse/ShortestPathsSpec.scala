@@ -7,7 +7,6 @@ import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -15,7 +14,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
 
   behavior of "ShortestPaths"
 
-  it should "dijkstra" in {
+  it should "Dijkstra" in {
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dijkstra.graph"))
     val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
@@ -28,7 +27,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             graph.vertexMap.map.size shouldBe 8
             graph.edges.size shouldBe 16
             val sp = ShortestPaths.dijkstra(graph, 0)

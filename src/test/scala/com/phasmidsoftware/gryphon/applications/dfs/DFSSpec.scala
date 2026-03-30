@@ -143,8 +143,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
       case Failure(x) => fail(x)
   }
 
-  it should "dfs post-order on dag.graph yields children before parents" in {
-    pending
+  it should "dfs post-order on dag.graph yields children before parents (QueueJournal)" in {
     // In a DAG, post-order DFS guarantees that for every edge u -> v,
     // v appears before u in the post-order sequence.
     // dag.graph edges include: 0->5, 0->2, 0->1, 3->6, 3->5, 3->4,
@@ -158,14 +157,36 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
-            val visitor = JournaledVisitor.withListJournal[Int, Int]
+            val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfs(visitor, DfsOrder.Post)(3)
             val postOrder = result.result.map(_._1).toList
-            // 2 must come before 5 (since 5->2), and 5 before 3 (since 3->5)
+            postOrder.last shouldBe 3
             postOrder.indexOf(2) should be < postOrder.indexOf(5)
             postOrder.indexOf(5) should be < postOrder.indexOf(3)
-            // 4 must come before 6 (since 6->4), and 6 before 3 (since 3->6)
-            postOrder.indexOf(4) should be < postOrder.indexOf(6)
+            postOrder.indexOf(0) should be < postOrder.indexOf(6)
+            postOrder.indexOf(6) should be < postOrder.indexOf(3)
+          case Failure(x) => fail("parse failed: ", x)
+      case Failure(x) => fail("parse failed", x)
+  }
+
+  it should "dfs post-order on dag.graph yields children before parents (ListJournal)" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    val triedSource = Try(Source.fromResource("dag.graph"))
+    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      source => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    }
+    zsy match
+      case Success(triplets) =>
+        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+          case Success(graph: Graph[Int]) =>
+            val visitor = JournaledVisitor.withListJournal[Int, Int]
+            val result = graph.dfs(visitor, DfsOrder.Post)(3)
+            // ListJournal prepends, so result is in reverse recording order
+            val postOrder = result.result.map(_._1).toList.reverse
+            postOrder.last shouldBe 3
+            postOrder.indexOf(2) should be < postOrder.indexOf(5)
+            postOrder.indexOf(5) should be < postOrder.indexOf(3)
+            postOrder.indexOf(0) should be < postOrder.indexOf(6)
             postOrder.indexOf(6) should be < postOrder.indexOf(3)
           case Failure(x) => fail("parse failed: ", x)
       case Failure(x) => fail("parse failed", x)

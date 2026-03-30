@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
-
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -28,11 +27,14 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = edge match {
     // FIXME this is all backwards!
-    case edge: DirectedEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case edge: OrderableEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+    case edge: DirectedEdge[_, _] =>
+      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+    case edge: OrderableEdge[_, _] =>
+      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
     case UndirectedEdge(attribute, white, black) =>
       copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white)) // TODO we need to add this edge twice (once in each direction)
-    case _ => throw GraphException(s"unexpected edge type: $edge")
+    case _ =>
+      throw GraphException(s"unexpected edge type: $edge")
   }
 
   /**

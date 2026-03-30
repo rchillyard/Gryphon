@@ -2,9 +2,9 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge}
 import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.visitor.core.{Traversal, *, given}
-
+import com.phasmidsoftware.visitor.core.{*, given}
 import scala.collection.mutable
+import scala.util.Random
 
 /**
   * Computes shortest paths in a weighted directed graph using Dijkstra's algorithm,
@@ -27,7 +27,7 @@ object ShortestPaths:
    * @return  a VertexTraversalResult[V, DirectedEdge[E, V]] where each vertex maps to the
     *         cheapest incoming edge, or None for the start vertex itself.
     */
-  def dijkstra[V, E: {Numeric, Ordering}](traversable: core.Traversable[V], start: V): TraversalResult[V, DirectedEdge[E, V]] =
+  def dijkstra[V, E: {Numeric, Ordering}](traversable: core.Traversable[V], start: V)(using random: Random = Random()): TraversalResult[V, DirectedEdge[E, V]] =
     val en = implicitly[Numeric[E]]
 
     // Best known cost and incoming edge for each settled vertex.
@@ -72,14 +72,3 @@ object ShortestPaths:
     VertexTraversalResult(
       result.result.iterator.collect { case (v, Some(edge)) => v -> edge }.toMap
     )
-
-  /**
-    * Returns the vertices reachable via attributed directed edges from v.
-    * Useful for testing and inspection; the traversal engine manages visited
-    * state internally via VisitedSet.
-    */
-  def undiscoveredEdges[V, E: Numeric](traversable: core.Traversable[V])(v: V): Seq[V] =
-    traversable.filteredAdjacencies(_ => true)(v)
-      .flatMap(_.maybeEdge[E])
-      .collect { case e: AttributedDirectedEdge[E, V] => e.black }
-      .toSeq

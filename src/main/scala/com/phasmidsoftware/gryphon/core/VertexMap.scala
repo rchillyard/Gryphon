@@ -18,7 +18,7 @@ import scala.util.Random
  * @tparam V the type representing the vertex attributes (invariant).
  * @param map a mapping from vertex attributes to their associated Vertex instances.
  */
-case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Random()) extends Traversable[V]:
+case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
 
   // -----------------------------------------------------------------------
   // Traversable implementation
@@ -31,7 +31,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * @return an iterator over the adjacent vertex attributes.
    * @throws GraphException if the specified vertex is not found in the graph.
    */
-  def adjacentVertices(v: V): Iterator[V] =
+  def adjacentVertices(v: V)(using random: Random): Iterator[V] =
     val vo = get(v)
     if vo.isEmpty then throw GraphException(s"vertex $v not found")
     for vv <- vo.iterator; va <- randomAdjacencies(vv) yield va.vertex
@@ -39,11 +39,13 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
   /**
    * Filters the adjacencies of a given vertex based on a specified predicate.
    *
-   * @param predicate determines which adjacencies to include.
+   * @param predicate a function that evaluates each `Adjacency[V]`
+   *                  and returns true if the adjacency satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacencies are to be filtered.
-   * @return an iterator of matching adjacencies.
+   * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]] =
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random): Iterator[Adjacency[V]] =
     map(v).adjacencies.filter(predicate).iterator
 
   /**
@@ -54,7 +56,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * @param visitor the visitor to accumulate results.
    * @param v       the starting vertex.
    */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R]): Visitor[V, R, J] =
+  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     given GraphNeighbours[V] = graphNeighbours
 
     Traversal.dfs(v, visitor, order)
@@ -65,7 +67,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    *
    * @param visitor the visitor to accumulate results.
    */
-  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R]): Visitor[V, R, J] =
+  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     given nbrs: GraphNeighbours[V] = graphNeighbours
 
     @tailrec
@@ -88,7 +90,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * @param v       the starting vertex.
    * @param goal    early-termination predicate (default: never stop early).
    */
-  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R]): Visitor[V, R, J] =
+  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     given GraphNeighbours[V] = graphNeighbours
 
     Traversal.bfs(v, visitor, goal)
@@ -102,7 +104,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * @param v       the starting vertex.
    * @param goal    early-termination predicate on destination vertices.
    */
-  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using Evaluable[Edge[E, V], R]): Visitor[Edge[E, V], R, J] =
+  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[E, V], R], random: Random): Visitor[Edge[E, V], R, J] =
     visitor // stub — full edge-BFS implementation deferred
 
   // -----------------------------------------------------------------------
@@ -118,8 +120,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    */
   def modifyVertex(f: Vertex[V] => Vertex[V])(v: V): VertexMap[V] =
     get(v).map(f) match
-      case Some(vv) => this + vv
-      case None => this
+      case Some(vv) =>
+        this + vv
+      case None =>
+        this
 
   /**
    * Retrieves all vertices in the VertexMap.
@@ -137,7 +141,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * Adds a vertex to the VertexMap.
    */
   def +(vertex: Vertex[V]): VertexMap[V] =
-    VertexMap(map = map + (vertex.attribute -> vertex))(random)
+    VertexMap(map = map + (vertex.attribute -> vertex))
 
   /**
    * Adds a directed or undirected edge to the vertex map.
@@ -199,8 +203,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
    * Ensures a vertex for `v` is present, creating it with `f` if absent.
    */
   def ensure(f: V => Vertex[V])(v: V): VertexMap[V] = get(v) match
-    case Some(_) => this
-    case None => this + f(v)
+    case Some(_) =>
+      this
+    case None =>
+      this + f(v)
 
   /**
    * Adds the edges from the provided EdgeList to this VertexMap.
@@ -261,15 +267,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]])(private val random: Random = Ran
   private def getOrCreate(f: V => Vertex[V])(v: V): Vertex[V] =
     map.getOrElse(v, f(v))
 
-  private def randomAdjacencies(vv: Vertex[V]) =
-    RandomIterator(vv.adjacencies.iterator)(using random)
+  private def randomAdjacencies(vv: Vertex[V])(using random: Random) =
+    RandomIterator(vv.adjacencies.iterator)
 
 /**
  * Companion object for VertexMap.
  */
 object VertexMap:
 
-  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)()
+  def apply[V](map: Map[V, Vertex[V]]): VertexMap[V] = new VertexMap(map)
 
   def apply[V]: VertexMap[V] = apply(Map.empty[V, Vertex[V]])
 

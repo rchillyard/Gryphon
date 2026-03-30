@@ -1,6 +1,9 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
+import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.visitor.core.{*, given}
+import scala.util.Random
 
 /**
   * A trait representing an abstract graph structure composed of vertices.
@@ -23,9 +26,9 @@ trait Graph[V] extends Traversable[V]:
     * @tparam J the journal type.
     * @return the updated visitor after traversal.
     */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using Evaluable[V, R]): Visitor[V, R, J] =
+  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     vertexMap.dfs(visitor, order)(v)
-    
+
   /**
     * Performs DFS for all vertices in the graph, including those unreachable from any
     * single start vertex.
@@ -35,7 +38,7 @@ trait Graph[V] extends Traversable[V]:
     * @tparam J the journal type.
     * @return the updated visitor after traversing all vertices.
     */
-  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using Evaluable[V, R]): Visitor[V, R, J] =
+  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     vertexMap.dfsAll(visitor)
 
   /**
@@ -48,7 +51,7 @@ trait Graph[V] extends Traversable[V]:
     * @tparam J the journal type.
     * @return the updated visitor after traversal.
     */
-  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using Evaluable[V, R]): Visitor[V, R, J] =
+  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     vertexMap.bfs(visitor)(v, goal)
 
   /**
@@ -62,7 +65,7 @@ trait Graph[V] extends Traversable[V]:
     * @tparam J the journal type.
     * @return the visitor after traversal.
     */
-  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using Evaluable[Edge[E, V], R]): Visitor[Edge[E, V], R, J] =
+  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[E, V], R], random: Random): Visitor[Edge[E, V], R, J] =
     vertexMap.bfse(visitor)(v)(goal)
 
   /**
@@ -89,6 +92,23 @@ trait Graph[V] extends Traversable[V]:
     */
   def unit(vertexMap: VertexMap[V]): Graph[V]
 
+  /**
+   * Returns the directed edges reachable from v.
+   */
+  def undiscoveredEdges[E](v: V)(using random: Random = Random()): Seq[Edge[E, V]] =
+    filteredAdjacencies(_ => true)(v)
+            .flatMap(_.maybeEdge[E])
+            .toSeq
+
+  /**
+   * Returns the vertices reachable via attributed directed edges from v.
+   * Useful for testing and inspection; the traversal engine manages visited
+   * state internally via VisitedSet.
+   */
+  def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
+    undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[E, V] => e.black }
+
+
 /**
   * Companion object for `Graph`.
   */
@@ -113,13 +133,15 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
   yield va
 
   /**
-    * Filters the adjacencies of a given vertex based on a predicate.
-    *
-    * @param predicate determines which adjacencies to include.
-    * @param v         the vertex whose adjacencies are filtered.
-    * @return an iterator of matching adjacencies.
-    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]] =
+   * Filters the adjacencies of a given vertex based on a specified predicate.
+   *
+   * @param predicate a function that evaluates each `Adjacency[V]`
+   *                  and returns true if the adjacency satisfies the specified condition.
+   *
+   * @param v         the vertex whose adjacencies are to be filtered.
+   * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
+   */
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random): Iterator[Adjacency[V]] =
     vertexMap.filteredAdjacencies(predicate)(v)
 
   /**
@@ -136,7 +158,7 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
     * @param v the vertex to query.
     * @return an iterator of adjacent vertex attributes.
     */
-  def adjacentVertices(v: V): Iterator[V] = vertexMap.adjacentVertices(v)
+  def adjacentVertices(v: V)(using random: Random): Iterator[V] = vertexMap.adjacentVertices(v)
 
 /**
   * A trait for graphs that carry both vertices and edges, supporting edge-based operations.

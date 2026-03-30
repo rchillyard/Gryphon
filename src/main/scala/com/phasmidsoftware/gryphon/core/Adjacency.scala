@@ -69,8 +69,10 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
     * Returns the edge if the connexion is an Edge instance.
     */
   def maybeEdge[E2]: Option[Edge[E2, V]] = connexion match
-    case e: Edge[E2, V] @unchecked => Some(e)
-    case _ => None
+    case e: Edge[E2, V] @unchecked =>
+      Some(e)
+    case _ =>
+      None
 
 /**
   * Type alias for an unordered collection of adjacencies for a given vertex type.

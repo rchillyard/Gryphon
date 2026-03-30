@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
-
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -29,11 +28,14 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
     * @throws GraphException if the provided edge type is unexpected or unsupported.
     */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = edge match {
-    case edge: DirectedEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case edge: OrderableEdge[_, _] => copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+    case edge: DirectedEdge[_, _] =>
+      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
+    case edge: OrderableEdge[_, _] =>
+      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
     case edge@UndirectedEdge(_, white, _) =>
       copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(white)) // TODO we need to add this edge twice (once in each direction)
-    case _ => throw GraphException(s"unexpected edge type: $edge")
+    case _ =>
+      throw GraphException(s"unexpected edge type: $edge")
   }
 
   /**
@@ -149,7 +151,7 @@ object DirectedGraph {
         // NOTE duplicated code in UndirectedGraph
         if (graph.adjacencies.size != triplets.triplets.size)
           System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")
-        println(s"graph = $graph")
+//        println(s"graph = $graph")
         Success(graph)
       case z =>
         Failure(GraphException(s"parse failed: $z"))

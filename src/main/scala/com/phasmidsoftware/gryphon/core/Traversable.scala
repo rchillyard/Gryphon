@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.traverse.{Connexions, TraversalResult, VertexTraversalResult}
 import com.phasmidsoftware.visitor.core.{Traversal, *, given}
-import scala.util.Try
+import scala.util.{Random, Try}
 
 /**
   * Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfs.
@@ -34,7 +34,7 @@ trait Traversable[V] {
     * @param v the vertex whose adjacent vertices are to be returned.
     * @return an iterator over the vertices adjacent to the specified vertex.
     */
-  def adjacentVertices(v: V): Iterator[V]
+  def adjacentVertices(v: V)(using random: Random = Random()): Iterator[V]
 
   /**
     * Filters the adjacent vertices of a given vertex based on a specified predicate.
@@ -45,7 +45,7 @@ trait Traversable[V] {
     * @param v         the vertex whose adjacent vertices are to be filtered.
     * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
     */
-  def filteredAdjacentVertices(predicate: V => Boolean)(v: V): Iterator[V] =
+  def filteredAdjacentVertices(predicate: V => Boolean)(v: V)(using random: Random = Random()): Iterator[V] =
     adjacentVertices(v).filter(predicate)
 
   /**
@@ -56,7 +56,7 @@ trait Traversable[V] {
     * @param v         the vertex whose adjacencies are to be filtered.
     * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
     */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]]
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random = Random()): Iterator[Adjacency[V]]
 
   /**
     * Performs a depth-first search (DFS) traversal starting from the specified vertex.
@@ -71,7 +71,7 @@ trait Traversable[V] {
     * @tparam J the journal type.
     * @return the updated visitor after traversal.
     */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R]): Visitor[V, R, J]
+  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
 
   /**
     * Performs a DFS traversal for all vertices in the graph using the supplied visitor.
@@ -82,7 +82,7 @@ trait Traversable[V] {
     * @tparam J the journal type.
     * @return the updated visitor after traversing all vertices.
     */
-  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using Evaluable[V, R]): Visitor[V, R, J]
+  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
 
   /**
     * Performs a breadth-first search (BFS) traversal starting from the specified vertex.
@@ -96,7 +96,7 @@ trait Traversable[V] {
     * @tparam J the journal type.
     * @return the updated visitor after traversal.
     */
-  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using Evaluable[V, R]): Visitor[V, R, J]
+  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
 
   /**
     * Performs a BFS traversal visiting edges rather than vertices, starting from `v`.
@@ -110,7 +110,7 @@ trait Traversable[V] {
     * @tparam J the journal type.
     * @return the visitor after traversal.
     */
-  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using Evaluable[Edge[E, V], R]): Visitor[Edge[E, V], R, J]
+  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[E, V], R], random: Random = Random()): Visitor[Edge[E, V], R, J]
 
   /**
     * Performs a DFS traversal applying `f` to each visited vertex and returns a
@@ -131,8 +131,10 @@ trait Traversable[V] {
     val result = Traversal.dfs(start, visitor)
     Try {
       result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
-        case (acc, (v, Some(r))) => acc + (v, r)
-        case (acc, _) => acc
+        case (acc, (v, Some(r))) =>
+          acc + (v, r)
+        case (acc, _) =>
+          acc
       }
     }
   }
@@ -220,7 +222,7 @@ trait Traversable[V] {
     * Used internally by the default implementations of `vertexMappedTraversalDfs`,
     * `vertexMappedTraversalBfs`, and `getConnexions`.
     */
-  protected def graphNeighbours: GraphNeighbours[V] = new GraphNeighbours[V] {
+  protected def graphNeighbours(using random: Random = Random()): GraphNeighbours[V] = new GraphNeighbours[V] {
     def neighbours(v: V): Iterator[V] = adjacentVertices(v)
   }
 }

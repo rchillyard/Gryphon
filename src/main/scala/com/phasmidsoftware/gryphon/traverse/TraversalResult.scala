@@ -281,8 +281,9 @@ object Connexions {
    * @return a `ProtoConnexions` object that encapsulates the result of the traversal,
    *         mapping vertices to their respective directed edges.
    */
-  def create[V, E](graph: core.Traversable[V])(start: V): Connexions[V, E] =
+  def create[V, E](graph: core.Traversable[V])(start: V): Connexions[V, E] = {
     graph.getConnexions(start)
+  }
 
   /**
    * Creates an empty instance of the `ProtoConnexions` class, representing a traversal with no vertices or edges.

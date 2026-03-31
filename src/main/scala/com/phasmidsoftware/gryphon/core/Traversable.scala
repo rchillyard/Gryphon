@@ -121,7 +121,7 @@ trait Traversable[V] {
     * @tparam T the result type produced by `f`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
     */
-  def vertexMappedTraversalDfs[T](f: V => T)(start: V): Try[TraversalResult[V, T]] = {
+  def vertexMappedTraversalDfs[T](f: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] = {
     given Evaluable[V, T] with
       def evaluate(v: V): Option[T] = Some(f(v))
 
@@ -148,7 +148,7 @@ trait Traversable[V] {
     * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
     */
-  def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V): Try[TraversalResult[V, T]] = {
+  def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] = {
     given Evaluable[V, T] with
       def evaluate(v: V): Option[T] = Some(fulfill(v))
 
@@ -221,8 +221,11 @@ trait Traversable[V] {
     * Derives a `GraphNeighbours[V]` instance from `adjacentVertices`.
     * Used internally by the default implementations of `vertexMappedTraversalDfs`,
     * `vertexMappedTraversalBfs`, and `getConnexions`.
+   *
+   * NOTE: do not be tempted to add a default Random implementation for this context.
+   * We need to enforce consistency of Random instances.
     */
-  protected def graphNeighbours(using random: Random = Random()): GraphNeighbours[V] = new GraphNeighbours[V] {
+  protected def graphNeighbours(using random: Random): GraphNeighbours[V] = new GraphNeighbours[V] {
     def neighbours(v: V): Iterator[V] = adjacentVertices(v)
   }
 }

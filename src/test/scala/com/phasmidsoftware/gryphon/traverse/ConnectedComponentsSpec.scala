@@ -146,5 +146,8 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
             roots.foreach { root =>
               connexions.connexions.get(root) shouldBe None
             }
-      case Failure(x) => fail(x)
+          case Failure(x) =>
+            fail(x)
+      case Failure(x) =>
+        fail(x)
   }

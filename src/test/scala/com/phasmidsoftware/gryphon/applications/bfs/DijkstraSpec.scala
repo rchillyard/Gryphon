@@ -29,7 +29,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
 
   // --- Existing tests (kept as-is) ---
 
-  it should "visit all vertices via bfs on dijkstra graph" in {
+  it should "visit all vertices via bfs on Dijkstra graph" in {
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dijkstra.graph"))
     val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {

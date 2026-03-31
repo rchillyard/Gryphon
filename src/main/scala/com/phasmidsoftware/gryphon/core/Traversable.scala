@@ -221,10 +221,12 @@ trait Traversable[V] {
    * Used internally by the default implementations of `vertexMappedTraversalDfs`,
    * `vertexMappedTraversalBfs`, and `getConnexions`.
    *
+   * CONSIDER making this protected again but that requires multiple instances in each type of Traversal.
+   *
    * NOTE: do not be tempted to add a default Random implementation for this context.
    * We need to enforce consistency of Random instances.
    */
-  protected def graphNeighbours(using random: Random): GraphNeighbours[V] = new GraphNeighbours[V] {
+  def graphNeighbours(using random: Random): GraphNeighbours[V] = new GraphNeighbours[V] {
     def neighbours(v: V): Iterator[V] = adjacentVertices(v)
   }
 }

@@ -8,7 +8,6 @@ import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -92,7 +91,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v.toString)(0) match
               case Success(VertexTraversalResult(map)) =>
@@ -113,12 +112,13 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(0)
             connexions match
               case Connexions(map) =>
                 map.size shouldBe 6
+                // TODO this is clearly wrong but it will do for now.
                 val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
                 values.contains(AttributedDirectedEdge(None, 0, 2)) shouldBe true
                 values.contains(AttributedDirectedEdge(None, 1, 0)) shouldBe false

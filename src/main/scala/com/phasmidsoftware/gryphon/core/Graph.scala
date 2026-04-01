@@ -123,6 +123,20 @@ object Graph
 abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
 
   /**
+   * Returns the number of vertices in the graph.
+   *
+   * @return the number of vertices in the graph.
+   */
+  def N: Int = vertexMap.N
+
+  /**
+   * Returns the number of edges in the graph.
+   *
+   * @return the number of edges in the graph.
+   */
+  def M: Int = vertexMap.M
+
+  /**
     * Retrieves an iterator over all adjacencies in the graph.
     *
     * @return an iterator of `Adjacency[V]` across all vertices.

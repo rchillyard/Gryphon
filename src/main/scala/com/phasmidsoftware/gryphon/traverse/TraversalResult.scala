@@ -12,6 +12,19 @@ import com.phasmidsoftware.gryphon.util.GraphException
  * @tparam T the resulting type after traversing a vertex or an edge.
  */
 trait TraversalResult[V, T] {
+  /**
+   * Returns the number of key-value pairs in the map.
+   *
+   * @return the size of the map as an integer
+   */
+  def size: Int
+
+  /**
+   * Retrieves the set of keys from the underlying map that represents the traversal result.
+   *
+   * @return a set of keys of type `V` contained in the underlying map.
+   */
+  def keySet: Set[V]
 
   /**
    * Traverses a given vertex in the graph and returns the result of the traversal.
@@ -46,7 +59,7 @@ object TraversalResult {
    * @return a `TraversalResult[V, T]` containing the results of applying the function `f` to each edge of the graph
    * @throws GraphException if the provided `traversable` does not represent an edge graph
    */
-  def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.EdgeTraversable[V, E]): TraversalResult[V, T] =
+  def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.EdgeTraversable[V, E]): TraversalResult[Int, T] =
     EdgeTraversalResult(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
 }
 
@@ -60,14 +73,28 @@ object TraversalResult {
  * @tparam T the type representing the result of the edge traversal
  * @param ts a list of elements of type T representing traversal data, typically associated with edges
  */
-abstract class AbstractEdgeTraversalResult[V, T](ts: List[T]) extends TraversalResult[V, T] {
+abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResult[Int, T] {
+  /**
+   * Returns the number of key-value pairs in the map.
+   *
+   * @return the size of the map as an integer
+   */
+  def size: Int = ts.size
+
+  /**
+   * Retrieves the set of keys from the underlying map that represents the traversal result.
+   *
+   * @return a set of keys of type `V` contained in the underlying map.
+   */
+  def keySet: Set[Int] = Range(0, ts.size).toSet
+
   /**
    * Traverses a given vertex in the graph and returns the result of the traversal.
    *
    * @param v the vertex to be traversed.
    * @return the result of the traversal for the provided vertex.
    */
-  def vertexTraverse(v: V): Option[T] = None
+  def vertexTraverse(v: Int): Option[T] = None
 
   /**
    * Traverses a specified edge within a graph-like structure and produces a result of type T.
@@ -89,6 +116,20 @@ abstract class AbstractEdgeTraversalResult[V, T](ts: List[T]) extends TraversalR
  * @param map the underlying map of vertex -> T elements
  */
 abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends TraversalResult[V, T] {
+  /**
+   * Returns the number of key-value pairs in the map.
+   *
+   * @return the size of the map as an integer
+   */
+  def size: Int = map.size
+
+  /**
+   * Retrieves the set of keys from the underlying map that represents the traversal result.
+   *
+   * @return a set of keys of type `V` contained in the underlying map.
+   */
+  def keySet: Set[V] = map.keySet
+
   /**
    * Traverses the specified vertex in the graph and retrieves the associated traversal result
    * from the underlying map. If the vertex does not exist, a `NoSuchElementException` is thrown.
@@ -128,7 +169,6 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
    */
   def +(t: (V, T)): TraversalResult[V, T] =
     unit(map + t)
-
 }
 
 /**
@@ -146,7 +186,7 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
  * @tparam T the type of results for the edge traversal.
  * @param ts a list of elements of type `T` representing the computed results of edge traversal.
  */
-case class EdgeTraversalResult[V, E, T](ts: List[T]) extends AbstractEdgeTraversalResult[V, T](ts)
+case class EdgeTraversalResult[V, E, T](ts: List[T]) extends AbstractEdgeTraversalResult[T](ts)
 
 /**
  * A concrete implementation of the `TraversalResult` trait that uses a map to represent

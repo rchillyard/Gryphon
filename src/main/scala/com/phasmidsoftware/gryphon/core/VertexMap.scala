@@ -25,6 +25,22 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   // -----------------------------------------------------------------------
 
   /**
+   * Returns the number of vertices in the graph.
+   *
+   * @return the number of vertices in the graph.
+   */
+  def N: Int = map.size
+
+  /**
+   * Returns the number of edges in the graph.
+   *
+   * TODO: this mechanism uses a var and we should change that.
+   *
+   * @return the number of edges in the graph.
+   */
+  def M: Int = edgeCount
+
+  /**
    * Returns an iterator over the vertices adjacent to the given vertex.
    *
    * @param v the vertex for which adjacent vertices are to be retrieved.
@@ -150,6 +166,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
     val addAdj = addAdjFunction
     val adjFrom = AdjacencyEdge[V, E](edge)
     val adjTo = AdjacencyEdge[V, E](edge, flipped = true)
+    edgeCount = edgeCount + 1
     // Ensure both vertices exist, then always add adjacencies using modifyVertex
     // so that existing vertices correctly accumulate adjacencies from multiple edges.
     val m0 = ensure(createWithSet[V])(edge.black).ensure(createWithSet[V])(edge.white)
@@ -257,6 +274,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
 
   override def toString: String =
     map.map((v, vv) => s"v:$v, vv:${vv.render}").mkString("[", ", ", "]")
+
+  // CONSIDER making this a member and use copy to increment the edgeCount
+  private var edgeCount: Int = 0
 
   // -----------------------------------------------------------------------
   // Private helpers

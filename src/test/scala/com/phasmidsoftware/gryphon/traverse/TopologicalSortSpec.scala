@@ -33,11 +33,9 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
             graph.vertexMap.map.size shouldBe 7
             graph.edges.size shouldBe 11
             graph match {
-              case g: EdgeTraversable[Int, Double] =>
+              case g: EdgeTraversable[Int, Double] @unchecked =>
                 val traversal = TraversalResult.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
                 println(traversal)
-              case _ =>
-              // Do nothing
             }
             val maybeTopologicalOrder = TopologicalSort.sort(graph)
             maybeTopologicalOrder.isDefined shouldBe true

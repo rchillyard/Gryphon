@@ -64,7 +64,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfsAll(visitor)
@@ -81,7 +81,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.bfs(visitor)(0)
@@ -98,7 +98,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfs(visitor)(0)
@@ -117,7 +117,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfs(visitor)(7)
@@ -133,7 +133,7 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfs(visitor)(9)

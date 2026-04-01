@@ -32,7 +32,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (_, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             componentMap.values.toSet.size shouldBe 3
@@ -46,7 +46,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (_, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             componentMap.size shouldBe 13
@@ -60,7 +60,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (_, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             val compA = componentMap(0)
@@ -75,7 +75,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (_, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             componentMap(7) shouldBe componentMap(8)
@@ -89,7 +89,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (_, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             val compC = componentMap(9)
@@ -104,7 +104,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (_, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             val compA = componentMap(0)
@@ -123,7 +123,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (connexions, _) = ConnectedComponents.components[Int, Unit](graph)
             connexions.connexions.size shouldBe 10
@@ -137,7 +137,7 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val (connexions, componentMap) = ConnectedComponents.components[Int, Unit](graph)
             // Roots are exactly the vertices absent from connexions

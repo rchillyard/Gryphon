@@ -21,6 +21,20 @@ import scala.util.{Random, Try}
 trait Traversable[V] {
 
   /**
+   * Returns the number of vertices in the graph.
+   *
+   * @return the number of vertices in the graph.
+   */
+  def N: Int
+
+  /**
+   * Returns the number of edges in the graph.
+   *
+   * @return the number of edges in the graph.
+   */
+  def M: Int
+
+  /**
    * Retrieves the vertex associated with the given key.
    *
    * @param key the key of type V for which the associated vertex is to be retrieved.

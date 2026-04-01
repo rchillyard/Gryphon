@@ -98,7 +98,7 @@ object UndirectedGraph {
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
-  def triplesToTryGraph[V, E](triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
+  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
     SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match {
       case triplets: Triplets[V, E, EdgeType] =>
         val vm: VertexMap[V] =
@@ -106,9 +106,11 @@ object UndirectedGraph {
             (z, t) =>
               // TODO find another way to handle this anomaly
               if (t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is directed.")
-              z.createVerticesFromTriplet[E, EdgeType](Vertex.createWithSet) {
-                  (vv1, vv2, e) =>
+              z.createVerticesFromTriplet[E, EdgeType](f) {
+                        case (vv1, vv2, Some(e)) =>
                     AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
+                        case (vv1, vv2, None) => // TODO fix this case so that it doesn't use a directed edge.
+                          AdjacencyEdge(AttributedDirectedEdge(None, vv1.attribute, vv2.attribute))
                 }(false)
                 (t)
           }

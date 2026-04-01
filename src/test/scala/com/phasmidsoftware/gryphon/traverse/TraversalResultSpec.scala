@@ -41,7 +41,7 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v.toString)(0) match
               case Success(VertexTraversalResult(map)) =>
@@ -130,7 +130,7 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v)(0) match
               case Success(VertexTraversalResult(map)) =>
@@ -150,7 +150,7 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
     val ws = TryUsing.trial(triedSource)(_.getLines().toSeq).get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalBfs(v => v)(0) match
               case Success(VertexTraversalResult(map)) =>

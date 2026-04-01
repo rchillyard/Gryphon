@@ -1,10 +1,6 @@
-/*
- * Copyright (c) 2026. Phasmid Software
- */
-
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge}
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
 import com.phasmidsoftware.visitor.core.{*, given}
 import scala.collection.mutable
@@ -27,8 +23,8 @@ trait GraphTraversal[V, E, R]:
   /**
    * Runs the traversal from `start` on `graph`, returning a `TraversalResult`.
    *
-   * @param graph  the graph to traverse.
-   * @param start  the starting vertex.
+   * @param graph the graph to traverse.
+   * @param start the starting vertex.
    * @param random controls adjacency ordering.
    * @return a `TraversalResult[V, R]` mapping each visited vertex to its result.
    */
@@ -163,12 +159,15 @@ case class PrimTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal[V, 
     def relax(v: V): Unit =
       for
         adj <- graph.filteredAdjacencies(_ => true)(v)
-        e <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[E, V] => e }
-        // Prim: cost is edge weight only, not cumulative
-        if cost.get(e.black).forall(en.lt(e.attribute, _))
+        e <- adj.maybeEdge[E]
+        destination = e match
+          case ue: UndirectedEdge[E, V] => ue.other(v)
+          case de => de.black
+        if cost.get(destination).forall(en.lt(e.attribute, _))
       do
-        cost(e.black) = e.attribute
-        pred(e.black) = e
+        println(s"relaxing $v, destination=$destination, cost=${e.attribute}")
+        cost(destination) = e.attribute
+        pred(destination) = e
 
     relax(start)
 

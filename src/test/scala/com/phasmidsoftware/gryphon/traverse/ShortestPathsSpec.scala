@@ -26,7 +26,9 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
+
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             graph.vertexMap.map.size shouldBe 8
@@ -54,7 +56,9 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
+
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val neighbours = graph.undiscoveredVertices(0)

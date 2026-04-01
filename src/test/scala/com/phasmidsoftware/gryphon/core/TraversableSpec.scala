@@ -76,8 +76,8 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
   it should "dfsAll visits all vertices in disconnected graph" in {
     // Build two disconnected components: 1->2 and 10->11
     val vm = VertexMap[Int]
-      .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("X", 1, 2))
-      .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("Y", 10, 11))
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("X", 1, 2))
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("Y", 10, 11))
     val visitor = JournaledVisitor.withQueueJournal[Int, Int]
     val result = vm.dfsAll(visitor)
     result.result.map(_._1).toSet shouldBe Set(1, 2, 10, 11)

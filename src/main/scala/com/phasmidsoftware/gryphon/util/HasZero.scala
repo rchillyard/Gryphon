@@ -14,31 +14,31 @@ package com.phasmidsoftware.gryphon.util
  */
 trait HasZero[T] {
 
-    def zero: T
+  def zero: T
 }
 
 object HasZero {
-    trait HasZeroUnit extends HasZero[Unit] {
-        def zero: Unit = ()
-    }
+  trait HasZeroUnit extends HasZero[Unit] {
+    def zero: Unit = ()
+  }
 
-    implicit object HasZeroUnit extends HasZeroUnit
+  implicit object HasZeroUnit extends HasZeroUnit
 
-    trait HasZeroBoolean extends HasZero[Boolean] {
-        def zero: Boolean = false
-    }
+  trait HasZeroBoolean extends HasZero[Boolean] {
+    def zero: Boolean = false
+  }
 
-    implicit object HasZeroBoolean extends HasZeroBoolean
+  implicit object HasZeroBoolean extends HasZeroBoolean
 
-    trait HasZeroInt extends HasZero[Int] {
-        def zero: Int = 0
-    }
+  trait HasZeroInt extends HasZero[Int] {
+    def zero: Int = 0
+  }
 
-    implicit object HasZeroInt extends HasZeroInt
+  implicit object HasZeroInt extends HasZeroInt
 
-    trait HasZeroDouble extends HasZero[Double] {
-        def zero: Double = 0
-    }
+  trait HasZeroDouble extends HasZero[Double] {
+    def zero: Double = 0
+  }
 
-    implicit object HasZeroDouble extends HasZeroDouble
+  implicit object HasZeroDouble extends HasZeroDouble
 }

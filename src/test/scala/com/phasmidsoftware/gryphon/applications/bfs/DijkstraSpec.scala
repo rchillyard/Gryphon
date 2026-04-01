@@ -38,6 +38,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
+
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
@@ -57,6 +58,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
+
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]

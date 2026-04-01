@@ -41,24 +41,24 @@ import scala.collection.immutable.Queue
  */
 class VisitorSpec extends AnyFlatSpec with should.Matchers {
 
-    behavior of "PostVisitor"
+  behavior of "PostVisitor"
 
-    it should "traverse post-order and ignore pre-order concerns" in {
-        import com.phasmidsoftware.visitor.core.DfsOrder.Post
+  it should "traverse post-order and ignore pre-order concerns" in {
+    import com.phasmidsoftware.visitor.core.DfsOrder.Post
 
-        // Define a tiny two-node graph: 1 → 2
-        given GraphNeighbours[Int] with
-            def neighbours(n: Int): Iterator[Int] = n match
-                case 1 => Iterator(2)
-                case _ => Iterator.empty
+    // Define a tiny two-node graph: 1 → 2
+    given GraphNeighbours[Int] with
+      def neighbours(n: Int): Iterator[Int] = n match
+        case 1 => Iterator(2)
+        case _ => Iterator.empty
 
-        given Evaluable[Int, Int] with
-            def evaluate(v: Int): Option[Int] = Some(v)
+    given Evaluable[Int, Int] with
+      def evaluate(v: Int): Option[Int] = Some(v)
 
-        val visitor = JournaledVisitor.withQueueJournal[Int, Int]
-        val result = Traversal.dfs(1, visitor, Post)
+    val visitor = JournaledVisitor.withQueueJournal[Int, Int]
+    val result = Traversal.dfs(1, visitor, Post)
 
-        // Post-order: children before parent → 2 then 1
-        result.result.map(_._1).toList shouldBe List(2, 1)
-    }
+    // Post-order: children before parent → 2 then 1
+    result.result.map(_._1).toList shouldBe List(2, 1)
+  }
 }

@@ -164,7 +164,6 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   def +(t: (V, T)): TraversalResult[V, T] =
@@ -206,7 +205,6 @@ case class VertexTraversalResult[V, T](map: Map[V, T]) extends AbstractVertexTra
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   override def +(t: (V, T)): VertexTraversalResult[V, T] =
@@ -256,7 +254,6 @@ object VertexTraversalResult {
  *
  * @param connexions a map where each key is a vertex of type `V` and its value is a tuple `(V, V)`
  *                   representing the result associated with traversal from this vertex.
- *
  * @tparam V the type representing a vertex in the graph.
  */
 case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends AbstractVertexTraversalResult[V, DirectedEdge[E, V]](connexions) {
@@ -265,7 +262,6 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    *
    * @param map a map where each key is a vertex of type `V` and its value is a tuple `(V, V)` representing
    *            the result associated with traversal from this vertex.
-   *
    * @return a new `TraversalResult` instance of type `TraversalResult[V, (V, V)]` initialized with the provided map.
    */
   def unit(map: Map[V, DirectedEdge[E, V]]): TraversalResult[V, DirectedEdge[E, V]] =
@@ -283,9 +279,9 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
     case d@AttributedDirectedEdge[E, V] (_, _, _) =>
-      copy(connexions = connexions + (v -> d))
+  copy (connexions = connexions + (v -> d) )
     case u@UndirectedEdge[E, V] (q, _, _) =>
-      copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
+  copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
     case _ =>
       throw GraphException(s"getConnexions: unexpected connexion: $connexion")
   }
@@ -296,7 +292,6 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   override def +(t: (V, DirectedEdge[E, V])): Connexions[V, E] =

@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.parse
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import scala.util.{Failure, Success, Try}
 
 class ParseableSpec extends AnyFlatSpec with Matchers {

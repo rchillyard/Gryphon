@@ -23,8 +23,8 @@ trait GraphTraversal[V, E, R]:
   /**
    * Runs the traversal from `start` on `graph`, returning a `TraversalResult`.
    *
-   * @param graph the graph to traverse.
-   * @param start the starting vertex.
+   * @param graph  the graph to traverse.
+   * @param start  the starting vertex.
    * @param random controls adjacency ordering.
    * @return a `TraversalResult[V, R]` mapping each visited vertex to its result.
    */

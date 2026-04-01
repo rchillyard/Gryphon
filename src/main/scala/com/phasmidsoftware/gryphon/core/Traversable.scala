@@ -55,7 +55,6 @@ trait Traversable[V] {
    *
    * @param predicate a function that evaluates each adjacent vertex and returns true
    *                  if the vertex satisfies the specified condition.
-   *
    * @param v         the vertex whose adjacent vertices are to be filtered.
    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
    */
@@ -67,6 +66,7 @@ trait Traversable[V] {
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
@@ -105,7 +105,6 @@ trait Traversable[V] {
    * @param v       the starting vertex.
    * @param goal    an optional early-termination predicate; traversal halts after recording
    *                the first node for which `goal` returns true.
-   *
    * @tparam R the result type extracted from each node.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
@@ -218,7 +217,10 @@ trait Traversable[V] {
     loop(List((start, None)))
 
     result.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
-      case (acc, (child, Some(AdjacencyEdge[V, E] (connexion, flipped)))) =>
+      case (acc, (child, Some(AdjacencyEdge[V
+      , E
+      ] (connexion, flipped)
+      ) ) ) =>
       // When flipped, the connexion's nominal direction is child->parent,
       // so we reconstruct it as parent->child using the parent recorded in result.
       val effectiveConnexion: Connexion[V] =

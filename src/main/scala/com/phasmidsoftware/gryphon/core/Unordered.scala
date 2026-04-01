@@ -54,6 +54,7 @@ trait Unordered[+T] {
    *
    * @param p a predicate function that takes an element of type `T` and returns a boolean,
    *          indicating whether the element satisfies the condition or not.
+   *
    * @return an instance of `Unordered[T]` containing the elements that satisfy the predicate.
    */
   def filter(p: T => Boolean): Unordered[T]
@@ -67,6 +68,7 @@ trait Unordered[+T] {
    *
    * @param p a predicate function that takes an element of type `T` and returns a boolean,
    *          indicating whether the element satisfies the condition.
+   *
    * @return an `Option` containing the first element that satisfies the predicate, or `None`
    *         if no such element exists in the collection.
    */
@@ -83,12 +85,12 @@ trait Unordered[+T] {
 }
 
 /**
-  * Abstract base class providing common implementations for unordered collections.
-  * Concrete subclasses (`Unordered_Bag` and `Unordered_Set`) differ in their
-  * underlying storage and duplicate-handling behaviour.
+ * Abstract base class providing common implementations for unordered collections.
+ * Concrete subclasses (`Unordered_Bag` and `Unordered_Set`) differ in their
+ * underlying storage and duplicate-handling behaviour.
  *
-  * @tparam T the type of elements contained in the collection (covariant).
-  * @param elements the underlying storage, accessed via `IterableOnce`.
+ * @tparam T the type of elements contained in the collection (covariant).
+ * @param elements the underlying storage, accessed via `IterableOnce`.
  */
 abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordered[T]:
   /**
@@ -124,6 +126,7 @@ abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordere
    *
    * @param p a predicate function that takes an element of type `T` and returns a boolean,
    *          indicating whether the element satisfies the condition or not.
+   *
    * @return an instance of `Unordered[T]` containing the elements that satisfy the predicate.
    */
   def filter(p: T => Boolean): Unordered[T] =
@@ -138,6 +141,7 @@ abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordere
    *
    * @param p a predicate function that takes an element of type `T` and returns a boolean,
    *          indicating whether the element satisfies the condition.
+   *
    * @return an `Option` containing the first element that satisfies the predicate, or `None`
    *         if no such element exists in the collection.
    */
@@ -201,8 +205,10 @@ case class Unordered_Bag[+T](elements: Bag[T]) extends AbstractUnordered[T](elem
    * @param elements the sequence of elements to populate the new unordered collection.
    *                 These elements will be used to construct a new `Bag`, which will
    *                 replace the current one in the copied instance.
+   *
    * @tparam U the type of the elements in the provided sequence, which must be a
    *           supertype of the current element type `T`.
+   *
    * @return a new instance of `Unordered[U]` containing the specified elements.
    */
   def unit[U >: T](elements: Seq[U]): Unordered[U] =
@@ -267,6 +273,7 @@ case class Unordered_Set[T](elements: Set[T]) extends AbstractUnordered[T](eleme
    *
    * @param u the element to search for within the set. Its type must conform to or extend
    *          the type `T` of the elements in the set or be a supertype of `T`.
+   *
    * @return `true` if the element exists within the set, otherwise `false`.
    */
   def contains[U >: T](u: U): Boolean =
@@ -282,6 +289,7 @@ case class Unordered_Set[T](elements: Set[T]) extends AbstractUnordered[T](eleme
    * @param elements a sequence of elements to be included in the new unordered collection.
    *                 The type of elements must conform to or be a supertype of the existing
    *                 elements in the collection.
+   *
    * @return a new `Unordered` instance containing the specified elements.
    */
   def unit[U >: T](elements: Seq[U]): Unordered[U] = copy(elements = Set(elements *))
@@ -311,6 +319,7 @@ object Unordered_Set {
    * @param xs the sequence of elements to be converted into an unordered collection
    * @tparam X the type of elements contained in the input sequence and resulting `Unordered`
    *           collection
+   *
    * @return an instance of `Unordered` containing the unique elements from the input sequence
    */
   def apply[X](xs: Seq[X]): Unordered[X] =
@@ -322,6 +331,7 @@ object Unordered_Set {
    * @param xs the elements to include in the unordered collection.
    *           These elements are provided as a variable-length argument list, 
    *           allowing the creation of an unordered collection containing one or more elements.
+   *
    * @tparam X the type of the elements contained within the unordered collection.
    * @return an instance of `Unordered[X]` containing the provided elements.
    */

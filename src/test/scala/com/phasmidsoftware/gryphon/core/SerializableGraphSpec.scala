@@ -2,10 +2,9 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.util.TryUsing
+import java.net.URL
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
-import java.net.URL
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 

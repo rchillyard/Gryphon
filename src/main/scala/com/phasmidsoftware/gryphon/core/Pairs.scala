@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util.FP
-
 import scala.util.Try
 
 /**

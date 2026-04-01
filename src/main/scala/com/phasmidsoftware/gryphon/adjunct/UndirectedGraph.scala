@@ -43,8 +43,11 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @return an iterable collection containing all edges of type `Edge[E, V]` in the graph.
    */
-  def edges: Iterator[UndirectedEdge[E, V]] =
-    adjacencies map getUndirectedEdgeFromAdjacency
+  def edges: Iterator[UndirectedEdge[E, V]] = {
+    adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[E, V] @unchecked, false) => e }
+  }
+
+  override def M: Int = edges.size
 
   /**
    * Creates a new directed graph using the provided vertex map.
@@ -114,7 +117,7 @@ object UndirectedGraph {
                           AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
                         case (vv1, vv2, None) => // TODO fix this case so that it doesn't use a directed edge.
                           AdjacencyEdge(AttributedDirectedEdge(None, vv1.attribute, vv2.attribute))
-                      }(false)
+                      }(!t._4.oneWay)
                       (t)
           }
         val graph = UndirectedGraph(vm)

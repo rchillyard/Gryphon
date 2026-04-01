@@ -44,6 +44,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
   def edges: Iterator[DirectedEdge[E, V]] =
     adjacencies map DirectedGraph.getDirectedEdgeFromAdjacency[E, V]
 
+  override def M: Int = edges.size
+
   /**
    * Creates a new directed graph using the provided vertex map.
    *
@@ -144,9 +146,10 @@ object DirectedGraph {
         val graph = DirectedGraph(vm)
         // TODO find another way to handle this anomaly
         // NOTE duplicated code in UndirectedGraph
-        if (graph.adjacencies.size != triplets.triplets.size)
-          System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")
-//        println(s"graph = $graph")
+        val expectedAdjacencies = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum
+        if (graph.adjacencies.size != expectedAdjacencies)
+          System.err.println(s"WARNING: ${graph.adjacencies.size} != $expectedAdjacencies")
+        //        println(s"graph = $graph")
         Success(graph)
       case z =>
         Failure(GraphException(s"parse failed: $z"))

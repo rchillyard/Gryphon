@@ -249,7 +249,11 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
     val vv1: Vertex[V] = getOrCreate(f)(triplet.from)
     val vv2: Vertex[V] = getOrCreate(f)(triplet.to)
     val va: Adjacency[V] = g(vv1, vv2, triplet.maybeAttribute)
-    val vao: Option[Adjacency[V]] = Option.when(condition)(g(vv2, vv1, triplet.maybeAttribute))
+    val vao: Option[Adjacency[V]] = Option.when(condition) {
+      va match
+        case AdjacencyEdge(connexion, _) => AdjacencyEdge(connexion, flipped = true)
+        case other => other
+    }
     this + (vv1 + va) + vao.fold(vv2)(vv2 + _)
 
   /**

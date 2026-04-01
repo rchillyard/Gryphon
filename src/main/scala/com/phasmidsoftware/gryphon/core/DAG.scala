@@ -16,4 +16,6 @@ trait DAG[V, E] extends DirectedGraph[V, E] {
   def isCyclic: Boolean = false // TODO we should be able to assert this
 
   def isBipartite: Boolean = false
+  
+  override def M: Int = edges.size
 }

@@ -1,4 +1,6 @@
-ThisBuild / version := "0.2.4"
+// Gryphon
+
+ThisBuild / version := "0.2.5"
 
 ThisBuild / scalaVersion := "3.7.4"
 
@@ -16,7 +18,7 @@ libraryDependencies ++= Seq(
   ("com.phasmidsoftware" % "tableparser-core_2.13" % "1.5.1")
           .exclude("com.phasmidsoftware", "flog_2.13")
           .exclude("org.scala-lang.modules", "scala-parser-combinators_2.13"),
-  "com.phasmidsoftware" %% "visitor" % "1.2.0",
+  "com.phasmidsoftware" %% "visitor" % "1.3.0-SNAPSHOT",
   "com.phasmidsoftware" %% "flog" % "1.0.13",
   "ch.qos.logback" % "logback-classic" % "1.5.32" % "runtime",
   "org.scalatest" %% "scalatest" % scalaTestVersion % "test"

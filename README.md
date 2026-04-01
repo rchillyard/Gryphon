@@ -17,7 +17,9 @@ Important Note
 This library is still in development.
 It is not yet ready for production use.
 As of version 0.2.2, it is not yet on Maven Central.
-Version 0.2.2 is available on GitHub and depends on a new Visitor project (https://github.com/rchillyard/Visitor), which IS on Maven Central.
+Version 0.2.2 is available on GitHub and depends on a new Visitor project
+(https://github.com/rchillyard/Visitor),
+which IS on Maven Central.
 We are working through adapting the original Gryphon code to the new Visitor-based code.
 Much of the remaining information in this document is out of date.
 
@@ -48,14 +50,16 @@ If, for example, you want to work with a Minimum Spanning Tree, or the Shortest 
 then you would want your edge attribute to be orderable.
 In this case, you would want either a _UndirectedOrderedEdge_ or a _DirectedOrderedEdge_.
 For edges which do not have an intrinsic ordering, use _UndirectedEdge_ and _DirectedEdge_.
-The mechanism for providing the ordering for an edge is through the _Ordering_ type class (part of Scala's implicits).
+The mechanism for providing the ordering for an edge is through the _Ordering_ type class 
+(part of Scala's implicits).
 
 Vertex
 ------
 From the perspective of application code, vertices are represented only by their attribute.
 Again, you choose the appropriate attribute type.
 Note, however, that if you are working with undirected edges,
-the attribute type for a vertex must have an intrinsic ordering similarly defined to that of edges (see above).
+the attribute type for a vertex must have an intrinsic ordering similarly defined to that of
+edges (see above).
 
 There is a _Vertex_ type, but it is generally only referenced internally by library methods.
 
@@ -78,11 +82,16 @@ GitHub History
 ==============
 Why is there no GitHub history for version 0.1.0?
 Was the code stolen from somewhere?
-No. When I created the repository, GitHub placed it in a different organization from my normal organization (rchillyard).
-I forked that repository and continued working on developing version 0.1.0 without paying attention to the location of the repository.
-The fact that the repo was forked was not very satisfactory, however, and I decided to create a brand-new repository.
-The history is still (currently) available as Gryphon-forked (https://github.com/rchillyard/Gryphon-forked).
-The first commit took place 2023/04/11 and the last commit to the forked repo was pushed on 2023/04/19.
+No. When I created the repository, GitHub placed it in a different organization 
+from my normal organization (rchillyard).
+I forked that repository and continued working on developing version 0.1.0 
+without paying attention to the location of the repository.
+The fact that the repo was forked was not very satisfactory, however, 
+and I decided to create a brand-new repository.
+The history is still (currently) available as Gryphon-forked
+(https://github.com/rchillyard/Gryphon-forked).
+The first commit took place 2023/04/11 and the last commit to the forked repo
+was pushed on 2023/04/19.
 
 Versions
 ========

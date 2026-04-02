@@ -1,6 +1,6 @@
 // Gryphon
 
-ThisBuild / version := "0.2.6"
+ThisBuild / version := "0.2.7"
 
 ThisBuild / scalaVersion := "3.7.4"
 

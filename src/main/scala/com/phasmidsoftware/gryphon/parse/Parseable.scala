@@ -1,7 +1,6 @@
 package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.util.FP
-
 import scala.util.matching.Regex
 import scala.util.{Success, Try}
 

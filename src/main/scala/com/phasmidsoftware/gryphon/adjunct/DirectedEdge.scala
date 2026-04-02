@@ -80,7 +80,7 @@ case class OrderedEdge[V](from: V, to: V) extends DirectedEdge[Unit, V]:
    * @return the attribute of type `A` representing the defining characteristic
    *         or property of this instance.
    */
-  def attribute: Unit = ()
+  lazy val attribute: Unit = ()
 
   /**
    * Retrieves the starting `Vertex` of this `Edge`.

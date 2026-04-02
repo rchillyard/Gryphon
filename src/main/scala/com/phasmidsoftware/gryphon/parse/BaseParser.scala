@@ -1,7 +1,6 @@
 package com.phasmidsoftware.gryphon.parse
 
 import com.phasmidsoftware.gryphon.util.FP.lift
-
 import scala.util.Try
 import scala.util.parsing.combinator.JavaTokenParsers
 

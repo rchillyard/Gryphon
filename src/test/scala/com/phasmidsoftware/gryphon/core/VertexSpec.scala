@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.visitor.core.given
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

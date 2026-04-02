@@ -1,7 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.parse.Parseable
-
 import scala.util.matching.Regex
 import scala.util.{Success, Try}
 
@@ -29,12 +28,13 @@ trait Edge[E, V] extends Attribute[E] with Connexion[V] {
 /**
  * A trait that represents an ordered edge in a graph structure.
  *
-  * Extends the `Edge` interface by providing an ordering mechanism
+ * Extends the `Edge` interface by providing an ordering mechanism
  * based on the edge's attribute of type `E`. It also implements the Scala `Ordered` trait
  * to enable comparisons between edges.
  *
  * @tparam E the type of the attribute associated with the edge. This attribute is used for
  *           determining the order of the edges.
+ *
  * @tparam V the type of the vertices connected by the edge.
  */
 trait OrderableEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
@@ -162,7 +162,7 @@ object EdgeType {
      * This method maps specific string patterns to predefined `EdgeType` instances:
      * - "." corresponds to `Directed`.
      * - "=" corresponds to `Undirected`.
-     * If the string does not match these patterns, a failure is returned with an exception.
+     *   If the string does not match these patterns, a failure is returned with an exception.
      *
      * @param s the input string to be parsed into an `EdgeType`
      * @return a `Try[EdgeType]` representing success with a parsed `EdgeType` or failure with an exception

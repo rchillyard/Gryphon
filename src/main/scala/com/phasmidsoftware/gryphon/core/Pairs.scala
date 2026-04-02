@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.util.FP
-
 import scala.util.Try
 
 /**
@@ -31,15 +30,13 @@ trait Pairs[V, Z]:
  * of tuples `(V, V, Z)`, where the first element is the source vertex, the second is the target vertex,
  * and the third is the associated attribute.
  *
- * CONSIDER renaming this as ProtoConnexions (or something like that).
- *
  * @tparam V the type of the vertices in the connections.
  * @tparam Z the type of the additional attribute associated with each connection.
- * @constructor Creates an instance of `Connexions` initialized with a sequence of `(V, V, Z)` tuples.
+ * @constructor Creates an instance of `ProtoConnexions` initialized with a sequence of `(V, V, Z)` tuples.
  * @param pairs a sequence of tuples representing the connections. Each tuple consists of a source vertex,
  *              a target vertex, and an additional attribute of type `Z`.
  */
-case class Connexions[V, Z](pairs: Seq[(V, V, Z)]) extends SerializableGraph[V, Unit, Z]:
+case class ProtoConnexions[V, Z](pairs: Seq[(V, V, Z)]) extends SerializableGraph[V, Unit, Z]:
   /**
    * Converts the current collection of directed connections represented as pairs
    * of vertices into a sequence of triplets. Each triplet consists of the source vertex,
@@ -53,19 +50,19 @@ case class Connexions[V, Z](pairs: Seq[(V, V, Z)]) extends SerializableGraph[V, 
     pairs.map(p => Triplet(p._1, p._2, None, p._3))
 
 /**
- * Provides a utility for constructing a `Connexions` instance from a sequence of string ts.
+ * Provides a utility for constructing a `ProtoConnexions` instance from a sequence of string ts.
  *
  * This object contains methods to parse input data and generate graph-like structures
  * where vertices are connected by edges derived from parsed values.
  */
-object Connexions {
+object ProtoConnexions {
   /**
    * Parses a sequence of tuples containing string representations of vertices and edges into
-   * a `Connexions` object, which models the graph-like relationships between the parsed vertices
+   * a `ProtoConnexions` object, which models the graph-like relationships between the parsed vertices
    * and edges.
    *
    */
-  def parse[V: Parseable, Z: Parseable](pairs: Seq[(String, String, String)]): Try[Connexions[V, Z]] = {
+  def parse[V: Parseable, Z: Parseable](pairs: Seq[(String, String, String)]): Try[ProtoConnexions[V, Z]] = {
     val tys: Seq[Try[(V, V, Z)]] = for {
       (x, y, z) <- pairs
     } yield for {
@@ -73,6 +70,6 @@ object Connexions {
       vy <- implicitly[Parseable[V]].parse(y)
       q <- implicitly[Parseable[Z]].parse(z)
     } yield (vx, vy, q)
-    FP.sequence(tys) map (Connexions(_))
+    FP.sequence(tys) map (ProtoConnexions(_))
   }
 }

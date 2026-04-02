@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.util
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import scala.util.Random
 
 class RandomIteratorSpec extends AnyFlatSpec with Matchers {

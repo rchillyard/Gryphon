@@ -3,7 +3,6 @@ package com.phasmidsoftware.gryphon.parse
 import com.phasmidsoftware.gryphon.core.Triplet
 import com.phasmidsoftware.gryphon.util.FP
 import com.phasmidsoftware.gryphon.util.FP.sequence
-
 import scala.io.Source
 import scala.util.Try
 

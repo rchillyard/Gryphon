@@ -6,7 +6,6 @@ import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import scala.io.{BufferedSource, Source}
 import scala.util.{Failure, Success, Try}
 

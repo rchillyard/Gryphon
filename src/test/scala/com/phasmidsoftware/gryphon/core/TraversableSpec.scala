@@ -2,14 +2,12 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversal}
+import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversalResult}
 import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
-
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -78,8 +76,8 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
   it should "dfsAll visits all vertices in disconnected graph" in {
     // Build two disconnected components: 1->2 and 10->11
     val vm = VertexMap[Int]
-      .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("X", 1, 2))
-      .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("Y", 10, 11))
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("X", 1, 2))
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("Y", 10, 11))
     val visitor = JournaledVisitor.withQueueJournal[Int, Int]
     val result = vm.dfsAll(visitor)
     result.result.map(_._1).toSet shouldBe Set(1, 2, 10, 11)
@@ -93,10 +91,10 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             graph.vertexMappedTraversalDfs(v => v.toString)(0) match
-              case Success(VertexTraversal(map)) =>
+              case Success(VertexTraversalResult(map)) =>
                 map.size shouldBe 7
                 map(0) shouldBe "0"
                 map(6) shouldBe "6"
@@ -106,7 +104,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
       case Failure(exception) => fail(exception)
   }
 
-  it should "Connexions.create" in {
+  it should "ProtoConnexions.create" in {
     val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dfsu.graph"))
     val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
@@ -114,12 +112,13 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
     val ws = wsy.get filterNot (_.startsWith("//"))
     sequence(for w <- ws yield p.parseTriple(w)) match
       case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph(triplets) match
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[_]) =>
             val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(0)
             connexions match
               case Connexions(map) =>
                 map.size shouldBe 6
+                // TODO this is clearly wrong but it will do for now.
                 val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
                 values.contains(AttributedDirectedEdge(None, 0, 2)) shouldBe true
                 values.contains(AttributedDirectedEdge(None, 1, 0)) shouldBe false

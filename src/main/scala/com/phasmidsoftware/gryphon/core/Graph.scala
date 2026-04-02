@@ -189,3 +189,10 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    * @return a new `EdgeGraph[V, E]` containing the added edge.
    */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E]
+
+  /**
+   * Returns the number of self-loops in the graph
+   * (edges where both endpoints are the same vertex).
+   */
+  def numberOfSelfLoops: Int =
+    edges.count(e => e.white == e.black)

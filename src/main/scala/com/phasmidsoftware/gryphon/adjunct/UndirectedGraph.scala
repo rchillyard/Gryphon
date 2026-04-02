@@ -41,6 +41,24 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
   override def M: Int = edges.size
 
   /**
+   * Returns the degree of vertex `v` — the number of edges incident to it.
+   */
+  def degree(v: V): Int =
+    vertexMap(v).adjacencies.size
+
+  /**
+   * Returns the maximum degree of any vertex in the graph.
+   */
+  def maxDegree: Int =
+    vertexMap.keySet.toSeq.map(degree).max
+
+  /**
+   * Returns the mean degree across all vertices in the graph.
+   */
+  def meanDegree: Double =
+    vertexMap.keySet.toSeq.map(degree).sum.toDouble / N
+
+  /**
    * Creates a new directed graph using the provided vertex map.
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices

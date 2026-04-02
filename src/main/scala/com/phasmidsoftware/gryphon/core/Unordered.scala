@@ -34,8 +34,21 @@ trait Unordered[+T] {
    * @param u the element to check for existence in the collection
    * @return true if the element exists in the collection, otherwise false
    */
-
   def contains[U >: T](u: U): Boolean
+
+  /**
+   * Counts the elements in the collection that satisfy the given predicate.
+   *
+   * This method evaluates each element in the unordered collection using the
+   * provided predicate function `p`. It returns the total number of elements
+   * for which the predicate evaluates to `true`.
+   *
+   * @param p a predicate function that takes an element of type `T` and returns a boolean,
+   *          indicating whether the element satisfies the condition
+   *
+   * @return the number of elements in the collection that satisfy the predicate
+   */
+  def count(p: T => Boolean): Int = iterator.count(p)
 
   /**
    * Returns an iterator over the elements contained in the collection.

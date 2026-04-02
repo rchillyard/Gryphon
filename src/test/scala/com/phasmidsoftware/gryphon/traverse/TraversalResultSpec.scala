@@ -67,25 +67,6 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
       case Failure(exception) => fail(exception)
   }
 
-  // --- New tests ---
-
-  // Graph: 1 -- 2 -- 3 -- 4
-  // DFS from 1: visits 1, then dives deep: 1, 2, 3, 4
-  // BFS from 1: visits by hop: 1, then {2}, then {3}, then {4}
-  // On a simple chain these orders are the same, so we use a branching graph
-  // to distinguish them:
-  //
-  //     1
-  //    / \
-  //   2   3
-  //  / \
-  // 4   5
-  //
-  // BFS from 1: [1, 2, 3, 4, 5]  (level order — 2 and 3 before 4 and 5)
-  // DFS from 1: could be [1, 2, 4, 5, 3] or [1, 3, 2, 4, 5] depending on adjacency order
-  // The key property: in BFS, 3 (hop 1) must appear before 4 and 5 (hop 2).
-  // In DFS, 3 may appear after 4 and 5.
-
   it should "vertexMappedTraversalBfs visits hop-1 before hop-2 on branching graph" in {
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
       Triplet(1, 2, None, Undirected),

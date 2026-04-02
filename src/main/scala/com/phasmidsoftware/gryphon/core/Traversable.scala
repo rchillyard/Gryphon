@@ -221,12 +221,7 @@ trait Traversable[V] {
       , E
       ] (connexion, flipped)
       ) ) ) =>
-      // When flipped, the connexion's nominal direction is child->parent,
-      // so we reconstruct it as parent->child using the parent recorded in result.
-      val effectiveConnexion: Connexion[V] =
-        if flipped then VertexPair(connexion.black, child)
-        else connexion
-      acc.addConnexion(child, effectiveConnexion)
+      acc.addConnexion(child, connexion)
       case (acc, _) =>
         acc
     }

@@ -278,6 +278,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   override def toString: String =
     map.map((v, vv) => s"v:$v, vv:${vv.render}").mkString("[", ", ", "]")
 
+  def debug: String =
+    s"VertexMap(size=${map.size}, edgeCount=$edgeCount, vertices=$map)"
+
   // CONSIDER making this a member and use copy to increment the edgeCount
   private var edgeCount: Int = 0
 

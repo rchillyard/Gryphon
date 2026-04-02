@@ -119,15 +119,16 @@ case class DijkstraTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal
     // No side effects; all bookkeeping is owned by CostUpdate.
     given Neighbours[(E, V), (E, V)] with
       def neighbours(ev: (E, V)): Iterator[(E, V)] =
-        val (_, v) = ev
+        // Note: accCost must be extracted strictly via ev._1 rather than
+        // pattern matching `val (accCost, v) = ev`. The pattern match can
+        // generate a lazy binding which causes accCost to be captured
+        // incorrectly inside the subsequent map lambda.
+        val accCost: E = ev._1
+        val v: V = ev._2
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
-                .map { e =>
-                  val w = e match
-                    case ue: UndirectedEdge[E, V] => ue.other(v)
-                    case de => de.black
-                  (e.attribute, w)
-                }
+                .collect { case e: AttributedDirectedEdge[E, V] => e }
+                .map(e => (en.plus(accCost, e.attribute), e.black))
 
     // CostUpdate: after settling (cost, v), re-check each neighbour.
     // Owns all writes to bestCost and pred.
@@ -136,6 +137,7 @@ case class DijkstraTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal
     // - Already settled or no improvement: no-op.
     given CostUpdate[(E, V), IndexedPrioQueue] with
       def update(frontier: IndexedPrioQueue[(E, V)], ev: (E, V)): IndexedPrioQueue[(E, V)] =
+        //        println(s"CostUpdate called for $ev, frontier size=${frontier.size}")
         val (accCost, v) = ev
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
@@ -145,10 +147,12 @@ case class DijkstraTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal
                   val w = e.black
                   bestCost.get(w) match
                     case None =>
+//                      println(s"firstDiscovery: ($newCost,$w)")
                       bestCost(w) = newCost
                       pred(w) = e
                       pq
                     case Some(oldCost) if en.lt(newCost, oldCost) && pq.contains((oldCost, w)) =>
+//                      println(s"decreaseKey: ($oldCost,$w) -> ($newCost,$w)")
                       bestCost(w) = newCost
                       pred(w) = e
                       pq.decreaseKey((oldCost, w), (newCost, w))
@@ -159,7 +163,17 @@ case class DijkstraTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal
 
     val visitor: Visitor[(E, V), AttributedDirectedEdge[E, V], QueueJournal[((E, V), Option[AttributedDirectedEdge[E, V]])]] =
       JournaledVisitor.withQueueJournal[(E, V), AttributedDirectedEdge[E, V]]
+
+//    val testPQ = IndexedPrioQueue.empty[(E, V)]
+//    val testPQ2 = testPQ.offer((8.0.asInstanceOf[E], 7.asInstanceOf[V]))
+//            .offer((5.0.asInstanceOf[E], 1.asInstanceOf[V]))
+//            .offer((9.0.asInstanceOf[E], 4.asInstanceOf[V]))
+//    val (a, pq1) = testPQ2.take
+//    val (b, pq2) = pq1.take
+//    val (c, _) = pq2.take
+
     val result  = Traversal.bestFirstWeighted((en.zero, start), visitor)
+
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
     VertexTraversalResult(
@@ -206,13 +220,14 @@ case class PrimTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal[V, 
     // No side effects; all bookkeeping is owned by CostUpdate.
     given Neighbours[(E, V), (E, V)] with
       def neighbours(ev: (E, V)): Iterator[(E, V)] =
-        val (_, v) = ev
+        val weight: E = ev._1
+        val v: V = ev._2
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
                 .map { e =>
                   val w = e match
                     case ue: UndirectedEdge[E, V] => ue.other(v)
-                    case de                        => de.black
+                    case de => de.black
                   (e.attribute, w)
                 }
 
@@ -223,7 +238,7 @@ case class PrimTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal[V, 
     // - Already settled or no improvement: no-op.
     given CostUpdate[(E, V), IndexedPrioQueue] with
       def update(frontier: IndexedPrioQueue[(E, V)], ev: (E, V)): IndexedPrioQueue[(E, V)] =
-        println(s"CostUpdate called for $ev, frontier size=${frontier.size}")
+        //        println(s"CostUpdate called for $ev, frontier size=${frontier.size}")
         val (_, v) = ev
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
@@ -251,7 +266,7 @@ case class PrimTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal[V, 
     val visitor = JournaledVisitor.withQueueJournal[(E, V), Edge[E, V]]
     // DEBUG
     val debugNbrs = summon[Neighbours[(E, V), (E, V)]]
-    println(s"Neighbours of (0.0, 0): ${debugNbrs.neighbours((en.zero, start)).toList}")
+    //    println(s"Neighbours of (0.0, 0): ${debugNbrs.neighbours((en.zero, start)).toList}")
     val result  = Traversal.bestFirstWeighted((en.zero, start), visitor)
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.

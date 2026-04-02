@@ -108,6 +108,7 @@ trait Graph[V] extends Traversable[V]:
   def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
     undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[E, V] => e.black }
 
+  def debug: String = vertexMap.debug
 
 /**
  * Companion object for `Graph`.

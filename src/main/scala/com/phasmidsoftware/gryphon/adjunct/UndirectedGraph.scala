@@ -123,7 +123,6 @@ object UndirectedGraph {
         val graph = UndirectedGraph(vm)
         // TODO find another way to handle this anomaly
         if (graph.adjacencies.size != triplets.triplets.size) System.err.println(s"WARNING: ${graph.adjacencies.size} != ${triplets.triplets.size}")
-        println(s"graph = $graph")
         Success(graph)
       case z =>
         Failure(GraphException(s"parse failed: $z"))

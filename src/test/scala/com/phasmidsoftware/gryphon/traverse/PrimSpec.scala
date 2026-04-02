@@ -125,11 +125,11 @@ class PrimSpec extends AnyFlatSpec with should.Matchers:
     loadGraph match
       case Success(graph) =>
         val result = PrimTraversal[Int, Double]().run(graph)(0)
-        println(s"result: $result")
+//        println(s"result: $result")
         result.size shouldBe 7
 
         val keySet = result.keySet
-        println(s"keySet: $keySet")
+//        println(s"keySet: $keySet")
 
         // CONSIDER removing this cast.
         val mstMap = result.asInstanceOf[VertexTraversalResult[Int, Edge[Double, Int]]].map

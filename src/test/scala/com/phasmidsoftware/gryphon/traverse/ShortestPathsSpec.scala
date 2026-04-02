@@ -31,6 +31,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
+//            println(graph.debug)
             graph.vertexMap.map.size shouldBe 8
             graph.edges.size shouldBe 16
             val sp = ShortestPaths.dijkstra(graph, 0)

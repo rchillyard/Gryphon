@@ -6,14 +6,12 @@ package com.phasmidsoftware.gryphon.applications.mst
 
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph
-import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Triplet, Undirected, Vertex}
+import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.traverse.{PrimTraversal, TraversalResult}
-import com.phasmidsoftware.gryphon.util.TryUsing
-import com.phasmidsoftware.gryphon.util.FP
+import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -37,7 +35,7 @@ class PrimSpec extends AnyFlatSpec with Matchers:
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: UndirectedGraph[Int, Double]) =>
-            println(graph.vertexMap._1)
+//            println(graph.debug)
             f(graph)
           case Failure(x) =>
             fail("graph construction failed", x)
@@ -157,8 +155,10 @@ class PrimSpec extends AnyFlatSpec with Matchers:
     withPrimGraph { graph =>
       val result0 = PrimTraversal[Int, Double]().run(graph)(0)
       val result3 = PrimTraversal[Int, Double]().run(graph)(3)
-      maybeEdges(result0) shouldBe maybeEdges(result3)
-//      val weights0 = result0.iterator.map(_._2.attribute).toList.sorted
-//      val weights3 = result3.iterator.map(_._2.attribute).toList.sorted
-//      weights0 shouldBe weights3
+      (maybeEdges(result0), maybeEdges(result3)) match {
+        case (Some(edges0), Some(edges3)) =>
+          edges0.map(_.attribute).toList.sorted shouldBe edges3.map(_.attribute).toList.sorted
+        case _ =>
+          fail("test failed")
+      }
     }

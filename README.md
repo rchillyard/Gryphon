@@ -86,7 +86,7 @@ No. When I created the repository, GitHub placed it in a different organization
 from my normal organization (rchillyard).
 I forked that repository and continued working on developing version 0.1.0 
 without paying attention to the location of the repository.
-The fact that the repo was forked was not very satisfactory, however, 
+The fact that the repo was forked was not very satisfactory, however,
 and I decided to create a brand-new repository.
 The history is still (currently) available as Gryphon-forked
 (https://github.com/rchillyard/Gryphon-forked).

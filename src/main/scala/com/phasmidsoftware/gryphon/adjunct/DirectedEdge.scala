@@ -48,6 +48,9 @@ case class AttributedDirectedEdge[E, V](attribute: E, from: V, to: V) extends Di
    */
   def black: V = to
 
+  // In AttributedDirectedEdge:
+  def reversed: AttributedDirectedEdge[E, V] = copy(from = to, to = from)
+
 /**
  * Companion object for the `AttributedDirectedEdge` class.
  *
@@ -98,3 +101,6 @@ case class OrderedEdge[V](from: V, to: V) extends DirectedEdge[Unit, V]:
    * @return the vertex where the edge terminates (the "black" vertex).
    */
   def black: V = to
+
+  // In OrderedEdge:
+  def reversed: OrderedEdge[V] = copy(from = to, to = from)

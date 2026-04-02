@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.core.Bag.random
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
 import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
 import com.phasmidsoftware.visitor.core.{*, given}
@@ -62,6 +63,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    */
   def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random): Iterator[Adjacency[V]] =
     map(v).adjacencies.filter(predicate).iterator
+
+  /**
+   * Provides a `GraphNeighbours[V]` instance derived from the `graphNeighbours` method.
+   * The `GraphNeighbours[V]` instance facilitates efficient access to the neighbors of a vertex
+   * within the graph, enabling traversal algorithms to query adjacent vertices.
+   *
+   * @return a `GraphNeighbours[V]` instance for querying vertex neighbors.
+   */
+  def neighboursGiven: GraphNeighbours[V] = graphNeighbours
 
   /**
    * Performs DFS from `v`, accumulating results into `visitor`.
@@ -241,6 +251,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    */
   def addTriplets[E, Z](vertexFunction: V => Vertex[V], edgeFunction: Z => ProtoConnexion[E, V] => Connexion[V])(triplets: Seq[Triplet[V, E, Z]]): VertexMap[V] =
     triplets.foldLeft[VertexMap[V]](this)((vm, triplet) => vm.addTriplet(edgeFunction)(vertexFunction)(triplet))
+
+  /**
+   * Returns a new VertexMap with the same vertex keys but empty adjacency lists.
+   * Used to seed a reversed or transformed graph before re-adding edges.
+   */
+  def keysOnly: VertexMap[V] =
+    VertexMap(map.keys.foldLeft(Map.empty[V, Vertex[V]]) { (m, k) =>
+      m + (k -> Vertex.createWithSet(k))
+    })
 
   /**
    * Creates vertices and adjacencies from a triplet.

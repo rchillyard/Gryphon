@@ -14,6 +14,22 @@ import scala.util.{Failure, Success, Try}
  * @param vertexMap the `VertexMap` that represents this `Graph`.
  */
 case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V](vertexMap) with EdgeGraph[V, E] {
+  /**
+   * Returns a new DirectedGraph with all edges reversed (every u→v becomes v→u).
+   * The vertex set is preserved, including any vertices with no outgoing edges.
+   *
+   * This is the first step in Kosaraju's strongly-connected-components algorithm.
+   *
+   * @return a new `DirectedGraph[V, E]` with reversed edges.
+   */
+  def reverse: DirectedGraph[V, E] =
+    edges.foldLeft(DirectedGraph[V, E](vertexMap.keysOnly)) { (g, e) =>
+      val rev: DirectedEdge[E, V] = e match
+        case AttributedDirectedEdge(attr, from, to) => AttributedDirectedEdge(attr, to, from)
+        case OrderedEdge(from, to) => OrderedEdge(to, from)
+        case other => throw GraphException(s"unexpected edge type in reverse: $other")
+      g.addEdge(rev)
+    }
 
   /**
    * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.
@@ -25,7 +41,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *                        all existing edges and vertices.
    * @throws GraphException if the provided edge type is unexpected or unsupported.
    */
-  def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = edge match {
+  override def addEdge(edge: Edge[E, V]): DirectedGraph[V, E] = edge match {
     case edge: DirectedEdge[_, _] =>
       copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
     case edge: OrderableEdge[_, _] =>
@@ -44,6 +60,11 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
   def edges: Iterator[DirectedEdge[E, V]] =
     adjacencies map DirectedGraph.getDirectedEdgeFromAdjacency[E, V]
 
+  /**
+   * Computes and returns the total number of edges in the directed graph.
+   *
+   * @return the number of directed edges present in the graph.
+   */
   override def M: Int = edges.size
 
   /**

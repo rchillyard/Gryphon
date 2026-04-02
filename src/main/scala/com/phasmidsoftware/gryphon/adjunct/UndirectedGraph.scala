@@ -26,17 +26,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
-  def addEdge(edge: Edge[E, V]): EdgeGraph[V, E] = edge match {
-    // FIXME this is all backwards!
-    case edge: DirectedEdge[_, _] =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case edge: OrderableEdge[_, _] =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case UndirectedEdge(attribute, white, black) =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white)) // TODO we need to add this edge twice (once in each direction)
-    case _ =>
-      throw GraphException(s"unexpected edge type: $edge")
-  }
+  def addEdge(edge: Edge[E, V]): UndirectedGraph[V, E] =
+    copy(vertexMap + edge)
 
   /**
    * Retrieves all edges in the directed graph as an iterable collection of edges.

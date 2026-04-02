@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedEdge
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
 import scala.util.Random
@@ -22,9 +22,9 @@ object ShortestPaths:
    * @return a `TraversalResult[V, DirectedEdge[E, V]]` mapping each settled
    *         vertex to its cheapest incoming edge, or None for the start vertex.
    */
-  def dijkstra[V, E: {Numeric, Ordering}](traversable: Traversable[V], start: V)(using random: Random = Random()): TraversalResult[V, DirectedEdge[E, V]] =
+  def dijkstra[V, E: {Numeric, Ordering}](traversable: Traversable[V], start: V)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[E, V]] =
     DijkstraTraversal[V, E]().run(traversable)(start)
-
+    
   /**
    * Returns the directed edges reachable from v.
    */

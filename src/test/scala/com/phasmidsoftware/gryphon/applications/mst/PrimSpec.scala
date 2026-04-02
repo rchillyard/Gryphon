@@ -34,8 +34,7 @@ class PrimSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: UndirectedGraph[Int, Double]) =>
-//            println(graph.debug)
+          case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
             f(graph)
           case Failure(x) =>
             fail("graph construction failed", x)

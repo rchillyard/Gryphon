@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
 import com.phasmidsoftware.visitor.core.{*, given}
 import scala.collection.mutable
@@ -80,196 +80,179 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
     )
 
 // ============================================================
-// Dijkstra
+// WeightedTraversal — shared base for Dijkstra and Prim
 // ============================================================
 
 /**
- * Dijkstra's shortest-path traversal using a tuple `(E, V)` frontier.
+ * Abstract base class for weighted graph traversals using a tuple `(E, V)` frontier.
  *
- * The frontier element is `(accumulatedCost, vertex)`. `Ordering[(E, V)]` orders
- * by cost only, so the cheapest-known vertex is always settled next.
- * Cost accumulation lives in `Neighbours[(E,V),(E,V)]` — no mutable cost map
- * drives the ordering. A mutable `pred` map records the cheapest incoming edge
- * per vertex; `CostUpdate` calls `decreaseKey` whenever a cheaper path is found.
+ * Encapsulates the shared structure of Dijkstra and Prim: both use an
+ * `IndexedPrioQueue[(E, V)]` frontier, `CostUpdate` with `decreaseKey`, and
+ * mutable `pred`/`bestCost` maps owned exclusively by `CostUpdate`.
  *
- * The external API is unchanged: `TraversalResult[V, DirectedEdge[E, V]]`.
+ * Concrete subclasses differ in exactly two ways:
+ *   - `edgeCost` — how the frontier cost is computed from an edge
+ *     (cumulative for Dijkstra, edge-weight-only for Prim)
+ *   - `destination` — how the destination vertex is extracted from an edge
+ *     (always `e.black` for directed; `e.other(v)` for undirected)
+ *   - `filterEdge` — which edges are admitted and what concrete `R` type they have
+ *     (only `AttributedDirectedEdge` for Dijkstra; all edges for Prim)
+ *
+ * NOTE on lazy evaluation: `ev._1` and `ev._2` must be extracted via strict `val`
+ * with explicit type ascriptions inside `Neighbours`. Using tuple pattern matching
+ * `val (accCost, v) = ev` can generate a lazy binding that captures incorrectly
+ * when the resulting `Iterator` is consumed lazily, causing `edgeCost` to receive
+ * `en.zero` instead of the actual accumulated cost (a Heisenbug).
  *
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must be Numeric and Ordering.
+ * @tparam R the result type; must be a subtype of Edge[E, V].
  */
-case class DijkstraTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal[V, E, DirectedEdge[E, V]]:
+abstract class WeightedTraversal[V, E: {Numeric, Ordering}, R <: Edge[E, V]]
+        extends GraphTraversal[V, E, R]:
 
-  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, DirectedEdge[E, V]] =
+  /**
+   * Computes the frontier cost for a neighbour reachable via `e` from a node
+   * settled at `accCost`.
+   *
+   * Dijkstra: `en.plus(accCost, e.attribute)` — cumulative path cost.
+   * Prim:     `e.attribute`                   — edge weight only.
+   */
+  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using en: Numeric[E]): E
+
+  /**
+   * Extracts the destination vertex from edge `e`, viewed from vertex `v`.
+   *
+   * Dijkstra: always `e.black`.
+   * Prim:     `e.other(v)` for undirected edges, `e.black` for directed.
+   */
+  protected def destination(v: V, e: Edge[E, V]): V
+
+  /**
+   * Admits an edge and casts it to the concrete result type `R`, or rejects it.
+   *
+   * Dijkstra: admits only `AttributedDirectedEdge` instances.
+   * Prim:     admits all edges.
+   */
+  protected def filterEdge(e: Edge[E, V]): Option[R]
+
+  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R] =
     val en = summon[Numeric[E]]
 
-    // pred: the cheapest known incoming edge for each settled or frontier vertex.
-    // bestCost: current best known cost to reach each frontier vertex — used by
-    // CostUpdate to locate the old (stale) frontier entry for decreaseKey.
-    val pred:     mutable.Map[V, AttributedDirectedEdge[E, V]] = mutable.Map.empty
-    val bestCost: mutable.Map[V, E]                            = mutable.Map(start -> en.zero)
+    // pred: cheapest known incoming edge per vertex (typed as R for cast-free access).
+    // bestCost: current best frontier cost per vertex — used by CostUpdate to locate
+    // the stale frontier entry for decreaseKey.
+    // Both maps are owned exclusively by CostUpdate; Neighbours is pure.
+    val pred:     mutable.Map[V, R] = mutable.Map.empty
+    val bestCost: mutable.Map[V, E] = mutable.Map(start -> en.zero)
 
     // Ordering: compare by cost component only.
     given Ordering[(E, V)] = Ordering.by(_._1)
 
     // Evaluable: when (cost, v) is settled, return its predecessor edge.
-    given Evaluable[(E, V), AttributedDirectedEdge[E, V]] with
-      def evaluate(ev: (E, V)): Option[AttributedDirectedEdge[E, V]] = pred.get(ev._2)
+    given Evaluable[(E, V), R] with
+      def evaluate(ev: (E, V)): Option[R] = pred.get(ev._2)
 
-    // Neighbours: pure — expand (accCost, v) into (accCost + edgeWeight, neighbour) pairs.
+    // Neighbours: pure — expand (accCost, v) into (newCost, neighbour) pairs.
     // No side effects; all bookkeeping is owned by CostUpdate.
+    // IMPORTANT: use ev._1 / ev._2, not pattern matching, to avoid lazy binding bug.
     given Neighbours[(E, V), (E, V)] with
       def neighbours(ev: (E, V)): Iterator[(E, V)] =
-        // Note: accCost must be extracted strictly via ev._1 rather than
-        // pattern matching `val (accCost, v) = ev`. The pattern match can
-        // generate a lazy binding which causes accCost to be captured
-        // incorrectly inside the subsequent map lambda.
         val accCost: E = ev._1
-        val v: V = ev._2
+        val v: V       = ev._2
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
-                .collect { case e: AttributedDirectedEdge[E, V] => e }
-                .map(e => (en.plus(accCost, e.attribute), e.black))
+                .flatMap(filterEdge)
+                .map(e => (edgeCost(accCost, e, v), destination(v, e)))
 
     // CostUpdate: after settling (cost, v), re-check each neighbour.
     // Owns all writes to bestCost and pred.
-    // - First time seeing w (not in bestCost): record cost and pred.
-    // - Cheaper path to a frontier vertex: decreaseKey and update records.
-    // - Already settled or no improvement: no-op.
+    //   - None:         first discovery — record cost and pred.
+    //   - Some(oldCost) with improvement and w in frontier — decreaseKey.
+    //   - otherwise:    no-op.
     given CostUpdate[(E, V), IndexedPrioQueue] with
       def update(frontier: IndexedPrioQueue[(E, V)], ev: (E, V)): IndexedPrioQueue[(E, V)] =
-        //        println(s"CostUpdate called for $ev, frontier size=${frontier.size}")
-        val (accCost, v) = ev
+        val accCost: E = ev._1
+        val v: V       = ev._2
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
-                .collect { case e: AttributedDirectedEdge[E, V] => e }
+                .flatMap(filterEdge)
                 .foldLeft(frontier) { (pq, e) =>
-                  val newCost = en.plus(accCost, e.attribute)
-                  val w = e.black
+                  val newCost = edgeCost(accCost, e, v)
+                  val w       = destination(v, e)
                   bestCost.get(w) match
                     case None =>
-//                      println(s"firstDiscovery: ($newCost,$w)")
                       bestCost(w) = newCost
-                      pred(w) = e
+                      pred(w)     = e
                       pq
                     case Some(oldCost) if en.lt(newCost, oldCost) && pq.contains((oldCost, w)) =>
-//                      println(s"decreaseKey: ($oldCost,$w) -> ($newCost,$w)")
                       bestCost(w) = newCost
-                      pred(w) = e
+                      pred(w)     = e
                       pq.decreaseKey((oldCost, w), (newCost, w))
                     case _ => pq
                 }
 
     given IndexedPrioQueue[(E, V)] = IndexedPrioQueue.empty[(E, V)]
 
-    val visitor: Visitor[(E, V), AttributedDirectedEdge[E, V], QueueJournal[((E, V), Option[AttributedDirectedEdge[E, V]])]] =
-      JournaledVisitor.withQueueJournal[(E, V), AttributedDirectedEdge[E, V]]
-
-//    val testPQ = IndexedPrioQueue.empty[(E, V)]
-//    val testPQ2 = testPQ.offer((8.0.asInstanceOf[E], 7.asInstanceOf[V]))
-//            .offer((5.0.asInstanceOf[E], 1.asInstanceOf[V]))
-//            .offer((9.0.asInstanceOf[E], 4.asInstanceOf[V]))
-//    val (a, pq1) = testPQ2.take
-//    val (b, pq2) = pq1.take
-//    val (c, _) = pq2.take
-
-    val result  = Traversal.bestFirstWeighted((en.zero, start), visitor)
-
+    val visitor: Visitor[(E, V), R, QueueJournal[((E, V), Option[R])]] =
+      JournaledVisitor.withQueueJournal[(E, V), R]
+    val result = Traversal.bestFirstWeighted((en.zero, start), visitor)
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
     VertexTraversalResult(
       result.result.iterator.collect { case ((_, v), Some(e)) => v -> e }.toMap
     )
+
+// ============================================================
+// Dijkstra
+// ============================================================
+
+/**
+ * Dijkstra's shortest-path traversal.
+ *
+ * Uses cumulative path cost as the frontier priority. Only `AttributedDirectedEdge`
+ * instances are admitted — the result type is `TraversalResult[V, AttributedDirectedEdge[E, V]]`,
+ * preserving full edge information without casts.
+ *
+ * @tparam V the vertex type.
+ * @tparam E the edge-weight type; must be Numeric and Ordering.
+ */
+case class DijkstraTraversal[V, E: {Numeric, Ordering}]()
+        extends WeightedTraversal[V, E, AttributedDirectedEdge[E, V]]:
+
+  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using en: Numeric[E]): E =
+    en.plus(accCost, e.attribute)
+
+  protected def destination(v: V, e: Edge[E, V]): V =
+    e.black
+
+  protected def filterEdge(e: Edge[E, V]): Option[AttributedDirectedEdge[E, V]] = e match
+    case ade: AttributedDirectedEdge[E, V] => Some(ade)
+    case _                                  => None
 
 // ============================================================
 // Prim
 // ============================================================
 
 /**
- * Prim's minimum spanning tree traversal using a tuple `(E, V)` frontier.
+ * Prim's minimum spanning tree traversal.
  *
- * The frontier element is `(edgeWeight, vertex)` — not cumulative cost.
- * `Ordering[(E, V)]` orders by edge weight only, so the cheapest available
- * edge to any unvisited vertex is always chosen next.
- * A mutable `pred` map records the cheapest incoming edge per frontier vertex;
- * `CostUpdate` calls `decreaseKey` whenever a cheaper edge to a frontier vertex
- * is found.
- *
- * The external API is unchanged: `TraversalResult[V, Edge[E, V]]`.
+ * Uses individual edge weight (not cumulative) as the frontier priority, so the
+ * cheapest available edge to any unvisited vertex is always chosen next.
+ * All edge types are admitted — the result type is `TraversalResult[V, Edge[E, V]]`.
  *
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must be Numeric and Ordering.
  */
-case class PrimTraversal[V, E: {Numeric, Ordering}]() extends GraphTraversal[V, E, Edge[E, V]]:
+case class PrimTraversal[V, E: {Numeric, Ordering}]()
+        extends WeightedTraversal[V, E, Edge[E, V]]:
 
-  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, Edge[E, V]] =
-    val en = summon[Numeric[E]]
+  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using en: Numeric[E]): E =
+    e.attribute
 
-    // pred: cheapest known incoming edge for each frontier/settled vertex.
-    // bestCost: current best edge weight to each frontier vertex.
-    val pred:     mutable.Map[V, Edge[E, V]] = mutable.Map.empty
-    val bestCost: mutable.Map[V, E]          = mutable.Map(start -> en.zero)
+  protected def destination(v: V, e: Edge[E, V]): V = e match
+    case ue: UndirectedEdge[E, V] => ue.other(v)
+    case de                        => de.black
 
-    // Ordering: compare by edge weight component only.
-    given Ordering[(E, V)] = Ordering.by(_._1)
-
-    // Evaluable: when (weight, v) is settled, return its predecessor edge.
-    given Evaluable[(E, V), Edge[E, V]] with
-      def evaluate(ev: (E, V)): Option[Edge[E, V]] = pred.get(ev._2)
-
-    // Neighbours: pure — expand (_, v) into (edgeWeight, neighbour) pairs.
-    // No side effects; all bookkeeping is owned by CostUpdate.
-    given Neighbours[(E, V), (E, V)] with
-      def neighbours(ev: (E, V)): Iterator[(E, V)] =
-        val weight: E = ev._1
-        val v: V = ev._2
-        graph.filteredAdjacencies(_ => true)(v)
-                .flatMap(_.maybeEdge[E])
-                .map { e =>
-                  val w = e match
-                    case ue: UndirectedEdge[E, V] => ue.other(v)
-                    case de => de.black
-                  (e.attribute, w)
-                }
-
-    // CostUpdate: after settling (weight, v), re-check each neighbour.
-    // Owns all writes to bestCost and pred.
-    // - First time seeing w (not in bestCost): record weight and pred.
-    // - Cheaper edge to a frontier vertex: decreaseKey and update records.
-    // - Already settled or no improvement: no-op.
-    given CostUpdate[(E, V), IndexedPrioQueue] with
-      def update(frontier: IndexedPrioQueue[(E, V)], ev: (E, V)): IndexedPrioQueue[(E, V)] =
-        //        println(s"CostUpdate called for $ev, frontier size=${frontier.size}")
-        val (_, v) = ev
-        graph.filteredAdjacencies(_ => true)(v)
-                .flatMap(_.maybeEdge[E])
-                .foldLeft(frontier) { (pq, e) =>
-                  val w = e match
-                    case ue: UndirectedEdge[E, V] => ue.other(v)
-                    case de                        => de.black
-                  val weight = e.attribute
-                  bestCost.get(w) match
-                    case None =>
-                      // First discovery — Neighbours already offered (weight, w) via offerAll.
-                      bestCost(w) = weight
-                      pred(w)     = e
-                      pq
-                    case Some(oldWeight) if en.lt(weight, oldWeight) && pq.contains((oldWeight, w)) =>
-                      // Cheaper edge found and w is still in the frontier.
-                      bestCost(w) = weight
-                      pred(w)     = e
-                      pq.decreaseKey((oldWeight, w), (weight, w))
-                    case _ => pq
-                }
-
-    given IndexedPrioQueue[(E, V)] = IndexedPrioQueue.empty[(E, V)]
-
-    val visitor = JournaledVisitor.withQueueJournal[(E, V), Edge[E, V]]
-    // DEBUG
-    val debugNbrs = summon[Neighbours[(E, V), (E, V)]]
-    //    println(s"Neighbours of (0.0, 0): ${debugNbrs.neighbours((en.zero, start)).toList}")
-    val result  = Traversal.bestFirstWeighted((en.zero, start), visitor)
-
-    // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
-    VertexTraversalResult(
-      result.result.iterator.collect { case ((_, v), Some(e)) => v -> e }.toMap
-    )
+  protected def filterEdge(e: Edge[E, V]): Option[Edge[E, V]] =
+    Some(e)

@@ -9,18 +9,18 @@ traversal with cost updates.
 
 ---
 
-## Current State (as of Gryphon 0.2.4 / Visitor V1.3.0)
+## Current State (as of Gryphon 0.2.5 / Visitor V1.3.0)
 
 ### Visitor Library
 
 - `Traversal` engine with `traverse`, `dfs`, `bfs`, `bestFirst`, `bestFirstMax`,
-  `bestFirstWeighted` (new)
+  `bestFirstWeighted`
 - Three-type priority queue hierarchy: `BinaryHeap` → `PrioQueue` → `IndexedPrioQueue`
   (see §Priority Queue Design Decision below)
 - `Frontier[F[_]]` typeclass with implementations for `Stack`, `Queue`, `PrioQueue`,
-  and `IndexedPrioQueue` (new)
-- `CostUpdate[W, F[_]]` typeclass (new) with default no-op given
-- `TupleVisitedSet[E, V]` and `given [E, V]: VisitedSet[(E, V)]` (new) — supports
+  and `IndexedPrioQueue`
+- `CostUpdate[W, F[_]]` typeclass with default no-op given
+- `TupleVisitedSet[E, V]` and `given [E, V]: VisitedSet[(E, V)]` — supports
   weighted tuple frontiers for Dijkstra/Prim
 - `Evaluable[V, R]`, `Neighbours[V, V]`, `VisitedSet[V]` typeclasses (unchanged)
 - `JournaledVisitor` with `ListJournal` (prepend) and `QueueJournal` (append/FIFO)
@@ -30,18 +30,11 @@ traversal with cost updates.
 - `GraphTraversal[V, E, R]` trait — in `com.phasmidsoftware.gryphon.traverse`
 - `DFSTraversal[V]` — delegates to `Traversal.dfs`
 - `BFSTraversal[V]` — delegates to `Traversal.bfs`
-- `DijkstraTraversal[V, E]` — **pending refactor** to `Traversal.bestFirstWeighted`
-- `PrimTraversal[V, E]` — **pending refactor** to `Traversal.bestFirstWeighted`
+- `DijkstraTraversal[V, E]` — delegates to `Traversal.bestFirstWeighted` ✓
+- `PrimTraversal[V, E]` — delegates to `Traversal.bestFirstWeighted` ✓
 - `ShortestPaths.dijkstra` delegates to `DijkstraTraversal.run`
 - `ConnectedComponents` — computes connected components of undirected graphs
 - `TopologicalSort`, `ShortestPaths` — existing, working
-
-### Known Issues / Pending Work
-
-- `DijkstraTraversal` and `PrimTraversal` refactor to tuple-frontier approach
-  is **not yet done** — this is Phase 2 (see below).
-- Six tests in `PrimSpec` are currently pending.
-- `ShortestPathsSpec` uses `Edge` return type (changed from `DirectedEdge`).
 
 ---
 
@@ -101,8 +94,7 @@ a binary heap. `BinaryHeap` is visibly a pure data structure. `PrioQueue` and
 
 **Why chosen:** The teaching context makes the clean three-way separation a feature,
 not a cost. The type-level distinction between a plain priority queue and an indexed
-one also enforces correct usage at compile time — it's impossible to accidentally
-use a `decreaseKey`-enabled queue where a simple one was intended, or vice versa.
+one also enforces correct usage at compile time.
 
 ### Implementation Detail: Index Rebuild Strategy
 
@@ -150,19 +142,34 @@ given [W, F[_]]: CostUpdate[W, F] with
 For Dijkstra and Prim, `DijkstraTraversal` / `PrimTraversal` provide a
 `given CostUpdate[W, IndexedPrioQueue]` (where `W = (E, V)`) that calls
 `decreaseKey` for any frontier entry whose cost has improved since it was
-first offered. The `CostUpdate` instance closes over a secondary `Map[V, E]`
-(the only remaining mutable state) that tracks the current best known cost
-per vertex — needed to look up the old frontier entry for `decreaseKey`.
+first offered. The `CostUpdate` instance closes over two mutable maps:
+- `pred: mutable.Map[V, Edge]` — the cheapest known incoming edge per vertex
+- `bestCost: mutable.Map[V, E]` — current best known cost per vertex, needed
+  to locate the old frontier entry for `decreaseKey`
+
+### Bookkeeping Ownership
+
+A critical design invariant: **`Neighbours` is pure — it generates `(cost, vertex)`
+tuples with no side effects**. All writes to `bestCost` and `pred` are owned
+exclusively by `CostUpdate.update`, which handles two cases:
+- `None` — first discovery of vertex `w`; `offerAll` has already offered the
+  tuple, `CostUpdate` records `bestCost(w)` and `pred(w)`
+- `Some(oldCost)` with improvement and `w` still in frontier — calls `decreaseKey`
+  and updates both maps
+
+This separation was discovered through debugging: when `Neighbours` also wrote to
+`bestCost`, the `CostUpdate` `decreaseKey` check would find a stale `oldCost`
+value and either miss improvements or look up the wrong frontier entry.
 
 ---
 
-## Tuple Frontier Approach for Dijkstra/Prim (Phase 2)
+## Tuple Frontier Approach for Dijkstra/Prim
 
 ### Motivation
 
-The original Dijkstra/Prim in `GraphTraversal.scala` used `Ordering[V]` derived
-from a mutable cost map, with the frontier holding plain `V` vertices. This was
-rejected in favour of an explicit `(E, V)` tuple frontier:
+The original Dijkstra/Prim used `Ordering[V]` derived from a mutable cost map,
+with the frontier holding plain `V` vertices. This was replaced with an explicit
+`(E, V)` tuple frontier:
 
 - **Correctness:** Cost is encoded in the frontier element itself — no implicit
   dependency on external mutable state for ordering.
@@ -175,46 +182,89 @@ rejected in favour of an explicit `(E, V)` tuple frontier:
 The frontier element type is `W = (E, V)` where `E` is the cost type and `V` is
 the vertex type.
 
-**`Neighbours[(E, V), (E, V)]`** — cost accumulation lives here:
-```scala
-// Dijkstra: accumulate cost
-given Neighbours[(E, V), (E, V)] = (ev: (E, V)) =>
-  graph.filteredAdjacencies(...)(ev._2)
-    .flatMap(adj => adj.maybeEdge[E].map(e => (en.plus(ev._1, e.attribute), e.black)))
-
-// Prim: edge weight only, no accumulation
-given Neighbours[(E, V), (E, V)] = (ev: (E, V)) =>
-  graph.filteredAdjacencies(...)(ev._2)
-    .flatMap(adj => adj.maybeEdge[E].map(e => (e.attribute, e.other(ev._2))))
-```
+**`Neighbours[(E, V), (E, V)]`** — pure cost expansion, no side effects.
 
 **`VisitedSet[(E, V)]`** — tracks visited-ness on `V` alone, ignoring the cost
 component, so stale `(higherCost, v)` frontier entries are correctly skipped:
 ```scala
 given [E, V]: VisitedSet[(E, V)] = TupleVisitedSet(Set.empty[V])
-
-case class TupleVisitedSet[E, V](visited: Set[V]) extends VisitedSet[(E, V)]:
-  def isVisited(ev: (E, V)): Boolean              = visited.contains(ev._2)
-  def markVisited(ev: (E, V)): VisitedSet[(E, V)] = copy(visited + ev._2)
-```
-
-**`Traversal.bestFirstWeighted`** — the entry point for Dijkstra/Prim:
-```scala
-def bestFirstWeighted[W: Ordering, R, J <: Appendable[(W, Option[R])]](
-    start:   W,
-    visitor: Visitor[W, R, J],
-    goal:    W => Boolean = (_: W) => false
-  )(using
-    nbrs:    GraphNeighbours[W],
-    ev:      Evaluable[W, R],
-    vs:      VisitedSet[W],
-    cu:      CostUpdate[W, IndexedPrioQueue],
-    initial: IndexedPrioQueue[W]
-  ): Visitor[W, R, J]
 ```
 
 The external `TraversalResult[V, DirectedEdge[E, V]]` API is unchanged —
-tuple unwrapping (`._2`) happens inside `DijkstraTraversal.run` / `PrimTraversal.run`.
+tuple unwrapping happens inside `DijkstraTraversal.run` / `PrimTraversal.run`.
+
+### Lazy Evaluation Bug (Heisenbug)
+
+During implementation, a subtle Scala lazy evaluation bug was discovered. Inside
+a `given Neighbours` that returns an `Iterator`, tuple pattern matching:
+
+```scala
+val (accCost, v) = ev  // WRONG — can generate lazy binding in Iterator context
+```
+
+caused `accCost` to not be materialised at the point of destructuring but at the
+point of use inside the `map` lambda — by which time `ev` may have been rebound.
+This caused `en.plus(accCost, e.attribute)` to return just `e.attribute` (as if
+`accCost = en.zero`), producing wrong cumulative costs in Dijkstra.
+
+The bug was discovered because adding a `println(s"accCost=$accCost")` inside
+the lambda forced strict evaluation as a side effect and made the bug disappear —
+a classic Heisenbug.
+
+**Fix:** Always use strict `val` extraction with explicit type ascriptions when
+destructuring tuples inside `given` instances that return lazy collections:
+
+```scala
+val accCost: E = ev._1  // CORRECT — strict binding
+val v: V       = ev._2
+```
+
+---
+
+## Undirected Graph Construction Fixes
+
+Several bugs in undirected graph construction were exposed by the Prim tests,
+which were the first tests to exercise a properly bidirectional undirected graph.
+
+### `VertexMap.createVerticesFromTriplet` — reverse adjacency orientation
+
+The reverse adjacency was constructed by calling `g(vv2, vv1, ...)` — swapping
+vertex arguments — which produced a new `UndirectedEdge` with swapped endpoints
+and `flipped=false`. This meant all adjacencies had `flipped=false`, so reverse
+traversal was incorrect.
+
+**Fix:** Construct the reverse adjacency as `AdjacencyEdge(connexion, flipped=true)`
+on the original connexion, rather than calling `g` again with swapped arguments.
+
+### `UndirectedGraph.triplesToTryGraph` — hardcoded `condition=false`
+
+The call to `createVerticesFromTriplet` passed `false` as the `condition` parameter,
+meaning the reverse adjacency was never added. Every undirected edge was only stored
+in one direction.
+
+**Fix:** Pass `!t._4.oneWay` as the condition — `true` for undirected edges,
+`false` for directed ones.
+
+### `UndirectedGraph.edges` — threw on flipped adjacencies
+
+`getUndirectedEdgeFromAdjacency` matched `AdjacencyEdge(e, false)` and threw
+`GraphException` on `AdjacencyEdge(e, true)`. Once both directions were stored,
+`edges` threw on every reverse entry.
+
+**Fix:** Use `collect` to silently skip `flipped=true` entries:
+```scala
+def edges: Iterator[UndirectedEdge[E, V]] =
+  adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[E, V] @unchecked, false) => e }
+```
+
+### `Traversable.getConnexions` — VertexPair not accepted by addConnexion
+
+For flipped adjacencies, `getConnexions` constructed `VertexPair(connexion.black, child)`
+and passed it to `Connexions.addConnexion`, which only accepts `AttributedDirectedEdge`
+and `UndirectedEdge` — throwing `GraphException` on properly bidirectional graphs.
+
+**Fix:** Pass `connexion` directly to `addConnexion` regardless of `flipped`.
+`addConnexion` already handles `UndirectedEdge` correctly via `u.other(v)`.
 
 ---
 
@@ -241,59 +291,22 @@ All four share the same `Traversal.traverse` loop — they differ only in the
 | `PrioQueue.scala` | Three-type hierarchy: `BinaryHeap` (pure), `PrioQueue` (duplicates OK), `IndexedPrioQueue` (indexed, no duplicates, `decreaseKey`) |
 | `Behaviours.scala` | Add `CostUpdate` typeclass + no-op given; add `TupleVisitedSet` + `given [E,V]: VisitedSet[(E,V)]`; add `Frontier[IndexedPrioQueue]` given |
 | `CostUpdate.scala` | New file: `CostUpdate[W, F[_]]` typeclass + no-op given |
-| `Traversal.scala` | Add `cu: CostUpdate[V, F]` to `traverse`; call `cu.update` after `offerAll` and at seed; add `bestFirstWeighted` entry point |
+| `Traversal.scala` | Add `cu: CostUpdate[V, F]` to `traverse`; call `cu.update` after `offerAll` and at seed; add `bestFirstWeighted` entry point; extract neighbours as strict val |
 
-### Gryphon (Phase 2 — not yet done)
+### Gryphon (V0.2.5)
 
 | File | Change |
 |------|--------|
-| `GraphTraversal.scala` | Rewrite `DijkstraTraversal` and `PrimTraversal` with `(E,V)` tuple frontier, `Neighbours[(E,V),(E,V)]`, `CostUpdate[…,IndexedPrioQueue]` |
-| `ShortestPaths.scala` | Return type updated to `TraversalResult[V, Edge[E, V]]` |
-| `PrimSpec.scala` | 6 tests currently pending; should pass after Phase 2 complete |
-| `ShortestPathsSpec.scala` | May need updating for `Edge` return type |
-
----
-
-## Tests Needed (Visitor V1.3.0)
-
-### `BinaryHeapSpec`
-
-- insert / removeMin ordering (min-heap)
-- duplicate elements permitted
-- single element; empty heap guard
-
-### `PrioQueueSpec`
-
-- offer / take in ascending order
-- duplicate elements permitted and ordered correctly
-- `emptyMax` variant dequeues in descending order
-
-### `IndexedPrioQueueSpec`
-
-- offer / take in ascending order
-- duplicate offer is a no-op (`contains` before and after)
-- `decreaseKey` repositions an existing entry correctly
-- `decreaseKey` on absent element is a no-op
-- `decreaseKey` with non-improving priority is a no-op
-- `contains` returns true/false correctly
-- `emptyMax` variant
-
-### `FrontierSpec` additions
-
-- `Frontier[IndexedPrioQueue]` offer/take ordering
-- `Frontier[PrioQueue]` duplicate behaviour
-
-### `TraversalSpec` additions
-
-- `bestFirstWeighted` with a trivial graph and a `CostUpdate` that calls `decreaseKey`
-- `TupleVisitedSet` correctly ignores cost component
+| `GraphTraversal.scala` | Rewrite `DijkstraTraversal` and `PrimTraversal` with `(E,V)` tuple frontier, pure `Neighbours[(E,V),(E,V)]`, `CostUpdate[…,IndexedPrioQueue]`; strict `ev._1`/`ev._2` extraction |
+| `VertexMap.scala` | Fix `createVerticesFromTriplet` reverse adjacency orientation |
+| `UndirectedGraph.scala` | Fix `triplesToTryGraph` condition; fix `edges` to use `collect`; override `M` with `edges.size` |
+| `Traversable.scala` | Fix `getConnexions` to pass connexion directly to `addConnexion` |
+| `PrimSpec.scala` | 11 new tests covering graph structure, MST correctness, and start-vertex independence |
 
 ---
 
 ## Future Work
 
-- **Phase 2:** Refactor `DijkstraTraversal` and `PrimTraversal` to tuple-frontier
-  approach (see §Tuple Frontier Approach above)
 - **Kosaraju's SCC** — Strongly Connected Components for directed graphs
   - Two DFS passes: first on original graph (post-order), then on reversed graph
   - Needs `DirectedGraph.reverse` method
@@ -303,6 +316,13 @@ All four share the same `Traversal.traverse` loop — they differ only in the
   - `WeightedUnionFind` also in attic
 - **Verify book coverage** — systematically check all graph algorithms from
   Sedgewick & Wayne are implemented in Gryphon
+- **Merge `DijkstraTraversal` and `PrimTraversal`** — the two implementations are
+  nearly identical; the only difference is the cost function (`en.plus(acc, w)` vs
+  `w` alone). An abstract `WeightedTraversal` base class parameterised on a cost
+  function would eliminate the duplication. Defer until both are confirmed stable.
+- **Performance** — `IndexedPrioQueue.decreaseKey` is O(n log n); `offer`/`take`
+  rebuild index in O(n). Acceptable for current graph sizes but could be optimised
+  if needed.
 
 ---
 

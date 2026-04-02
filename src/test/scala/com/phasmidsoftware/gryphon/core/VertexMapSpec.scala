@@ -27,7 +27,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
     target.contains(3) shouldBe true
-    println(target)
     val v1 = target.apply(1)
     val v2 = target.apply(2)
     val v3 = target.apply(3)
@@ -43,7 +42,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
     target.contains(3) shouldBe true
-    println(target)
     val v1 = target.apply(1)
     val v2 = target.apply(2)
     val v3 = target.apply(3)
@@ -59,7 +57,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
     target.contains(3) shouldBe true
-    println(target)
     val v1 = target.apply(1)
     val v2 = target.apply(2)
     val v3 = target.apply(3)
@@ -75,7 +72,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
     target.contains(3) shouldBe true
-    println(target)
     val v1 = target.apply(1)
     val v2 = target.apply(2)
     val v3 = target.apply(3)

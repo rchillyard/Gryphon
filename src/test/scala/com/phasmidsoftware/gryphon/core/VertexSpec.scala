@@ -39,7 +39,6 @@ class VertexSpec extends AnyFlatSpec with should.Matchers:
     adjacencies should matchPattern { case Unordered_Bag(_) => }
     adjacencies.size shouldBe 1
     adjacencies.elements.contains(AdjacencyVertex(2)) shouldBe true
-    println(result)
   }
 
   it should "$plus 2" in {
@@ -51,7 +50,6 @@ class VertexSpec extends AnyFlatSpec with should.Matchers:
     adjacencies.size shouldBe 3
     adjacencies.elements.contains(AdjacencyVertex(target)) shouldBe true
     adjacencies.iterator.size
-    println(result)
   }
 
   it should "render SimpleVertex" in {

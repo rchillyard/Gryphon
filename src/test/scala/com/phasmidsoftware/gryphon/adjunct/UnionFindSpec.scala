@@ -336,7 +336,6 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers:
     val connections = 4 * n
     val pairs = LazyList.continually(getPair).take(connections).toList
     val result = pairs.foldLeft(target)((u, t) => u.connect(t._1, t._2))
-    println(s"UnionFind: $n vertices, $connections connections → ${result.size} components, maxDepth=${result.maxDepth}, meanDepth=${result.meanDepth}")
     result.size should be < n
     result.maxDepth should be > 1.0
   }
@@ -353,7 +352,6 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers:
     val connections = 4 * n
     val pairs = LazyList.continually(getPair).take(connections).toList
     val result = pairs.foldLeft(target)((u, t) => u.connect(t._1, t._2))
-    println(s"WeightedUnionFind: $n vertices, $connections connections → ${result.size} components, maxDepth=${result.maxDepth}, meanDepth=${result.meanDepth}")
     result.size should be < n
     // WeightedUnionFind guarantees O(log n) depth — log2(1000) ≈ 10
     result.maxDepth should be <= 20.0
@@ -368,7 +366,5 @@ class UnionFindSpec extends AnyFlatSpec with should.Matchers:
 
     val uf  = pairs.foldLeft(UnionFind.create[Int](randomInts*))((u, t) => u.connect(t._1, t._2))
     val wuf = pairs.foldLeft(WeightedUnionFind.create[Int](randomInts*))((u, t) => u.connect(t._1, t._2))
-
-    println(s"UnionFind maxDepth=${uf.maxDepth}, WeightedUnionFind maxDepth=${wuf.maxDepth}")
     wuf.maxDepth should be <= uf.maxDepth
   }

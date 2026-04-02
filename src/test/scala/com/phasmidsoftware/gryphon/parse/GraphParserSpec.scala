@@ -1,6 +1,5 @@
 package com.phasmidsoftware.gryphon.parse
 
-import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.TryUsing
@@ -54,7 +53,6 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: EdgeGraph[_, _]) =>
-            println(graph.edges)
             graph.vertexMap.map.size shouldBe 8
             graph.edges.size shouldBe 16
           case Failure(x) =>

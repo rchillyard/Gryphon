@@ -35,12 +35,13 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
             graph match {
               case g: EdgeTraversable[Int, Double] @unchecked =>
                 val traversal = TraversalResult.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
-                println(traversal)
+                traversal.keySet.size shouldBe 11
+                traversal.edgeTraverse(3) shouldBe "3 -> 6"
+                traversal.edgeTraverse(10) shouldBe "0 -> 5"
             }
             val maybeTopologicalOrder = TopologicalSort.sort(graph)
             maybeTopologicalOrder.isDefined shouldBe true
             val topologicalOrder = maybeTopologicalOrder.get
-            println(topologicalOrder)
             val possibleOrders = List(
               List(3, 6, 0, 1, 4, 5, 2),
               List(3, 6, 0, 5, 2, 1, 4),

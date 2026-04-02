@@ -2,7 +2,8 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
-import scala.util.{Failure, Success, Try}
+import com.phasmidsoftware.visitor.core.{Evaluable, JournaledVisitor}
+import scala.util.{Failure, Random, Success, Try}
 
 /**
  * Represents a directed graph structure that supports operations on vertexMap and edges. 
@@ -57,6 +58,69 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    */
   def meanDegree: Double =
     vertexMap.keySet.toSeq.map(degree).sum.toDouble / N
+
+  /**
+   * Determines whether the graph contains a cycle using DFS to detect is we encounter a previously visited vertex.
+   *
+   * @return true if the graph is cyclic (i.e., it contains at least one cycle), false otherwise.
+   */
+  def isCyclic: Boolean =
+    given Random = Random(0)
+
+    val visited = scala.collection.mutable.Set.empty[V]
+
+    def dfs(v: V, parent: Option[V]): Boolean =
+      visited += v
+      adjacentVertices(v).exists { w =>
+        if !visited.contains(w) then dfs(w, Some(v))
+        else !parent.contains(w)
+      }
+
+    vertexMap.keySet.exists { v =>
+      !visited.contains(v) && dfs(v, None)
+    }
+
+  /**
+   * Returns true if this undirected graph is connected — i.e. every vertex
+   * is reachable from every other via some path.
+   *
+   * Performs a single DFS from an arbitrary start vertex and checks whether
+   * all N vertices were visited.
+   */
+  def isConnected: Boolean =
+    if N == 0 then true
+    else
+      given Random = Random(0)
+
+      given Evaluable[V, V] with
+        def evaluate(v: V): Option[V] = Some(v)
+      val start = vertexMap.keySet.head
+      dfs(JournaledVisitor.withQueueJournal[V, V])(start)
+              .result.map(_._1).toSet.size == N
+
+  /**
+   * Returns true if this undirected graph is bipartite — i.e. its vertices
+   * can be partitioned into two sets such that every edge connects vertices
+   * in different sets. Equivalently, the graph contains no odd-length cycle.
+   *
+   * Uses DFS with 2-coloring. Handles disconnected graphs by seeding each
+   * unvisited component in turn.
+   */
+  def isBipartite: Boolean =
+    given Random = Random(0)
+
+    val color = scala.collection.mutable.Map.empty[V, Boolean]
+
+    def dfs(v: V, c: Boolean): Boolean =
+      color(v) = c
+      adjacentVertices(v).forall { w =>
+        if !color.contains(w) then dfs(w, !c)
+        else color(w) != c
+      }
+
+    vertexMap.keySet.forall { v =>
+      color.contains(v) || dfs(v, true)
+    }
 
   /**
    * Creates a new directed graph using the provided vertex map.

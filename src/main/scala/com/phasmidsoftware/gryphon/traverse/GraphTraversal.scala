@@ -105,20 +105,20 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
  * `en.zero` instead of the actual accumulated cost (a Heisenbug).
  *
  * @tparam V the vertex type.
- * @tparam E the edge-weight type; must be Numeric and Ordering.
+ * @tparam E the edge-weight type; must be Monoid and Ordering.
  * @tparam R the result type; must be a subtype of Edge[E, V].
  */
-abstract class WeightedTraversal[V, E: {Numeric, Ordering}, R <: Edge[E, V]]
+abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[E, V]]
         extends GraphTraversal[V, E, R]:
 
   /**
    * Computes the frontier cost for a neighbour reachable via `e` from a node
    * settled at `accCost`.
    *
-   * Dijkstra: `en.plus(accCost, e.attribute)` — cumulative path cost.
-   * Prim:     `e.attribute`                   — edge weight only.
+   * Dijkstra: `Monoid[E].combine(accCost, e.attribute)` — cumulative path cost.
+   * Prim:     `e.attribute`                              — edge weight only.
    */
-  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using en: Numeric[E]): E
+  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using mo: Monoid[E]): E
 
   /**
    * Extracts the destination vertex from edge `e`, viewed from vertex `v`.
@@ -137,14 +137,14 @@ abstract class WeightedTraversal[V, E: {Numeric, Ordering}, R <: Edge[E, V]]
   protected def filterEdge(e: Edge[E, V]): Option[R]
 
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R] =
-    val en = summon[Numeric[E]]
+    val mo = summon[Monoid[E]]
 
     // pred: cheapest known incoming edge per vertex (typed as R for cast-free access).
     // bestCost: current best frontier cost per vertex — used by CostUpdate to locate
     // the stale frontier entry for decreaseKey.
     // Both maps are owned exclusively by CostUpdate; Neighbours is pure.
     val pred:     mutable.Map[V, R] = mutable.Map.empty
-    val bestCost: mutable.Map[V, E] = mutable.Map(start -> en.zero)
+    val bestCost: mutable.Map[V, E] = mutable.Map(start -> mo.identity)
 
     // Ordering: compare by cost component only.
     given Ordering[(E, V)] = Ordering.by(_._1)
@@ -185,7 +185,7 @@ abstract class WeightedTraversal[V, E: {Numeric, Ordering}, R <: Edge[E, V]]
                       bestCost(w) = newCost
                       pred(w)     = e
                       pq
-                    case Some(oldCost) if en.lt(newCost, oldCost) && pq.contains((oldCost, w)) =>
+                    case Some(oldCost) if summon[Ordering[E]].lt(newCost, oldCost) && pq.contains((oldCost, w)) =>
                       bestCost(w) = newCost
                       pred(w)     = e
                       pq.decreaseKey((oldCost, w), (newCost, w))
@@ -196,7 +196,7 @@ abstract class WeightedTraversal[V, E: {Numeric, Ordering}, R <: Edge[E, V]]
 
     val visitor: Visitor[(E, V), R, QueueJournal[((E, V), Option[R])]] =
       JournaledVisitor.withQueueJournal[(E, V), R]
-    val result = Traversal.bestFirstWeighted((en.zero, start), visitor)
+    val result = Traversal.bestFirstWeighted((mo.identity, start), visitor)
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
     VertexTraversalResult(
@@ -215,13 +215,13 @@ abstract class WeightedTraversal[V, E: {Numeric, Ordering}, R <: Edge[E, V]]
  * preserving full edge information without casts.
  *
  * @tparam V the vertex type.
- * @tparam E the edge-weight type; must be Numeric and Ordering.
+ * @tparam E the edge-weight type; must be Monoid and Ordering.
  */
-case class DijkstraTraversal[V, E: {Numeric, Ordering}]()
+case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
         extends WeightedTraversal[V, E, AttributedDirectedEdge[E, V]]:
 
-  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using en: Numeric[E]): E =
-    en.plus(accCost, e.attribute)
+  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using mo: Monoid[E]): E =
+    mo.combine(accCost, e.attribute)
 
   protected def destination(v: V, e: Edge[E, V]): V =
     e.black
@@ -242,17 +242,16 @@ case class DijkstraTraversal[V, E: {Numeric, Ordering}]()
  * All edge types are admitted — the result type is `TraversalResult[V, Edge[E, V]]`.
  *
  * @tparam V the vertex type.
- * @tparam E the edge-weight type; must be Numeric and Ordering.
+ * @tparam E the edge-weight type; must be Monoid and Ordering.
  */
-case class PrimTraversal[V, E: {Numeric, Ordering}]()
+case class PrimTraversal[V, E: {Monoid, Ordering}]()
         extends WeightedTraversal[V, E, Edge[E, V]]:
 
-  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using en: Numeric[E]): E =
+  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using mo: Monoid[E]): E =
     e.attribute
 
   protected def destination(v: V, e: Edge[E, V]): V = e match
     case ue: UndirectedEdge[E, V] => ue.other(v)
     case de                        => de.black
-
   protected def filterEdge(e: Edge[E, V]): Option[Edge[E, V]] =
     Some(e)

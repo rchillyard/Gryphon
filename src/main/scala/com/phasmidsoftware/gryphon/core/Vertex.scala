@@ -1,6 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
+import com.phasmidsoftware.visitor.core.Monoid
 import scala.math.Ordered.orderingToOrdered
 
 /**
@@ -74,10 +75,10 @@ object Vertex:
    * Suitable for Dijkstra-style algorithms that need to relax edge weights.
    *
    * @param attribute the data associated with this vertex.
-   * @tparam R the type of the relaxable property; must have a `Numeric` instance.
+   * @tparam R the type of the relaxable property; must have both `Monoid` and `Ordering` instances.
    * @return a new `RelaxableVertex[V, R]`.
    */
-  def createRelaxableWithSet[V, R: Numeric](attribute: V): RelaxableVertex[V, R] =
+  def createRelaxableWithSet[V, R: {Monoid, Ordering}](attribute: V): RelaxableVertex[V, R] =
     RelaxableVertex(attribute, emptyAdjacenciesSet[V])()
 
 /**
@@ -176,14 +177,14 @@ object RelaxableVertex:
    * @param v the source `SimpleVertex`.
    * @return a new `RelaxableVertex[V, R]`.
    */
-  def apply[V, R: Numeric](v: SimpleVertex[V]): RelaxableVertex[V, R] =
+  def apply[V, R: {Monoid, Ordering}](v: SimpleVertex[V]): RelaxableVertex[V, R] =
     apply(v.attribute, v.adjacencies)()
 
   /**
    * Creates a `RelaxableVertex` with the given attribute and adjacencies.
    * `maybeR` is initialised to `None`.
    */
-  def apply[V, R: Numeric](attribute: V, adjacencies: Adjacencies[V]): RelaxableVertex[V, R] =
+  def apply[V, R: {Monoid, Ordering}](attribute: V, adjacencies: Adjacencies[V]): RelaxableVertex[V, R] =
     RelaxableVertex(attribute, adjacencies)()
 
 // ---------------------------------------------------------------------------

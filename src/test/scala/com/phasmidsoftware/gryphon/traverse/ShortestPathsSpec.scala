@@ -5,6 +5,7 @@ import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGrap
 import com.phasmidsoftware.gryphon.core.{EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.visitor.core.Monoid
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.io.Source
@@ -25,16 +26,14 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
-
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+        import com.phasmidsoftware.visitor.core.given
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
-//            println(graph.debug)
             graph.vertexMap.map.size shouldBe 8
             graph.edges.size shouldBe 16
-            val sp = ShortestPaths.dijkstra(graph, 0)
+            val sp = ShortestPaths.dijkstra[Int, Double](graph, 0)
             sp.vertexTraverse(0) shouldBe None
             sp.vertexTraverse(1) shouldBe Some(AttributedDirectedEdge(5.0, 0, 1))
             sp.vertexTraverse(2) shouldBe Some(AttributedDirectedEdge(1.0, 5, 2))
@@ -56,8 +55,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
-
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
@@ -80,8 +77,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
-
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
@@ -103,8 +98,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
-
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
@@ -136,13 +129,12 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
-
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+        import com.phasmidsoftware.visitor.core.given_Monoid_Double
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
-            val sp = ShortestPaths.dijkstra(graph, 0)
+            val sp = ShortestPaths.dijkstra[Int, Double](graph, 0)
             // All non-source vertices must have an incoming edge in the SPT
             (1 to 7).foreach { v =>
               sp.vertexTraverse(v) shouldBe defined
@@ -167,9 +159,8 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Numeric[Double] = scala.math.Numeric.DoubleIsFractional
-
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+        import com.phasmidsoftware.visitor.core.given_Monoid_Double
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>

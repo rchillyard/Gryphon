@@ -10,6 +10,7 @@ import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.traverse.{PrimTraversal, TraversalResult}
 import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
+import com.phasmidsoftware.visitor.core.given
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.io.Source
@@ -17,8 +18,12 @@ import scala.util.{Failure, Success, Try}
 
 class PrimSpec extends AnyFlatSpec with Matchers:
 
-  // Numeric and Ordering instances needed throughout
-  given Numeric[Double]  = scala.math.Numeric.DoubleIsFractional
+  // prim.graph: 8 vertices (0-7), 16 undirected weighted edges.
+  // MST (Sedgewick & Wayne tinyEWG): 7 edges, total weight 1.81
+  //   0-7 (0.16), 2-3 (0.17), 1-7 (0.19), 0-2 (0.26),
+  //   5-7 (0.28), 4-5 (0.35), 6-2 (0.40)
+
+  // Monoid[Double] is resolved automatically from Visitor V1.4.0.
   given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
   // -----------------------------------------------------------------------
@@ -34,21 +39,16 @@ class PrimSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
-            f(graph)
-          case Failure(x) =>
-            fail("graph construction failed", x)
-          case _          =>
-            fail("not an UndirectedGraph[Int, Double]")
-      case Failure(x) =>
-        fail("parse failed", x)
-
+          case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
+          case Failure(x) => fail("graph construction failed", x)
+          case _ => fail("not an UndirectedGraph[Int, Double]")
+      case Failure(x) => fail("parse failed", x)
 
   private def maybeEdges(result: TraversalResult[Int, Edge[Double, Int]]): Option[Seq[Edge[Double, Int]]] =
     FP.sequence(result.keySet.iterator.map(result.vertexTraverse)).map(_.toSeq)
 
   private def totalEdgeCost(result: TraversalResult[Int, Edge[Double, Int]]): Option[Double] =
-    for (w <- maybeEdges(result)) yield w.map(_.attribute).sum
+    for w <- maybeEdges(result) yield w.map(_.attribute).sum
 
   // -----------------------------------------------------------------------
   // Structural tests — graph shape
@@ -72,18 +72,30 @@ class PrimSpec extends AnyFlatSpec with Matchers:
 
   it should "produce an MST with exactly 7 edges (N-1 for 8 vertices)" in:
     withPrimGraph { graph =>
-      println(s"0: ${graph.adjacentVertices(0).toList}")
-      println(s"7: ${graph.adjacentVertices(7).toList}")
       val result = PrimTraversal[Int, Double]().run(graph)(0)
-      println(s"result keys: ${result.keySet}")
-      // Source vertex 0 has no predecessor; all 7 others do
       result.size shouldBe 7
+    }
+
+  it should "include all non-source vertices as MST keys" in :
+    withPrimGraph { graph =>
+      val result = PrimTraversal[Int, Double]().run(graph)(0)
+      result.keySet shouldBe Set(1, 2, 3, 4, 5, 6, 7)
     }
 
   it should "produce an MST whose total weight is 1.81" in:
     withPrimGraph { graph =>
       val result: TraversalResult[Int, Edge[Double, Int]] = PrimTraversal[Int, Double]().run(graph)(0)
       totalEdgeCost(result).getOrElse(fail("sequence failed")) shouldBe 1.81 +- 1e-10
+    }
+
+  it should "not include any edge heavier than the maximum MST edge (0.40)" in :
+    withPrimGraph { graph =>
+      val result = PrimTraversal[Int, Double]().run(graph)(0)
+      result.keySet.foreach { key =>
+        result.vertexTraverse(key) match
+          case Some(e) => e.attribute should be <= 0.401
+          case None => fail(s"vertex $key has no MST edge")
+      }
     }
 
   it should "connect vertex 7 via edge with weight 0.16" in:
@@ -149,15 +161,14 @@ class PrimSpec extends AnyFlatSpec with Matchers:
     }
 
   it should "produce an MST whose edge weights are independent of start vertex" in:
-    // The MST is unique (all edge weights are distinct), so starting from
-    // vertex 3 should yield the same set of edge weights.
+    // The MST is unique (all edge weights distinct), so starting from
+    // vertex 3 should yield the same set of edge weights as from vertex 0.
     withPrimGraph { graph =>
       val result0 = PrimTraversal[Int, Double]().run(graph)(0)
       val result3 = PrimTraversal[Int, Double]().run(graph)(3)
-      (maybeEdges(result0), maybeEdges(result3)) match {
+      (maybeEdges(result0), maybeEdges(result3)) match
         case (Some(edges0), Some(edges3)) =>
           edges0.map(_.attribute).toList.sorted shouldBe edges3.map(_.attribute).toList.sorted
         case _ =>
-          fail("test failed")
-      }
+          fail("maybeEdges returned None")
     }

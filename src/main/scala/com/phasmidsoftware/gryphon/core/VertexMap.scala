@@ -103,7 +103,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
         val next = unvisited.head
         // Pre-mark all already-visited vertices so the engine skips them
         val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
-        val result = Traversal.dfs(next, vis)(using nbrs, ev, vs)
+        val result = Traversal.dfs(next, vis)(using nbrs, ev, vs, summon[Tracer[V]])
         loop(result, visited + next)
 
     loop(visitor, Set.empty)

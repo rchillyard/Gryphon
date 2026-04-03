@@ -40,9 +40,14 @@ object Kosaraju {
    *
    * @param graph  The directed graph for which to compute the SCCs.
    * @param random An optional implicit random instance used for any randomized operations (default: a new random instance).
+   * @param tracer An optional tracer for pedagogical output; defaults to `Tracer.silent` (no output).
+   *               Use `Tracer.verbose()` or `Tracer.summary()` to illuminate the two-pass structure.
+   *               NOTE: the tracer covers Kosaraju's own loop structure only; inner `Traversal.dfs`
+   *               calls use `Tracer.silent` so that traversal-level detail does not intermix with
+   *               algorithm-level detail.
    * @return An SCCResult containing a mapping of each vertex to its corresponding strongly connected component (SCC) identifier.
    */
-  def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random()): SCCResult[V] = {
+  def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] = {
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
@@ -56,7 +61,9 @@ object Kosaraju {
      * @return a List[V] of vertices in "finish" order.
      */
     def pass1Kosaraju(reverseGraph: DirectedGraph[V, E]): List[V] = {
-      given GraphNeighbours[V] = graph.reverse.vertexMap.neighboursGiven
+      tracer.trace(0, "Kosaraju pass 1: post-order DFS on reversed graph")
+
+      given GraphNeighbours[V] = reverseGraph.vertexMap.neighboursGiven
 
       @tailrec
       def pass1Loop(unvisited: Set[V], vs: VisitedSet[V], acc: List[V]): List[V] =
@@ -66,10 +73,12 @@ object Kosaraju {
         else
           given VisitedSet[V] = vs
 
-          val result = Traversal.dfs(start = unvisited.head, visitor = JournaledVisitor.withListJournal[V, V], order = DfsOrder.Post)
+          tracer.trace(1, s"pass 1: seeding from ${unvisited.head}, ${unvisited.size} unvisited")
+          val result = Traversal.dfs(start = unvisited.head, visitor = JournaledVisitor.withListJournal[V, V], order = DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs, Tracer.silent)
           // ListJournal prepends: head = last-finished within this component.
           // visited ++ acc keeps the most-recently-finished component at the front.
           val visited: List[V] = result.result.map(_._1).toList
+          tracer.trace(2, s"pass 1: finished component: $visited")
           val newVs: VisitedSet[V] = visited.foldLeft(vs)(_.markVisited(_))
           pass1Loop(unvisited -- visited.toSet, newVs, visited ++ acc)
 
@@ -83,6 +92,7 @@ object Kosaraju {
     // GraphNeighbours is fixed for the original graph throughout pass 2.
     // ------------------------------------------------------------------
     def pass2Kosaraju(finishOrder: List[V]): SCCResult[V] = {
+      tracer.trace(0, s"Kosaraju pass 2: DFS on original graph, ${finishOrder.size} vertices in finish order")
       given GraphNeighbours[V] = graph.vertexMap.neighboursGiven
 
       @tailrec
@@ -94,14 +104,18 @@ object Kosaraju {
                    ): SCCResult[V] =
         seeds match
           case Nil =>
+            tracer.trace(1, s"pass 2: complete, $sccId SCCs found")
             componentMap
           case v :: rest =>
             if visited.contains(v) then pass2Loop(rest, visited, componentMap, sccId)
             else
+              tracer.trace(1, s"pass 2: SCC $sccId — seeding from $v")
+
               given VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
 
               val sccVertices: Set[V] =
-                Traversal.dfs(v, JournaledVisitor.withListJournal[V, V]).result.map(_._1).toSet
+                Traversal.dfs(v, JournaledVisitor.withListJournal[V, V])(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], summon[VisitedSet[V]], Tracer.silent).result.map(_._1).toSet
+              tracer.trace(2, s"pass 2: SCC $sccId — members: $sccVertices")
               pass2Loop(
                 rest,
                 visited ++ sccVertices,

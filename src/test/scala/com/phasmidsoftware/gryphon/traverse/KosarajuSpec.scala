@@ -10,6 +10,8 @@ import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.traverse.Kosaraju.stronglyConnectedComponents
 import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.visitor.core.Tracer
+import java.io.{ByteArrayOutputStream, PrintStream}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.io.Source
@@ -172,5 +174,55 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
         result(1) shouldBe result(2)
+      case other => fail(s"unexpected: $other")
+  }
+
+  // -------------------------------------------------------------------------
+  // Tracing
+  // -------------------------------------------------------------------------
+
+  private def captureOutput(block: PrintStream => Unit): List[String] =
+    val baos = ByteArrayOutputStream()
+    val ps = PrintStream(baos)
+    block(ps)
+    ps.flush()
+    baos.toString.linesIterator.filter(_.nonEmpty).toList
+
+  behavior of "Kosaraju — tracing"
+
+  it should "emit the expected summary trace for a two-vertex mutual cycle" in {
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 0, None, Directed)
+    )
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
+        val lines = captureOutput: ps =>
+          given Tracer[Int] = Tracer.summary(out = ps)
+
+          stronglyConnectedComponents[Int, Unit](g)
+        lines shouldBe List(
+          "Kosaraju pass 1: post-order DFS on reversed graph",
+          "Kosaraju pass 2: DFS on original graph, 2 vertices in finish order"
+        )
+      case other => fail(s"unexpected: $other")
+  }
+
+  it should "emit the expected verbose trace for a two-vertex mutual cycle" in {
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 0, None, Directed)
+    )
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
+        val lines = captureOutput: ps =>
+          given Tracer[Int] = Tracer.verbose(maxLevel = 1, out = ps)
+
+          stronglyConnectedComponents[Int, Unit](g): Unit
+        lines should contain("Kosaraju pass 1: post-order DFS on reversed graph")
+        lines should contain("Kosaraju pass 2: DFS on original graph, 2 vertices in finish order")
+        lines.count(_.contains("pass 1: seeding from")) shouldBe 1
+        lines.count(_.contains("pass 2: SCC")) shouldBe 1
+        lines.count(_.contains("pass 2: complete")) shouldBe 1
       case other => fail(s"unexpected: $other")
   }

@@ -20,7 +20,7 @@ trait Edges[V, E] extends Pairs[V, EdgeType] {
    * @return a `Seq` containing all edges in the graph. 
    *         Each edge connects two vertices and may carry an associated attribute.
    */
-  def edges: Seq[Edge[E, V]]
+  def edges: Seq[Edge[V, E]]
 
   /**
    * Retrieves a sequence of pairs of vertices representing the connections in the graph.

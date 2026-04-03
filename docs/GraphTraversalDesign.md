@@ -190,7 +190,7 @@ component, so stale `(higherCost, v)` frontier entries are correctly skipped:
 given [E, V]: VisitedSet[(E, V)] = TupleVisitedSet(Set.empty[V])
 ```
 
-The external `TraversalResult[V, DirectedEdge[E, V]]` API is unchanged —
+The external `TraversalResult[V, DirectedEdge[V, E]]` API is unchanged —
 tuple unwrapping happens inside `DijkstraTraversal.run` / `PrimTraversal.run`.
 
 ### Lazy Evaluation Bug (Heisenbug)
@@ -253,8 +253,8 @@ in one direction.
 
 **Fix:** Use `collect` to silently skip `flipped=true` entries:
 ```scala
-def edges: Iterator[UndirectedEdge[E, V]] =
-  adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[E, V] @unchecked, false) => e }
+def edges: Iterator[UndirectedEdge[V, E]] =
+  adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[V, E] @unchecked, false) => e }
 ```
 
 ### `Traversable.getConnexions` — VertexPair not accepted by addConnexion

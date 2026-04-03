@@ -129,7 +129,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param v       the starting vertex.
    * @param goal    early-termination predicate on destination vertices.
    */
-  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[E, V], R], random: Random): Visitor[Edge[E, V], R, J] =
+  def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random): Visitor[Edge[V, E], R, J] =
     visitor // stub — full edge-BFS implementation deferred
 
   // -----------------------------------------------------------------------
@@ -171,7 +171,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   /**
    * Adds a directed or undirected edge to the vertex map.
    */
-  def +[E](edge: Edge[E, V]): VertexMap[V] =
+  def +[E](edge: Edge[V, E]): VertexMap[V] =
     val addAdj = addAdjFunction
     val adjFrom = AdjacencyEdge[V, E](edge)
     val adjTo = AdjacencyEdge[V, E](edge, flipped = true)
@@ -226,15 +226,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   def iterator: Iterator[V] = map.keysIterator
 
   /**
-   * Ensures a vertex for `v` is present, creating it with `f` if absent.
-   */
-  def ensure(f: V => Vertex[V])(v: V): VertexMap[V] = get(v) match
-    case Some(_) =>
-      this
-    case None =>
-      this + f(v)
-
-  /**
    * Adds the edges from the provided EdgeList to this VertexMap.
    */
   def addEdges[E, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] =
@@ -249,7 +240,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   /**
    * Processes a sequence of triplets and adds them to the VertexMap.
    */
-  def addTriplets[E, Z](vertexFunction: V => Vertex[V], edgeFunction: Z => ProtoConnexion[E, V] => Connexion[V])(triplets: Seq[Triplet[V, E, Z]]): VertexMap[V] =
+  def addTriplets[E, Z](vertexFunction: V => Vertex[V], edgeFunction: Z => ProtoConnexion[V, E] => Connexion[V])(triplets: Seq[Triplet[V, E, Z]]): VertexMap[V] =
     triplets.foldLeft[VertexMap[V]](this)((vm, triplet) => vm.addTriplet(edgeFunction)(vertexFunction)(triplet))
 
   /**
@@ -282,7 +273,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   /**
    * Creates an Adjacency from an optional edge.
    */
-  def createAdjacency[E, Z](edgeFunction: ProtoConnexion[E, V] => Connexion[V])(vv1: Vertex[V], vv2: Vertex[V], maybeE: Option[E]): Adjacency[V] =
+  def createAdjacency[E, Z](edgeFunction: ProtoConnexion[V, E] => Connexion[V])(vv1: Vertex[V], vv2: Vertex[V], maybeE: Option[E]): Adjacency[V] =
     maybeE match
       case Some(e) => AdjacencyEdge[V, E](edgeFunction(e, vv1.attribute, vv2.attribute))
       case None => AdjacencyVertex[V](vv2.attribute)
@@ -290,7 +281,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   /**
    * Adds a single triplet to the VertexMap.
    */
-  def addTriplet[Z, E](edgeFunction: Z => ProtoConnexion[E, V] => Connexion[V])(vertexFunction: V => Vertex[V])(triplet: Triplet[V, E, Z]): VertexMap[V] =
+  def addTriplet[Z, E](edgeFunction: Z => ProtoConnexion[V, E] => Connexion[V])(vertexFunction: V => Vertex[V])(triplet: Triplet[V, E, Z]): VertexMap[V] =
     val f: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V] = createAdjacency(edgeFunction(triplet.edgeType))
     createVerticesFromTriplet[E, Z](vertexFunction)(f)(triplet.edgeType != Directed)(triplet)
 
@@ -310,6 +301,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   // -----------------------------------------------------------------------
   // Private helpers
   // -----------------------------------------------------------------------
+
+  /**
+   * Ensures a vertex for `v` is present, creating it with `f` if absent.
+   */
+  private def ensure(f: V => Vertex[V])(v: V): VertexMap[V] = get(v) match
+    case Some(_) =>
+      this
+    case None =>
+      this + f(v)
 
   private val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
 

@@ -27,16 +27,16 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
-  def addEdge(edge: Edge[E, V]): UndirectedGraph[V, E] =
+  def addEdge(edge: Edge[V, E]): UndirectedGraph[V, E] =
     copy(vertexMap + edge)
 
   /**
    * Retrieves all edges in the directed graph as an iterable collection of edges.
    *
-   * @return an iterable collection containing all edges of type `Edge[E, V]` in the graph.
+   * @return an iterable collection containing all edges of type `Edge[V, E]` in the graph.
    */
-  def edges: Iterator[UndirectedEdge[E, V]] = {
-    adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[E, V] @unchecked, false) => e }
+  def edges: Iterator[UndirectedEdge[V, E]] = {
+    adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[V, E] @unchecked, false) => e }
   }
 
   override def M: Int = edges.size
@@ -142,8 +142,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
-  private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[E, V]] = {
-    case AdjacencyEdge(e: UndirectedEdge[E, V] @unchecked, false) =>
+  private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[V, E]] = {
+    case AdjacencyEdge(e: UndirectedEdge[V, E] @unchecked, false) =>
       e
     case x =>
       throw GraphException(s"unexpected edge type: $x")

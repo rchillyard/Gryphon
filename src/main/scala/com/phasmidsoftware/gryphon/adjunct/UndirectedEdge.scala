@@ -12,7 +12,7 @@ import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Undirected}
  * @param white     one of the vertices connected by the undirected edge.
  * @param black     the other vertex connected by the undirected edge.
  */
-case class UndirectedEdge[E, V](attribute: E, white: V, black: V) extends Edge[E, V]:
+case class UndirectedEdge[V, E](attribute: E, white: V, black: V) extends Edge[V, E]:
 
   /**
    * Returns the type of the edge as an instance of `EdgeType`.

@@ -106,9 +106,9 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
  *
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must be Monoid and Ordering.
- * @tparam R the result type; must be a subtype of Edge[E, V].
+ * @tparam R the result type; must be a subtype of Edge[V, E].
  */
-abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[E, V]]
+abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
         extends GraphTraversal[V, E, R]:
 
   /**
@@ -118,7 +118,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[E, V]]
    * Dijkstra: `Monoid[E].combine(accCost, e.attribute)` — cumulative path cost.
    * Prim:     `e.attribute`                              — edge weight only.
    */
-  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using mo: Monoid[E]): E
+  protected def edgeCost(accCost: E, e: Edge[V, E], v: V)(using mo: Monoid[E]): E
 
   /**
    * Extracts the destination vertex from edge `e`, viewed from vertex `v`.
@@ -126,7 +126,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[E, V]]
    * Dijkstra: always `e.black`.
    * Prim:     `e.other(v)` for undirected edges, `e.black` for directed.
    */
-  protected def destination(v: V, e: Edge[E, V]): V
+  protected def destination(v: V, e: Edge[V, E]): V
 
   /**
    * Admits an edge and casts it to the concrete result type `R`, or rejects it.
@@ -134,7 +134,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[E, V]]
    * Dijkstra: admits only `AttributedDirectedEdge` instances.
    * Prim:     admits all edges.
    */
-  protected def filterEdge(e: Edge[E, V]): Option[R]
+  protected def filterEdge(e: Edge[V, E]): Option[R]
 
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R] =
     val mo = summon[Monoid[E]]
@@ -211,23 +211,23 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[E, V]]
  * Dijkstra's shortest-path traversal.
  *
  * Uses cumulative path cost as the frontier priority. Only `AttributedDirectedEdge`
- * instances are admitted — the result type is `TraversalResult[V, AttributedDirectedEdge[E, V]]`,
+ * instances are admitted — the result type is `TraversalResult[V, AttributedDirectedEdge[V, E]]`,
  * preserving full edge information without casts.
  *
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must be Monoid and Ordering.
  */
 case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
-        extends WeightedTraversal[V, E, AttributedDirectedEdge[E, V]]:
+        extends WeightedTraversal[V, E, AttributedDirectedEdge[V, E]]:
 
-  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using mo: Monoid[E]): E =
+  protected def edgeCost(accCost: E, e: Edge[V, E], v: V)(using mo: Monoid[E]): E =
     mo.combine(accCost, e.attribute)
 
-  protected def destination(v: V, e: Edge[E, V]): V =
+  protected def destination(v: V, e: Edge[V, E]): V =
     e.black
 
-  protected def filterEdge(e: Edge[E, V]): Option[AttributedDirectedEdge[E, V]] = e match
-    case ade: AttributedDirectedEdge[E, V] => Some(ade)
+  protected def filterEdge(e: Edge[V, E]): Option[AttributedDirectedEdge[V, E]] = e match
+    case ade: AttributedDirectedEdge[V, E] => Some(ade)
     case _                                  => None
 
 // ============================================================
@@ -239,19 +239,20 @@ case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
  *
  * Uses individual edge weight (not cumulative) as the frontier priority, so the
  * cheapest available edge to any unvisited vertex is always chosen next.
- * All edge types are admitted — the result type is `TraversalResult[V, Edge[E, V]]`.
+ * All edge types are admitted — the result type is `TraversalResult[V, Edge[V, E]]`.
  *
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must be Monoid and Ordering.
  */
 case class PrimTraversal[V, E: {Monoid, Ordering}]()
-        extends WeightedTraversal[V, E, Edge[E, V]]:
+        extends WeightedTraversal[V, E, Edge[V, E]]:
 
-  protected def edgeCost(accCost: E, e: Edge[E, V], v: V)(using mo: Monoid[E]): E =
+  protected def edgeCost(accCost: E, e: Edge[V, E], v: V)(using mo: Monoid[E]): E =
     e.attribute
 
-  protected def destination(v: V, e: Edge[E, V]): V = e match
-    case ue: UndirectedEdge[E, V] => ue.other(v)
+  protected def destination(v: V, e: Edge[V, E]): V = e match
+    case ue: UndirectedEdge[V, E] => ue.other(v)
     case de                        => de.black
-  protected def filterEdge(e: Edge[E, V]): Option[Edge[E, V]] =
+
+  protected def filterEdge(e: Edge[V, E]): Option[Edge[V, E]] =
     Some(e)

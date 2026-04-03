@@ -11,20 +11,20 @@ class BagSpec extends AnyFlatSpec with Matchers {
   private val emptyBag: Bag[Nothing] = Bag.empty
 
   it should "isEmpty" in {
-    emptyBag.isEmpty shouldBe true
-    bag1.isEmpty shouldBe false
-    emptyBag.size shouldBe 0
+    emptyBag.iterator.isEmpty shouldBe true
+    bag1.iterator.isEmpty shouldBe false
+    emptyBag.iterator.size shouldBe 0
   }
 
   it should "nonEmpty" in {
-    emptyBag.nonEmpty shouldBe false
-    bag1.nonEmpty shouldBe true
-    bag1.size shouldBe 1
+    emptyBag.iterator.nonEmpty shouldBe false
+    bag1.iterator.nonEmpty shouldBe true
+    bag1.iterator.size shouldBe 1
   }
 
   it should "$plus" in {
     val bag = bag1 + 2
-    bag.size shouldBe 2
+    bag.iterator.size shouldBe 2
     val list = bag.iterator.toSeq
     list.contains(1) shouldBe true
     list.contains(2) shouldBe true

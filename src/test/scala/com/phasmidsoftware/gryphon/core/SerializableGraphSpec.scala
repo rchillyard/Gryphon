@@ -1,6 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
+import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
 import com.phasmidsoftware.gryphon.util.TryUsing
 import java.net.URL
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,7 +15,7 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
   val dijkstraGraphPath = "dijkstra.graph"
 
   it should "createFromEdges" in {
-    val edges: Seq[Edge[Double, Int]] = Seq(
+    val edges: Seq[Edge[Int, Double]] = Seq(
       AttributedDirectedEdge(1.5, 0, 1),
       AttributedDirectedEdge(2.5, 1, 2)
     )

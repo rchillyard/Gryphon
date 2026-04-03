@@ -44,10 +44,10 @@ class PrimSpec extends AnyFlatSpec with Matchers:
           case _ => fail("not an UndirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
 
-  private def maybeEdges(result: TraversalResult[Int, Edge[Double, Int]]): Option[Seq[Edge[Double, Int]]] =
+  private def maybeEdges(result: TraversalResult[Int, Edge[Int, Double]]): Option[Seq[Edge[Int, Double]]] =
     FP.sequence(result.keySet.iterator.map(result.vertexTraverse)).map(_.toSeq)
 
-  private def totalEdgeCost(result: TraversalResult[Int, Edge[Double, Int]]): Option[Double] =
+  private def totalEdgeCost(result: TraversalResult[Int, Edge[Int, Double]]): Option[Double] =
     for w <- maybeEdges(result) yield w.map(_.attribute).sum
 
   // -----------------------------------------------------------------------
@@ -84,7 +84,7 @@ class PrimSpec extends AnyFlatSpec with Matchers:
 
   it should "produce an MST whose total weight is 1.81" in:
     withPrimGraph { graph =>
-      val result: TraversalResult[Int, Edge[Double, Int]] = PrimTraversal[Int, Double]().run(graph)(0)
+      val result: TraversalResult[Int, Edge[Int, Double]] = PrimTraversal[Int, Double]().run(graph)(0)
       totalEdgeCost(result).getOrElse(fail("sequence failed")) shouldBe 1.81 +- 1e-10
     }
 

@@ -109,7 +109,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
       connexions match
         case Connexions(map) =>
           map.size shouldBe 6
-          val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
+          val values: Seq[DirectedEdge[Int, Unit]] = map.values.toSeq
           values.contains(AttributedDirectedEdge(None, 0, 2)) shouldBe true
           values.contains(AttributedDirectedEdge(None, 1, 0)) shouldBe false
           values.contains(AttributedDirectedEdge(None, 0, 5)) shouldBe true

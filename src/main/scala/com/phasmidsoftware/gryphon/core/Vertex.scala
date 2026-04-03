@@ -178,14 +178,14 @@ object RelaxableVertex:
    * @return a new `RelaxableVertex[V, R]`.
    */
   def apply[V, R: {Monoid, Ordering}](v: SimpleVertex[V]): RelaxableVertex[V, R] =
-    apply(v.attribute, v.adjacencies)()
+    new RelaxableVertex(v.attribute, v.adjacencies)()
 
   /**
    * Creates a `RelaxableVertex` with the given attribute and adjacencies.
    * `maybeR` is initialised to `None`.
    */
   def apply[V, R: {Monoid, Ordering}](attribute: V, adjacencies: Adjacencies[V]): RelaxableVertex[V, R] =
-    RelaxableVertex(attribute, adjacencies)()
+    new RelaxableVertex(attribute, adjacencies)()
 
 // ---------------------------------------------------------------------------
 // Backward-compatibility type aliases

@@ -20,16 +20,16 @@ object ShortestPaths:
    * @param random      controls adjacency ordering.
    * @tparam V the vertex type.
    * @tparam E the edge-weight type; must be Monoid and Ordering.
-   * @return a `TraversalResult[V, DirectedEdge[E, V]]` mapping each settled
+   * @return a `TraversalResult[V, DirectedEdge[V, E]]` mapping each settled
    *         vertex to its cheapest incoming edge, or None for the start vertex.
    */
-  def dijkstra[V, E: {Monoid, Ordering}](traversable: Traversable[V], start: V)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[E, V]] =
+  def dijkstra[V, E: {Monoid, Ordering}](traversable: Traversable[V], start: V)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[V, E]] =
     DijkstraTraversal[V, E]().run(traversable)(start)
 
   /**
    * Returns the directed edges reachable from v.
    */
-  def undiscoveredEdges[V, E](traversable: core.Traversable[V])(v: V)(using random: Random = Random()): Seq[Edge[E, V]] =
+  def undiscoveredEdges[V, E](traversable: core.Traversable[V])(v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
     traversable.filteredAdjacencies(_ => true)(v)
             .flatMap(_.maybeEdge[E])
             .toSeq
@@ -39,4 +39,4 @@ object ShortestPaths:
    */
   def undiscoveredVertices[V, E](traversable: core.Traversable[V])(v: V)(using random: Random = Random()): Seq[V] =
     undiscoveredEdges(traversable)(v)
-            .collect { case e: com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge[E, V] => e.black }
+            .collect { case e: AttributedDirectedEdge[V, E] => e.black }

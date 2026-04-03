@@ -24,9 +24,9 @@ trait Adjacency[V] {
   /**
    * Retrieves the `Edge` associated with this adjacency, if one exists.
    *
-   * @return an `Option[Edge[E, V]]` containing the Edge if present, or None.
+   * @return an `Option[Edge[V, E]]` containing the Edge if present, or None.
    */
-  def maybeEdge[E]: Option[Edge[E, V]]
+  def maybeEdge[E]: Option[Edge[V, E]]
 }
 
 /**
@@ -36,7 +36,7 @@ trait Adjacency[V] {
  * @tparam V the type of the vertex attribute.
  */
 case class AdjacencyVertex[V](vertex: V) extends Adjacency[V]:
-  def maybeEdge[E]: Option[Edge[E, V]] = None
+  def maybeEdge[E]: Option[Edge[V, E]] = None
 
 /**
  * Companion object for `AdjacencyVertex`.
@@ -68,8 +68,8 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
   /**
    * Returns the edge if the connexion is an Edge instance.
    */
-  def maybeEdge[E2]: Option[Edge[E2, V]] = connexion match
-    case e: Edge[E2, V] @unchecked =>
+  def maybeEdge[E2]: Option[Edge[V, E2]] = connexion match
+    case e: Edge[V, E2] @unchecked =>
       Some(e)
     case _ =>
       None
@@ -80,7 +80,7 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
  * NOTE: when `AdjacencyEdge` is used, an `Unordered_Set` is appropriate (no duplicate edges).
  * When `AdjacencyVertex` is used, use `Unordered_Bag` (duplicate vertices are possible).
  *
- * @tparam V the type of the vertex attribute.
+ * //@tparam V the type of the vertex attribute.
  */
 type Adjacencies[V] = Unordered[Adjacency[V]]
 

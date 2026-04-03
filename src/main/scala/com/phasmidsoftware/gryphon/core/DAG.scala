@@ -15,6 +15,6 @@ import com.phasmidsoftware.visitor.core.Monoid
  * @tparam E the edge-attribute type.
  */
 trait DAG[V, E: {Monoid, Ordering}] extends DirectedGraph[V, E] {
-  def shortestPaths(start: V): VertexTraversalResult[V, DirectedEdge[E, V]] =
+  def shortestPaths(start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
     AcyclicShortestPaths.shortestPaths(this, start)
 }

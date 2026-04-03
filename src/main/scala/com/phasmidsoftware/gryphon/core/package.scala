@@ -12,8 +12,8 @@ package object core {
    * This alias is typically used to describe relationships or connections in graphs
    * or other data structures where a single edge connects two vertices.
    *
-   * @tparam E the type representing the edge attribute.
-   * @tparam V the type representing the vertex attribute.
+   * // @tparam E the type representing the edge attribute.
+   * // @tparam V the type representing the vertex attribute.
    */
-  type ProtoConnexion[E, V] = (E, V, V)
+  type ProtoConnexion[V, E] = (E, V, V)
 }

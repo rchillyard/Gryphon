@@ -4,11 +4,9 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.visitor.core.{Evaluable, GraphNeighbours, JournaledVisitor, Traversal, given_VisitedSet_V}
-import java.io.FileWriter
+import com.phasmidsoftware.visitor.core.{*, given}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import scala.collection.immutable.Queue
 
 /**
  * Test suite for various visitor implementations.

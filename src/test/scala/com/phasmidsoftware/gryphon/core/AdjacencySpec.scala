@@ -1,6 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
+import org.scalactic.Prettifier.default
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -29,10 +30,10 @@ class AdjacencySpec extends AnyFlatSpec with Matchers:
   behavior of "AdjacencyEdge"
 
   it should "vertex" in {
-    val adjacency1 = AdjacencyEdge(AttributedDirectedEdge[String, Int]("child", 1, 2))
+    val adjacency1 = AdjacencyEdge(AttributedDirectedEdge[Int, String]("child", 1, 2))
     adjacency1.maybeEdge.map(_.attribute) shouldBe Some("child")
     adjacency1.vertex shouldBe 2
-    val adjacency2 = AdjacencyEdge(AttributedDirectedEdge[String, Int]("child", 1, 2), flipped = true)
+    val adjacency2 = AdjacencyEdge(AttributedDirectedEdge[Int, String]("child", 1, 2), flipped = true)
     adjacency2.maybeEdge.map(_.attribute) shouldBe Some("child")
     adjacency2.vertex shouldBe 1
   }

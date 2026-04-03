@@ -36,12 +36,11 @@ object AcyclicShortestPaths:
    * @param start the source vertex.
    * @tparam V the vertex type.
    * @tparam E the edge-weight type; must have `Monoid` (zero + combine) and `Ordering`.
-   * @return a `VertexTraversalResult[V, DirectedEdge[E, V]]` mapping each reachable
+   * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
    *         vertex (except `start`) to its shortest-path incoming edge.
-   *
    * @throws IllegalArgumentException if the graph contains a cycle.
    */
-  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[E, V]] =
+  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
     val mn = implicitly[Monoid[E]]
     val ord = implicitly[Ordering[E]]
 
@@ -49,12 +48,12 @@ object AcyclicShortestPaths:
             .getOrElse(throw IllegalArgumentException("AcyclicShortestPaths: graph contains a cycle"))
 
     val dist: mutable.Map[V, E] = mutable.Map(start -> mn.identity)
-    val pred: mutable.Map[V, DirectedEdge[E, V]] = mutable.Map.empty
+    val pred: mutable.Map[V, DirectedEdge[V, E]] = mutable.Map.empty
 
     for v <- topoOrder if dist.contains(v) do
       for
         adj <- graph.filteredAdjacencies(_ => true)(v)
-        edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[E, V] => e }
+        edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e }
       do
         val newDist = mn.combine(dist(v), edge.attribute)
         if dist.get(edge.black).forall(ord.lt(newDist, _)) then

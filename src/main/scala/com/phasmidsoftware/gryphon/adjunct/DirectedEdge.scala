@@ -11,7 +11,7 @@ import com.phasmidsoftware.gryphon.core.{Directed, Edge, EdgeType}
  * @tparam E the type of the attribute associated with the edge.
  * @tparam V the type of the vertices connected by the edge.
  */
-trait DirectedEdge[E, V] extends Edge[E, V]:
+trait DirectedEdge[V, E] extends Edge[V, E]:
   /**
    * Returns the type of the edge represented by this object.
    *
@@ -29,7 +29,7 @@ trait DirectedEdge[E, V] extends Edge[E, V]:
  * @param from      the vertex where the directed edge originates.
  * @param to        the vertex where the directed edge terminates.
  */
-case class AttributedDirectedEdge[E, V](attribute: E, from: V, to: V) extends DirectedEdge[E, V]:
+case class AttributedDirectedEdge[V, E](attribute: E, from: V, to: V) extends DirectedEdge[V, E]:
 
   /**
    * Retrieves the starting `Vertex` of this `Edge`.
@@ -49,7 +49,7 @@ case class AttributedDirectedEdge[E, V](attribute: E, from: V, to: V) extends Di
   def black: V = to
 
   // In AttributedDirectedEdge:
-  def reversed: AttributedDirectedEdge[E, V] = copy(from = to, to = from)
+  def reversed: AttributedDirectedEdge[V, E] = copy(from = to, to = from)
 
 /**
  * Companion object for the `AttributedDirectedEdge` class.
@@ -64,7 +64,7 @@ object AttributedDirectedEdge:
    * @param vv        a tuple representing the starting and ending vertices of the edge.
    * @return an instance of `AttributedDirectedEdge` with the specified attribute and vertices.
    */
-  def create[E, V](attribute: E, vv: (V, V)): DirectedEdge[E, V] = AttributedDirectedEdge(attribute, vv._1, vv._2)
+  def create[V, E](attribute: E, vv: (V, V)): DirectedEdge[V, E] = AttributedDirectedEdge(attribute, vv._1, vv._2)
 
 /**
  * Represents a directed edge in a graph connecting two vertices of type `V`.
@@ -76,7 +76,7 @@ object AttributedDirectedEdge:
  * @param to   the terminating vertex of the edge.
  * @tparam V the type of the vertices connected by the edge.
  */
-case class OrderedEdge[V](from: V, to: V) extends DirectedEdge[Unit, V]:
+case class OrderedEdge[V](from: V, to: V) extends DirectedEdge[V, Unit]:
   /**
    * Retrieves the attribute of type `A` associated with this instance.
    *

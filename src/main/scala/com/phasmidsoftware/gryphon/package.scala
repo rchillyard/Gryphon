@@ -16,11 +16,11 @@ package object gryphon {
    * This function encapsulates edge type-specific behavior for constructing connections
    * in a graph.
    */
-  val edgeFunc: EdgeType => ProtoConnexion[Unit, Int] => Connexion[Int] = {
+  val edgeFunc: EdgeType => ProtoConnexion[Int, Unit] => Connexion[Int] = {
     case Directed =>
       (_, b, c) => OrderedEdge[Int](b, c)
     case Undirected =>
-      UndirectedEdge[Unit, Int]
+      UndirectedEdge[Int, Unit]
     case Undefined =>
       (_, v1, v2) => VertexPair(v1, v2)
   }

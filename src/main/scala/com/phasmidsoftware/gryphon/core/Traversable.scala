@@ -123,7 +123,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return the visitor after traversal.
    */
-  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[E, V], R], random: Random = Random()): Visitor[Edge[E, V], R, J]
+  def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random = Random()): Visitor[Edge[V, E], R, J]
 
   /**
    * Performs a DFS traversal applying `f` to each visited vertex and returns a
@@ -252,7 +252,7 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
   /**
    * Retrieves an iterator over all the edges in the graph.
    *
-   * @return an `Iterator[Edge[E, V]]` over all edges.
+   * @return an `Iterator[Edge[V, E]]` over all edges.
    */
-  def edges: Iterator[Edge[E, V]]
+  def edges: Iterator[Edge[V, E]]
 }

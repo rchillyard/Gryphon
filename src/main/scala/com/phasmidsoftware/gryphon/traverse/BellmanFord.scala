@@ -43,7 +43,7 @@ object BellmanFord:
    *         to its shortest-path incoming edge, or `None` if a negative cycle is
    *         reachable from `start`.
    */
-  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[E, V]]] =
+  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     given Random = Random(0)
 
     val em = implicitly[Monoid[E]]
@@ -52,7 +52,7 @@ object BellmanFord:
 
     // NOTE Create all the working data structures.
     val dist: mutable.Map[V, E] = mutable.Map(start -> em.identity)
-    val pred: mutable.Map[V, DirectedEdge[E, V]] = mutable.Map.empty
+    val pred: mutable.Map[V, DirectedEdge[V, E]] = mutable.Map.empty
     val onQueue: mutable.Set[V] = mutable.Set(start)
     val enqueued: mutable.Map[V, Int] = mutable.Map(start -> 1)
     val queue: mutable.Queue[V] = mutable.Queue(start)
@@ -65,7 +65,7 @@ object BellmanFord:
       onQueue -= v
       for
         adj <- graph.filteredAdjacencies(_ => true)(v)
-        edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[E, V] => e }
+        edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e }
         if !negativeCycle
       do
         val w = edge.black

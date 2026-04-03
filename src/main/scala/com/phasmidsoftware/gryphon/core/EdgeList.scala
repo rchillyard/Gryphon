@@ -19,7 +19,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam E the type of the attributes associated with the edges.
  * @tparam Z a type parameter to describe additional properties, such as the nature of the edges.
  */
-case class EdgeList[V, E, Z](edges: Seq[Edge[E, V]]) extends SerializableGraph[V, E, Z] with Edges[V, E]:
+case class EdgeList[V, E, Z](edges: Seq[Edge[V, E]]) extends SerializableGraph[V, E, Z] with Edges[V, E]:
   /**
    * Generates a sequence of triplets, where each triplet represents an edge in the graph.
    * Each triplet contains the source vertex, the target vertex, the attribute associated with the edge, 

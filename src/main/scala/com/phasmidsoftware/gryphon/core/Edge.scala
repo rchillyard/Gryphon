@@ -15,7 +15,7 @@ import scala.util.{Success, Try}
  * @tparam E the type of the attribute associated with the edge.
  * @tparam V the type of the vertices connected by the edge.
  */
-trait Edge[E, V] extends Attribute[E] with Connexion[V] {
+trait Edge[V, E] extends Attribute[E] with Connexion[V] {
 
   /**
    * Retrieves the type of the edge (e.g., directed or undirected).
@@ -37,7 +37,7 @@ trait Edge[E, V] extends Attribute[E] with Connexion[V] {
  *
  * @tparam V the type of the vertices connected by the edge.
  */
-trait OrderableEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
+trait OrderableEdge[V, E] extends Edge[V, E] with Ordered[Edge[V, E]] {
   /**
    * Compares this edge with another edge based on their attributes using the specified ordering.
    *
@@ -46,7 +46,7 @@ trait OrderableEdge[E, V] extends Edge[E, V] with Ordered[Edge[E, V]] {
    * @return an integer where a negative value indicates this edge's attribute is less than the other edge's attribute,
    *         zero indicates they are equal, and a positive value indicates this edge's attribute is greater.
    */
-  def compare(that: Edge[E, V])(implicit ordering: Ordering[E]): Int =
+  def compare(that: Edge[V, E])(implicit ordering: Ordering[E]): Int =
     ordering.compare(this.attribute, that.attribute)
 }
 

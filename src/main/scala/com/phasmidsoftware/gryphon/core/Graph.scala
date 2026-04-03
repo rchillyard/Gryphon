@@ -65,7 +65,7 @@ trait Graph[V] extends Traversable[V]:
    * @tparam J the journal type.
    * @return the visitor after traversal.
    */
-  def bfse[E, R, J <: Appendable[(Edge[E, V], Option[R])]](visitor: Visitor[Edge[E, V], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[E, V], R], random: Random): Visitor[Edge[E, V], R, J] =
+  def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random): Visitor[Edge[V, E], R, J] =
     vertexMap.bfse(visitor)(v)(goal)
 
   /**
@@ -120,7 +120,7 @@ trait Graph[V] extends Traversable[V]:
   /**
    * Returns the directed edges reachable from v.
    */
-  def undiscoveredEdges[E](v: V)(using random: Random = Random()): Seq[Edge[E, V]] =
+  def undiscoveredEdges[E](v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
     filteredAdjacencies(_ => true)(v)
             .flatMap(_.maybeEdge[E])
             .toSeq
@@ -131,7 +131,7 @@ trait Graph[V] extends Traversable[V]:
    * state internally via VisitedSet.
    */
   def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
-    undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[E, V] => e.black }
+    undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[V, E] => e.black }
 
   def debug: String = vertexMap.debug
 
@@ -213,7 +213,7 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    * @param edge the edge to add.
    * @return a new `EdgeGraph[V, E]` containing the added edge.
    */
-  def addEdge(edge: Edge[E, V]): EdgeGraph[V, E]
+  def addEdge(edge: Edge[V, E]): EdgeGraph[V, E]
 
   /**
    * Returns the number of self-loops in the graph

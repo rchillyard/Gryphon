@@ -15,5 +15,5 @@ package object core {
    * @tparam E the type representing the edge attribute.
    * @tparam V the type representing the vertex attribute.
    */
-  type ProtoConnexion[E, V] = (E, V, V)
+  type ProtoConnexion[V, E] = (E, V, V)
 }

@@ -51,7 +51,7 @@ object TraversalResult {
    * Performs a traversal over the edges of a graph and applies a function to each edge, returning the results
    * as a `TraversalResult` object.
    *
-   * @param f           a function applied to each edge, transforming each `Edge[E, V]` into a value of type `T`
+   * @param f a function applied to each edge, transforming each `Edge[V, E]` into a value of type `T`
    * @param traversable the graph or data structure implementing the `core.Traversable` interface over edge type `E`
    * @tparam V the type of vertices connected by the edges in the graph
    * @tparam E the type of the attributes associated with the edges in the graph
@@ -59,7 +59,7 @@ object TraversalResult {
    * @return a `TraversalResult[V, T]` containing the results of applying the function `f` to each edge of the graph
    * @throws GraphException if the provided `traversable` does not represent an edge graph
    */
-  def edgeTraversal[V, E, T](f: Edge[E, V] => T)(traversable: core.EdgeTraversable[V, E]): TraversalResult[Int, T] =
+  def edgeTraversal[V, E, T](f: Edge[V, E] => T)(traversable: core.EdgeTraversable[V, E]): TraversalResult[Int, T] =
     EdgeTraversalResult(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
 }
 
@@ -256,7 +256,7 @@ object VertexTraversalResult {
  *                   representing the result associated with traversal from this vertex.
  * @tparam V the type representing a vertex in the graph.
  */
-case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends AbstractVertexTraversalResult[V, DirectedEdge[E, V]](connexions) {
+case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends AbstractVertexTraversalResult[V, DirectedEdge[V, E]](connexions) {
   /**
    * Creates a new `TraversalResult` instance with the specified map of vertices and their associated traversal results.
    *
@@ -264,7 +264,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    *            the result associated with traversal from this vertex.
    * @return a new `TraversalResult` instance of type `TraversalResult[V, (V, V)]` initialized with the provided map.
    */
-  def unit(map: Map[V, DirectedEdge[E, V]]): TraversalResult[V, DirectedEdge[E, V]] =
+  def unit(map: Map[V, DirectedEdge[V, E]]): TraversalResult[V, DirectedEdge[V, E]] =
     copy(connexions = map)
 
   /**
@@ -278,9 +278,9 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    * @throws GraphException if the provided connexion type is unexpected.
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
-    case d@AttributedDirectedEdge[E, V] (_, _, _) =>
+    case d@AttributedDirectedEdge[V, E] (_, _, _) =>
   copy (connexions = connexions + (v -> d) )
-    case u@UndirectedEdge[E, V] (q, _, _) =>
+    case u@UndirectedEdge[V, E] (q, _, _) =>
   copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
     case _ =>
       throw GraphException(s"getConnexions: unexpected connexion: $connexion")
@@ -294,7 +294,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[E, V]]) extends Abst
    *          traversal result of type `T`.
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
-  override def +(t: (V, DirectedEdge[E, V])): Connexions[V, E] =
+  override def +(t: (V, DirectedEdge[V, E])): Connexions[V, E] =
     super.+(t).asInstanceOf[Connexions[V, E]]
 }
 
@@ -327,5 +327,5 @@ object Connexions {
    * @return an empty `ProtoConnexions` instance.
    */
   def empty[V, E]: Connexions[V, E] =
-    Connexions(Map.empty[V, DirectedEdge[E, V]])
+    Connexions(Map.empty[V, DirectedEdge[V, E]])
 }

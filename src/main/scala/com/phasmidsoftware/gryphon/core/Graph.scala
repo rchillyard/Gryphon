@@ -69,6 +69,31 @@ trait Graph[V] extends Traversable[V]:
     vertexMap.bfse(visitor)(v)(goal)
 
   /**
+   * Determines if the graph contains any cycles.
+   *
+   * @return true if the graph has at least one cycle, false otherwise.
+   */
+  def isCyclic: Boolean
+
+
+  /**
+   * Returns true if this graph is connected.
+   *
+   * For undirected graphs: true iff every vertex is reachable from every other.
+   * For directed graphs: semantics (strong vs weak connectivity) are
+   * implementation-defined and not yet supported — throws UnsupportedOperationException.
+   */
+  def isConnected: Boolean
+
+  /**
+   * Returns true if this graph is bipartite (2-colorable).
+   *
+   * For undirected graphs: true iff the graph contains no odd-length cycle.
+   * For directed graphs: not yet implemented — throws UnsupportedOperationException.
+   */
+  def isBipartite: Boolean
+
+  /**
    * Retrieves the vertex map representation of the graph.
    *
    * @return the `VertexMap[V]` backing this graph.
@@ -189,3 +214,10 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    * @return a new `EdgeGraph[V, E]` containing the added edge.
    */
   def addEdge(edge: Edge[E, V]): EdgeGraph[V, E]
+
+  /**
+   * Returns the number of self-loops in the graph
+   * (edges where both endpoints are the same vertex).
+   */
+  def numberOfSelfLoops: Int =
+    edges.count(e => e.white == e.black)

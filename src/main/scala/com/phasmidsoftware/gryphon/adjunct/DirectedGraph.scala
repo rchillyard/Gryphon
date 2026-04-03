@@ -1,6 +1,7 @@
 package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
+import com.phasmidsoftware.gryphon.traverse.TopologicalSort
 import com.phasmidsoftware.gryphon.util.GraphException
 import scala.util.{Failure, Success, Try}
 
@@ -30,6 +31,33 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
         case other => throw GraphException(s"unexpected edge type in reverse: $other")
       g.addEdge(rev)
     }
+
+  /**
+   * Checks whether the directed graph contains a cycle.
+   *
+   * This method determines if the graph is cyclic by attempting to perform a
+   * topological sort. A graph is cyclic if and only if a topological order
+   * cannot be established.
+   *
+   * @return true if the graph is cyclic, false otherwise.
+   */
+  def isCyclic: Boolean = TopologicalSort.sort(this).isEmpty
+
+  /**
+   * Not yet implemented for directed graphs.
+   * For directed graphs, connectivity has two distinct notions:
+   * weak (treating edges as undirected) and strong (every vertex reachable
+   * from every other via directed paths). Use ConnectedComponents for
+   * undirected connectivity or Kosaraju for strongly connected components.
+   */
+  def isConnected: Boolean =
+    throw UnsupportedOperationException("isConnected is not yet implemented for DirectedGraph — use ConnectedComponents or Kosaraju")
+
+  /**
+   * Not yet implemented for directed graphs.
+   */
+  def isBipartite: Boolean =
+    throw UnsupportedOperationException("isBipartite is not yet implemented for DirectedGraph")
 
   /**
    * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.
@@ -155,7 +183,8 @@ object DirectedGraph {
           triplets.triplets.foldLeft(VertexMap[V]) {
             (z, t) =>
               // TODO find another way to handle this anomaly
-              if (!t.edgeType.oneWay) System.err.println(s"WARNING: edge ${t.maybeAttribute} is not directed.")
+              if (!t.edgeType.oneWay)
+                System.err.println(s"WARNING: edge ${t.maybeAttribute} is not directed.")
               z.createVerticesFromTriplet[E, EdgeType](f) {
                         case (vv1, vv2, Some(e)) =>
                           AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
@@ -170,7 +199,6 @@ object DirectedGraph {
         val expectedAdjacencies = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum
         if (graph.adjacencies.size != expectedAdjacencies)
           System.err.println(s"WARNING: ${graph.adjacencies.size} != $expectedAdjacencies")
-        //        println(s"graph = $graph")
         Success(graph)
       case z =>
         Failure(GraphException(s"parse failed: $z"))

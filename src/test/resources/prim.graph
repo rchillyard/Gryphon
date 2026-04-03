@@ -1,3 +1,5 @@
+// Sedgewick & Wayne, Algorithms 4th Ed., Figure 4.3.1 (tinyEWG.txt)
+// 8 vertices, 16 undirected weighted edges. MST weight: 1.81
 0 = 7 0.16
 2 = 3 0.17
 1 = 7 0.19

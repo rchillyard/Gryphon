@@ -3,7 +3,6 @@ package com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.traverse.{Connexions, VertexTraversalResult}
-import com.phasmidsoftware.gryphon.util.FP.sequence
 import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,7 +14,6 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
 
   behavior of "Traversable"
 
-  // Shared graph: directed chain 1 -> 2 -> 3
   private val edgeList = EdgeList[Int, String, EdgeType](
     Seq(
       com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("A", 1, 2),
@@ -26,6 +24,19 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
 
   private given Evaluable[Int, Int] with
     def evaluate(v: Int): Option[Int] = Some(v)
+
+  private def withDfsuGraph[A](f: Graph[Int] => A): A =
+    val p = new GraphParser[Int, Unit, EdgeType]
+    val triedSource = Try(Source.fromResource("dfsu.graph"))
+    TryUsing.tryIt(triedSource) { source =>
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
+    } match
+      case Success(triplets) =>
+        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+          case Success(graph: Graph[Int]) => f(graph)
+          case Failure(x) => fail(x)
+          case _ => fail("unexpected graph type")
+      case Failure(x) => fail(x)
 
   it should "adjacentVertices" in {
     target.adjacentVertices(1).toSet shouldBe Set(2)
@@ -68,13 +79,11 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
   it should "bfs stops early at goal" in {
     val visitor = JournaledVisitor.withQueueJournal[Int, Int]
     val result = target.bfs(visitor)(1, goal = _ == 2)
-    // Should record 1 and 2 but not necessarily 3
     result.result.map(_._1).toSet should contain(2)
     result.result.map(_._1).toSet should not contain 3
   }
 
   it should "dfsAll visits all vertices in disconnected graph" in {
-    // Build two disconnected components: 1->2 and 10->11
     val vm = VertexMap[Int]
             .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("X", 1, 2))
             .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("Y", 10, 11))
@@ -83,46 +92,25 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
     result.result.map(_._1).toSet shouldBe Set(1, 2, 10, 11)
   }
 
-  it should "vertexMappedTraversalDfs" in {
-    val p = new GraphParser[Int, Unit, EdgeType]
-    val triedSource = Try(Source.fromResource("dfsu.graph"))
-    val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
-    wsy.isSuccess shouldBe true
-    val ws = wsy.get filterNot (_.startsWith("//"))
-    sequence(for w <- ws yield p.parseTriple(w)) match
-      case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-          case Success(graph: Graph[_]) =>
-            graph.vertexMappedTraversalDfs(v => v.toString)(0) match
-              case Success(VertexTraversalResult(map)) =>
-                map.size shouldBe 7
-                map(0) shouldBe "0"
-                map(6) shouldBe "6"
-              case Success(x) => fail(s"unexpected result: $x")
-              case Failure(exception) => fail(exception)
-          case Failure(exception) => fail(exception)
-      case Failure(exception) => fail(exception)
-  }
+  it should "vertexMappedTraversalDfs" in :
+    withDfsuGraph { graph =>
+      graph.vertexMappedTraversalDfs(v => v.toString)(0) match
+        case Success(VertexTraversalResult(map)) =>
+          map.size shouldBe 7
+          map(0) shouldBe "0"
+          map(6) shouldBe "6"
+        case Success(x) => fail(s"unexpected result: $x")
+        case Failure(exception) => fail(exception)
+    }
 
-  it should "ProtoConnexions.create" in {
-    val p = new GraphParser[Int, Unit, EdgeType]
-    val triedSource = Try(Source.fromResource("dfsu.graph"))
-    val wsy: Try[Seq[String]] = TryUsing.trial(triedSource)(_.getLines().toSeq)
-    wsy.isSuccess shouldBe true
-    val ws = wsy.get filterNot (_.startsWith("//"))
-    sequence(for w <- ws yield p.parseTriple(w)) match
-      case Success(triplets) =>
-        UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-          case Success(graph: Graph[_]) =>
-            val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(0)
-            connexions match
-              case Connexions(map) =>
-                map.size shouldBe 6
-                // TODO this is clearly wrong but it will do for now.
-                val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
-                values.contains(AttributedDirectedEdge(None, 0, 2)) shouldBe true
-                values.contains(AttributedDirectedEdge(None, 1, 0)) shouldBe false
-                values.contains(AttributedDirectedEdge(None, 0, 5)) shouldBe true
-          case Failure(exception) => fail(exception)
-      case Failure(exception) => fail(exception)
-  }
+  it should "ProtoConnexions.create" in :
+    withDfsuGraph { graph =>
+      val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(0)
+      connexions match
+        case Connexions(map) =>
+          map.size shouldBe 6
+          val values: Seq[DirectedEdge[Unit, Int]] = map.values.toSeq
+          values.contains(AttributedDirectedEdge(None, 0, 2)) shouldBe true
+          values.contains(AttributedDirectedEdge(None, 1, 0)) shouldBe false
+          values.contains(AttributedDirectedEdge(None, 0, 5)) shouldBe true
+    }

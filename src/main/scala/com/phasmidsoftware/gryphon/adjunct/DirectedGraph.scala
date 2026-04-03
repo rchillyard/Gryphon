@@ -1,8 +1,9 @@
 package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.gryphon.traverse.TopologicalSort
+import com.phasmidsoftware.gryphon.traverse.{BellmanFord, TopologicalSort, VertexTraversalResult}
 import com.phasmidsoftware.gryphon.util.GraphException
+import com.phasmidsoftware.visitor.core.Monoid
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -58,6 +59,13 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    */
   def isBipartite: Boolean =
     throw UnsupportedOperationException("isBipartite is not yet implemented for DirectedGraph")
+
+  /**
+   * Computes shortest paths from `start` using Bellman-Ford-Moore.
+   * Returns None if a negative cycle is reachable from start.
+   */
+  def shortestPaths(start: V)(using Monoid[E], Ordering[E]): Option[VertexTraversalResult[V, DirectedEdge[E, V]]] =
+    BellmanFord.shortestPaths(this, start)
 
   /**
    * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.

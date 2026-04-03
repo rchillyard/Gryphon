@@ -226,15 +226,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   def iterator: Iterator[V] = map.keysIterator
 
   /**
-   * Ensures a vertex for `v` is present, creating it with `f` if absent.
-   */
-  def ensure(f: V => Vertex[V])(v: V): VertexMap[V] = get(v) match
-    case Some(_) =>
-      this
-    case None =>
-      this + f(v)
-
-  /**
    * Adds the edges from the provided EdgeList to this VertexMap.
    */
   def addEdges[E, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] =
@@ -310,6 +301,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   // -----------------------------------------------------------------------
   // Private helpers
   // -----------------------------------------------------------------------
+
+  /**
+   * Ensures a vertex for `v` is present, creating it with `f` if absent.
+   */
+  private def ensure(f: V => Vertex[V])(v: V): VertexMap[V] = get(v) match
+    case Some(_) =>
+      this
+    case None =>
+      this + f(v)
 
   private val addAdjFunction: Adjacency[V] => Vertex[V] => Vertex[V] = va => w => w + va
 

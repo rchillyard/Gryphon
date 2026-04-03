@@ -217,10 +217,7 @@ trait Traversable[V] {
     loop(List((start, None)))
 
     result.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
-      case (acc, (child, Some(AdjacencyEdge[V
-      , E
-      ] (connexion, flipped)
-      ) ) ) =>
+      case (acc, (child, Some(AdjacencyEdge[V, E] (connexion, flipped)))) =>
       acc.addConnexion(child, connexion)
       case (acc, _) =>
         acc
@@ -237,9 +234,7 @@ trait Traversable[V] {
    * NOTE: do not be tempted to add a default Random implementation for this context.
    * We need to enforce consistency of Random instances.
    */
-  def graphNeighbours(using random: Random): GraphNeighbours[V] = new GraphNeighbours[V] {
-    def neighbours(v: V): Iterator[V] = adjacentVertices(v)
-  }
+  def graphNeighbours(using random: Random): GraphNeighbours[V] = (v: V) => adjacentVertices(v)
 }
 
 /**

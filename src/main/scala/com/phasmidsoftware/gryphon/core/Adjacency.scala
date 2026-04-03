@@ -80,7 +80,7 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
  * NOTE: when `AdjacencyEdge` is used, an `Unordered_Set` is appropriate (no duplicate edges).
  * When `AdjacencyVertex` is used, use `Unordered_Bag` (duplicate vertices are possible).
  *
- * @tparam V the type of the vertex attribute.
+ * //@tparam V the type of the vertex attribute.
  */
 type Adjacencies[V] = Unordered[Adjacency[V]]
 

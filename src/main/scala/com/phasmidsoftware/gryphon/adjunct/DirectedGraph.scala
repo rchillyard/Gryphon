@@ -148,24 +148,6 @@ object DirectedGraph {
     apply[V, E](VertexMap[V])
 
   /**
-   * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
-   * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
-   *
-   * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
-   * indicating an unsupported or an invalid-edge type.
-   *
-   * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
-   */
-  def getDirectedEdgeFromAdjacency[V, E](va: Adjacency[V]): DirectedEdge[V, E] = va match {
-    case AdjacencyEdge(e: DirectedEdge[V, E] @unchecked, false) =>
-      e
-    case AdjacencyEdge(e: VertexPair[V], false) =>
-      OrderedEdge(e.white, e.black).asInstanceOf[DirectedEdge[V, E]] // E should be Unit
-    case x =>
-      throw GraphException(s"unexpected edge type: $x")
-  }
-
-  /**
    * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.
    *
    * Each triplet in the input sequence consists of two vertices (source and target)
@@ -211,4 +193,22 @@ object DirectedGraph {
       case z =>
         Failure(GraphException(s"parse failed: $z"))
     }
+
+  /**
+   * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`
+   * is an `AdjacencyEdge` containing a `DirectedEdge` and is not marked as `discovered`.
+   *
+   * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
+   * indicating an unsupported or an invalid-edge type.
+   *
+   * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
+   */
+  private def getDirectedEdgeFromAdjacency[V, E](va: Adjacency[V]): DirectedEdge[V, E] = va match {
+    case AdjacencyEdge(e: DirectedEdge[V, E] @unchecked, false) =>
+      e
+    case AdjacencyEdge(e: VertexPair[V], false) =>
+      OrderedEdge(e.white, e.black).asInstanceOf[DirectedEdge[V, E]] // E should be Unit
+    case x =>
+      throw GraphException(s"unexpected edge type: $x")
+  }
 }

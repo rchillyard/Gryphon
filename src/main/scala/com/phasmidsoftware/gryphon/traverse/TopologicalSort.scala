@@ -46,8 +46,7 @@ object TopologicalSort:
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
-    given GraphNeighbours[V] = new GraphNeighbours[V]:
-      def neighbours(v: V): Iterator[V] = graph.adjacentVertices(v)
+    given GraphNeighbours[V] = (v: V) => graph.adjacentVertices(v)
 
     // Run post-order DFS over all vertices, seeding each unvisited component in turn.
     // We manage the visited set explicitly so components share it across iterations.

@@ -69,7 +69,6 @@ object TraversalResult {
  * a specific implementation for edge traversal while delegating the vertex traversal
  * to throw an exception, as it is not applicable for edge-based traversal.
  *
- * @tparam V the type representing a vertex in the graph
  * @tparam T the type representing the result of the edge traversal
  * @param ts a list of elements of type T representing traversal data, typically associated with edges
  */
@@ -279,9 +278,9 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
     case d@AttributedDirectedEdge[V, E] (_, _, _) =>
-  copy (connexions = connexions + (v -> d) )
+      copy (connexions = connexions + (v -> d) )
     case u@UndirectedEdge[V, E] (q, _, _) =>
-  copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
+      copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
     case _ =>
       throw GraphException(s"getConnexions: unexpected connexion: $connexion")
   }

@@ -1,4 +1,6 @@
+![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/gryphon_3/badge.svg?color=blue)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1dc65c7cf84e46bfbb0d3d9b16c0f382)](https://app.codacy.com/app/scalaprof/Gryphon?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Gryphon&utm_campaign=Badge_Grade_Settings)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Gryphon/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Gryphon/tree/main)
 ![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Gryphon)
 ![GitHub](https://img.shields.io/github/license/rchillyard/Gryphon)
 ![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Gryphon)
@@ -8,6 +10,8 @@
 Gryphon Graph Library
 =====================
 Gryphon is a library for representing and traversing graphs.
+The core concept is that a graph traversal should be performed by a visitor (see below) 
+and yield a traversal result.
 
 The core concepts are in the package com.phasmidsoftware.gryphon.core.
 As always, consult the spec files (under the `test` directory) to learn how to use the library.
@@ -16,11 +20,10 @@ Important Note
 ==============
 This library is still in development.
 It is not yet ready for production use.
-As of version 0.2.2, it is not yet on Maven Central.
-Version 0.2.2 is available on GitHub and depends on a new Visitor project
+As of version 0.2.8, it is not yet on Maven Central.
+Version 0.2.8 is available on GitHub and depends on a new Visitor project
 (https://github.com/rchillyard/Visitor),
 which IS on Maven Central.
-We are working through adapting the original Gryphon code to the new Visitor-based code.
 Much of the remaining information in this document is out of date.
 
 Attributed
@@ -43,7 +46,7 @@ There are three kinds of edges:
   * vertex pair
 
 A vertex pair has no representation of its connection, see _VertexPair_.
-Otherwise, undirected and directed edges are as you might expect.
+Otherwise, undirected and directed edges are as you would expect.
 
 The attribute type pertaining to an _Edge_ is whatever you want it to be.
 If, for example, you want to work with a Minimum Spanning Tree, or the Shortest Paths Tree,
@@ -65,7 +68,10 @@ There is a _Vertex_ type, but it is generally only referenced internally by libr
 
 Graph Traversal
 ---------------
-Depth-first and breadth-first search are supported.
+Depth-first and breadth-first search are supported along with Shortest Paths and Prim's 
+Minimum Spanning Tree algorithm.
+These four traversals form a family of graph traversals.
+The traversal is performed by calling _dfs_ or _bfs_ on a _Graph_.
 In each case, a visitor of type _Visitor_ is passed to _dfs_ or _bfs_.
 
 Visitor
@@ -95,7 +101,7 @@ was pushed on 2023/04/19.
 
 Versions
 ========
-The current version is 0.1.2
+The current version is 0.2.8
 
 Version 0.1.1 added DFS and generally refactored much of the core.
 

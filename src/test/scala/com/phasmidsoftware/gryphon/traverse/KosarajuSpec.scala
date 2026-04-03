@@ -8,6 +8,7 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.traverse.Kosaraju.stronglyConnectedComponents
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -51,12 +52,12 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — result structure"
 
   it should "label all 7 vertices" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result.size shouldBe 7
   }
 
   it should "find exactly 4 SCCs" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result.values.toSet.size shouldBe 4
   }
 
@@ -67,14 +68,14 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — non-trivial SCC {0, 2, 5, 6}"
 
   it should "assign vertices 0, 2, 5, and 6 the same SCC id" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result(0) shouldBe result(2)
     result(2) shouldBe result(5)
     result(5) shouldBe result(6)
   }
 
   it should "assign the SCC {0,2,5,6} a different id from every singleton" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     val scc0256 = result(0)
     result(1) should not be scc0256
     result(3) should not be scc0256
@@ -88,18 +89,18 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — singleton SCCs"
 
   it should "assign vertices 1, 3, 4 each their own unique SCC id" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     val singletons = Seq(result(1), result(3), result(4))
     singletons.distinct.size shouldBe 3
   }
 
   it should "assign vertex 1 a different SCC id from vertex 4 (1->4 is a cross edge)" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result(1) should not be result(4)
   }
 
   it should "assign vertex 3 a different SCC id from vertex 6 (3->6 is a cross edge)" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result(3) should not be result(6)
   }
 
@@ -115,7 +116,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
       case other => fail(s"unexpected: $other")
   }
@@ -127,7 +128,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
       case other => fail(s"unexpected: $other")
@@ -139,7 +140,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 2
         result(0) should not be result(1)
       case other => fail(s"unexpected: $other")
@@ -152,7 +153,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 3
         result(0) should not be result(1)
         result(1) should not be result(2)
@@ -167,7 +168,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
         result(1) shouldBe result(2)

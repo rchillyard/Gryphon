@@ -46,26 +46,31 @@ object BellmanFord:
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[E, V]]] =
     given Random = Random(0)
 
-    val mn = implicitly[Monoid[E]]
-    val ord = implicitly[Ordering[E]]
+    val em = implicitly[Monoid[E]]
+    val eo = implicitly[Ordering[E]]
     val V = graph.N
 
-    val dist: mutable.Map[V, E] = mutable.Map(start -> mn.identity)
+    // NOTE Create all the working data structures.
+    val dist: mutable.Map[V, E] = mutable.Map(start -> em.identity)
     val pred: mutable.Map[V, DirectedEdge[E, V]] = mutable.Map.empty
     val onQueue: mutable.Set[V] = mutable.Set(start)
     val enqueued: mutable.Map[V, Int] = mutable.Map(start -> 1)
     val queue: mutable.Queue[V] = mutable.Queue(start)
 
-    while queue.nonEmpty do
+    // NOTE this is a mutable variable, but it is only used in the loop condition.
+    var negativeCycle = false
+
+    while queue.nonEmpty && !negativeCycle do
       val v = queue.dequeue()
       onQueue -= v
       for
         adj <- graph.filteredAdjacencies(_ => true)(v)
         edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[E, V] => e }
+        if !negativeCycle
       do
         val w = edge.black
-        val newDist = mn.combine(dist(v), edge.attribute)
-        if dist.get(w).forall(ord.lt(newDist, _)) then
+        val newDist = em.combine(dist(v), edge.attribute)
+        if dist.get(w).forall(eo.lt(newDist, _)) then
           dist(w) = newDist
           pred(w) = edge
           if !onQueue.contains(w) then
@@ -73,6 +78,7 @@ object BellmanFord:
             onQueue += w
             val count = enqueued.getOrElse(w, 0) + 1
             enqueued(w) = count
-            if count >= V then return None  // negative cycle detected
+            if count >= V then negativeCycle = true
 
-    Some(VertexTraversalResult(pred.toMap))
+    if negativeCycle then None
+    else Some(VertexTraversalResult(pred.toMap))

@@ -13,6 +13,9 @@ import com.phasmidsoftware.gryphon.util.GraphException
  * size of its component tree. When merging, the smaller tree is attached under the
  * larger, keeping tree height O(log n) and all operations O(log n).
  *
+ * This implementation obeys the Arbitrary Substitution Principle (ASP): the
+ * choice of which root becomes the child is justified by tree size, not arbitrary.
+ *
  * `unit` and `put` return `Connectivity[V]` directly,
  * with no overrides required, courtesy of the F-bounded type parameter.
  *
@@ -55,8 +58,98 @@ object Connectivity:
     Connectivity(vs.map(v => v -> ParentSize[V]))
 
 /**
+ * Concrete disjoint-set implementation using "Weighted Quick Union with Path Compression."
+ *
+ * Extends `Connectivity` with path compression: during every `findAndCompress`
+ * traversal to the root, all nodes along the path are rewired to point directly
+ * to the root. This flattens the tree lazily, giving amortized near-O(1) performance
+ * (formally O(α(n)), where α is the inverse Ackermann function).
+ *
+ * Path compression is implemented purely functionally: the rewired nodes are
+ * accumulated into a new immutable `Map` which is returned alongside the root
+ * as a fresh `ConnectivityOptimized` instance. No mutation occurs.
+ *
+ * Note that after path compression, `rank` (tracked via `ParentSize.size`) becomes
+ * an upper bound on depth rather than the true depth — this is the standard
+ * behaviour of union-by-rank with path compression, and is why the field is
+ * called `size` (a weaker proxy) rather than `depth`.
+ *
+ * `unit` and `put` return `ConnectivityOptimized[V]` directly,
+ * with no overrides required, courtesy of the F-bounded type parameter.
+ *
+ * @param map the component map.
+ * @tparam V the underlying object type.
+ */
+case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
+        extends AbstractDisjointSet[V, ParentSize[V], ConnectivityOptimized[V]](map)(_.parent):
+
+  def unit(map: Map[V, ParentSize[V]]): ConnectivityOptimized[V] = ConnectivityOptimized(map)
+
+  def put(key: V): ConnectivityOptimized[V] = unit(map + (key -> ParentSize[V]))
+
+  /**
+   * Finds the root of `key`'s component and simultaneously compresses the path,
+   * rewiring every node visited to point directly to the root.
+   *
+   * The traversal collects the path from `key` to the root into a `List[V]`,
+   * then folds over it to produce an updated `Map` in which every node on the
+   * path (except the root itself) has its parent set directly to the root.
+   * A fresh `ConnectivityOptimized` wrapping the updated map is returned
+   * alongside the root — no mutation occurs at any point.
+   *
+   * @param key the element whose root is sought.
+   * @return a pair `(root, compressed)` where `root` is the representative of
+   *         `key`'s component and `compressed` is the path-compressed instance.
+   */
+  override def findAndCompress(key: V): (V, ConnectivityOptimized[V]) =
+    // Collect the path from key to the root.
+    @scala.annotation.tailrec
+    def collectPath(current: V, acc: List[V]): List[V] =
+      parent(current) match
+        case None => current :: acc  // current is the root
+        case Some(p) => collectPath(p, current :: acc)
+
+    // Path is built with root at head: List(root, ..., key)
+    val path = collectPath(key, Nil)
+    val root = path.head
+
+    // Rewire every non-root node on the path to point directly to the root.
+    val compressedMap = path.tail.foldLeft(map): (m, node) =>
+      m.updatedWith(node)(_.map(_.reparent(Some(root))))
+
+    (root, unit(compressedMap))
+
+  protected def union(v1: V, v2: V): Map[V, ParentSize[V]] =
+    if v1 == v2 then throw GraphException(s"ConnectivityOptimized: union: objects are the same: $v1")
+    else
+      def join(child: V, parent: V, size: Int): Map[V, ParentSize[V]] =
+        map
+                .updatedWith(child)(_.map(_.reparent(Some(parent))))
+                .updatedWith(parent)(_.map(_.resize(size)))
+
+      (get(v1), get(v2)) match
+        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) if s1 < s2 =>
+          join(v1, v2, s1 + s2)
+        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
+          join(v2, v1, s1 + s2)
+        case _ => throw GraphException(s"ConnectivityOptimized: union: logic error for $v1, $v2")
+
+/**
+ * Companion object for `ConnectivityOptimized`.
+ */
+object ConnectivityOptimized:
+
+  def apply[V](entries: Seq[(V, ParentSize[V])]): ConnectivityOptimized[V] =
+    new ConnectivityOptimized(entries.toMap)
+
+  def empty[V]: ConnectivityOptimized[V] = apply(Nil)
+
+  def create[V](vs: V*): ConnectivityOptimized[V] =
+    ConnectivityOptimized(vs.map(v => v -> ParentSize[V]))
+
+/**
  * Concrete disjoint-set implementation using "Quick Union" (lazy union),
- * but with the ASP (Arbitrary Substitution Principle) violation noted in the code.
+ * with the ASP (Arbitrary Substitution Principle) violation noted in the code.
  *
  * Each object maps to `Option[V]`: `None` means the object is a root;
  * `Some(parent)` means the object's parent in the component tree.
@@ -78,8 +171,7 @@ case class ConnectivityASP[V](map: Map[V, Option[V]])
   def put(key: V): ConnectivityASP[V] = unit(map + (key -> None))
 
   protected def union(v1: V, v2: V): Map[V, Option[V]] =
-    if v1 != v2 then updated(v1, Some(v2)) // Arbitrary Substitution Principle violation (ASP).
-    // There is no justification in writing `updated(v1, Some(v2))` vs. `updated(v2, Some(v1))`.
+    if v1 != v2 then updated(v1, Some(v2)) // ASP violation: no justification for v1 under v2 vs. v2 under v1.
     else throw GraphException(s"ConnectivityASP: union: objects are the same: $v1")
 
 /**
@@ -98,6 +190,8 @@ object ConnectivityASP:
  *
  * @param parent `None` if this object is a root; `Some(p)` otherwise.
  * @param size   the number of objects in this component tree (meaningful only at the root).
+ *               With path compression active, this becomes an upper bound on depth
+ *               (rank) rather than the precise tree size.
  * @tparam V the underlying object type.
  */
 case class ParentSize[V](parent: Option[V], size: Int):

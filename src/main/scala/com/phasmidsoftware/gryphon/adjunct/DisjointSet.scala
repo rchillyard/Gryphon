@@ -67,15 +67,27 @@ trait DisjointSet[V, +This <: DisjointSet[V, This]]:
  * Abstract base class for disjoint-set implementations that relies on an immutable `Map`
  * to associate objects with their parent disjoint set.
  *
+ * All operations are purely functional: every "mutation" returns a new instance
+ * constructed via `unit`, leaving the original unchanged. This makes instances
+ * persistent data structures — an old reference remains valid after any `connect`
+ * or `put`.
+ *
  * Each object `V` in `map` is associated with a value of type `W`.
  * The function `f` extracts an optional parent `V` from a `W` value.
  * If `f(w) == None` the object is the root of its own component.
  *
  * The F-bound `This <: AbstractDisjointSet[V, W, This]` ensures that `connect`,
  * `put`, and `remove` all return the concrete subtype without casting at the
- * call site. The only remaining `asInstanceOf` is in `doMerge`/`connect` for
- * the short-circuit case (`this` when already connected), which is safe but
- * unavoidable — the compiler cannot prove `this: This` without it.
+ * call site. The only remaining `asInstanceOf` casts are in the short-circuit
+ * cases where `this` is returned unchanged — these are safe but unavoidable,
+ * since the compiler cannot prove `this: This` without them.
+ *
+ * Subclasses that implement path compression should override `findAndCompress`.
+ * The default implementation simply delegates to `getDisjointSet` and returns
+ * `this` unchanged, so non-compressing subclasses need not override it.
+ * The `connect` method in this class calls `findAndCompress` for both arguments,
+ * so compression is applied automatically during every merge in subclasses that
+ * override it.
  *
  * @param map the component map: each `V` maps to its associated `W`.
  * @param f   extracts the optional parent from a `W` value.
@@ -118,13 +130,38 @@ abstract class AbstractDisjointSet[V, W, This <: AbstractDisjointSet[V, W, This]
   def unit(map: Map[V, W]): This
 
   /**
+   * Returns the root of the component containing `key`, together with a
+   * (potentially restructured) copy of this disjoint set.
+   *
+   * The default implementation performs no restructuring — it returns
+   * `getDisjointSet(key)` paired with `this` unchanged. Subclasses that
+   * implement path compression override this to rewire every node along
+   * the path to the root, returning the compressed instance alongside the root.
+   *
+   * Making compression explicit here (rather than hiding it inside
+   * `getDisjointSet`) keeps the design honest: a `DisjointSet` that does
+   * not compress still satisfies the trait, and one that does compress
+   * makes that fact visible in its API.
+   *
+   * @param key the element whose root is sought.
+   * @return a pair `(root, updated)` where `root` is the representative of
+   *         `key`'s component and `updated` is the (possibly compressed) instance.
+   */
+  def findAndCompress(key: V): (V, This) = (getDisjointSet(key), this.asInstanceOf[This])
+
+  /**
    * Merges the components containing `v1` and `v2`.
-   * Short-circuits (returning `this`) if they are already in the same component
-   * or if `v1 == v2`. The `asInstanceOf` here is safe: `this` is always a `This`.
+   * Short-circuits (returning `this`) if `v1 == v2`.
+   * Delegates to `findAndCompress` for both arguments so that subclasses
+   * which override it get compression applied during every merge automatically.
+   * The `asInstanceOf` here is safe: `this` is always a `This`.
    */
   def connect(v1: V, v2: V): This =
     if v1 == v2 then this.asInstanceOf[This]
-    else doMerge(getDisjointSet(v1), getDisjointSet(v2))
+    else
+      val (root1, c1) = findAndCompress(v1)
+      val (root2, c2) = c1.findAndCompress(v2)
+      c2.doMerge(root1, root2)
 
   /** The mean path length to root across all objects. */
   def meanDepth: Double = map.keys.map(depth).sum.toDouble / map.size
@@ -145,6 +182,8 @@ abstract class AbstractDisjointSet[V, W, This <: AbstractDisjointSet[V, W, This]
 
   /**
    * Returns an updated map with `key -> value`.
+   * Note: `Map.updated` is a purely functional operation on an immutable `Map`
+   * — it returns a new `Map` and does not mutate the receiver.
    */
   def updated[W1 >: W](key: V, value: W1): Map[V, W1] = map.updated(key, value)
 
@@ -168,9 +207,9 @@ abstract class AbstractDisjointSet[V, W, This <: AbstractDisjointSet[V, W, This]
 
   @tailrec
   private def inner(w: V, d: Int): (V, Int) = get(w) map f match
-    case Some(None)             => (w, d)
+    case Some(None) => (w, d)
     case Some(Some(x)) if x != w => inner(x, d + 1)
-    case Some(Some(x))          =>
+    case Some(Some(x)) =>
       throw GraphException(s"DisjointSet: corrupted structure: key $x points to itself")
-    case None                   =>
+    case None =>
       throw GraphException(s"DisjointSet: inner: key $w does not exist")

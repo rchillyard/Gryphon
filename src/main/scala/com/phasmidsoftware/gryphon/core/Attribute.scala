@@ -31,7 +31,6 @@ trait OrderedAttribute[A] extends Attribute[A] {
    * @param other the other `Attribute` instance to compare against.
    *              It must have an attribute of type `T`, where `T` is a supertype of `A`
    *              and has an implicit `Ordering` available.
-   *
    * @return an integer indicating the relative order of the two attributes:
    *         - a negative integer if this attribute is less than the `other` attribute,
    *         - zero if they are equal,

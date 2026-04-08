@@ -199,7 +199,8 @@ object ConnectivityASP:
  * @param size   the number of objects in this component tree (meaningful only at the root).
  *               With path compression active, this becomes an upper bound on depth
  *               (rank) rather than the precise tree size.
- * @tparam V the underlying object type.
+ *
+ * @tparam V     the underlying object type.
  */
 case class ParentSize[V](parent: Option[V], size: Int):
 

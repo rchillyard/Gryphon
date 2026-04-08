@@ -24,7 +24,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @param edge the edge to be added to the graph. It contains a starting vertex (`from`),
    *             an ending vertex (`black`), and an associated attribute that defines the edge.
-   *
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
   def addEdge(edge: Edge[V, E]): UndirectedGraph[V, E] =
@@ -127,7 +126,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
-   *
    * @return a new directed graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): Graph[V] =
@@ -170,7 +168,6 @@ object UndirectedGraph {
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
-   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return a `Try[Graph[V]]`, where:

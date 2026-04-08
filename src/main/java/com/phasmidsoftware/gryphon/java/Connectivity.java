@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.gryphon.java;
 
-import com.phasmidsoftware.gryphon.adjunct.ConnectivityOptimized;
 import com.phasmidsoftware.gryphon.adjunct.ConnectivityOptimized$;
 import scala.collection.immutable.Seq;
 import scala.jdk.CollectionConverters;
@@ -92,7 +91,7 @@ public class Connectivity<V> {
     /**
      * Convenience overload accepting varargs.
      *
-     * @param vs the initial vertices.
+     * @param vs  the initial vertices.
      * @param <V> the vertex type.
      * @return a new {@code Connectivity} containing all vertices in {@code vs}.
      */
@@ -104,7 +103,7 @@ public class Connectivity<V> {
     /**
      * Convenience overload accepting varargs, using path compression.
      *
-     * @param vs the initial vertices.
+     * @param vs  the initial vertices.
      * @param <V> the vertex type.
      * @return a new {@code Connectivity} containing all vertices in {@code vs}.
      */

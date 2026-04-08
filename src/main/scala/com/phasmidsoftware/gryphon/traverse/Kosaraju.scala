@@ -94,6 +94,7 @@ object Kosaraju {
      */
     def pass2Kosaraju(starters: List[V]): SCCResult[V] = {
       tracer.trace(0, s"Kosaraju pass 2: DFS on original graph, ${starters.size} starter vertices")
+
       given GraphNeighbours[V] = graph.vertexMap.neighboursGiven
 
       @tailrec

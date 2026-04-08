@@ -71,7 +71,6 @@ object FP {
    *
    * @param queue the mutable queue containing elements of type `T` to be iterated over. 
    *              The queue is modified as elements are consumed.
-   *
    * @tparam T the type of elements in the queue.
    * @return an iterator over the elements of the mutable queue, consuming elements as they are accessed.
    */

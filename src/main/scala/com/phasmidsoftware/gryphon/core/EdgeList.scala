@@ -14,8 +14,7 @@ package com.phasmidsoftware.gryphon.core
  * @param edges a sequence of edges that define the connections in the graph.
  *              Each edge connects a source vertex (`white`) and a target vertex (`black`),
  *              and may carry an associated attribute (`attribute`) and type (`edgeType`).
- *
- * @tparam V    the type of the vertices in the graph.
+ * @tparam V the type of the vertices in the graph.
  * @tparam E the type of the attributes associated with the edges.
  * @tparam Z a type parameter to describe additional properties, such as the nature of the edges.
  */

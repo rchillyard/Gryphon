@@ -5,12 +5,14 @@
 package com.phasmidsoftware.gryphon.java;
 
 import org.junit.Test;
+
 import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
  * Tests for the Java {@link Connectivity} façade.
- *
+ * <p>
  * These tests verify that the façade behaves as a Java student would expect:
  * mutating operations update the object in place, and query operations
  * reflect the current state.

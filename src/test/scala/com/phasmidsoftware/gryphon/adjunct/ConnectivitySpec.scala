@@ -25,25 +25,25 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
   it should "construct a singleton root with apply[V]" in {
     val ps = ParentSize[Int]
     ps.parent shouldBe None
-    ps.size   shouldBe 1
+    ps.size shouldBe 1
   }
 
   it should "construct a non-root with apply(v)" in {
     val ps = ParentSize(42)
     ps.parent shouldBe Some(42)
-    ps.size   shouldBe 1
+    ps.size shouldBe 1
   }
 
   it should "reparent correctly" in {
     val ps = ParentSize[Int].reparent(Some(7))
     ps.parent shouldBe Some(7)
-    ps.size   shouldBe 1
+    ps.size shouldBe 1
   }
 
   it should "resize correctly" in {
     val ps = ParentSize[Int].resize(5)
     ps.parent shouldBe None
-    ps.size   shouldBe 5
+    ps.size shouldBe 5
   }
 
   // -------------------------------------------------------------------------
@@ -251,9 +251,9 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
   it should "report a non-root correctly after connect" in {
     val wuf = Connectivity.create(0, 1).connect(0, 1)
     // exactly one of {0,1} is the root; the other is not
-    val root  = wuf.getDisjointSet(0)
+    val root = wuf.getDisjointSet(0)
     val child = if root == 0 then 1 else 0
-    wuf.isRoot(root)  shouldBe true
+    wuf.isRoot(root) shouldBe true
     wuf.isRoot(child) shouldBe false
   }
 
@@ -265,9 +265,9 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
 
   it should "report depth 2 for a child after connecting two singletons" in {
     val wuf = Connectivity.create(0, 1).connect(0, 1)
-    val root  = wuf.getDisjointSet(0)
+    val root = wuf.getDisjointSet(0)
     val child = if root == 0 then 1 else 0
-    wuf.depth(root)  shouldBe 1
+    wuf.depth(root) shouldBe 1
     wuf.depth(child) shouldBe 2
   }
 
@@ -331,6 +331,7 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
     val max = 100000
     val n = 1000
     val randomInts = LazyList.continually(rng.nextInt(max)).take(n).toList
+
     def getPair: (Int, Int) = (randomInts(rng.nextInt(n)), randomInts(rng.nextInt(n)))
 
     val target = ConnectivityASP.create[Int](randomInts *)
@@ -348,6 +349,7 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
     val max = 100000
     val n = 1000
     val randomInts = LazyList.continually(rng.nextInt(max)).take(n).toList
+
     def getPair: (Int, Int) = (randomInts(rng.nextInt(n)), randomInts(rng.nextInt(n)))
 
     val target = Connectivity.create[Int](randomInts *)
@@ -363,7 +365,9 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
     val rng = scala.util.Random(42)
     val n = 500
     val randomInts = LazyList.continually(rng.nextInt(10000)).take(n).toList
+
     def getPair: (Int, Int) = (randomInts(rng.nextInt(n)), randomInts(rng.nextInt(n)))
+
     val pairs = LazyList.continually(getPair).take(2 * n).toList
 
     val uf = pairs.foldLeft(ConnectivityASP.create[Int](randomInts *))((u, t) => u.connect(t._1, t._2))

@@ -50,7 +50,7 @@ case class DFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
     given GraphNeighbours[V] = graph.graphNeighbours
 
     val visitor = JournaledVisitor.withQueueJournal[V, V]
-    val result  = Traversal.dfs(start, visitor)
+    val result = Traversal.dfs(start, visitor)
     VertexTraversalResult(
       result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
     )
@@ -74,7 +74,7 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
     given GraphNeighbours[V] = graph.graphNeighbours
 
     val visitor = JournaledVisitor.withQueueJournal[V, V]
-    val result  = Traversal.bfs(start, visitor)
+    val result = Traversal.bfs(start, visitor)
     VertexTraversalResult(
       result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
     )
@@ -143,7 +143,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
     // bestCost: current best frontier cost per vertex — used by CostUpdate to locate
     // the stale frontier entry for decreaseKey.
     // Both maps are owned exclusively by CostUpdate; Neighbours is pure.
-    val pred:     mutable.Map[V, R] = mutable.Map.empty
+    val pred: mutable.Map[V, R] = mutable.Map.empty
     val bestCost: mutable.Map[V, E] = mutable.Map(start -> mo.identity)
 
     // Ordering: compare by cost component only.
@@ -159,7 +159,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
     given Neighbours[(E, V), (E, V)] with
       def neighbours(ev: (E, V)): Iterator[(E, V)] =
         val accCost: E = ev._1
-        val v: V       = ev._2
+        val v: V = ev._2
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
                 .flatMap(filterEdge)
@@ -173,21 +173,21 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
     given CostUpdate[(E, V), IndexedPrioQueue] with
       def update(frontier: IndexedPrioQueue[(E, V)], ev: (E, V)): IndexedPrioQueue[(E, V)] =
         val accCost: E = ev._1
-        val v: V       = ev._2
+        val v: V = ev._2
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E])
                 .flatMap(filterEdge)
                 .foldLeft(frontier) { (pq, e) =>
                   val newCost = edgeCost(accCost, e, v)
-                  val w       = destination(v, e)
+                  val w = destination(v, e)
                   bestCost.get(w) match
                     case None =>
                       bestCost(w) = newCost
-                      pred(w)     = e
+                      pred(w) = e
                       pq
                     case Some(oldCost) if summon[Ordering[E]].lt(newCost, oldCost) && pq.contains((oldCost, w)) =>
                       bestCost(w) = newCost
-                      pred(w)     = e
+                      pred(w) = e
                       pq.decreaseKey((oldCost, w), (newCost, w))
                     case _ => pq
                 }
@@ -228,7 +228,7 @@ case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
 
   protected def filterEdge(e: Edge[V, E]): Option[AttributedDirectedEdge[V, E]] = e match
     case ade: AttributedDirectedEdge[V, E] => Some(ade)
-    case _                                  => None
+    case _ => None
 
 // ============================================================
 // Prim
@@ -252,7 +252,7 @@ case class PrimTraversal[V, E: {Monoid, Ordering}]()
 
   protected def destination(v: V, e: Edge[V, E]): V = e match
     case ue: UndirectedEdge[V, E] => ue.other(v)
-    case de                        => de.black
+    case de => de.black
 
   protected def filterEdge(e: Edge[V, E]): Option[Edge[V, E]] =
     Some(e)

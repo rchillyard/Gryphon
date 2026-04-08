@@ -177,6 +177,7 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */

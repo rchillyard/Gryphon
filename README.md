@@ -21,7 +21,7 @@ Gryphon is intended as an artefact of the [DSAIPG](https://github.com/rchillyard
 that supports the author's own textbook Data Structures, Algorithms, and Invariants - a Practical Guide 
 (published by Cognella).
 
-However, in version 1.0.0, there are no Java interface methods.
+However, in version 1.2.0, there are no Java interface methods.
 
 ---
 
@@ -254,6 +254,12 @@ sbt test
 ```
 
 ---
+
+## Versioning
+
+1.0.0 is the first release.
+1.1.0 adds 
+1.2.0 changes the name UnionFind to Connectivity.
 
 ## License
 

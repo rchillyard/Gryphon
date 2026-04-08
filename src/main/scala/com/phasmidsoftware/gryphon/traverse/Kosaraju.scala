@@ -36,16 +36,12 @@ type SCCResult[V] = Map[V, Int]
 object Kosaraju {
 
   /**
-   * Finds the strongly connected components (SCCs) of a directed graph using Kosaraju's two-pass algorithm.
+   * Computes the strongly connected components (SCCs) of a directed graph using Kosaraju's algorithm.
    *
-   * @param graph  The directed graph for which to compute the SCCs.
-   * @param random An optional implicit random instance used for any randomized operations (default: a new random instance).
-   * @param tracer An optional tracer for pedagogical output; defaults to `Tracer.silent` (no output).
-   *               Use `Tracer.verbose()` or `Tracer.summary()` to illuminate the two-pass structure.
-   *               NOTE: the tracer covers Kosaraju's own loop structure only; inner `Traversal.dfs`
-   *               calls use `Tracer.silent` so that traversal-level detail does not intermix with
-   *               algorithm-level detail.
-   * @return An SCCResult containing a mapping of each vertex to its corresponding strongly connected component (SCC) identifier.
+   * @param graph  The directed graph for which strongly connected components are to be computed.
+   * @param random An implicit random number generator, defaulting to `Random()`.
+   * @param tracer An implicit tracer for logging and debugging, defaulting to `Tracer.silent`.
+   * @return An `SCCResult[V]` mapping each vertex to its strongly connected component identifier.
    */
   def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] = {
     given Evaluable[V, V] with
@@ -78,7 +74,8 @@ object Kosaraju {
           // ListJournal prepends: head = last-finished within this component.
           // visited ++ acc keeps the most-recently-finished component at the front.
           val visited: List[V] = result.result.map(_._1).toList
-          tracer.trace(2, s"pass 1: finished component: $visited")
+          val (vb, vd) = Tracer.collectionMsg(visited)
+          tracer.trace(2, s"pass 1: finished component: $vb", s"pass 1: finished component: $vd")
           val newVs: VisitedSet[V] = visited.foldLeft(vs)(_.markVisited(_))
           pass1Loop(unvisited -- visited.toSet, newVs, visited ++ acc)
 
@@ -86,13 +83,17 @@ object Kosaraju {
       pass1Loop(allVertices, summon[VisitedSet[V]], Nil)
     }
 
-    // ------------------------------------------------------------------
-    // Pass 2: DFS over the ORIGINAL graph, one seed per unvisited vertex
-    // in finish order. A shared visited set ensures each DFS tree is one SCC.
-    // GraphNeighbours is fixed for the original graph throughout pass 2.
-    // ------------------------------------------------------------------
-    def pass2Kosaraju(finishOrder: List[V]): SCCResult[V] = {
-      tracer.trace(0, s"Kosaraju pass 2: DFS on original graph, ${finishOrder.size} vertices in finish order")
+    /**
+     * Pass 2: DFS over the ORIGINAL graph, seeding vertices in the order produced by
+     * the finish order of pass 1.
+     * A shared visited set ensures each DFS tree is one SCC.
+     * GraphNeighbours is fixed for the original graph throughout pass 2.
+     *
+     * @param starters the vertices in the order produced by pass1.
+     * @return an SCCResult[V]
+     */
+    def pass2Kosaraju(starters: List[V]): SCCResult[V] = {
+      tracer.trace(0, s"Kosaraju pass 2: DFS on original graph, ${starters.size} starter vertices")
       given GraphNeighbours[V] = graph.vertexMap.neighboursGiven
 
       @tailrec
@@ -107,7 +108,9 @@ object Kosaraju {
             tracer.trace(1, s"pass 2: complete, $sccId SCCs found")
             componentMap
           case v :: rest =>
-            if visited.contains(v) then pass2Loop(rest, visited, componentMap, sccId)
+            if visited.contains(v)
+            then
+              pass2Loop(rest, visited, componentMap, sccId)
             else
               tracer.trace(1, s"pass 2: SCC $sccId — seeding from $v")
 
@@ -115,7 +118,8 @@ object Kosaraju {
 
               val sccVertices: Set[V] =
                 Traversal.dfs(v, JournaledVisitor.withListJournal[V, V])(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], summon[VisitedSet[V]], Tracer.silent).result.map(_._1).toSet
-              tracer.trace(2, s"pass 2: SCC $sccId — members: $sccVertices")
+              val (mb, md) = Tracer.collectionMsg(sccVertices)
+              tracer.trace(2, s"pass 2: SCC $sccId — members: $mb", s"pass 2: SCC $sccId — members: $md")
               pass2Loop(
                 rest,
                 visited ++ sccVertices,
@@ -123,10 +127,13 @@ object Kosaraju {
                 sccId + 1
               )
 
-      pass2Loop(finishOrder, Set.empty, Map.empty, 0)
+      pass2Loop(starters, Set.empty, Map.empty, 0)
     }
 
     // ------Kosaraju's algorithm: two passes------------------------------------------------------------
-    pass2Kosaraju(pass1Kosaraju(graph.reverse))
+    val starters = pass1Kosaraju(graph.reverse)
+    val (sb, sd) = Tracer.collectionMsg(starters)
+    tracer.trace(0, s"starters: $sb", s"starters: $sd")
+    pass2Kosaraju(starters)
   }
 }

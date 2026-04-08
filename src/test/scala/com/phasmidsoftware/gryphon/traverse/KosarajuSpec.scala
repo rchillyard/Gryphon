@@ -200,10 +200,11 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         val lines = captureOutput: ps =>
           given Tracer[Int] = Tracer.summary(out = ps)
 
-          stronglyConnectedComponents[Int, Unit](g)
+          stronglyConnectedComponents[Int, Unit](g): Unit
         lines shouldBe List(
           "Kosaraju pass 1: post-order DFS on reversed graph",
-          "Kosaraju pass 2: DFS on original graph, 2 vertices in finish order"
+          "starters: 2 elements",
+          "Kosaraju pass 2: DFS on original graph, 2 starter vertices"
         )
       case other => fail(s"unexpected: $other")
   }
@@ -216,11 +217,13 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val lines = captureOutput: ps =>
-          given Tracer[Int] = Tracer.verbose(maxLevel = 1, out = ps)
+          given Tracer[Int] = Tracer.verbose(maxDepth = 1, out = ps)
 
           stronglyConnectedComponents[Int, Unit](g): Unit
+
+        println(lines)
         lines should contain("Kosaraju pass 1: post-order DFS on reversed graph")
-        lines should contain("Kosaraju pass 2: DFS on original graph, 2 vertices in finish order")
+        lines should contain("starters: 0, 1")
         lines.count(_.contains("pass 1: seeding from")) shouldBe 1
         lines.count(_.contains("pass 2: SCC")) shouldBe 1
         lines.count(_.contains("pass 2: complete")) shouldBe 1

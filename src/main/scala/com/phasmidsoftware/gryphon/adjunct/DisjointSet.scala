@@ -64,7 +64,7 @@ trait DisjointSet[V, +This <: DisjointSet[V, This]]:
   def size: Int
 
 /**
- * Abstract base class for disjoint-set implementations that relies on a Map
+ * Abstract base class for disjoint-set implementations that relies on an immutable `Map`
  * to associate objects with their parent disjoint set.
  *
  * Each object `V` in `map` is associated with a value of type `W`.

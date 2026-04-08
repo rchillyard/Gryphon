@@ -39,23 +39,23 @@ the reviewer's obligation is to ask: *"Why this direction and not the other?"*
 If the author cannot answer, the code must be revised — either to eliminate the
 asymmetry or to document its justification. Silence is not a justification.
 
-## Taxonomy of Asymmetry
+## The Unified Nature of ASP Violations
 
-ASP violations fall into two broad categories:
+All ASP violations share the same underlying structure: an expression of the form
+$a \oplus b$ where $b \oplus a$ is equally valid under the problem specification,
+yet the two produce different runtime behavior. This covers both superficially
+distinct cases:
 
-**Type 1 — Operand order:** The expression $e$ is of the form $a \oplus b$, and
-swapping to $b \oplus a$ produces different behavior. The transformation $\tau$ here
-is simply argument transposition. Example: `union(v1, v2)` in naive Quick-Union,
-where the choice of which root is attached to which is arbitrary but consequential.
+- **Operand order:** `union(v1, v2)` in naive Quick-Union, where attaching root $v_1$
+  under $v_2$ vs. $v_2$ under $v_1$ is an arbitrary choice with consequences for
+  tree depth.
+- **Dual formulation:** Hibbard deletion using successor vs. predecessor, or searching
+  forward vs. backward in a reversible problem. These are symmetric under a
+  problem-level duality (left/right reflection of a tree, or time-reversal of a
+  move function), but are still expressible as a choice between $a \oplus b$ and
+  $b \oplus a$ under the appropriate interpretation of $\oplus$.
 
-**Type 2 — Dual formulation:** Two logically symmetric formulations of an algorithm
-exist (e.g., using a node's successor vs. its predecessor in Hibbard deletion,
-or searching forward vs. backward in a reversible problem). The choice between
-them is arbitrary with respect to correctness but may differ in performance,
-generality, or tractability. The transformation $\tau$ here is the duality mapping
-between the two formulations.
-
-In both cases, the obligation is the same: justify or eliminate.
+The surface form differs; the obligation is identical: justify or eliminate.
 
 ## Consequences of Violation
 
@@ -65,9 +65,20 @@ The consequences of an unjustified asymmetry range in severity:
 |----------|-------------|---------|
 | Cosmetic | Code is harder to reason about | Arbitrary successor/predecessor choice with equivalent performance |
 | Performance | Asymptotically worse complexity | Naive Quick-Union: $O(N)$ vs. Weighted Quick-Union: $O(\log N)$ |
-| Correctness | Problem becomes unsolvable or solutions missed | Searching forward only in a problem that requires backward search |
+| Practical correctness | Program cannot terminate in practice | Searching forward only in a problem requiring backward search: exponential vs. polynomial time |
 
-The WeightedQuickUnion case is particularly instructive: the *only* change required
-to move from $O(N)$ to $O(\log N)$ is to replace an arbitrary choice with a
-principled one. No new data structure is needed; no new algorithm. The improvement
-is a direct consequence of obeying the ASP.
+The WeightedQuickUnion case is particularly instructive. Noticing the ASP violation
+— that `union(v1, v2)` makes an arbitrary choice — immediately reveals *what
+information the program was lacking*: namely, the relative sizes of the two trees.
+Acquiring that information requires a new data structure (tracking size or rank at
+each root). The improvement from $O(N)$ to $O(\log N)$ then follows directly. The
+ASP violation did not merely signal a missed optimisation; it pointed precisely at
+the missing ingredient.
+
+On the question of "practical correctness": a program that is theoretically correct
+but requires exponential time to return an answer is, in any engineering sense,
+incorrect. The philosophical distinction between "too slow to terminate" and
+"incorrect" is real but operationally moot. We therefore retain "correctness" in
+the severity table, qualified as *practical* correctness, with the understanding
+that this represents an extreme point on the performance axis rather than a
+categorically different failure mode.

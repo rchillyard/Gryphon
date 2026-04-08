@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{UndirectedEdge, UndirectedGraph, WeightedUnionFind}
+import com.phasmidsoftware.gryphon.adjunct.{UndirectedEdge, UndirectedGraph, WeightedConnectivity}
 import com.phasmidsoftware.gryphon.core.*
 
 /**
@@ -35,7 +35,7 @@ object Kruskal:
     val vertices = graph.vertexMap.keySet.toSeq
 
     // Seed WeightedUnionFind with all vertices as singleton components.
-    val wuf0 = WeightedUnionFind.create(vertices *)
+    val wuf0 = WeightedConnectivity.create(vertices *)
 
     // Collect and sort all edges by weight ascending.
     val sortedEdges: Seq[UndirectedEdge[V, E]] =

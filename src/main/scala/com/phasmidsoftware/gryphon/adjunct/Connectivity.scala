@@ -13,38 +13,35 @@ import com.phasmidsoftware.gryphon.util.GraphException
  * `Some(parent)` means the object's parent in the component tree.
  *
  * This is O(n) in the worst case due to potentially unbalanced trees.
- * Prefer `WeightedUnionFind` for production use.
+ * Prefer `WeightedConnectivity` for production use.
+ *
+ * `connect`, `put`, and `remove` all return `Connectivity[V]` directly,
+ * with no overrides required, courtesy of the F-bounded type parameter.
  *
  * @param map the component map.
  * @tparam V the underlying object type.
  */
-case class UnionFind[V](map: Map[V, Option[V]])
-        extends AbstractDisjointSet[V, Option[V]](map)(identity):
+case class Connectivity[V](map: Map[V, Option[V]])
+        extends AbstractDisjointSet[V, Option[V], Connectivity[V]](map)(identity):
 
-  override def connect(v1: V, v2: V): UnionFind[V] =
-    super.connect(v1, v2).asInstanceOf[UnionFind[V]]
+  def unit(map: Map[V, Option[V]]): Connectivity[V] = Connectivity(map)
+
+  def put(key: V): Connectivity[V] = unit(map + (key -> None))
 
   protected def union(v1: V, v2: V): Map[V, Option[V]] =
     if v1 != v2 then updated(v1, Some(v2))
-    else throw GraphException(s"UnionFind: union: objects are the same: $v1")
-
-  def put(key: V): UnionFind[V] = unit(map + (key -> None))
-
-  override def remove(key: V): UnionFind[V] =
-    super.remove(key).asInstanceOf[UnionFind[V]]
-
-  def unit(map: Map[V, Option[V]]): UnionFind[V] = UnionFind(map)
+    else throw GraphException(s"Connectivity: union: objects are the same: $v1")
 
 /**
- * Companion object for `UnionFind`.
+ * Companion object for `Connectivity`.
  */
-object UnionFind:
+object Connectivity:
 
-  def apply[V](entries: Seq[(V, Option[V])]): UnionFind[V] = new UnionFind(entries.toMap)
+  def apply[V](entries: Seq[(V, Option[V])]): Connectivity[V] = new Connectivity(entries.toMap)
 
-  def empty[V]: UnionFind[V] = apply(Nil)
+  def empty[V]: Connectivity[V] = apply(Nil)
 
-  def create[V](vs: V*): UnionFind[V] = UnionFind(vs.map(v => v -> None))
+  def create[V](vs: V*): Connectivity[V] = Connectivity(vs.map(v => v -> None))
 
 /**
  * Concrete disjoint-set implementation using "Weighted Quick Union."
@@ -53,24 +50,21 @@ object UnionFind:
  * size of its component tree. When merging, the smaller tree is attached under the
  * larger, keeping tree height O(log n) and all operations O(log n).
  *
+ * `connect`, `put`, and `remove` all return `WeightedConnectivity[V]` directly,
+ * with no overrides required, courtesy of the F-bounded type parameter.
+ *
  * @param map the component map.
  * @tparam V the underlying object type.
  */
-case class WeightedUnionFind[V](map: Map[V, ParentSize[V]])
-        extends AbstractDisjointSet[V, ParentSize[V]](map)(_.parent):
+case class WeightedConnectivity[V](map: Map[V, ParentSize[V]])
+        extends AbstractDisjointSet[V, ParentSize[V], WeightedConnectivity[V]](map)(_.parent):
 
-  override def connect(v1: V, v2: V): WeightedUnionFind[V] =
-    super.connect(v1, v2).asInstanceOf[WeightedUnionFind[V]]
+  def unit(map: Map[V, ParentSize[V]]): WeightedConnectivity[V] = WeightedConnectivity(map)
 
-  def unit(map: Map[V, ParentSize[V]]): WeightedUnionFind[V] = WeightedUnionFind(map)
-
-  def put(key: V): WeightedUnionFind[V] = unit(map + (key -> ParentSize[V]))
-
-  override def remove(key: V): WeightedUnionFind[V] =
-    super.remove(key).asInstanceOf[WeightedUnionFind[V]]
+  def put(key: V): WeightedConnectivity[V] = unit(map + (key -> ParentSize[V]))
 
   protected def union(v1: V, v2: V): Map[V, ParentSize[V]] =
-    if v1 == v2 then throw GraphException(s"WeightedUnionFind: union: objects are the same: $v1")
+    if v1 == v2 then throw GraphException(s"WeightedConnectivity: union: objects are the same: $v1")
     else
       def join(child: V, parent: V, size: Int): Map[V, ParentSize[V]] =
         map
@@ -82,20 +76,20 @@ case class WeightedUnionFind[V](map: Map[V, ParentSize[V]])
           join(v1, v2, s1 + s2)
         case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
           join(v2, v1, s1 + s2)
-        case _ => throw GraphException(s"WeightedUnionFind: union: logic error for $v1, $v2")
+        case _ => throw GraphException(s"WeightedConnectivity: union: logic error for $v1, $v2")
 
 /**
- * Companion object for `WeightedUnionFind`.
+ * Companion object for `WeightedConnectivity`.
  */
-object WeightedUnionFind:
+object WeightedConnectivity:
 
-  def apply[V](entries: Seq[(V, ParentSize[V])]): WeightedUnionFind[V] =
-    new WeightedUnionFind(entries.toMap)
+  def apply[V](entries: Seq[(V, ParentSize[V])]): WeightedConnectivity[V] =
+    new WeightedConnectivity(entries.toMap)
 
-  def empty[V]: WeightedUnionFind[V] = apply(Nil)
+  def empty[V]: WeightedConnectivity[V] = apply(Nil)
 
-  def create[V](vs: V*): WeightedUnionFind[V] =
-    WeightedUnionFind(vs.map(v => v -> ParentSize[V]))
+  def create[V](vs: V*): WeightedConnectivity[V] =
+    WeightedConnectivity(vs.map(v => v -> ParentSize[V]))
 
 /**
  * Carries an optional parent reference and the size of the component tree.

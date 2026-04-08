@@ -30,19 +30,7 @@ case class Connectivity[V](map: Map[V, ParentSize[V]])
   def put(key: V): Connectivity[V] = unit(map + (key -> ParentSize[V]))
 
   protected def union(v1: V, v2: V): Map[V, ParentSize[V]] =
-    if v1 == v2 then throw GraphException(s"Connectivity: union: objects are the same: $v1")
-    else
-      def join(child: V, parent: V, size: Int): Map[V, ParentSize[V]] =
-        map
-                .updatedWith(child)(_.map(_.reparent(Some(parent))))
-                .updatedWith(parent)(_.map(_.resize(size)))
-
-      (get(v1), get(v2)) match
-        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) if s1 < s2 =>
-          join(v1, v2, s1 + s2)
-        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
-          join(v2, v1, s1 + s2)
-        case _ => throw GraphException(s"Connectivity: union: logic error for $v1, $v2")
+    WeightedUnion(map, v1, v2, "Connectivity")
 
 /**
  * Companion object for `Connectivity`.
@@ -56,6 +44,37 @@ object Connectivity:
 
   def create[V](vs: V*): Connectivity[V] =
     Connectivity(vs.map(v => v -> ParentSize[V]))
+
+/**
+ * Shared weighted-union logic for all `ParentSize`-based disjoint-set implementations.
+ *
+ * Extracted here to avoid duplication between `Connectivity` and
+ * `ConnectivityOptimized`, both of which use identical merge strategies.
+ * A single point of change ensures the two implementations cannot silently diverge.
+ */
+private[adjunct] object WeightedUnion:
+
+  /**
+   * Merges the components rooted at `v1` and `v2` in `map` by attaching the
+   * smaller tree under the larger, updating the root's size accordingly.
+   * Both `v1` and `v2` must be distinct roots present in `map`.
+   *
+   * @param label a class name used in exception messages.
+   */
+  def apply[V](map: Map[V, ParentSize[V]], v1: V, v2: V, label: String): Map[V, ParentSize[V]] =
+    if v1 == v2 then throw GraphException(s"$label: union: objects are the same: $v1")
+    else
+      def join(child: V, parent: V, size: Int): Map[V, ParentSize[V]] =
+        map
+                .updatedWith(child)(_.map(_.reparent(Some(parent))))
+                .updatedWith(parent)(_.map(_.resize(size)))
+
+      (map.get(v1), map.get(v2)) match
+        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) if s1 < s2 =>
+          join(v1, v2, s1 + s2)
+        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
+          join(v2, v1, s1 + s2)
+        case _ => throw GraphException(s"$label: union: logic error for $v1, $v2")
 
 /**
  * Concrete disjoint-set implementation using "Weighted Quick Union with Path Compression."
@@ -101,7 +120,7 @@ case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
    * @return a pair `(root, compressed)` where `root` is the representative of
    *         `key`'s component and `compressed` is the path-compressed instance.
    */
-  override def findAndCompress(key: V): (V, ConnectivityOptimized[V]) =
+  def findAndCompress(key: V): (V, ConnectivityOptimized[V]) =
     // Collect the path from key to the root.
     @scala.annotation.tailrec
     def collectPath(current: V, acc: List[V]): List[V] =
@@ -120,19 +139,7 @@ case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
     (root, unit(compressedMap))
 
   protected def union(v1: V, v2: V): Map[V, ParentSize[V]] =
-    if v1 == v2 then throw GraphException(s"ConnectivityOptimized: union: objects are the same: $v1")
-    else
-      def join(child: V, parent: V, size: Int): Map[V, ParentSize[V]] =
-        map
-                .updatedWith(child)(_.map(_.reparent(Some(parent))))
-                .updatedWith(parent)(_.map(_.resize(size)))
-
-      (get(v1), get(v2)) match
-        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) if s1 < s2 =>
-          join(v1, v2, s1 + s2)
-        case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
-          join(v2, v1, s1 + s2)
-        case _ => throw GraphException(s"ConnectivityOptimized: union: logic error for $v1, $v2")
+    WeightedUnion(map, v1, v2, "ConnectivityOptimized")
 
 /**
  * Companion object for `ConnectivityOptimized`.

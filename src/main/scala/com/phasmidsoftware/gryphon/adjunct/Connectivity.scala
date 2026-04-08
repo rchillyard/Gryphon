@@ -23,7 +23,7 @@ import com.phasmidsoftware.gryphon.util.GraphException
  * @tparam V the underlying object type.
  */
 case class Connectivity[V](map: Map[V, ParentSize[V]])
-        extends AbstractDisjointSet[V, ParentSize[V], Connectivity[V]](map)(_.parent):
+        extends ADS[V, ParentSize[V], Connectivity[V]](map)(_.parent):
 
   def unit(map: Map[V, ParentSize[V]]): Connectivity[V] = Connectivity(map)
 
@@ -100,7 +100,7 @@ private[adjunct] object WeightedUnion:
  * @tparam V the underlying object type.
  */
 case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
-        extends AbstractDisjointSet[V, ParentSize[V], ConnectivityOptimized[V]](map)(_.parent):
+        extends ADSWC[V, ParentSize[V], ConnectivityOptimized[V]](map)(_.parent):
 
   def unit(map: Map[V, ParentSize[V]]): ConnectivityOptimized[V] = ConnectivityOptimized(map)
 
@@ -171,7 +171,7 @@ object ConnectivityOptimized:
  * @tparam V the underlying object type.
  */
 case class ConnectivityASP[V](map: Map[V, Option[V]])
-        extends AbstractDisjointSet[V, Option[V], ConnectivityASP[V]](map)(identity):
+        extends ADS[V, Option[V], ConnectivityASP[V]](map)(identity):
 
   def unit(map: Map[V, Option[V]]): ConnectivityASP[V] = ConnectivityASP(map)
 

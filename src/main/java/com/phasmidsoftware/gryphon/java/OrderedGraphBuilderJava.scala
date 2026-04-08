@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2026. Phasmid Software
+ */
+
+package com.phasmidsoftware.gryphon.java
+
 ///*
 // * Copyright (c) 2023. Phasmid Software
 // */

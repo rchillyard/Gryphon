@@ -40,32 +40,42 @@ val scala3TestSettings = Seq(
 
 // ============================================================================
 // MODULE DEFINITION
+// Java sources live in src/main/java and src/test/java alongside the Scala
+// sources — no separate subproject needed.
 // ============================================================================
 
 lazy val root = (project in file("."))
-  .settings(
-    name         := "Gryphon",
-    scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options,
+        .settings(
+          name         := "Gryphon",
+          scalaVersion := scalaVersionNumber,
+          scalacOptions ++= commonScalacOptions ++ scala3Options,
 
-    libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
-      "com.phasmidsoftware" %% "visitor" % "1.5.0-SNAPSHOT",
-      "com.phasmidsoftware" %% "flog" % "1.0.13",
-      "org.slf4j"       %  "slf4j-api"         % slf4jVersion,
-      "ch.qos.logback"  %  "logback-classic"   % logbackVersion  % Runtime,
-      "org.scalatest"   %% "scalatest"         % scalaTestVersion % Test
-    )
-  )
-  .settings(scala3TestSettings)
+          libraryDependencies ++= Seq(
+            "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
+            "com.phasmidsoftware"    %% "visitor"                  % "1.5.0-SNAPSHOT",
+            "com.phasmidsoftware"    %% "flog"                     % "1.0.13",
+            "org.slf4j"               % "slf4j-api"                % slf4jVersion,
+            "ch.qos.logback"          % "logback-classic"          % logbackVersion % Runtime,
+            "org.scalatest"          %% "scalatest"                % scalaTestVersion % Test,
+            // JUnit 5 — for Java façade tests in src/test/java
+            "org.junit.jupiter"       % "junit-jupiter-api"        % "5.10.2" % Test,
+            "org.junit.jupiter"       % "junit-jupiter-engine"     % "5.10.2" % Test,
+            "com.github.sbt"          % "junit-interface"          % "0.13.3" % Test
+          ),
+
+          // Run both ScalaTest and JUnit suites with sbt test
+          testOptions ++= Seq(
+            Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
+            Tests.Argument(TestFrameworks.JUnit, "-v")
+          )
+        )
+        .settings(scala3TestSettings)
 
 // ============================================================================
 // GLOBAL SETTINGS
 // ============================================================================
 
 Test / parallelExecution := false
-
-Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 
 // ============================================================================
 // USAGE NOTES

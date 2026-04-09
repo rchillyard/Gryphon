@@ -71,10 +71,12 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.
    * The type of the edge (e.g., directed, undirected, or orderable) determines how it is added to the graph.
    *
-   * @param edge            the edge to be added, which is an instance of `Edge[V, E]`. The edge defines the connection
-   *                        between two vertices of type `V` and may have a direction and an associated attribute of type `E`.
-   * @return                a new `EdgeGraph[V, E]` instance that includes the newly added edge. The returned graph preserves
-   *                        all existing edges and vertices.
+   * @param edge the edge to be added, which is an instance of `Edge[V, E]`. The edge defines the connection
+   *             between two vertices of type `V` and may have a direction and an associated attribute of type `E`.
+   *
+   * @return a new `EdgeGraph[V, E]` instance that includes the newly added edge. The returned graph preserves
+   *         all existing edges and vertices.
+   *
    * @throws GraphException if the provided edge type is unexpected or unsupported.
    */
   override def addEdge(edge: Edge[V, E]): DirectedGraph[V, E] = edge match {
@@ -108,7 +110,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
-   * @return          a new directed graph constructed with the given vertex map.
+   *
+   * @return a new directed graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): Graph[V] =
     DirectedGraph(vertexMap)
@@ -126,7 +129,8 @@ object DirectedGraph {
    *
    * @param vertexMap a map containing the vertices of type `V` as keys and their associated
    *                  adjacency lists or other vertex-specific data.
-   * @tparam V        the type of the vertices in the graph.
+   *
+   * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return an instance of `DirectedGraph[V, E]` initialized with the given vertex map.
    */
@@ -160,7 +164,8 @@ object DirectedGraph {
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
-   * @tparam V      the type of the vertices in the graph.
+   *
+   * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return a `Try[Graph[V]]`, where:
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.

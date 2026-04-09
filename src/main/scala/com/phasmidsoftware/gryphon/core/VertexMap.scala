@@ -58,6 +58,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
@@ -103,7 +104,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
         val next = unvisited.head
         // Pre-mark all already-visited vertices so the engine skips them
         val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
-        val result = Traversal.dfs(next, vis)(using nbrs, ev, vs)
+        val result = Traversal.dfs(next, vis)(using nbrs, ev, vs, summon[Tracer[V]])
         loop(result, visited + next)
 
     loop(visitor, Set.empty)
@@ -269,7 +270,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
           case other => other
       }
       this + updatedVv1 + vao.fold(vv2)(vv2 + _)
-      
+
   /**
    * Creates an Adjacency from an optional edge.
    */

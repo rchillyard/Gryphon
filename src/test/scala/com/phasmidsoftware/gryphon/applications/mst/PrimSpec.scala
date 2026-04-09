@@ -8,7 +8,7 @@ import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.traverse.{PrimTraversal, TraversalResult}
+import com.phasmidsoftware.gryphon.traverse.{MST, PrimTraversal, TraversalResult}
 import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
 import com.phasmidsoftware.visitor.core.given
 import org.scalatest.flatspec.AnyFlatSpec
@@ -31,9 +31,9 @@ class PrimSpec extends AnyFlatSpec with Matchers:
   // -----------------------------------------------------------------------
 
   private def withPrimGraph[A](f: UndirectedGraph[Int, Double] => A): A =
-    val p           = new GraphParser[Int, Double, EdgeType]
+    val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("prim.graph"))
-    val zsy         = TryUsing.tryIt(triedSource) { source =>
+    val zsy = TryUsing.tryIt(triedSource) { source =>
       p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
     }
     zsy match
@@ -54,12 +54,12 @@ class PrimSpec extends AnyFlatSpec with Matchers:
   // Structural tests — graph shape
   // -----------------------------------------------------------------------
 
-  "prim.graph" should "have 8 vertices" in:
+  "prim.graph" should "have 8 vertices" in :
     withPrimGraph { graph =>
       graph.N shouldBe 8
     }
 
-  it should "have 16 edges (each undirected edge stored once)" in:
+  it should "have 16 edges (each undirected edge stored once)" in :
     withPrimGraph { graph =>
       graph.M shouldBe 16
     }
@@ -70,7 +70,7 @@ class PrimSpec extends AnyFlatSpec with Matchers:
 
   behavior of "PrimTraversal"
 
-  it should "produce an MST with exactly 7 edges (N-1 for 8 vertices)" in:
+  it should "produce an MST with exactly 7 edges (N-1 for 8 vertices)" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.size shouldBe 7
@@ -82,7 +82,7 @@ class PrimSpec extends AnyFlatSpec with Matchers:
       result.keySet shouldBe Set(1, 2, 3, 4, 5, 6, 7)
     }
 
-  it should "produce an MST whose total weight is 1.81" in:
+  it should "produce an MST whose total weight is 1.81" in :
     withPrimGraph { graph =>
       val result: TraversalResult[Int, Edge[Int, Double]] = PrimTraversal[Int, Double]().run(graph)(0)
       totalEdgeCost(result).getOrElse(fail("sequence failed")) shouldBe 1.81 +- 1e-10
@@ -98,69 +98,69 @@ class PrimSpec extends AnyFlatSpec with Matchers:
       }
     }
 
-  it should "connect vertex 7 via edge with weight 0.16" in:
+  it should "connect vertex 7 via edge with weight 0.16" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(7) match
         case Some(e) => e.attribute shouldBe 0.16 +- 1e-10
-        case None    => fail("vertex 7 has no MST predecessor")
+        case None => fail("vertex 7 has no MST predecessor")
     }
 
-  it should "connect vertex 2 via edge with weight 0.26" in:
+  it should "connect vertex 2 via edge with weight 0.26" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(2) match
         case Some(e) => e.attribute shouldBe 0.26 +- 1e-10
-        case None    => fail("vertex 2 has no MST predecessor")
+        case None => fail("vertex 2 has no MST predecessor")
     }
 
-  it should "connect vertex 3 via edge with weight 0.17" in:
+  it should "connect vertex 3 via edge with weight 0.17" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(3) match
         case Some(e) => e.attribute shouldBe 0.17 +- 1e-10
-        case None    => fail("vertex 3 has no MST predecessor")
+        case None => fail("vertex 3 has no MST predecessor")
     }
 
-  it should "connect vertex 1 via edge with weight 0.19" in:
+  it should "connect vertex 1 via edge with weight 0.19" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(1) match
         case Some(e) => e.attribute shouldBe 0.19 +- 1e-10
-        case None    => fail("vertex 1 has no MST predecessor")
+        case None => fail("vertex 1 has no MST predecessor")
     }
 
-  it should "connect vertex 5 via edge with weight 0.28" in:
+  it should "connect vertex 5 via edge with weight 0.28" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(5) match
         case Some(e) => e.attribute shouldBe 0.28 +- 1e-10
-        case None    => fail("vertex 5 has no MST predecessor")
+        case None => fail("vertex 5 has no MST predecessor")
     }
 
-  it should "connect vertex 4 via edge with weight 0.35" in:
+  it should "connect vertex 4 via edge with weight 0.35" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(4) match
         case Some(e) => e.attribute shouldBe 0.35 +- 1e-10
-        case None    => fail("vertex 4 has no MST predecessor")
+        case None => fail("vertex 4 has no MST predecessor")
     }
 
-  it should "connect vertex 6 via edge with weight 0.40" in:
+  it should "connect vertex 6 via edge with weight 0.40" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(6) match
         case Some(e) => e.attribute shouldBe 0.40 +- 1e-10
-        case None    => fail("vertex 6 has no MST predecessor")
+        case None => fail("vertex 6 has no MST predecessor")
     }
 
-  it should "have no predecessor for the source vertex 0" in:
+  it should "have no predecessor for the source vertex 0" in :
     withPrimGraph { graph =>
       val result = PrimTraversal[Int, Double]().run(graph)(0)
       result.vertexTraverse(0) shouldBe None
     }
 
-  it should "produce an MST whose edge weights are independent of start vertex" in:
+  it should "produce an MST whose edge weights are independent of start vertex" in :
     // The MST is unique (all edge weights distinct), so starting from
     // vertex 3 should yield the same set of edge weights as from vertex 0.
     withPrimGraph { graph =>
@@ -172,3 +172,12 @@ class PrimSpec extends AnyFlatSpec with Matchers:
         case _ =>
           fail("maybeEdges returned None")
     }
+
+  behavior of ""
+
+  it should "produce an MST with exactly 7 edges (N-1 for 8 vertices)" in :
+    withPrimGraph { graph =>
+      val result = MST.prim[Int, Double](graph, 0)
+      result.size shouldBe 7
+    }
+

@@ -1,7 +1,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
-import com.phasmidsoftware.visitor.core.{Traversal, *, given}
+import com.phasmidsoftware.visitor.core.{*, given}
 
 /**
  * Represents a topological sort of a directed graph, mapping each vertex to its
@@ -61,7 +61,7 @@ object TopologicalSort:
       else
         val next = unvisited.head
         val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
-        val result = Traversal.dfs(next, vis, DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs)
+        val result = Traversal.dfs(next, vis, DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs, summon[Tracer[V]])
         val nowVisited = visited ++ result.result.map(_._1)
         loop(result, nowVisited + next)
 

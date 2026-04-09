@@ -8,7 +8,10 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.traverse.Kosaraju.stronglyConnectedComponents
 import com.phasmidsoftware.gryphon.util.TryUsing
+import com.phasmidsoftware.visitor.core.Tracer
+import java.io.{ByteArrayOutputStream, PrintStream}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.io.Source
@@ -51,12 +54,12 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — result structure"
 
   it should "label all 7 vertices" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result.size shouldBe 7
   }
 
   it should "find exactly 4 SCCs" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result.values.toSet.size shouldBe 4
   }
 
@@ -67,14 +70,14 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — non-trivial SCC {0, 2, 5, 6}"
 
   it should "assign vertices 0, 2, 5, and 6 the same SCC id" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result(0) shouldBe result(2)
     result(2) shouldBe result(5)
     result(5) shouldBe result(6)
   }
 
   it should "assign the SCC {0,2,5,6} a different id from every singleton" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     val scc0256 = result(0)
     result(1) should not be scc0256
     result(3) should not be scc0256
@@ -88,18 +91,18 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — singleton SCCs"
 
   it should "assign vertices 1, 3, 4 each their own unique SCC id" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     val singletons = Seq(result(1), result(3), result(4))
     singletons.distinct.size shouldBe 3
   }
 
   it should "assign vertex 1 a different SCC id from vertex 4 (1->4 is a cross edge)" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result(1) should not be result(4)
   }
 
   it should "assign vertex 3 a different SCC id from vertex 6 (3->6 is a cross edge)" in {
-    val result = Kosaraju.components[Int, Double](loadDirectedGraph)
+    val result = stronglyConnectedComponents[Int, Double](loadDirectedGraph)
     result(3) should not be result(6)
   }
 
@@ -115,7 +118,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
       case other => fail(s"unexpected: $other")
   }
@@ -127,7 +130,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
       case other => fail(s"unexpected: $other")
@@ -139,7 +142,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 2
         result(0) should not be result(1)
       case other => fail(s"unexpected: $other")
@@ -152,7 +155,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 3
         result(0) should not be result(1)
         result(1) should not be result(2)
@@ -167,9 +170,62 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = Kosaraju.components[Int, Unit](g)
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
         result(1) shouldBe result(2)
+      case other => fail(s"unexpected: $other")
+  }
+
+  // -------------------------------------------------------------------------
+  // Tracing
+  // -------------------------------------------------------------------------
+
+  private def captureOutput(block: PrintStream => Unit): List[String] =
+    val baos = ByteArrayOutputStream()
+    val ps = PrintStream(baos)
+    block(ps)
+    ps.flush()
+    baos.toString.linesIterator.filter(_.nonEmpty).toList
+
+  behavior of "Kosaraju — tracing"
+
+  it should "emit the expected summary trace for a two-vertex mutual cycle" in {
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 0, None, Directed)
+    )
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
+        val lines = captureOutput: ps =>
+          given Tracer[Int] = Tracer.summary(out = ps)
+
+          stronglyConnectedComponents[Int, Unit](g): Unit
+        lines shouldBe List(
+          "Kosaraju pass 1: post-order DFS on reversed graph",
+          "starters: 2 elements",
+          "Kosaraju pass 2: DFS on original graph, 2 starter vertices"
+        )
+      case other => fail(s"unexpected: $other")
+  }
+
+  it should "emit the expected verbose trace for a two-vertex mutual cycle" in {
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 0, None, Directed)
+    )
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
+        val lines = captureOutput: ps =>
+          given Tracer[Int] = Tracer.verbose(maxDepth = 1, out = ps)
+
+          stronglyConnectedComponents[Int, Unit](g): Unit
+
+        println(lines)
+        lines should contain("Kosaraju pass 1: post-order DFS on reversed graph")
+        lines should contain("starters: 0, 1")
+        lines.count(_.contains("pass 1: seeding from")) shouldBe 1
+        lines.count(_.contains("pass 2: SCC")) shouldBe 1
+        lines.count(_.contains("pass 2: complete")) shouldBe 1
       case other => fail(s"unexpected: $other")
   }

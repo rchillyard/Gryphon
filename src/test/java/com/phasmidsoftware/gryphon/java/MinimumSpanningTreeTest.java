@@ -18,8 +18,8 @@ public class MinimumSpanningTreeTest {
     //   5-7 (0.28), 4-5 (0.35), 6-2 (0.40)
     // Total weight: 1.81
 
-    private static Graph<Integer> buildPrimGraph() {
-        Graph<Integer> g = Graph.undirected();
+    private static WeightedGraph<Integer, Double> buildPrimGraph() {
+        WeightedGraph<Integer, Double> g = WeightedGraph.undirectedWeighted();
         g.addEdge(new WeightedEdge<>(0, 7, 0.16));
         g.addEdge(new WeightedEdge<>(2, 3, 0.17));
         g.addEdge(new WeightedEdge<>(1, 7, 0.19));
@@ -39,23 +39,27 @@ public class MinimumSpanningTreeTest {
         return g;
     }
 
+    // -------------------------------------------------------------------------
+    // Prim tests
+    // -------------------------------------------------------------------------
+
     @Test
     void prim_produces_n_minus_1_edges() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
-        assertEquals(7, mst.size()); // 8 vertices - 1
+        assertEquals(7, mst.size());
     }
 
     @Test
     void prim_start_vertex_absent() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
         assertFalse(mst.containsKey(0));
     }
 
     @Test
     void prim_all_non_source_vertices_present() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
         for (int v = 1; v <= 7; v++)
             assertTrue(mst.containsKey(v), "MST missing vertex " + v);
@@ -63,7 +67,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void prim_total_weight_is_1_81() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
         double total = mst.values().stream()
                 .mapToDouble(WeightedEdge::attribute)
@@ -73,7 +77,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void prim_individual_edge_weights_match_known_mst() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
         assertEquals(0.16, mst.get(7).attribute(), 1e-10);
         assertEquals(0.17, mst.get(3).attribute(), 1e-10);
@@ -86,7 +90,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void prim_no_edge_heavier_than_max_mst_edge() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
         mst.values().forEach(e ->
                 assertTrue(e.attribute() <= 0.401,
@@ -95,7 +99,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void prim_directed_graph_throws() {
-        Graph<Integer> g = Graph.directed();
+        WeightedGraph<Integer, Double> g = WeightedGraph.directedWeighted();
         g.addEdge(new WeightedEdge<>(0, 1, 1.0));
         assertThrows(IllegalStateException.class,
                 () -> MinimumSpanningTree.prim(g, 0));
@@ -103,13 +107,10 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void prim_option3_total_weight_matches_option1() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst1 = MinimumSpanningTree.prim(g, 0);
         Map<Integer, WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.prim(
-                g, 0,
-                e -> ((WeightedEdge<Integer, Double>) e).attribute(),
-                0.0,
-                Double::compare);
+                g, 0, Double::compare);
         double total1 = mst1.values().stream().mapToDouble(WeightedEdge::attribute).sum();
         double total3 = mst3.values().stream().mapToDouble(WeightedEdge::attribute).sum();
         assertEquals(total1, total3, 1e-10);
@@ -117,7 +118,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void prim_mst_weight_independent_of_start_vertex() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         Map<Integer, WeightedEdge<Integer, Double>> mst0 = MinimumSpanningTree.prim(g, 0);
         Map<Integer, WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.prim(g, 3);
         double total0 = mst0.values().stream().mapToDouble(WeightedEdge::attribute).sum();
@@ -126,19 +127,19 @@ public class MinimumSpanningTreeTest {
     }
 
     // -------------------------------------------------------------------------
-    // Kruskal tests — add these to MinimumSpanningTreeTest.java
+    // Kruskal tests
     // -------------------------------------------------------------------------
 
     @Test
     void kruskal_produces_n_minus_1_edges() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
         assertEquals(7, mst.size());
     }
 
     @Test
     void kruskal_total_weight_is_1_81() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
         double total = mst.stream().mapToDouble(WeightedEdge::attribute).sum();
         assertEquals(1.81, total, 1e-10);
@@ -146,7 +147,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void kruskal_edges_in_non_decreasing_order() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
         for (int i = 0; i < mst.size() - 1; i++)
             assertTrue(mst.get(i).attribute() <= mst.get(i + 1).attribute(),
@@ -155,7 +156,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void kruskal_contains_known_mst_weights() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
         List<Double> weights = mst.stream().map(WeightedEdge::attribute).toList();
         assertTrue(weights.contains(0.16));
@@ -169,15 +170,15 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void kruskal_excludes_cycle_creating_edge() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
         List<Double> weights = mst.stream().map(WeightedEdge::attribute).toList();
-        assertFalse(weights.contains(0.29)); // 1-3 would create a cycle
+        assertFalse(weights.contains(0.29));
     }
 
     @Test
     void kruskal_directed_graph_throws() {
-        Graph<Integer> g = Graph.directed();
+        WeightedGraph<Integer, Double> g = WeightedGraph.directedWeighted();
         g.addEdge(new WeightedEdge<>(0, 1, 1.0));
         assertThrows(IllegalStateException.class,
                 () -> MinimumSpanningTree.kruskal(g));
@@ -185,12 +186,10 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void kruskal_option3_total_weight_matches_option1() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> mst1 = MinimumSpanningTree.kruskal(g);
         List<WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.kruskal(
-                g,
-                e -> ((WeightedEdge<Integer, Double>) e).attribute(),
-                Double::compare);
+                g, Double::compare);
         double total1 = mst1.stream().mapToDouble(WeightedEdge::attribute).sum();
         double total3 = mst3.stream().mapToDouble(WeightedEdge::attribute).sum();
         assertEquals(total1, total3, 1e-10);
@@ -198,7 +197,7 @@ public class MinimumSpanningTreeTest {
 
     @Test
     void kruskal_and_prim_produce_same_total_weight() {
-        Graph<Integer> g = buildPrimGraph();
+        WeightedGraph<Integer, Double> g = buildPrimGraph();
         List<WeightedEdge<Integer, Double>> kruskalMst = MinimumSpanningTree.kruskal(g);
         Map<Integer, WeightedEdge<Integer, Double>> primMst = MinimumSpanningTree.prim(g, 0);
         double kruskalTotal = kruskalMst.stream().mapToDouble(WeightedEdge::attribute).sum();

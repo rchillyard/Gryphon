@@ -7,39 +7,44 @@ package com.phasmidsoftware.gryphon.java;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Java façade for minimum spanning tree algorithms on weighted undirected graphs.
  *
- * <p>All methods operate on a {@link Graph}{@code <V>} whose edges are
- * {@link WeightedEdge}{@code <V, E>} instances. Calling these methods on a
- * graph whose edges are plain (unweighted) {@link Edge}{@code <V>} will throw
- * {@link ClassCastException} at runtime.</p>
+ * <p>All methods operate on a {@link WeightedGraph}{@code <V, E>} whose edges
+ * carry an attribute of type {@code E}. The edge attribute is used directly
+ * as the priority key — no separate weight extractor is needed.</p>
  *
- * <p>The result of every method is a minimum spanning tree (MST): a
- * {@code Map<V, WeightedEdge<V, E>>} where each entry {@code v → edge} records
- * the cheapest edge connecting {@code v} to the growing MST. The start vertex
- * is absent from the map (it has no predecessor). From the MST map you can:</p>
- * <ul>
- *   <li>Get the MST edge weight for {@code v}: {@code mst.get(v).attribute()}</li>
- *   <li>Find {@code v}'s MST neighbour: {@code mst.get(v).from()} or {@code mst.get(v).to()}</li>
- *   <li>Collect all MST edges: {@code new ArrayList<>(mst.values())}</li>
- *   <li>Compute total MST weight: {@code mst.values().stream().mapToDouble(WeightedEdge::attribute).sum()}</li>
- * </ul>
+ * <p>Both algorithms require an undirected graph. Calling either on a directed
+ * graph throws {@link IllegalStateException}.</p>
  *
- * <p><b>Option 1 example</b> (edges carry {@code Double} weights):
+ * <p><b>Prim result:</b> {@code Map<V, WeightedEdge<V, E>>} mapping each
+ * non-source vertex to its cheapest MST edge. The start vertex is absent.</p>
+ *
+ * <p><b>Kruskal result:</b> {@code List<WeightedEdge<V, E>>} in non-decreasing
+ * order according to the supplied comparator.</p>
+ *
+ * <p><b>Option 1 example</b> (Double weights):
  * <pre>{@code
- * Graph<Integer> g = Graph.undirected();
- * g.addEdge(new WeightedEdge<>(0, 1, 0.5));
- * g.addEdge(new WeightedEdge<>(0, 2, 0.3));
- * g.addEdge(new WeightedEdge<>(1, 2, 0.8));
+ * WeightedGraph<Integer, Double> g = WeightedGraph.undirected();
+ * g.addEdge(new WeightedEdge<>(0, 1, 0.26));
+ * g.addEdge(new WeightedEdge<>(0, 7, 0.16));
  *
- * Map<Integer, WeightedEdge<Integer, Double>> mst =
- *     MinimumSpanningTree.prim(g, 0);
- * // mst.size()               == 2      (N-1 edges)
- * // mst.get(2).attribute()   == 0.3
- * // new ArrayList<>(mst.values()) gives all MST edges
+ * Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
+ * double total = mst.values().stream().mapToDouble(WeightedEdge::attribute).sum();
+ * }</pre>
+ * </p>
+ *
+ * <p><b>Option 3 example</b> (custom attribute type):
+ * <pre>{@code
+ * WeightedGraph<Building, TunnelProperties> g = WeightedGraph.undirected();
+ * g.addEdge(new WeightedEdge<>(b1, b2, tunnelProperties));
+ *
+ * Map<Building, WeightedEdge<Building, TunnelProperties>> mst =
+ *     MinimumSpanningTree.prim(g, start, Comparator.comparingInt(tp -> tp.cost));
+ *
+ * mst.forEach((b, e) -> System.out.println(b + ": cost=" + e.attribute().cost
+ *                                           + " length=" + e.attribute().length));
  * }</pre>
  * </p>
  */
@@ -50,151 +55,116 @@ public class MinimumSpanningTree {
     // -------------------------------------------------------------------------
 
     /**
-     * Runs Prim's algorithm on a graph whose edges carry {@code Double} weights,
-     * starting from {@code start}.
+     * Runs Prim's algorithm on a graph whose edges carry {@code Double} weights.
      *
-     * <p>This is Option 1: no configuration required. Edge weights are read from
-     * {@link WeightedEdge#attribute()}, and the minimum edge is selected by
-     * natural {@code Double} ordering.</p>
-     *
-     * <p>The graph must be undirected. Calling this method on a directed graph
-     * will throw {@link IllegalStateException}.</p>
+     * <p>Edge attributes are compared by natural {@code Double} ordering.
+     * No configuration required.</p>
      *
      * @param <V>   the vertex type.
-     * @param graph an undirected graph whose canonical edges are
-     *              {@code WeightedEdge<V, Double>}.
+     * @param graph an undirected {@code WeightedGraph<V, Double>}.
      * @param start the source vertex (absent from the result).
-     * @return the MST as a {@code Map<V, WeightedEdge<V, Double>>};
-     * the start vertex is absent.
+     * @return the MST as {@code Map<V, WeightedEdge<V, Double>>}.
      * @throws IllegalStateException if {@code graph} is directed.
-     * @throws ClassCastException    if any edge is not a
-     *                               {@code WeightedEdge<V, Double>}.
      */
     @SuppressWarnings("unchecked")
     public static <V> Map<V, WeightedEdge<V, Double>> prim(
-            Graph<V> graph,
+            WeightedGraph<V, Double> graph,
             V start) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.prim requires an undirected graph");
         return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
                 JavaFacadeBridge$.MODULE$.primDouble(
-                        graph.getScalaGraph(), graph.edges(), start);
+                        graph.getScalaGraph(), (java.util.List) graph.weightedEdges(), start);
     }
 
     // -------------------------------------------------------------------------
-    // Prim — Option 3: custom weight function and comparator
+    // Prim — Option 3: custom attribute type, caller supplies Comparator
     // -------------------------------------------------------------------------
 
     /**
-     * Runs Prim's algorithm with a caller-supplied weight extractor and comparator.
+     * Runs Prim's algorithm with a custom edge attribute type, ordered by the
+     * supplied {@link Comparator}.
      *
-     * <p>This is Option 3: the caller controls how edge weight is extracted and
-     * how edges are compared. The {@code comparator} parameter corresponds to the
-     * {@code Ordering[E]} typeclass in the Scala engine.</p>
-     *
-     * <p>The graph must be undirected.</p>
+     * <p>The edge attribute is used directly as the priority key. No weight
+     * extractor is needed.</p>
      *
      * @param <V>        the vertex type.
-     * @param <E>        the weight type.
-     * @param graph      an undirected graph.
-     * @param start      the source vertex.
-     * @param weight     extracts the weight from an edge.
-     * @param zero       the identity element (e.g. {@code 0.0} for addition).
-     * @param comparator orders weights (e.g. {@code Comparator.naturalOrder()}).
-     * @return the MST as a {@code Map<V, WeightedEdge<V, E>>};
-     * the start vertex is absent.
+     * @param <E>        the edge attribute type.
+     * @param graph      an undirected {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex (absent from the result).
+     * @param comparator orders edge attributes.
+     * @return the MST as {@code Map<V, WeightedEdge<V, E>>}.
      * @throws IllegalStateException if {@code graph} is directed.
      */
     @SuppressWarnings("unchecked")
     public static <V, E> Map<V, WeightedEdge<V, E>> prim(
-            Graph<V> graph,
+            WeightedGraph<V, E> graph,
             V start,
-            Function<Edge<V>, E> weight,
-            E zero,
             Comparator<E> comparator) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.prim requires an undirected graph");
         return JavaFacadeBridge$.MODULE$.primCustom(
-                graph.getScalaGraph(), graph.edges(), start,
-                weight, zero, comparator);
+                graph.getScalaGraph(), graph.weightedEdges(),
+                start, comparator);
     }
-
-    /*
-     * Copyright (c) 2026. Phasmid Software
-     */
-
-// ---- Add to MinimumSpanningTree.java ----------------------------------------
 
     // -------------------------------------------------------------------------
     // Kruskal — Option 1: Double weights
     // -------------------------------------------------------------------------
 
     /**
-     * Runs Kruskal's algorithm on an undirected graph whose edges carry
-     * {@code Double} weights.
+     * Runs Kruskal's algorithm on a graph whose edges carry {@code Double}
+     * weights.
      *
-     * <p>This is Option 1: no configuration required. Edges are sorted by
-     * {@link WeightedEdge#attribute()} in ascending order; the MST is built
-     * greedily using a disjoint-set structure to detect cycles.</p>
-     *
-     * <p>The graph must be undirected. Calling this method on a directed graph
-     * will throw {@link IllegalStateException}.</p>
-     *
-     * <p>The returned list is in non-decreasing weight order.</p>
+     * <p>Edges are sorted by natural {@code Double} ordering. The returned list
+     * is in non-decreasing weight order.</p>
      *
      * @param <V>   the vertex type.
-     * @param graph an undirected graph whose canonical edges are
-     *              {@code WeightedEdge<V, Double>}.
-     * @return the MST as a {@code List<WeightedEdge<V, Double>>} in
-     * non-decreasing weight order; contains exactly N-1 edges for a
-     * connected graph of N vertices.
+     * @param graph an undirected {@code WeightedGraph<V, Double>}.
+     * @return the MST as {@code List<WeightedEdge<V, Double>>} in
+     *         non-decreasing weight order.
      * @throws IllegalStateException if {@code graph} is directed.
-     * @throws ClassCastException    if any edge is not a
-     *                               {@code WeightedEdge<V, Double>}.
      */
     @SuppressWarnings("unchecked")
-    public static <V> List<WeightedEdge<V, Double>> kruskal(Graph<V> graph) {
+    public static <V> List<WeightedEdge<V, Double>> kruskal(
+            WeightedGraph<V, Double> graph) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.kruskal requires an undirected graph");
         return (List<WeightedEdge<V, Double>>) (List<?>)
-                JavaFacadeBridge$.MODULE$.kruskalDouble(graph.edges());
+                JavaFacadeBridge$.MODULE$.kruskalDouble((java.util.List) graph.weightedEdges());
     }
 
     // -------------------------------------------------------------------------
-    // Kruskal — Option 3: custom weight function and comparator
+    // Kruskal — Option 3: custom attribute type, caller supplies Comparator
     // -------------------------------------------------------------------------
 
     /**
-     * Runs Kruskal's algorithm with a caller-supplied weight extractor and
-     * comparator.
+     * Runs Kruskal's algorithm with a custom edge attribute type, ordered by
+     * the supplied {@link Comparator}.
      *
-     * <p>This is Option 3: the caller controls how edge weight is extracted and
-     * how edges are ordered. The returned list is in non-decreasing order
-     * according to {@code comparator}.</p>
-     *
-     * <p>The graph must be undirected.</p>
+     * <p>The edge attribute is used directly as the sort key. The returned list
+     * is in non-decreasing order according to {@code comparator}.</p>
      *
      * @param <V>        the vertex type.
-     * @param <E>        the weight type.
-     * @param graph      an undirected graph.
-     * @param weight     extracts the weight from an edge.
-     * @param comparator orders weights (e.g. {@code Comparator.naturalOrder()}).
-     * @return the MST as a {@code List<WeightedEdge<V, E>>} in non-decreasing
-     * weight order.
+     * @param <E>        the edge attribute type.
+     * @param graph      an undirected {@code WeightedGraph<V, E>}.
+     * @param comparator orders edge attributes.
+     * @return the MST as {@code List<WeightedEdge<V, E>>} in non-decreasing
+     *         order.
      * @throws IllegalStateException if {@code graph} is directed.
      */
     @SuppressWarnings("unchecked")
     public static <V, E> List<WeightedEdge<V, E>> kruskal(
-            Graph<V> graph,
-            Function<Edge<V>, E> weight,
+            WeightedGraph<V, E> graph,
             Comparator<E> comparator) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.kruskal requires an undirected graph");
-        return JavaFacadeBridge$.MODULE$.kruskalCustom(graph.edges(), weight, comparator);
+        return JavaFacadeBridge$.MODULE$.kruskalCustom(
+                graph.weightedEdges(), comparator);
     }
 
     // Not instantiable

@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.gryphon.java;
 
+import com.phasmidsoftware.gryphon.adjunct.Connectivity$;
+import com.phasmidsoftware.gryphon.adjunct.ConnectivityOptimized;
 import com.phasmidsoftware.gryphon.adjunct.ConnectivityOptimized$;
 import scala.collection.immutable.Seq;
 import scala.jdk.CollectionConverters;
@@ -70,8 +72,8 @@ public class Connectivity<V> {
      */
     public static <V> Connectivity<V> create(List<V> vs) {
         Seq<V> scalaSeq = CollectionConverters.ListHasAsScala(vs).asScala().toSeq();
-        return new Connectivity<>(
-                com.phasmidsoftware.gryphon.adjunct.Connectivity$.MODULE$.create(scalaSeq));
+        com.phasmidsoftware.gryphon.adjunct.Connectivity<V> connectivity = Connectivity$.MODULE$.create(scalaSeq);
+        return new Connectivity<>(connectivity);
     }
 
     /**
@@ -84,8 +86,8 @@ public class Connectivity<V> {
      */
     public static <V> Connectivity<V> createOptimized(List<V> vs) {
         Seq<V> scalaSeq = CollectionConverters.ListHasAsScala(vs).asScala().toSeq();
-        return new Connectivity<>(
-                ConnectivityOptimized$.MODULE$.create(scalaSeq));
+        ConnectivityOptimized<V> connectivityOptimized = ConnectivityOptimized$.MODULE$.create(scalaSeq);
+        return new Connectivity<>(connectivityOptimized);
     }
 
     /**

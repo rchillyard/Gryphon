@@ -306,7 +306,7 @@ public class Graph<V> {
     // Constructor
     // -------------------------------------------------------------------------
 
-    private Graph(boolean directed) {
+    Graph(boolean directed) {
         this.directed = directed;
     }
 

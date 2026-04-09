@@ -6,6 +6,7 @@ package com.phasmidsoftware.gryphon.java;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -122,5 +123,86 @@ public class MinimumSpanningTreeTest {
         double total0 = mst0.values().stream().mapToDouble(WeightedEdge::attribute).sum();
         double total3 = mst3.values().stream().mapToDouble(WeightedEdge::attribute).sum();
         assertEquals(total0, total3, 1e-10);
+    }
+
+    // -------------------------------------------------------------------------
+    // Kruskal tests — add these to MinimumSpanningTreeTest.java
+    // -------------------------------------------------------------------------
+
+    @Test
+    void kruskal_produces_n_minus_1_edges() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
+        assertEquals(7, mst.size());
+    }
+
+    @Test
+    void kruskal_total_weight_is_1_81() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
+        double total = mst.stream().mapToDouble(WeightedEdge::attribute).sum();
+        assertEquals(1.81, total, 1e-10);
+    }
+
+    @Test
+    void kruskal_edges_in_non_decreasing_order() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
+        for (int i = 0; i < mst.size() - 1; i++)
+            assertTrue(mst.get(i).attribute() <= mst.get(i + 1).attribute(),
+                    "edges not in non-decreasing order at index " + i);
+    }
+
+    @Test
+    void kruskal_contains_known_mst_weights() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
+        List<Double> weights = mst.stream().map(WeightedEdge::attribute).toList();
+        assertTrue(weights.contains(0.16));
+        assertTrue(weights.contains(0.17));
+        assertTrue(weights.contains(0.19));
+        assertTrue(weights.contains(0.26));
+        assertTrue(weights.contains(0.28));
+        assertTrue(weights.contains(0.35));
+        assertTrue(weights.contains(0.40));
+    }
+
+    @Test
+    void kruskal_excludes_cycle_creating_edge() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.kruskal(g);
+        List<Double> weights = mst.stream().map(WeightedEdge::attribute).toList();
+        assertFalse(weights.contains(0.29)); // 1-3 would create a cycle
+    }
+
+    @Test
+    void kruskal_directed_graph_throws() {
+        Graph<Integer> g = Graph.directed();
+        g.addEdge(new WeightedEdge<>(0, 1, 1.0));
+        assertThrows(IllegalStateException.class,
+                () -> MinimumSpanningTree.kruskal(g));
+    }
+
+    @Test
+    void kruskal_option3_total_weight_matches_option1() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> mst1 = MinimumSpanningTree.kruskal(g);
+        List<WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.kruskal(
+                g,
+                e -> ((WeightedEdge<Integer, Double>) e).attribute(),
+                Double::compare);
+        double total1 = mst1.stream().mapToDouble(WeightedEdge::attribute).sum();
+        double total3 = mst3.stream().mapToDouble(WeightedEdge::attribute).sum();
+        assertEquals(total1, total3, 1e-10);
+    }
+
+    @Test
+    void kruskal_and_prim_produce_same_total_weight() {
+        Graph<Integer> g = buildPrimGraph();
+        List<WeightedEdge<Integer, Double>> kruskalMst = MinimumSpanningTree.kruskal(g);
+        Map<Integer, WeightedEdge<Integer, Double>> primMst = MinimumSpanningTree.prim(g, 0);
+        double kruskalTotal = kruskalMst.stream().mapToDouble(WeightedEdge::attribute).sum();
+        double primTotal = primMst.values().stream().mapToDouble(WeightedEdge::attribute).sum();
+        assertEquals(kruskalTotal, primTotal, 1e-10);
     }
 }

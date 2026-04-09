@@ -5,6 +5,7 @@
 package com.phasmidsoftware.gryphon.java;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -118,6 +119,82 @@ public class MinimumSpanningTree {
         return JavaFacadeBridge$.MODULE$.primCustom(
                 graph.getScalaGraph(), graph.edges(), start,
                 weight, zero, comparator);
+    }
+
+    /*
+     * Copyright (c) 2026. Phasmid Software
+     */
+
+// ---- Add to MinimumSpanningTree.java ----------------------------------------
+
+    // -------------------------------------------------------------------------
+    // Kruskal — Option 1: Double weights
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs Kruskal's algorithm on an undirected graph whose edges carry
+     * {@code Double} weights.
+     *
+     * <p>This is Option 1: no configuration required. Edges are sorted by
+     * {@link WeightedEdge#attribute()} in ascending order; the MST is built
+     * greedily using a disjoint-set structure to detect cycles.</p>
+     *
+     * <p>The graph must be undirected. Calling this method on a directed graph
+     * will throw {@link IllegalStateException}.</p>
+     *
+     * <p>The returned list is in non-decreasing weight order.</p>
+     *
+     * @param <V>   the vertex type.
+     * @param graph an undirected graph whose canonical edges are
+     *              {@code WeightedEdge<V, Double>}.
+     * @return the MST as a {@code List<WeightedEdge<V, Double>>} in
+     * non-decreasing weight order; contains exactly N-1 edges for a
+     * connected graph of N vertices.
+     * @throws IllegalStateException if {@code graph} is directed.
+     * @throws ClassCastException    if any edge is not a
+     *                               {@code WeightedEdge<V, Double>}.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> List<WeightedEdge<V, Double>> kruskal(Graph<V> graph) {
+        if (graph.isDirected())
+            throw new IllegalStateException(
+                    "MinimumSpanningTree.kruskal requires an undirected graph");
+        return (List<WeightedEdge<V, Double>>) (List<?>)
+                JavaFacadeBridge$.MODULE$.kruskalDouble(graph.edges());
+    }
+
+    // -------------------------------------------------------------------------
+    // Kruskal — Option 3: custom weight function and comparator
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs Kruskal's algorithm with a caller-supplied weight extractor and
+     * comparator.
+     *
+     * <p>This is Option 3: the caller controls how edge weight is extracted and
+     * how edges are ordered. The returned list is in non-decreasing order
+     * according to {@code comparator}.</p>
+     *
+     * <p>The graph must be undirected.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the weight type.
+     * @param graph      an undirected graph.
+     * @param weight     extracts the weight from an edge.
+     * @param comparator orders weights (e.g. {@code Comparator.naturalOrder()}).
+     * @return the MST as a {@code List<WeightedEdge<V, E>>} in non-decreasing
+     * weight order.
+     * @throws IllegalStateException if {@code graph} is directed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V, E> List<WeightedEdge<V, E>> kruskal(
+            Graph<V> graph,
+            Function<Edge<V>, E> weight,
+            Comparator<E> comparator) {
+        if (graph.isDirected())
+            throw new IllegalStateException(
+                    "MinimumSpanningTree.kruskal requires an undirected graph");
+        return JavaFacadeBridge$.MODULE$.kruskalCustom(graph.edges(), weight, comparator);
     }
 
     // Not instantiable

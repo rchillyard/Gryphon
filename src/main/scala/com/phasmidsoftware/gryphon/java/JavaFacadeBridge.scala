@@ -208,6 +208,83 @@ private[java] object JavaFacadeBridge:
     mstToJavaMap(result)
 
   // ---------------------------------------------------------------------------
+  // Kruskal — Option 1: Double weights
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs Kruskal's algorithm on an undirected graph with `Double` edge weights.
+   *
+   * Materialises a `UndirectedGraph[V, Double]` from the Java edge list,
+   * delegates to `Kruskal.mst`, and converts the result to a Java `List`.
+   *
+   * @param edges the Java canonical edge list (must all be `WeightedEdge<V, Double>`).
+   * @tparam V the vertex type.
+   * @return a Java `List<WeightedEdge<V, Double>>` in non-decreasing weight order.
+   */
+  def kruskalDouble[V](
+                              edges: java.util.List[Edge[V]]
+                      ): java.util.List[WeightedEdge[V, Double]] =
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
+    val result = com.phasmidsoftware.gryphon.traverse.Kruskal.mst(weightedGraph)
+    mstSeqToJavaList(result)
+
+  // ---------------------------------------------------------------------------
+  // Kruskal — Option 3: custom weight and comparator
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs Kruskal's algorithm with a caller-supplied weight function and comparator.
+   *
+   * Wraps the `Comparator[E]` into both `Ordering[E]` and a minimal `Numeric[E]`
+   * (only `compare` is used by Kruskal — the arithmetic operations are never called).
+   *
+   * @param edges      the Java canonical edge list.
+   * @param weightFn   extracts weight from a Java `Edge<V>`.
+   * @param comparator orders weights.
+   * @tparam V the vertex type.
+   * @tparam E the weight type.
+   * @return a Java `List<WeightedEdge<V, E>>` in non-decreasing weight order.
+   */
+
+  def kruskalCustom[V, E](
+                                 edges: java.util.List[Edge[V]],
+                                 weightFn: java.util.function.Function[Edge[V], E],
+                                 comparator: java.util.Comparator[E]
+                         ): java.util.List[WeightedEdge[V, E]] =
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    val weightedGraph: com.phasmidsoftware.gryphon.adjunct.UndirectedGraph[V, E] =
+      edges.asScala.foldLeft(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph[V, E](VertexMap[V])) { (g, e) =>
+        g.addEdge(com.phasmidsoftware.gryphon.adjunct.UndirectedEdge(weightFn.apply(e), e.from, e.to))
+      }
+    val result = com.phasmidsoftware.gryphon.traverse.Kruskal.mst(weightedGraph)
+    mstSeqToJavaList(result)
+
+  // ---------------------------------------------------------------------------
+  // Kruskal result conversion
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Converts a Scala `Seq[Edge[V, E]]` (the MST produced by Kruskal) into a
+   * Java `List<WeightedEdge<V, E>>`, preserving weight-ascending order.
+   *
+   * @param result the Scala MST edge sequence.
+   * @tparam V the vertex type.
+   * @tparam E the weight type.
+   * @return an unmodifiable Java list of MST edges.
+   */
+  private def mstSeqToJavaList[V, E](
+                                            result: Seq[com.phasmidsoftware.gryphon.core.Edge[V, E]]
+                                    ): java.util.List[WeightedEdge[V, E]] =
+    val javaList = new java.util.ArrayList[WeightedEdge[V, E]]()
+    result.foreach { e =>
+      javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
+    }
+    java.util.Collections.unmodifiableList(javaList)
+
+  // ---------------------------------------------------------------------------
   // Materialisation — weighted undirected
   // ---------------------------------------------------------------------------
 

@@ -27,11 +27,11 @@ object Kruskal:
    *
    * @param graph the undirected weighted graph.
    * @tparam V the vertex attribute type.
-   * @tparam E the edge weight type; must be `Numeric` and `Ordering`.
+   * @tparam E the edge weight type; must be `Ordering`.
    * @return a `TraversalResult[V, Edge[V, E]]` mapping each vertex to its incident MST edge
    *         (`None` for isolated vertices or the arbitrary first vertex processed).
    */
-  def mst[V, E: {Numeric, Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
+  def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
     // Seed `Connectivity` (aka `WeightedUnionFind`) with all vertices as singleton components.

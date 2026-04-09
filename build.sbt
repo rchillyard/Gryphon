@@ -4,6 +4,8 @@ ThisBuild / version := "1.2.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
+ThisBuild / javacOptions ++= Seq("--release", "21")
+
 val scalaVersionNumber  = "3.7.4"
 val scalaTestVersion    = "3.2.20"
 val logbackVersion      = "1.5.32"

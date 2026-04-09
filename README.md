@@ -259,7 +259,7 @@ sbt test
 
 1.0.0 is the first release.
 1.1.0 adds 
-1.2.0 changes the name UnionFind to Connectivity.
+1.2.0 changes the name UnionFind to Connectivity and adds first Java API (for Connectivity).
 
 ## License
 

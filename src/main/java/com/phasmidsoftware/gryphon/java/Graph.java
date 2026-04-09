@@ -13,15 +13,15 @@ import java.util.function.Function;
  * A mutable, lazily-materialised façade over Gryphon's purely functional graph types.
  *
  * <p>{@code Graph<V>} accumulates vertices and edges in ordinary Java collections.
- * When a traversal ({@link #bfs} or {@link #dfs}) is first requested, it
- * materialises an immutable Scala graph from those collections, caches it, and
- * delegates the traversal to Gryphon's engine. The cache is invalidated
- * whenever the graph is mutated ({@link #addEdge}, {@link #addVertex}),
- * so the Scala graph is always consistent with the Java state.</p>
+ * When a weighted algorithm ({@code ShortestPaths}, {@code MinimumSpanningTree}, etc.)
+ * is requested, it materialises an immutable Scala graph from those collections,
+ * caches it, and delegates to Gryphon's Scala engine. The cache is invalidated
+ * whenever the graph is mutated ({@link #addEdge}, {@link #addVertex}), so the
+ * Scala graph is always consistent with the Java state.</p>
  *
- * <p>This class is <em>not</em> a true wrapper of a Scala type — it is a
- * <em>lazy builder</em>. Java students interact only with Java types;
- * the Scala graph is an implementation detail.</p>
+ * <p>Plain BFS and DFS are implemented directly in Java (via {@link GraphTraversal})
+ * and do not use the Scala graph. The Scala engine is used for algorithms that
+ * require it: Dijkstra, Prim, Kruskal, Kosaraju.</p>
  *
  * <p>Directionality is fixed at construction time via the factory methods
  * {@link #directed()} and {@link #undirected()}. For an undirected graph,
@@ -255,6 +255,27 @@ public class Graph<V> {
      */
     public Map<V, V> dfs(V start, Function<V, Iterable<V>> neighbours) {
         return GraphTraversal.dfs(start, neighbours, vertices());
+    }
+
+    // -------------------------------------------------------------------------
+    // Scala graph materialisation (package-private — used by ShortestPaths etc.)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the materialised Scala graph, building it from the canonical edge
+     * list if the cache has been invalidated.
+     *
+     * <p>This method is package-private. Java students do not call it directly;
+     * it is used internally by {@code ShortestPaths}, {@code MinimumSpanningTree},
+     * and other algorithm façades that delegate to the Scala engine.</p>
+     *
+     * @return the cached (or freshly built) Scala {@code AbstractGraph}.
+     */
+    @SuppressWarnings("unchecked")
+    AbstractGraph<V> getScalaGraph() {
+        if (scalaGraph == null)
+            scalaGraph = JavaFacadeBridge$.MODULE$.materialise(canonicalEdges, directed);
+        return (AbstractGraph<V>) scalaGraph;
     }
 
     // -------------------------------------------------------------------------

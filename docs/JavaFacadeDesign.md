@@ -24,9 +24,9 @@ all Scala machinery is hidden.
    capture a return value.
 
 3. **Lazy materialisation.** `Graph<V>` accumulates edges and vertices in Java
-   collections and builds the underlying Scala graph on demand when a traversal
-   is requested. The Scala graph is an implementation detail — a cache that is
-   invalidated on every mutation.
+   collections and builds the underlying Scala graph on demand when a weighted
+   algorithm is requested. The Scala graph is an implementation detail — a cache
+   that is invalidated on every mutation.
 
 4. **Two-tier traversal API.** Every traversal method is provided in two forms:
     - **Option 1** — sensible defaults, works out of the box.
@@ -49,9 +49,17 @@ all Scala machinery is hidden.
    no actual weight. Students are not shielded from `Void`; it is more honest
    than defaulting to weight `1.0`.
 
+7. **BFS/DFS stay in Java.** Plain BFS and DFS are implemented directly in Java
+   (`GraphTraversal`) and do not delegate to the Scala engine. The Scala engine
+   is used for weighted algorithms (Dijkstra, Prim, Kruskal, Kosaraju) that have
+   no natural Java equivalent. The reason: the Scala traversal engine journals
+   visited vertices in order but does not record parent pointers — the
+   `Map<V, V>` parent-tree result needed by the Java façade is not producible
+   from the Scala journal without a Visitor library change (see Deferred Work).
+
 ---
 
-## Current State (V1.2.1)
+## Current State (V1.2.2)
 
 ### Implemented
 
@@ -62,6 +70,8 @@ all Scala machinery is hidden.
 | `Graph<V>` | `gryphon.java` | Mutable lazy-builder façade; directed/undirected |
 | `GraphTraversal` | `gryphon.java` | Package-private BFS/DFS; returns `Map<V,V>` parent trees |
 | `Connectivity<V>` | `gryphon.java` | Mutable façade over `Connectivity` / `ConnectivityOptimized` |
+| `ShortestPaths` | `gryphon.java` | Dijkstra (Option 1: `Double`; Option 3: custom weight/combiner/comparator) |
+| `JavaFacadeBridge` | `gryphon.java` | Internal Scala bridge: graph materialisation and algorithm delegation |
 
 ### Test Coverage
 
@@ -69,6 +79,7 @@ all Scala machinery is hidden.
 |---|---|---|
 | `ConnectivityTest` | JUnit 5 | ✅ Green |
 | `GraphTest` | JUnit 5 | ✅ Green |
+| `ShortestPathsTest` | JUnit 5 | ✅ Green |
 
 ### Build
 
@@ -94,10 +105,12 @@ Graph<V>
 `addEdge` appends to `canonicalEdges`, updates `adjacency` (both directions for
 undirected graphs), and sets `scalaGraph = null`.
 
-Traversals call `GraphTraversal.bfs` / `GraphTraversal.dfs`, which currently
-operate on the Java `adjacency` map directly. When Scala delegation is wired up,
-they will instead call `getScalaGraph()` to materialise the cache and delegate
-to Gryphon's traversal engine.
+Plain traversals (`bfs`, `dfs`) delegate to `GraphTraversal`, which operates on
+the Java `adjacency` map directly and returns a `Map<V, V>` parent tree.
+
+Weighted algorithms (`ShortestPaths`, `MinimumSpanningTree`) call
+`getScalaGraph()` (package-private) to materialise the Scala cache, then
+delegate to `JavaFacadeBridge` which invokes the Scala engine.
 
 ### `GraphTraversal` — Package-Private
 
@@ -108,6 +121,27 @@ the start vertex. The start vertex maps to itself; unreachable vertices are abse
 The parent map supports:
 - **Connectivity query:** `map.containsKey(v)` — O(1)
 - **Path reconstruction:** walk up the parent chain from any vertex to start
+
+### `JavaFacadeBridge` — Internal Scala Object
+
+Package-private Scala `object` that handles all Scala-side concerns:
+
+- `materialise(edges, directed)` — builds `DirectedGraph[V, Unit]` or
+  `UndirectedGraph[V, Unit]` from the Java canonical edge list (for BFS/DFS
+  cache; currently unused by traversal but available for future use).
+- `materialiseWeighted(edges, weightFn)` — builds `DirectedGraph[V, E]` by
+  folding directly over `VertexMap.+[E]`, ensuring both endpoints are present
+  (see Known Issues).
+- `dijkstraDouble` / `dijkstraCustom` — run Dijkstra on the materialised
+  weighted graph with appropriate typeclass instances supplied, and convert
+  the Scala `TraversalResult` back to `Map<V, WeightedEdge<V, E>>`.
+
+### `ShortestPaths` — Static Façade
+
+Returns a shortest-path tree (SPT) as `Map<V, WeightedEdge<V, E>>`. Each entry
+`v → edge` records the cheapest incoming edge to `v`. The start vertex is absent.
+From the SPT, students can read the immediate edge weight (`edge.attribute()`),
+find the predecessor (`edge.from()`), or walk the tree for full path cost.
 
 ### `Connectivity<V>` — Mutable Wrapper
 
@@ -121,38 +155,34 @@ Factory methods:
 
 ---
 
+## Known Issues
+
+- **`DirectedGraph.addEdge` does not ensure the destination vertex exists.**
+  `DirectedGraph.addEdge` calls `vertexMap.modifyVertex` which only touches the
+  `from` vertex. If called on an empty (or incomplete) `VertexMap`,
+  destination-only vertices are silently absent, causing `key not found` errors
+  when any traversal attempts to expand them. `UndirectedGraph.addEdge` is
+  correct — it delegates to `VertexMap.+[E]` which calls `ensure` for both
+  endpoints. `DirectedGraph.addEdge` should do the same.
+  **Workaround:** `JavaFacadeBridge.materialiseWeighted` folds directly over
+  `VertexMap.+[E]` rather than through `DirectedGraph.addEdge`.
+
+---
+
 ## Deferred Work
 
 ### High Priority
 
-- **Wire Scala traversal engine into `GraphTraversal`.**
-  Currently BFS/DFS are implemented directly in Java. The `scalaGraph` cache in
-  `Graph<V>` should be materialised from `canonicalEdges` and the traversal
-  delegated to `Traversal.bfs` / `Traversal.dfs` in Gryphon's Scala engine.
-  This requires deciding how to supply the required typeclass instances
-  (`Neighbours`, `VisitedSet`, `Frontier`, `Evaluable`) from Java — likely via
-  hardwired defaults for Option 1, and functional interfaces for Option 3.
-
-- **`ShortestPaths` façade (Dijkstra).**
-  ```java
-  // Option 1
-  Map<V, E> ShortestPaths.dijkstra(Graph<V> g, V start);
-  // Option 3
-  Map<V, E> ShortestPaths.dijkstra(Graph<V> g, V start,
-      Function<Edge<V>, E> weight,
-      BinaryOperator<E> combine);
-  ```
-  Requires `WeightedEdge<V, E>` edges. The `combine` parameter maps directly to
-  the `Monoid[E]` typeclass in the Scala engine.
-
 - **`MinimumSpanningTree` façade (Prim, Kruskal).**
   ```java
-  // Prim
-  List<Edge<V>> MinimumSpanningTree.prim(Graph<V> g, V start,
+  // Prim — Option 1 (Double weights)
+  List<WeightedEdge<V, Double>> MinimumSpanningTree.prim(Graph<V> g, V start);
+  // Prim — Option 3
+  List<WeightedEdge<V, E>> MinimumSpanningTree.prim(Graph<V> g, V start,
       Function<Edge<V>, E> weight,
       Comparator<E> comparator);
   // Kruskal — uses Connectivity internally
-  List<Edge<V>> MinimumSpanningTree.kruskal(Graph<V> g,
+  List<WeightedEdge<V, E>> MinimumSpanningTree.kruskal(Graph<V> g,
       Function<Edge<V>, E> weight,
       Comparator<E> comparator);
   ```
@@ -196,6 +226,13 @@ Factory methods:
 - **Graph loading from file.** A `GraphReader` that parses the `.graph` resource
   format used in Gryphon's test suite and produces a `Graph<V>`.
 
+- **Parent pointers in the Visitor engine.** The Scala traversal engine journals
+  visited vertices in order but does not record who discovered whom. Adding a
+  `ParentJournal[V]` to Visitor (recording `(child, parent)` pairs) would allow
+  `GraphTraversal.bfs` / `dfs` to delegate fully to the Scala engine rather than
+  being reimplemented in Java. This is a Visitor library change, not a Gryphon
+  change, and should keep the dependency direction clean.
+
 - **Visitor Java façade.** The Visitor typeclass engine is significantly harder
   to expose in Java than the graph types. Functional interfaces map to
   typeclasses as follows:
@@ -208,7 +245,7 @@ Factory methods:
   | `Frontier[F[_]]` | `Supplier<Deque<V>>` |
 
   This mapping should drive the Option 3 API for all traversal methods once
-  Scala delegation is wired in.
+  parent-pointer journalling is in place.
 
 - **Scala `Graph` unification.** The Scala codebase currently has separate
   `DirectedGraph[V, E]` and `UndirectedGraph[V, E]` classes. These are
@@ -217,28 +254,27 @@ Factory methods:
   `Graph[V, E](directed: Boolean)` Scala class would simplify the Java façade's
   materialisation logic and is a natural refactor to pursue.
 
+- **Fix `DirectedGraph.addEdge` to ensure both endpoints exist.** See Known
+  Issues. Requires making `VertexMap.ensure` at least `private[core]`, adding a
+  public `ensureVertex` method, or delegating to `VertexMap.+[E]` as
+  `UndirectedGraph` already does. Once fixed, the `materialiseWeighted` workaround
+  in `JavaFacadeBridge` can be simplified.
+
 ---
 
 ## Open Questions
 
-1. **Scala traversal delegation.** When materialising the Scala graph from the
-   Java edge list, what is the cleanest way to supply typeclass instances from
-   Java? The leading candidate is hardwiring sensible defaults (HashSet for
-   visited, Stack/Queue for frontier) in an internal Scala helper object, with
-   the functional interface parameters for Option 3 wrapped in anonymous
-   typeclass instances.
-
-2. **Thread safety.** `Graph<V>` is not thread-safe — the `scalaGraph` cache
+1. **Thread safety.** `Graph<V>` is not thread-safe — the `scalaGraph` cache
    is not protected. This is acceptable for the student use case (single-threaded
-   assignments) but should be documented explicitly.
+   assignments) but should be documented explicitly in the Javadoc.
 
-3. **`Graph<V>` vs `Graph<V, E>`.** The current design has no `E` type parameter
+2. **`Graph<V>` vs `Graph<V, E>`.** The current design has no `E` type parameter
    on `Graph` — weight is a property of edges, not the graph. This is clean but
    means `ShortestPaths.dijkstra` must cast edges to `WeightedEdge<V, E>` at
    runtime. An alternative is `Graph<V, E>` where `E` defaults to `Void` for
    unweighted graphs. Decision deferred pending student feedback.
 
-4. **Package naming.** All Java façade classes currently live in
+3. **Package naming.** All Java façade classes currently live in
    `com.phasmidsoftware.gryphon.java`. If the façade grows substantially, it may
    warrant sub-packages: `gryphon.java.graph`, `gryphon.java.algo`, etc.
 
@@ -252,3 +288,4 @@ Factory methods:
 | 1.1.0 | First update post-release |
 | 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized; WeightedUnion |
 | 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity; JUnit 5; Java 21 |
+| 1.2.2 | ShortestPaths (Dijkstra Option 1 and Option 3); JavaFacadeBridge; ShortestPathsTest |

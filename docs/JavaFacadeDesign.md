@@ -260,6 +260,16 @@ Factory methods:
   `UndirectedGraph` already does. Once fixed, the `materialiseWeighted` workaround
   in `JavaFacadeBridge` can be simplified.
 
+- **`Monoid[E].combine` is a stub in `primCustom`.**
+  Prim's algorithm only uses `Monoid[E].identity` (as the initial frontier cost)
+  and `Ordering[E]` (to compare edge weights); it never accumulates costs the way
+  Dijkstra does. The `Monoid[E]` given in `primCustom` therefore supplies a stub
+  `combine` that returns `zero`. This is harmless at runtime but conceptually
+  dishonest — a `Monoid` with `combine` returning `zero` is not a valid monoid.
+  A cleaner fix would be to decouple the `Ordering[E]` and `Monoid[E]` context
+  bounds in `WeightedTraversal`, making `Monoid` optional for Prim. That is a
+  Gryphon/Visitor change, not a Java façade change.
+
 ---
 
 ## Open Questions

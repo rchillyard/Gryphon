@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
-import com.phasmidsoftware.gryphon.traverse.ShortestPaths
+import com.phasmidsoftware.gryphon.traverse.{MST, ShortestPaths}
 import com.phasmidsoftware.visitor.core.{Monoid, given}
 import scala.jdk.CollectionConverters.*
 import scala.util.Random
@@ -142,8 +142,116 @@ private[java] object JavaFacadeBridge:
     sptToJavaMap(result)
 
   // ---------------------------------------------------------------------------
-  // Result conversion
+  // Prim — Option 1: Double weights
   // ---------------------------------------------------------------------------
+
+  /**
+   * Runs Prim's algorithm on an undirected graph with `Double` edge weights.
+   *
+   * @param scalaGraph present for future use.
+   * @param edges      the Java canonical edge list (must all be `WeightedEdge<V, Double>`).
+   * @param start      the source vertex.
+   * @tparam V the vertex type.
+   * @return a Java `Map<V, WeightedEdge<V, Double>>` representing the MST.
+   */
+  def primDouble[V](
+                           scalaGraph: AbstractGraph[V],
+                           edges: java.util.List[Edge[V]],
+                           start: V
+                   ): java.util.Map[V, WeightedEdge[V, Double]] =
+    given Random = Random(0)
+
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
+    val result = MST.prim[V, Double](weightedGraph, start)
+    mstToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // Prim — Option 3: custom weight, zero, comparator
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs Prim's algorithm with a caller-supplied weight function and comparator.
+   *
+   * @param scalaGraph unused directly; present for symmetry.
+   * @param edges      the Java canonical edge list.
+   * @param start      the source vertex.
+   * @param weightFn   extracts weight from a Java `Edge<V>`.
+   * @param zero       the identity element for the weight type.
+   * @param comparator orders weights.
+   * @tparam V the vertex type.
+   * @tparam E the weight type.
+   * @return a Java `Map<V, WeightedEdge<V, E>>` representing the MST.
+   */
+  def primCustom[V, E](
+                              scalaGraph: AbstractGraph[V],
+                              edges: java.util.List[Edge[V]],
+                              start: V,
+                              weightFn: java.util.function.Function[Edge[V], E],
+                              zero: E,
+                              comparator: java.util.Comparator[E]
+                      ): java.util.Map[V, WeightedEdge[V, E]] =
+    given Random = Random(0)
+
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    given Monoid[E] with
+      def identity: E = zero
+
+      def combine(x: E, y: E): E = zero // Prim doesn't use combine; zero is sufficient
+    val weightedGraph: com.phasmidsoftware.gryphon.adjunct.UndirectedGraph[V, E] =
+      edges.asScala.foldLeft(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph[V, E](VertexMap[V])) { (g, e) =>
+        g.addEdge(com.phasmidsoftware.gryphon.adjunct.UndirectedEdge(weightFn.apply(e), e.from, e.to))
+      }
+    val result = MST.prim[V, E](weightedGraph, start)
+    mstToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // Materialisation — weighted undirected
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Builds an immutable `UndirectedGraph[V, E]` from the Java canonical edge list.
+   * Uses `VertexMap.+[E]` directly to ensure both endpoints are present.
+   */
+  private def materialiseWeightedUndirected[V, E](edges: java.util.List[Edge[V]]): com.phasmidsoftware.gryphon.adjunct.UndirectedGraph[V, E] =
+    val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
+      val we = e.asInstanceOf[WeightedEdge[V, E]]
+      vm + com.phasmidsoftware.gryphon.adjunct.UndirectedEdge(we.attribute, we.from, we.to)
+    }
+    com.phasmidsoftware.gryphon.adjunct.UndirectedGraph[V, E](vm)
+
+  // ---------------------------------------------------------------------------
+  // MST result conversion
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Converts a Scala `TraversalResult[V, Edge[V, E]]` (the MST produced by Prim)
+   * into a Java `Map<V, WeightedEdge<V, E>>`.
+   *
+   * The start vertex (for which `vertexTraverse` returns `None`) is absent.
+   * `Edge.white` and `Edge.black` give the two endpoints; `Edge.attribute` the weight.
+   *
+   * @param result the Scala MST result.
+   * @tparam V the vertex type.
+   * @tparam E the weight type.
+   * @return an unmodifiable Java map from vertex to its MST edge.
+   */
+  private def mstToJavaMap[V, E](
+                                        result: com.phasmidsoftware.gryphon.traverse.TraversalResult[V, com.phasmidsoftware.gryphon.core.Edge[V, E]]
+                                ): java.util.Map[V, WeightedEdge[V, E]] =
+    val javaMap = new java.util.LinkedHashMap[V, WeightedEdge[V, E]]()
+    result.keySet.foreach { v =>
+      result.vertexTraverse(v).foreach { e =>
+        javaMap.put(v, new WeightedEdge[V, E](e.white, e.black, e.attribute))
+      }
+    }
+    java.util.Collections.unmodifiableMap(javaMap)
+
+// ---------------------------------------------------------------------------
+// Result conversion
+// ---------------------------------------------------------------------------
 
   /**
    * Converts a Scala `TraversalResult[V, AttributedDirectedEdge[V, E]]` (the SPT

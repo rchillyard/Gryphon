@@ -8,7 +8,7 @@ import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.traverse.{PrimTraversal, TraversalResult}
+import com.phasmidsoftware.gryphon.traverse.{MST, PrimTraversal, TraversalResult}
 import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
 import com.phasmidsoftware.visitor.core.given
 import org.scalatest.flatspec.AnyFlatSpec
@@ -172,3 +172,12 @@ class PrimSpec extends AnyFlatSpec with Matchers:
         case _ =>
           fail("maybeEdges returned None")
     }
+
+  behavior of ""
+
+  it should "produce an MST with exactly 7 edges (N-1 for 8 vertices)" in :
+    withPrimGraph { graph =>
+      val result = MST.prim[Int, Double](graph, 0)
+      result.size shouldBe 7
+    }
+

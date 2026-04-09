@@ -7,37 +7,46 @@ package com.phasmidsoftware.gryphon.java;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.function.BinaryOperator;
-import java.util.function.Function;
 
 /**
  * Java façade for shortest-path algorithms on weighted directed graphs.
  *
- * <p>All methods operate on a {@link Graph}{@code <V>} whose edges are
- * {@link WeightedEdge}{@code <V, E>} instances. Calling these methods on a
- * graph whose edges are plain (unweighted) {@link Edge}{@code <V>} will throw
- * {@link ClassCastException} at runtime.</p>
+ * <p>All methods operate on a {@link WeightedGraph}{@code <V, E>} whose edges
+ * carry an attribute of type {@code E}.</p>
  *
- * <p>The result of every method is a <em>shortest-path tree</em> (SPT): a
+ * <p>The result is a <em>shortest-path tree</em> (SPT): a
  * {@code Map<V, WeightedEdge<V, E>>} where each entry {@code v → edge} records
- * the cheapest incoming edge to {@code v} in the SPT.  The start vertex is
- * absent from the map (it has no predecessor).  From the SPT you can:</p>
- * <ul>
- *   <li>Get the immediate edge weight to {@code v}: {@code spt.get(v).attribute()}</li>
- *   <li>Find {@code v}'s predecessor: {@code spt.get(v).from()}</li>
- *   <li>Reconstruct the full path by walking {@code from()} pointers back to start.</li>
- * </ul>
+ * the cheapest incoming edge to {@code v}. The start vertex is absent.</p>
  *
- * <p><b>Option 1 example</b> (edges carry {@code Double} weights):
+ * <p><b>Note on Option 3:</b> Dijkstra accumulates path costs — the cost to
+ * reach a vertex is the sum of edge weights along the path. This requires both
+ * a {@code combine} function (e.g. addition) and a {@code zero} identity
+ * element, unlike Prim and Kruskal which only compare individual edge weights
+ * and need only a {@link Comparator}.</p>
+ *
+ * <p><b>Option 1 example</b> (Double weights):
  * <pre>{@code
- * Graph<String> g = Graph.directed();
+ * WeightedGraph<String, Double> g = WeightedGraph.directedWeighted();
  * g.addEdge(new WeightedEdge<>("A", "B", 3.0));
  * g.addEdge(new WeightedEdge<>("A", "C", 1.0));
  * g.addEdge(new WeightedEdge<>("C", "B", 1.0));
  *
- * Map<String, WeightedEdge<String, Double>> spt =
- *     ShortestPaths.dijkstra(g, "A");
+ * Map<String, WeightedEdge<String, Double>> spt = ShortestPaths.dijkstra(g, "A");
  * // spt.get("B").from()      == "C"   (via C, total cost 2.0)
  * // spt.get("B").attribute() == 1.0   (the C→B edge weight)
+ * }</pre>
+ * </p>
+ *
+ * <p><b>Option 3 example</b> (custom attribute type):
+ * <pre>{@code
+ * WeightedGraph<Building, TunnelProperties> g = WeightedGraph.directedWeighted();
+ * g.addEdge(new WeightedEdge<>(b1, b2, props));
+ *
+ * Map<Building, WeightedEdge<Building, TunnelProperties>> spt =
+ *     ShortestPaths.dijkstra(g, start,
+ *         (a, b) -> new TunnelProperties(a.cost + b.cost, ...),  // combine
+ *         TunnelProperties.ZERO,                                  // identity
+ *         Comparator.comparingInt(tp -> tp.cost));                // ordering
  * }</pre>
  * </p>
  */
@@ -50,75 +59,74 @@ public class ShortestPaths {
     /**
      * Runs Dijkstra's algorithm on a graph whose edges carry {@code Double} weights.
      *
-     * <p>This is Option 1: no configuration required. Edge weights are read from
-     * {@link WeightedEdge#attribute()}, and costs are combined by addition.</p>
-     *
-     * <p>The graph must be directed. Calling this method on an undirected graph
-     * is not yet supported and will throw {@link IllegalStateException}.</p>
-     *
-     * @param <V>   the vertex type.
-     * @param graph a directed graph whose canonical edges are {@code WeightedEdge<V, Double>}.
-     * @param start the source vertex.
-     * @return the shortest-path tree as a {@code Map<V, WeightedEdge<V, Double>>};
-     * the start vertex is absent.
-     * @throws IllegalStateException if {@code graph} is undirected.
-     * @throws ClassCastException    if any edge is not a {@code WeightedEdge<V, Double>}.
-     */
-    @SuppressWarnings("unchecked")
-    public static <V> Map<V, WeightedEdge<V, Double>> dijkstra(
-            Graph<V> graph,
-            V start) {
-        if (!graph.isDirected())
-            throw new IllegalStateException("ShortestPaths.dijkstra requires a directed graph");
-        return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
-                JavaFacadeBridge$.MODULE$.dijkstraDouble(graph.getScalaGraph(), graph.edges(), start);
-    }
-    // -------------------------------------------------------------------------
-    // Option 3 — custom weight function and combiner
-    // -------------------------------------------------------------------------
-
-    /**
-     * Runs Dijkstra's algorithm with a caller-supplied weight extractor and
-     * cost combiner.
-     *
-     * <p>This is Option 3: the caller controls how edge weight is extracted and
-     * how costs are accumulated. The {@code combine} parameter corresponds directly
-     * to the {@code Monoid[E].combine} operation in the Scala engine.</p>
+     * <p>Costs are combined by addition; edges are ordered by natural
+     * {@code Double} ordering. No configuration required.</p>
      *
      * <p>The graph must be directed.</p>
      *
-     * @param <V>     the vertex type.
-     * @param <E>     the weight type; must be {@link Comparable} for ordering.
-     * @param graph   a directed graph.
-     * @param start   the source vertex.
-     * @param weight  extracts the weight from an edge.
-     * @param combine combines two costs (e.g., addition for numeric weights).
-     * @param zero    the identity element for {@code combine} (e.g., {@code 0.0}).
-     * @return the shortest-path tree as a {@code Map<V, WeightedEdge<V, E>>};
-     * the start vertex is absent.
+     * @param <V>   the vertex type.
+     * @param graph a directed {@code WeightedGraph<V, Double>}.
+     * @param start the source vertex.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, Double>>};
+     *         the start vertex is absent.
      * @throws IllegalStateException if {@code graph} is undirected.
      */
     @SuppressWarnings("unchecked")
-    public static <V, E extends Comparable<E>> Map<V, WeightedEdge<V, E>> dijkstra(
-            Graph<V> graph,
+    public static <V> Map<V, WeightedEdge<V, Double>> dijkstra(
+            WeightedGraph<V, Double> graph,
+            V start) {
+        if (!graph.isDirected())
+            throw new IllegalStateException(
+                    "ShortestPaths.dijkstra requires a directed graph");
+        return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
+                JavaFacadeBridge$.MODULE$.dijkstraDouble(
+                        graph.getScalaGraph(),
+                        (java.util.List) graph.weightedEdges(),
+                        start);
+    }
+
+    // -------------------------------------------------------------------------
+    // Option 3 — custom attribute type with combine, zero, and comparator
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs Dijkstra's algorithm with a custom edge attribute type.
+     *
+     * <p>Because Dijkstra accumulates path costs, the caller must supply:</p>
+     * <ul>
+     *   <li>{@code combine} — how to add two costs (e.g. integer addition)</li>
+     *   <li>{@code zero} — the identity element for {@code combine}
+     *       (e.g. {@code 0} for addition)</li>
+     *   <li>{@code comparator} — how to order costs</li>
+     * </ul>
+     *
+     * <p>The graph must be directed.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, E>>};
+     *         the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V, E> Map<V, WeightedEdge<V, E>> dijkstra(
+            WeightedGraph<V, E> graph,
             V start,
-            Function<Edge<V>, E> weight,
             BinaryOperator<E> combine,
             E zero,
             Comparator<E> comparator) {
         if (!graph.isDirected())
-            throw new IllegalStateException("ShortestPaths.dijkstra requires a directed graph");
+            throw new IllegalStateException(
+                    "ShortestPaths.dijkstra requires a directed graph");
         return JavaFacadeBridge$.MODULE$.dijkstraCustom(
-                graph.getScalaGraph(), graph.edges(), start, weight, combine, zero, comparator);
-    }
-
-    public static <V, E extends Comparable<E>> Map<V, WeightedEdge<V, E>> dijkstra(
-            Graph<V> graph,
-            V start,
-            Function<Edge<V>, E> weight,
-            BinaryOperator<E> combine,
-            E zero) {
-        return dijkstra(graph, start, weight, combine, zero, Comparator.naturalOrder());
+                graph.getScalaGraph(),
+                graph.weightedEdges(),
+                start, combine, zero, comparator);
     }
 
     // Not instantiable

@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.2.3"
+ThisBuild / version := "1.3.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 

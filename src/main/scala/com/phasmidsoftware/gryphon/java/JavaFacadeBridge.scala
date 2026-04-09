@@ -36,9 +36,10 @@ private[java] object JavaFacadeBridge:
    */
   def materialise[V](edges: java.util.List[Edge[V]], directed: Boolean): AbstractGraph[V] =
     if directed then
-      edges.asScala.foldLeft(DirectedGraph[V, Unit](VertexMap[V])) { (g, e) =>
-        g.addEdge(AttributedDirectedEdge(None, e.from, e.to))
+      val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
+        vm + AttributedDirectedEdge(None, e.from, e.to)
       }
+      DirectedGraph[V, Unit](vm)
     else
       edges.asScala.foldLeft(UndirectedGraph[V, Unit](VertexMap[V])) { (g, e) =>
         g.addEdge(UndirectedEdge((), e.from, e.to))
@@ -71,6 +72,43 @@ private[java] object JavaFacadeBridge:
       vm + AttributedDirectedEdge(weightFn(e), e.from, e.to)
     }
     DirectedGraph[V, E](vm)
+
+  // ---------------------------------------------------------------------------
+  // Kosaraju — SCC
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs Kosaraju's algorithm on a directed graph, returning a Java
+   * `Map<V, Integer>` mapping each vertex to its SCC id.
+   *
+   * Edge weights are irrelevant for SCC; the unweighted `DirectedGraph[V, Unit]`
+   * already materialised in `scalaGraph` is used directly, cast to
+   * `DirectedGraph[V, Unit]`.
+   *
+   * If `scalaGraph` is null or not a `DirectedGraph`, we rematerialise from
+   * `edges`. In practice `getScalaGraph()` is always called first from Java.
+   *
+   * @param scalaGraph the cached Scala graph (a `DirectedGraph[V, Unit]`).
+   * @param edges      the Java canonical edge list (used as fallback).
+   * @tparam V the vertex type.
+   * @return an unmodifiable Java `Map<V, Integer>` of vertex → SCC id.
+   */
+  def kosaraju[V](
+                         scalaGraph: com.phasmidsoftware.gryphon.core.AbstractGraph[V],
+                         edges: java.util.List[Edge[V]]
+                 ): java.util.Map[V, java.lang.Integer] =
+    given Random = Random(42)
+
+    val directedGraph: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, Unit] =
+      scalaGraph match
+        case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, Unit] @unchecked => dg
+        case _ => materialise(edges, directed = true)
+                .asInstanceOf[com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, Unit]]
+    val result: com.phasmidsoftware.gryphon.traverse.SCCResult[V] =
+      com.phasmidsoftware.gryphon.traverse.Kosaraju.stronglyConnectedComponents(directedGraph)
+    val javaMap = new java.util.LinkedHashMap[V, java.lang.Integer]()
+    result.foreach { case (v, id) => javaMap.put(v, id) }
+    java.util.Collections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------
   // Dijkstra — Option 1: Double weights

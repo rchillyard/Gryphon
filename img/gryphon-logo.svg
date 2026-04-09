@@ -1,0 +1,96 @@
+<svg width="100%" viewBox="0 0 680 700" role="img" xmlns="http://www.w3.org/2000/svg">
+    <title>Gryphon project logo</title>
+    <desc>A stylized gryphon in dark green and gold, facing right, with wings raised, on a dark green circular badge with the word Gryphon in dark green on a white banner beneath</desc>
+
+    <style>
+        .badge-circle { fill: #006644; }
+        .gold { fill: #FFC72B; }
+        .gold-stroke { fill: none; stroke: #FFC72B; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .label { font-family: serif; font-size: 52px; font-weight: 700; fill: #005533; letter-spacing: 6px; }
+        .sub { font-family: sans-serif; font-size: 18px; fill: #005533; opacity: 0.85; letter-spacing: 3px; }
+    </style>
+
+    <circle cx="340" cy="310" r="270" class="badge-circle"/>
+    <circle cx="340" cy="310" r="270" fill="none" stroke="#FFC72B" stroke-width="6"/>
+    <circle cx="340" cy="310" r="258" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.5"/>
+
+    <ellipse cx="310" cy="420" rx="80" ry="55" fill="#005533" stroke="#FFC72B" stroke-width="2"/>
+    <ellipse cx="260" cy="440" rx="45" ry="35" fill="#005533" stroke="#FFC72B" stroke-width="1.5"/>
+    <ellipse cx="365" cy="445" rx="42" ry="32" fill="#005533" stroke="#FFC72B" stroke-width="1.5"/>
+
+    <path d="M 380 445 Q 440 470 460 430 Q 475 400 455 380 Q 445 370 450 355"
+          fill="none" stroke="#FFC72B" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="453" cy="348" rx="12" ry="18" class="gold" transform="rotate(-20,453,348)"/>
+    <ellipse cx="462" cy="342" rx="8" ry="14" class="gold" transform="rotate(10,462,342)"/>
+
+    <path d="M 270 430 Q 250 470 235 480 Q 225 485 220 478"
+          fill="none" stroke="#FFC72B" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 355 440 Q 345 480 340 490 Q 334 497 328 490"
+          fill="none" stroke="#FFC72B" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 220 478 Q 213 486 208 482 M 220 478 Q 215 488 210 486 M 220 478 Q 218 490 213 489"
+          fill="none" stroke="#FFC72B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 328 490 Q 321 498 316 494 M 328 490 Q 323 500 318 498 M 328 490 Q 326 502 321 501"
+          fill="none" stroke="#FFC72B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <ellipse cx="320" cy="360" rx="72" ry="80" fill="#005533" stroke="#FFC72B" stroke-width="2"/>
+    <path d="M 285 330 Q 320 320 355 330" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 278 350 Q 320 338 362 350" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 275 370 Q 320 358 365 370" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 278 390 Q 320 378 362 390" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.6"/>
+
+    <path d="M 285 330 Q 220 270 175 210 Q 155 175 165 150 Q 180 135 200 155
+         Q 210 190 220 220 Q 230 245 248 265 Q 265 285 285 310 Z"
+          fill="#005533" stroke="#FFC72B" stroke-width="2"/>
+    <path d="M 175 210 Q 162 185 165 150" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 185 190 Q 170 165 172 140" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 195 172 Q 182 148 187 128" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 207 160 Q 197 136 204 116" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+
+    <path d="M 355 320 Q 400 250 440 180 Q 465 135 490 110 Q 515 90 525 105
+         Q 535 122 515 148 Q 495 172 472 195 Q 448 220 425 248
+         Q 400 278 375 308 Z"
+          fill="#005533" stroke="#FFC72B" stroke-width="2.5"/>
+    <path d="M 390 265 Q 430 220 468 175" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 405 248 Q 445 202 480 158" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 418 232 Q 456 188 490 145" fill="none" stroke="#FFC72B" stroke-width="1.5" opacity="0.7"/>
+    <path d="M 490 110 Q 510 90 525 105" fill="none" stroke="#FFC72B" stroke-width="2" opacity="0.8"/>
+
+    <path d="M 300 285 Q 310 255 330 240 Q 345 230 360 240 Q 372 250 368 275 Q 360 295 345 305 Q 325 310 305 298 Z"
+          fill="#005533" stroke="#FFC72B" stroke-width="2"/>
+    <ellipse cx="348" cy="220" rx="48" ry="44" fill="#005533" stroke="#FFC72B" stroke-width="2.5"/>
+
+    <path d="M 388 212 Q 415 208 420 218 Q 418 228 405 230 Q 395 228 388 222 Z"
+          class="gold"/>
+    <path d="M 405 230 Q 415 235 412 242 Q 408 246 400 240"
+          fill="none" stroke="#FFC72B" stroke-width="2" stroke-linecap="round"/>
+
+    <circle cx="370" cy="208" r="10" class="gold"/>
+    <circle cx="372" cy="207" r="5" fill="#003322"/>
+    <circle cx="374" cy="205" r="2" fill="#FFC72B" opacity="0.8"/>
+
+    <path d="M 345 178 Q 355 165 368 168 Q 378 172 378 182"
+          fill="none" stroke="#FFC72B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <path d="M 335 180 Q 325 155 318 138 Q 315 128 320 125 Q 327 123 333 138 Q 337 152 338 170"
+          fill="#005533" stroke="#FFC72B" stroke-width="2"/>
+    <path d="M 348 175 Q 342 150 338 133 Q 337 123 343 122 Q 350 122 352 138 Q 353 153 352 170"
+          fill="#005533" stroke="#FFC72B" stroke-width="2"/>
+
+    <path d="M 292 390 Q 270 420 255 435" fill="none" stroke="#FFC72B" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 255 435 Q 245 443 240 437 M 255 435 Q 248 445 242 441 M 255 435 Q 250 447 244 445"
+          fill="none" stroke="#FFC72B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <circle cx="195" cy="280" r="3" class="gold" opacity="0.6"/>
+    <circle cx="180" cy="300" r="2" class="gold" opacity="0.4"/>
+    <circle cx="470" cy="350" r="3" class="gold" opacity="0.6"/>
+    <circle cx="490" cy="330" r="2" class="gold" opacity="0.4"/>
+
+    <rect x="90" y="596" width="500" height="88" rx="6" fill="#ffffff"/>
+    <rect x="90" y="596" width="500" height="88" rx="6" fill="none" stroke="#006644" stroke-width="2"/>
+    <path d="M 100 640 L 155 640" stroke="#006644" stroke-width="1.5" opacity="0.5"/>
+    <path d="M 525 640 L 580 640" stroke="#006644" stroke-width="1.5" opacity="0.5"/>
+
+    <text x="340" y="642" text-anchor="middle" class="label">GRYPHON</text>
+    <text x="340" y="672" text-anchor="middle" class="sub">graph algorithms · scala 3</text>
+
+</svg>

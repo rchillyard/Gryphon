@@ -1,4 +1,4 @@
-# Gryphon
+<img src="img/gryphon-logo.svg" width="500" alt="Gryphon logo"/>
 
 ![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/gryphon_3/badge.svg?color=blue)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Gryphon?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Gryphon&utm_campaign=Badge_Grade)
@@ -28,7 +28,7 @@ that supports the author's own textbook Data Structures, Algorithms, and Invaria
 Add Gryphon to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.2.2"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.2.3"
 ```
 
 Gryphon requires **Scala 3** and depends on

@@ -77,6 +77,10 @@ lazy val root = (project in file("."))
 // GLOBAL SETTINGS
 // ============================================================================
 
+//ScalaUnidoc / unidoc / scalacOptions ++= Seq(
+//  "-doc-logo", (baseDirectory.value / "gryphon-logo.svg").toString
+//)
+
 Test / parallelExecution := false
 
 // ============================================================================

@@ -69,7 +69,6 @@ src/
     java/         — Java tests (JUnit 5)
   resources/
     *.graph       — Graph fixture files (Sedgewick & Wayne examples)
-attic/            — Historical/non-compiling code preserved for reference
 ```
 
 ---

@@ -4,7 +4,7 @@
 
 The Gryphon Java façade provides a Java-idiomatic API over Gryphon's purely
 functional Scala graph library. Its primary audience is students in INFO6205
-(Data Structures, Algorithms, and Intelligent Programming with Graphs) at
+(Data Structures, Algorithms, and Invariants: a Practical Guide) at
 Northeastern University who are not familiar with Scala.
 
 The façade lives in `src/main/java` and `src/test/java` within the root Gryphon
@@ -59,7 +59,7 @@ all Scala machinery is hidden.
 
 ---
 
-## Current State (V1.2.2)
+## Current State (V1.2.3)
 
 ### Implemented
 
@@ -71,6 +71,8 @@ all Scala machinery is hidden.
 | `GraphTraversal` | `gryphon.java` | Package-private BFS/DFS; returns `Map<V,V>` parent trees |
 | `Connectivity<V>` | `gryphon.java` | Mutable façade over `Connectivity` / `ConnectivityOptimized` |
 | `ShortestPaths` | `gryphon.java` | Dijkstra (Option 1: `Double`; Option 3: custom weight/combiner/comparator) |
+| `MinimumSpanningTree` | `gryphon.java` | Prim (Option 1 and 3); Kruskal (Option 1 and 3) |
+| `StronglyConnectedComponents` | `gryphon.java` | Kosaraju; `count()`; `components()` |
 | `JavaFacadeBridge` | `gryphon.java` | Internal Scala bridge: graph materialisation and algorithm delegation |
 
 ### Test Coverage
@@ -80,6 +82,8 @@ all Scala machinery is hidden.
 | `ConnectivityTest` | JUnit 5 | ✅ Green |
 | `GraphTest` | JUnit 5 | ✅ Green |
 | `ShortestPathsTest` | JUnit 5 | ✅ Green |
+| `MinimumSpanningTreeTest` | JUnit 5 | ✅ Green |
+| `StronglyConnectedComponentsTest` | JUnit 5 | ✅ Green |
 
 ### Build
 
@@ -108,9 +112,10 @@ undirected graphs), and sets `scalaGraph = null`.
 Plain traversals (`bfs`, `dfs`) delegate to `GraphTraversal`, which operates on
 the Java `adjacency` map directly and returns a `Map<V, V>` parent tree.
 
-Weighted algorithms (`ShortestPaths`, `MinimumSpanningTree`) call
-`getScalaGraph()` (package-private) to materialise the Scala cache, then
-delegate to `JavaFacadeBridge` which invokes the Scala engine.
+Weighted algorithms (`ShortestPaths`, `MinimumSpanningTree`,
+`StronglyConnectedComponents`) call `getScalaGraph()` (package-private) to
+materialise the Scala cache, then delegate to `JavaFacadeBridge` which invokes
+the Scala engine.
 
 ### `GraphTraversal` — Package-Private
 
@@ -127,14 +132,20 @@ The parent map supports:
 Package-private Scala `object` that handles all Scala-side concerns:
 
 - `materialise(edges, directed)` — builds `DirectedGraph[V, Unit]` or
-  `UndirectedGraph[V, Unit]` from the Java canonical edge list (for BFS/DFS
-  cache; currently unused by traversal but available for future use).
-- `materialiseWeighted(edges, weightFn)` — builds `DirectedGraph[V, E]` by
-  folding directly over `VertexMap.+[E]`, ensuring both endpoints are present
-  (see Known Issues).
-- `dijkstraDouble` / `dijkstraCustom` — run Dijkstra on the materialised
-  weighted graph with appropriate typeclass instances supplied, and convert
-  the Scala `TraversalResult` back to `Map<V, WeightedEdge<V, E>>`.
+  `UndirectedGraph[V, Unit]` from the Java canonical edge list, folding directly
+  over `VertexMap.+[E]` to ensure both endpoints are present (see Known Issues).
+- `materialiseWeighted(edges, weightFn)` — builds `DirectedGraph[V, E]` by the
+  same `VertexMap`-direct approach.
+- `materialiseWeightedUndirected(edges)` — builds `UndirectedGraph[V, E]` for
+  Prim and Kruskal.
+- `dijkstraDouble` / `dijkstraCustom` — Dijkstra delegation; converts
+  `TraversalResult[V, AttributedDirectedEdge[V, E]]` to `Map<V, WeightedEdge<V, E>>`.
+- `primDouble` / `primCustom` — Prim delegation; converts
+  `TraversalResult[V, Edge[V, E]]` to `Map<V, WeightedEdge<V, E>>`.
+- `kruskalDouble` / `kruskalCustom` — Kruskal delegation; converts
+  `Seq[Edge[V, E]]` to `List<WeightedEdge<V, E>>` preserving weight-ascending order.
+- `kosaraju` — Kosaraju delegation; converts `SCCResult[V]` (`Map[V, Int]`)
+  to `Map<V, Integer>`.
 
 ### `ShortestPaths` — Static Façade
 
@@ -142,6 +153,25 @@ Returns a shortest-path tree (SPT) as `Map<V, WeightedEdge<V, E>>`. Each entry
 `v → edge` records the cheapest incoming edge to `v`. The start vertex is absent.
 From the SPT, students can read the immediate edge weight (`edge.attribute()`),
 find the predecessor (`edge.from()`), or walk the tree for full path cost.
+Requires a directed graph.
+
+### `MinimumSpanningTree` — Static Façade
+
+- **Prim** — returns `Map<V, WeightedEdge<V, E>>` mapping each non-source vertex
+  to its cheapest MST edge. Requires an undirected graph.
+- **Kruskal** — returns `List<WeightedEdge<V, E>>` in non-decreasing weight order.
+  Requires an undirected graph. Uses `Connectivity` internally for cycle detection.
+
+Both algorithms produce the same total MST weight on a graph with unique edge weights.
+
+### `StronglyConnectedComponents` — Static Façade
+
+- `kosaraju(graph)` — returns `Map<V, Integer>` mapping each vertex to its SCC id.
+- `count(graph)` — convenience method returning the number of SCCs.
+- `components(graph)` — convenience method returning `Map<Integer, Set<V>>`
+  grouping vertices by SCC.
+
+Requires a directed graph.
 
 ### `Connectivity<V>` — Mutable Wrapper
 
@@ -155,6 +185,21 @@ Factory methods:
 
 ---
 
+## Directionality Constraints
+
+| Algorithm | Graph type required |
+|---|---|
+| `Graph.bfs` / `Graph.dfs` | either |
+| `ShortestPaths.dijkstra` | directed |
+| `MinimumSpanningTree.prim` | undirected |
+| `MinimumSpanningTree.kruskal` | undirected |
+| `StronglyConnectedComponents.kosaraju` | directed |
+
+Calling an algorithm with the wrong graph type throws `IllegalStateException`
+with a descriptive message.
+
+---
+
 ## Known Issues
 
 - **`DirectedGraph.addEdge` does not ensure the destination vertex exists.**
@@ -164,42 +209,29 @@ Factory methods:
   when any traversal attempts to expand them. `UndirectedGraph.addEdge` is
   correct — it delegates to `VertexMap.+[E]` which calls `ensure` for both
   endpoints. `DirectedGraph.addEdge` should do the same.
-  **Workaround:** `JavaFacadeBridge.materialiseWeighted` folds directly over
-  `VertexMap.+[E]` rather than through `DirectedGraph.addEdge`.
+  **Workaround:** all `JavaFacadeBridge` materialisation methods fold directly
+  over `VertexMap.+[E]` rather than through `DirectedGraph.addEdge`.
+
+- **`Monoid[E].combine` is a stub in `primCustom`.**
+  Prim's algorithm only uses `Monoid[E].identity` (as the initial frontier cost)
+  and `Ordering[E]` (to compare edge weights); it never accumulates costs the way
+  Dijkstra does. The `Monoid[E]` given in `primCustom` therefore supplies a stub
+  `combine` that returns `zero`. This is harmless at runtime but conceptually
+  dishonest — a `Monoid` with `combine` returning `zero` is not a valid monoid.
+  A cleaner fix would be to decouple the `Ordering[E]` and `Monoid[E]` context
+  bounds in `WeightedTraversal`, making `Monoid` optional for Prim. That is a
+  Gryphon/Visitor change, not a Java façade change.
 
 ---
 
 ## Deferred Work
 
-### High Priority
-
-- **`MinimumSpanningTree` façade (Prim, Kruskal).**
-  ```java
-  // Prim — Option 1 (Double weights)
-  List<WeightedEdge<V, Double>> MinimumSpanningTree.prim(Graph<V> g, V start);
-  // Prim — Option 3
-  List<WeightedEdge<V, E>> MinimumSpanningTree.prim(Graph<V> g, V start,
-      Function<Edge<V>, E> weight,
-      Comparator<E> comparator);
-  // Kruskal — uses Connectivity internally
-  List<WeightedEdge<V, E>> MinimumSpanningTree.kruskal(Graph<V> g,
-      Function<Edge<V>, E> weight,
-      Comparator<E> comparator);
-  ```
-  Both require undirected graph — should throw `IllegalStateException` if called
-  on a directed graph, with a clear message.
-
 ### Medium Priority
 
-- **`Graph.reverse()`** — returns a new `Graph<V>` with all edge directions
-  flipped. Required for Kosaraju's SCC algorithm.
-
-- **`StronglyConnectedComponents` façade (Kosaraju).**
-  ```java
-  List<Set<V>> StronglyConnectedComponents.kosaraju(Graph<V> g);
-  ```
-  Requires directed graph — should throw `IllegalStateException` if called on
-  undirected. Internally delegates to `KosarajuTraversal` in Gryphon.
+- **`Graph.reverse()`** — expose as a public Java method returning a new
+  `Graph<V>` with all edge directions flipped. Currently `DirectedGraph.reverse`
+  is called internally by Kosaraju but is not accessible from Java. Useful for
+  students implementing their own SCC variants.
 
 - **`Graph.fromEdgeList(List<Edge<V>> edges, boolean directed)`** — convenience
   factory for constructing a graph from an existing edge collection, e.g. when
@@ -257,18 +289,8 @@ Factory methods:
 - **Fix `DirectedGraph.addEdge` to ensure both endpoints exist.** See Known
   Issues. Requires making `VertexMap.ensure` at least `private[core]`, adding a
   public `ensureVertex` method, or delegating to `VertexMap.+[E]` as
-  `UndirectedGraph` already does. Once fixed, the `materialiseWeighted` workaround
+  `UndirectedGraph` already does. Once fixed, the materialisation workarounds
   in `JavaFacadeBridge` can be simplified.
-
-- **`Monoid[E].combine` is a stub in `primCustom`.**
-  Prim's algorithm only uses `Monoid[E].identity` (as the initial frontier cost)
-  and `Ordering[E]` (to compare edge weights); it never accumulates costs the way
-  Dijkstra does. The `Monoid[E]` given in `primCustom` therefore supplies a stub
-  `combine` that returns `zero`. This is harmless at runtime but conceptually
-  dishonest — a `Monoid` with `combine` returning `zero` is not a valid monoid.
-  A cleaner fix would be to decouple the `Ordering[E]` and `Monoid[E]` context
-  bounds in `WeightedTraversal`, making `Monoid` optional for Prim. That is a
-  Gryphon/Visitor change, not a Java façade change.
 
 ---
 
@@ -299,3 +321,4 @@ Factory methods:
 | 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized; WeightedUnion |
 | 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity; JUnit 5; Java 21 |
 | 1.2.2 | ShortestPaths (Dijkstra Option 1 and Option 3); JavaFacadeBridge; ShortestPathsTest |
+| 1.2.3 | MinimumSpanningTree (Prim and Kruskal, Option 1 and 3); StronglyConnectedComponents (Kosaraju); MST Scala entry point; Kruskal.mst simplified to Ordering only |

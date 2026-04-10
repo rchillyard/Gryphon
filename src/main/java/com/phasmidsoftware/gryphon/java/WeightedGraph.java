@@ -80,6 +80,10 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * <p>Both endpoint vertices are added automatically if not already present.
      * For undirected graphs the reverse edge is also recorded internally.</p>
      *
+     * <p>NOTE that the present design results in maintaining two edge lists.
+     * Clearly, we could easily improve the implementation but for pedagogical purposes,
+     * this is acceptable.</p>
+     *
      * @param edge the weighted edge to add.
      */
     public void addEdge(WeightedEdge<V, E> edge) {

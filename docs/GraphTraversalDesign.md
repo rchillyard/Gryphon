@@ -2,14 +2,15 @@
 
 ## Overview
 
-This document captures the design for a unified `GraphTraversal` abstraction covering
-four classic graph algorithms: DFS, BFS, Dijkstra, and Prim. It also documents the
-required enhancements to the Visitor library to support efficient priority-queue-based
-traversal with cost updates.
+This document captures the design for the unified `GraphTraversal` abstraction
+covering four classic graph algorithms: DFS, BFS, Dijkstra, and Prim. It also
+documents the enhancements to the Visitor library that support efficient
+priority-queue-based traversal with cost updates, and the current state of the
+full Gryphon algorithm suite.
 
 ---
 
-## Current State (as of Gryphon 0.2.5 / Visitor V1.3.0)
+## Current State (Gryphon V1.3.0 / Visitor V1.5.0)
 
 ### Visitor Library
 
@@ -20,21 +21,41 @@ traversal with cost updates.
 - `Frontier[F[_]]` typeclass with implementations for `Stack`, `Queue`, `PrioQueue`,
   and `IndexedPrioQueue`
 - `CostUpdate[W, F[_]]` typeclass with default no-op given
-- `TupleVisitedSet[E, V]` and `given [E, V]: VisitedSet[(E, V)]` — supports
+- `TupleVisitedSet[(E,V)]` and `given [E, V]: VisitedSet[(E, V)]` — supports
   weighted tuple frontiers for Dijkstra/Prim
 - `Evaluable[V, R]`, `Neighbours[V, V]`, `VisitedSet[V]` typeclasses (unchanged)
 - `JournaledVisitor` with `ListJournal` (prepend) and `QueueJournal` (append/FIFO)
+- `Monoid[A]` typeclass (mirroring Cats: `identity` + `combine`) replaces `Numeric[E]`
+  as the context bound for weighted traversals; `given` instances for `Int`, `Long`,
+  `Double`, `Float`
+- `Tracer[V]` typeclass for optional debug tracing at configurable verbosity levels
 
 ### Gryphon
 
 - `GraphTraversal[V, E, R]` trait — in `com.phasmidsoftware.gryphon.traverse`
 - `DFSTraversal[V]` — delegates to `Traversal.dfs`
 - `BFSTraversal[V]` — delegates to `Traversal.bfs`
-- `DijkstraTraversal[V, E]` — delegates to `Traversal.bestFirstWeighted` ✓
-- `PrimTraversal[V, E]` — delegates to `Traversal.bestFirstWeighted` ✓
-- `ShortestPaths.dijkstra` delegates to `DijkstraTraversal.run`
-- `ConnectedComponents` — computes connected components of undirected graphs
-- `TopologicalSort`, `ShortestPaths` — existing, working
+- `WeightedTraversal[V, E, R]` — abstract base class for Dijkstra and Prim,
+  parameterised on `edgeCost`, `destination`, and `filterEdge`
+- `DijkstraTraversal[V, E]` — extends `WeightedTraversal`; cumulative path cost
+- `PrimTraversal[V, E]` — extends `WeightedTraversal`; edge weight only
+- `ShortestPaths.dijkstra` — delegates to `DijkstraTraversal.run`
+- `MST.prim` — delegates to `PrimTraversal.run`
+- `Kruskal.mst` — greedy edge sort + Union-Find; requires `Ordering[E]` only
+- `Kosaraju.stronglyConnectedComponents` — two-pass DFS on original + reversed graph
+- `ConnectedComponents` — connected components of undirected graphs
+- `TopologicalSort` — DFS post-order on directed graphs
+- `BellmanFord` — shortest paths with negative weights
+- `AcyclicShortestPaths` — shortest paths on DAGs
+- `TraversalResult[V, T]` — result type for all traversals
+- `Connexions[V, E]` — DFS-based came-from map
+
+### Java Façade (V1.3.0)
+
+- `Graph<V>`, `WeightedGraph<V,E>`, `Edge<V>`, `WeightedEdge<V,E>`
+- `ShortestPaths` (Dijkstra), `MinimumSpanningTree` (Prim, Kruskal)
+- `StronglyConnectedComponents` (Kosaraju), `Connectivity<V>`
+- `JavaFacadeBridge` — internal Scala bridge; see `JavaFacadeDesign.md`
 
 ---
 
@@ -139,7 +160,7 @@ given [W, F[_]]: CostUpdate[W, F] with
 
 ### Relationship to IndexedPrioQueue
 
-For Dijkstra and Prim, `DijkstraTraversal` / `PrimTraversal` provide a
+For Dijkstra and Prim, `WeightedTraversal` provides a
 `given CostUpdate[W, IndexedPrioQueue]` (where `W = (E, V)`) that calls
 `decreaseKey` for any frontier entry whose cost has improved since it was
 first offered. The `CostUpdate` instance closes over two mutable maps:
@@ -221,6 +242,41 @@ val v: V       = ev._2
 
 ---
 
+## WeightedTraversal — Unified Dijkstra/Prim Base Class
+
+`DijkstraTraversal` and `PrimTraversal` share the same `Traversal.bestFirstWeighted`
+backbone, differing in only three methods:
+
+| Method | Dijkstra | Prim |
+|--------|----------|------|
+| `edgeCost(accCost, e, v)` | `Monoid.combine(accCost, e.attribute)` — cumulative | `e.attribute` — edge weight only |
+| `destination(v, e)` | `e.black` — directed | `e.other(v)` — undirected |
+| `filterEdge(e)` | Only `AttributedDirectedEdge` | All edge types |
+
+The result type differs accordingly: Dijkstra produces
+`TraversalResult[V, AttributedDirectedEdge[V, E]]`; Prim produces
+`TraversalResult[V, Edge[V, E]]`.
+
+---
+
+## Came-From Semantics
+
+The result of a BFS or DFS traversal is a **came-from map** — for each discovered
+vertex, the vertex from which it was discovered during traversal. This is sometimes
+called a "parent map" but that term implies a tree structure that pre-exists the
+traversal. In a graph, the came-from relationship is an artifact of traversal order:
+it records which vertex we happened to be visiting when we first discovered the
+current vertex.
+
+The Java façade (`GraphTraversal.bfs` / `dfs`) returns `Map<V, V>` as a came-from
+map. The Scala traversal engine currently journals `(vertex, evaluatedValue)` pairs
+in visit order but does not record came-from pointers. A `CameFromJournal[V]`
+extension to Visitor would allow the Java façade to delegate BFS/DFS fully to the
+Scala engine. This is tracked as
+[Visitor Issue #10](https://github.com/rchillyard/Visitor/issues/10).
+
+---
+
 ## Undirected Graph Construction Fixes
 
 Several bugs in undirected graph construction were exposed by the Prim tests,
@@ -266,6 +322,19 @@ and `UndirectedEdge` — throwing `GraphException` on properly bidirectional gra
 **Fix:** Pass `connexion` directly to `addConnexion` regardless of `flipped`.
 `addConnexion` already handles `UndirectedEdge` correctly via `u.other(v)`.
 
+### `DirectedGraph.addEdge` — destination vertex not ensured
+
+`DirectedGraph.addEdge` calls `vertexMap.modifyVertex` which only touches the
+`from` vertex. Destination-only vertices (reachable but never a source) are
+silently absent from the `VertexMap`, causing `key not found` errors when any
+traversal attempts to expand them. `UndirectedGraph.addEdge` is correct — it
+delegates to `VertexMap.+[E]` which calls `ensure` for both endpoints.
+
+**Workaround:** `JavaFacadeBridge` materialisation methods fold directly over
+`VertexMap.+[E]` rather than through `DirectedGraph.addEdge`. The underlying
+bug is tracked as
+[Gryphon Issue #16](https://github.com/rchillyard/Gryphon/issues/16).
+
 ---
 
 ## Four-Algorithm Comparison
@@ -276,53 +345,76 @@ and `UndirectedEdge` — throwing `GraphException` on properly bidirectional gra
 | BFS | `Queue` | `Traversal.bfs` | none | no-op |
 | Dijkstra | `IndexedPrioQueue[(E,V)]` | `Traversal.bestFirstWeighted` | cumulative path cost | `decreaseKey` |
 | Prim | `IndexedPrioQueue[(E,V)]` | `Traversal.bestFirstWeighted` | edge weight only | `decreaseKey` |
+| Kruskal | none (sort) | `Kruskal.mst` | edge weight (sort key) | n/a |
 
-All four share the same `Traversal.traverse` loop — they differ only in the
-`Frontier`, `Neighbours`, `Evaluable`, and `CostUpdate` given instances provided.
+All four traversal algorithms share the same `Traversal.traverse` loop — they
+differ only in the `Frontier`, `Neighbours`, `Evaluable`, and `CostUpdate` given
+instances provided. Kruskal is not a traversal but a greedy sort-and-union algorithm.
 
 ---
 
 ## Key Files
 
-### Visitor Library (V1.3.0)
+### Visitor Library (V1.5.0)
 
-| File | Change |
-|------|--------|
+| File | Description |
+|------|-------------|
 | `PrioQueue.scala` | Three-type hierarchy: `BinaryHeap` (pure), `PrioQueue` (duplicates OK), `IndexedPrioQueue` (indexed, no duplicates, `decreaseKey`) |
-| `Behaviours.scala` | Add `CostUpdate` typeclass + no-op given; add `TupleVisitedSet` + `given [E,V]: VisitedSet[(E,V)]`; add `Frontier[IndexedPrioQueue]` given |
-| `CostUpdate.scala` | New file: `CostUpdate[W, F[_]]` typeclass + no-op given |
-| `Traversal.scala` | Add `cu: CostUpdate[V, F]` to `traverse`; call `cu.update` after `offerAll` and at seed; add `bestFirstWeighted` entry point; extract neighbours as strict val |
+| `Behaviours.scala` | `CostUpdate` typeclass + no-op given; `TupleVisitedSet`; `Frontier[IndexedPrioQueue]`; `Monoid[A]` + given instances; `Tracer[V]` |
+| `Traversal.scala` | `traverse` with `CostUpdate`; `bestFirstWeighted`; strict tuple extraction |
+| `Journal.scala` | `Appendable`, `Journal`, `ListJournal`, `QueueJournal` |
 
-### Gryphon (V0.2.5)
+### Gryphon (V1.3.0)
 
-| File | Change |
-|------|--------|
-| `GraphTraversal.scala` | Rewrite `DijkstraTraversal` and `PrimTraversal` with `(E,V)` tuple frontier, pure `Neighbours[(E,V),(E,V)]`, `CostUpdate[…,IndexedPrioQueue]`; strict `ev._1`/`ev._2` extraction |
-| `VertexMap.scala` | Fix `createVerticesFromTriplet` reverse adjacency orientation |
-| `UndirectedGraph.scala` | Fix `triplesToTryGraph` condition; fix `edges` to use `collect`; override `M` with `edges.size` |
-| `Traversable.scala` | Fix `getConnexions` to pass connexion directly to `addConnexion` |
-| `PrimSpec.scala` | 11 new tests covering graph structure, MST correctness, and start-vertex independence |
+| File | Description |
+|------|-------------|
+| `GraphTraversal.scala` | `GraphTraversal` trait; `DFSTraversal`, `BFSTraversal`, `WeightedTraversal`, `DijkstraTraversal`, `PrimTraversal` |
+| `ShortestPaths.scala` | `ShortestPaths.dijkstra` entry point |
+| `MST.scala` | `MST.prim` entry point |
+| `Kruskal.scala` | `Kruskal.mst`; greedy sort + `Connectivity` |
+| `Kosaraju.scala` | Two-pass DFS SCC; `SCCResult[V]` type alias |
+| `ConnectedComponents.scala` | `ConnectedComponents.components` |
+| `TopologicalSort.scala` | Post-order DFS on DAGs |
+| `BellmanFord.scala` | Shortest paths with negative weights |
+| `AcyclicShortestPaths.scala` | Shortest paths on DAGs |
+| `TraversalResult.scala` | `TraversalResult[V,T]`, `VertexTraversalResult`, `Connexions` |
+| `VertexMap.scala` | Fixed `createVerticesFromTriplet`; `keysOnly` for graph reversal |
+| `UndirectedGraph.scala` | Fixed `triplesToTryGraph`, `edges`; `isCyclic`, `isBipartite`, `isConnected`, degree methods |
+| `DirectedGraph.scala` | `reverse`; `isCyclic` via `TopologicalSort`; `shortestPaths` via `BellmanFord` |
+| `JavaFacadeBridge.scala` | Internal Scala bridge for the Java façade |
 
 ---
 
 ## Future Work
 
-- **Kosaraju's SCC** — Strongly Connected Components for directed graphs
-  - Two DFS passes: first on original graph (post-order), then on reversed graph
-  - Needs `DirectedGraph.reverse` method
-  - Lives alongside `ConnectedComponents` in `traverse` package
-- **Kruskal's MST** — requires Union-Find
-  - `UnionFindSpec` is currently entirely commented out
-  - `WeightedUnionFind` also in attic
-- **Verify book coverage** — systematically check all graph algorithms from
-  Sedgewick & Wayne are implemented in Gryphon
-- **Merge `DijkstraTraversal` and `PrimTraversal`** — the two implementations are
-  nearly identical; the only difference is the cost function (`en.plus(acc, w)` vs
-  `w` alone). An abstract `WeightedTraversal` base class parameterised on a cost
-  function would eliminate the duplication. Defer until both are confirmed stable.
+- **`CameFromJournal[V]` in Visitor** — would allow `GraphTraversal.bfs`/`dfs`
+  in the Java façade to delegate fully to the Scala engine rather than being
+  reimplemented in Java. See [Visitor Issue #10](https://github.com/rchillyard/Visitor/issues/10).
+
+- **Fix `DirectedGraph.addEdge`** — ensure destination vertex exists in `VertexMap`.
+  See [Gryphon Issue #16](https://github.com/rchillyard/Gryphon/issues/16).
+
+- **Decouple `Monoid` from `Prim`** — `PrimTraversal` requires `Monoid[E]` but
+  only uses `identity`; `combine` is never called. Decoupling would clean up
+  `JavaFacadeBridge.primCustom`'s stub `Monoid`.
+  See [Visitor Issue #9](https://github.com/rchillyard/Visitor/issues/9).
+
+- **GraphML support** — add a `GraphMLParser` in the `parse` package (using
+  `scala.xml`) and a corresponding Java `GraphReader`. GraphML is the standard
+  interchange format supported by NetworkX, Gephi, JGraphT, and SNAP.
+
+- **Scala `Graph` unification** — collapse `DirectedGraph[V,E]` and
+  `UndirectedGraph[V,E]` into a single `Graph[V,E](directed: Boolean)`.
+  Would simplify `JavaFacadeBridge` materialisation and remove the "architectural
+  dinosaur" distinction.
+
 - **Performance** — `IndexedPrioQueue.decreaseKey` is O(n log n); `offer`/`take`
   rebuild index in O(n). Acceptable for current graph sizes but could be optimised
   if needed.
+
+- **In-order DFS** — for binary trees only; requires `BinaryNeighbours[H,V]`
+  typeclass yielding exactly `(left, right)` and a separate `dfsInOrder` entry
+  point in Visitor.
 
 ---
 
@@ -331,14 +423,21 @@ All four share the same `Traversal.traverse` loop — they differ only in the
 ```
 com.phasmidsoftware.gryphon
   .core          — Graph, VertexMap, Vertex, Edge, Adjacency, Traversable
-  .adjunct       — DirectedGraph, UndirectedGraph, AttributedDirectedEdge, UndirectedEdge
-  .traverse      — GraphTraversal, ShortestPaths, TopologicalSort,
-                   TraversalResult, ConnectedComponents
+  .adjunct       — DirectedGraph, UndirectedGraph, AttributedDirectedEdge,
+                   UndirectedEdge, Connectivity, ConnectivityOptimized
+  .traverse      — GraphTraversal, WeightedTraversal, DijkstraTraversal,
+                   PrimTraversal, ShortestPaths, MST, Kruskal, Kosaraju,
+                   TopologicalSort, ConnectedComponents, BellmanFord,
+                   AcyclicShortestPaths, TraversalResult, Connexions
   .parse         — GraphParser
   .util          — TryUsing, FP, GraphException
+  .java          — Graph, WeightedGraph, Edge, WeightedEdge, ShortestPaths,
+                   MinimumSpanningTree, StronglyConnectedComponents,
+                   Connectivity, JavaFacadeBridge
 
 com.phasmidsoftware.visitor.core
                  — Traversal, BinaryHeap, PrioQueue, IndexedPrioQueue,
                    Frontier, CostUpdate, Evaluable, Neighbours, VisitedSet,
-                   TupleVisitedSet, Visitor, JournaledVisitor, Journal, DfsOrder
+                   TupleVisitedSet, Visitor, JournaledVisitor, Journal,
+                   ListJournal, QueueJournal, DfsOrder, Monoid, Tracer
 ```

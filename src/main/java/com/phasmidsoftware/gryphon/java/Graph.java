@@ -17,7 +17,8 @@ import java.util.function.Function;
  * is requested, it materialises an immutable Scala graph from those collections,
  * caches it, and delegates to Gryphon's Scala engine. The cache is invalidated
  * whenever the graph is mutated ({@link #addEdge}, {@link #addVertex}), so the
- * Scala graph is always consistent with the Java state.</p>
+ * Scala graph is always consistent with the Java state.
+ * NOTE: this class is not thread-safe.</p>
  *
  * <p>Plain BFS and DFS are implemented directly in Java (via {@link GraphTraversal})
  * and do not use the Scala graph. The Scala engine is used for algorithms that
@@ -334,7 +335,6 @@ public class Graph<V> {
     /**
      * Cached Scala graph. Null whenever the Java state has been mutated
      * since the last materialisation. Built lazily on first traversal call.
-     * Reserved for future use when Scala traversal delegation is wired up.
      */
     @SuppressWarnings("rawtypes")
     private AbstractGraph scalaGraph = null;

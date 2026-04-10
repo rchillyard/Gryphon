@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.3.0"
+ThisBuild / version := "1.4.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -8,6 +8,7 @@ ThisBuild / javacOptions ++= Seq("--release", "21")
 
 val scalaVersionNumber  = "3.7.4"
 val scalaTestVersion    = "3.2.20"
+val visitorVersion      = "1.6.0-SNAPSHOT"
 val logbackVersion      = "1.5.32"
 val slf4jVersion        = "2.0.17"
 lazy val scalaParserCombinatorsVersion = "2.4.0"
@@ -54,7 +55,7 @@ lazy val root = (project in file("."))
 
           libraryDependencies ++= Seq(
             "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
-            "com.phasmidsoftware"    %% "visitor"                  % "1.5.0",
+            "com.phasmidsoftware"    %% "visitor"                  % visitorVersion,
             "com.phasmidsoftware"    %% "flog"                     % "1.0.13",
             "org.slf4j"               % "slf4j-api"                % slf4jVersion,
             "ch.qos.logback"          % "logback-classic"          % logbackVersion % Runtime,

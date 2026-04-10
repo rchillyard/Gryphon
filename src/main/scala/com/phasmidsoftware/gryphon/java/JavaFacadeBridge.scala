@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.java
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
 import com.phasmidsoftware.gryphon.traverse.{Kruskal, MST, ShortestPaths}
-import com.phasmidsoftware.visitor.core.{Monoid, given}
+import com.phasmidsoftware.visitor.core.{Monoid, Zero, given}
 import scala.jdk.CollectionConverters.*
 import scala.util.Random
 
@@ -118,7 +118,6 @@ private[java] object JavaFacadeBridge:
                            start: V
                    ): java.util.Map[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
-    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = MST.prim[V, Double](weightedGraph, start)
     mstToJavaMap(result)
@@ -139,13 +138,10 @@ private[java] object JavaFacadeBridge:
                               comparator: java.util.Comparator[E]
                       ): java.util.Map[V, WeightedEdge[V, E]] =
     given Random = Random(0)
-
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
-    given Monoid[E] with
+    given Zero[E] with
       def identity: E = edges.get(0).attribute
-
-      def combine(x: E, y: E): E = x  // never called by Prim
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = MST.prim[V, E](weightedGraph, start)
     mstToJavaMap(result)

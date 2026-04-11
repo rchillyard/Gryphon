@@ -8,42 +8,37 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Internal implementation of BFS and DFS traversals for the Java façade.
+ * Internal implementation of BFS and DFS traversals for the Java façade,
+ * used for Option 3 (custom neighbour function) only.
  *
- * <p>This class is an implementation detail of {@link Graph} — it is
- * package-private and not part of the public API. Java students interact
- * with traversals only through {@link Graph#bfs} and {@link Graph#dfs}.</p>
+ * <p>Option 1 BFS and DFS now delegate to the Scala Visitor engine via
+ * {@link JavaFacadeBridge}. This class handles only the Option 3 case where
+ * the caller supplies a custom neighbour {@link Function}.</p>
  *
- * <p>Both traversals return a parent map: a {@code Map<V, V>} where each
- * entry {@code v → parent} records {@code v}'s parent in the traversal tree.
- * The start vertex maps to itself. Unreachable vertices are absent from the map.</p>
+ * <p>Both traversals return a came-from map: a {@code Map<V, V>} where each
+ * entry {@code v → cameFrom} records the vertex from which {@code v} was first
+ * discovered. The start vertex is absent from the map — it has no predecessor.
+ * Unreachable vertices are also absent.</p>
  *
- * <p>Both traversals accept a custom neighbour {@link Function} (Option 3),
- * allowing callers to filter or transform the neighbour set without subclassing.</p>
- *
- * <p>Note: currently implemented directly in Java. A future version will
- * delegate to Gryphon's Scala traversal engine via the materialised Scala
- * graph cache in {@link Graph}.</p>
+ * <p>Path reconstruction: walk {@code map.get(v)} until the key is absent —
+ * that vertex is the start.</p>
  */
 class GraphTraversal {
 
     /**
-     * Performs a breadth-first search from {@code start}.
+     * Performs a breadth-first search from {@code start} using a custom
+     * neighbour function.
      *
-     * @param start       the source vertex.
-     * @param neighbours  a function returning the neighbours of any vertex.
-     * @param allVertices all vertices in the graph (used to initialise state).
-     * @param <V>         the vertex type.
-     * @return the BFS parent map.
+     * @param start      the source vertex.
+     * @param neighbours a function returning the neighbours of any vertex.
+     * @param <V>        the vertex type.
+     * @return the BFS came-from map; start vertex absent.
      */
-    static <V> Map<V, V> bfs(V start,
-                             Function<V, Iterable<V>> neighbours,
-                             Set<V> allVertices) {
-        Map<V, V> parent = new LinkedHashMap<>();
+    static <V> Map<V, V> bfs(V start, Function<V, Iterable<V>> neighbours) {
+        Map<V, V> cameFrom = new LinkedHashMap<>();
         Set<V> visited = new HashSet<>();
         Queue<V> frontier = new ArrayDeque<>();
 
-        parent.put(start, start);
         visited.add(start);
         frontier.add(start);
 
@@ -52,34 +47,31 @@ class GraphTraversal {
             for (V neighbour : neighbours.apply(current)) {
                 if (!visited.contains(neighbour)) {
                     visited.add(neighbour);
-                    parent.put(neighbour, current);
+                    cameFrom.put(neighbour, current);
                     frontier.add(neighbour);
                 }
             }
         }
-        return Collections.unmodifiableMap(parent);
+        return Collections.unmodifiableMap(cameFrom);
     }
 
     /**
-     * Performs a depth-first search from {@code start}.
+     * Performs a depth-first search from {@code start} using a custom
+     * neighbour function.
      *
      * <p>Implemented iteratively (using an explicit stack) to avoid
      * stack overflow on large graphs.</p>
      *
-     * @param start       the source vertex.
-     * @param neighbours  a function returning the neighbours of any vertex.
-     * @param allVertices all vertices in the graph.
-     * @param <V>         the vertex type.
-     * @return the DFS parent map.
+     * @param start      the source vertex.
+     * @param neighbours a function returning the neighbours of any vertex.
+     * @param <V>        the vertex type.
+     * @return the DFS came-from map; start vertex absent.
      */
-    static <V> Map<V, V> dfs(V start,
-                             Function<V, Iterable<V>> neighbours,
-                             Set<V> allVertices) {
-        Map<V, V> parent = new LinkedHashMap<>();
+    static <V> Map<V, V> dfs(V start, Function<V, Iterable<V>> neighbours) {
+        Map<V, V> cameFrom = new LinkedHashMap<>();
         Set<V> visited = new HashSet<>();
         Deque<V> stack = new ArrayDeque<>();
 
-        parent.put(start, start);
         stack.push(start);
 
         while (!stack.isEmpty()) {
@@ -88,13 +80,13 @@ class GraphTraversal {
                 visited.add(current);
                 for (V neighbour : neighbours.apply(current)) {
                     if (!visited.contains(neighbour)) {
-                        parent.put(neighbour, current);
+                        cameFrom.put(neighbour, current);
                         stack.push(neighbour);
                     }
                 }
             }
         }
-        return Collections.unmodifiableMap(parent);
+        return Collections.unmodifiableMap(cameFrom);
     }
 
     // Not instantiable

@@ -226,7 +226,7 @@ public class Graph<V> {
      */
     public Map<V, V> bfs(V start, Function<V, Iterable<V>> neighbours) {
         return JavaFacadeBridge$.MODULE$.bfsWithNeighbours(
-                getScalaGraph(), start, v -> neighbours.apply(v));
+                getScalaGraph(), start, neighbours);
     }
 
     /**
@@ -243,7 +243,7 @@ public class Graph<V> {
      */
     public Map<V, V> dfs(V start, Function<V, Iterable<V>> neighbours) {
         return JavaFacadeBridge$.MODULE$.dfsWithNeighbours(
-                getScalaGraph(), start, v -> neighbours.apply(v));
+                getScalaGraph(), start, neighbours);
     }
 
     // -------------------------------------------------------------------------

@@ -8,6 +8,8 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
+ * TODO move this to the attic as it is no longer used.
+ *
  * Internal implementation of BFS and DFS traversals for the Java façade,
  * used for Option 3 (custom neighbour function) only.
  *

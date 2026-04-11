@@ -18,32 +18,16 @@ import java.util.function.Function;
  * is invalidated whenever the graph is mutated ({@link #addEdge}, {@link #addVertex}),
  * so the Scala graph is always consistent with the Java state.</p>
  *
- * <p>BFS and DFS (Option 1) delegate to the Scala Visitor engine via
- * {@link JavaFacadeBridge} and return a <em>came-from map</em>: for each discovered
- * vertex {@code v}, {@code result.get(v)} is the vertex from which {@code v} was
- * first discovered. The start vertex is absent from the map — it has no predecessor.
- * This is consistent with all other algorithm façades in Gryphon.</p>
+ * <p>All BFS and DFS traversals — both Option 1 and Option 3 — delegate to the
+ * Scala Visitor engine via {@link JavaFacadeBridge} and return a <em>came-from
+ * map</em>: for each discovered vertex {@code v}, {@code result.get(v)} is the
+ * vertex from which {@code v} was first discovered. The start vertex is absent
+ * from the map — it has no predecessor. This is consistent with all other
+ * algorithm façades in Gryphon (Dijkstra SPT, Prim/Kruskal MST, Kosaraju SCC).</p>
  *
- * <p>BFS and DFS Option 3 (custom neighbour function) remain implemented in Java
- * via {@link GraphTraversal} and also return a came-from map with the start vertex
- * absent.</p>
- *
- * <p>Directionality is fixed at construction time via the factory methods
- * {@link #directed()} and {@link #undirected()}.</p>
- *
- * <p><b>Usage example:</b>
+ * <p><b>Path reconstruction:</b>
  * <pre>{@code
- * Graph<String> g = Graph.undirected();
- * g.addEdge("A", "B");
- * g.addEdge("B", "C");
- * g.addEdge("C", "D");
- *
  * Map<String, String> tree = g.bfs("A");
- * boolean reachable = tree.containsKey("D");   // true
- * String  cameFrom  = tree.get("C");           // "B"
- * // Note: start vertex "A" is absent from the map
- *
- * // Path reconstruction: walk came-from pointers until key is absent
  * List<String> path = new ArrayList<>();
  * String v = "D";
  * path.add(v);
@@ -198,68 +182,68 @@ public class Graph<V> {
     // -------------------------------------------------------------------------
 
     /**
-     * Performs a breadth-first search from {@code start}, delegating to the
-     * Scala Visitor engine.
+     * Performs a breadth-first search from {@code start}.
      *
-     * <p>Returns a came-from map: for each discovered vertex {@code v},
-     * {@code result.get(v)} is the vertex from which {@code v} was first
-     * discovered. The start vertex is absent — it has no predecessor.</p>
+     * <p>Returns a came-from map; start vertex absent.</p>
      *
      * <p>Path reconstruction: walk {@code result.get(v)} until the key is
      * absent — that vertex is the start.</p>
      *
      * @param start the source vertex.
-     * @return the BFS came-from map; start vertex absent.
+     * @return the BFS came-from map.
      */
     public Map<V, V> bfs(V start) {
         return JavaFacadeBridge$.MODULE$.bfs(getScalaGraph(), start);
     }
 
     /**
-     * Performs a depth-first search from {@code start}, delegating to the
-     * Scala Visitor engine.
+     * Performs a depth-first search from {@code start}.
      *
-     * <p>Returns a came-from map: for each discovered vertex {@code v},
-     * {@code result.get(v)} is the vertex from which {@code v} was first
-     * discovered. The start vertex is absent — it has no predecessor.</p>
+     * <p>Returns a came-from map; start vertex absent.</p>
      *
      * @param start the source vertex.
-     * @return the DFS came-from map; start vertex absent.
+     * @return the DFS came-from map.
      */
     public Map<V, V> dfs(V start) {
         return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start);
     }
 
     // -------------------------------------------------------------------------
-    // Traversals — Option 3 (custom neighbour function, stays in Java)
+    // Traversals — Option 3 (custom neighbour function, delegates to Scala engine)
     // -------------------------------------------------------------------------
 
     /**
      * Performs a breadth-first search from {@code start} using a custom
      * neighbour function.
      *
-     * <p>Returns a came-from map with the start vertex absent.</p>
+     * <p>The neighbour function is wrapped into a Scala {@code Neighbours[V,V]}
+     * given instance and passed to the Visitor engine, ensuring consistent
+     * behaviour with Option 1. Returns a came-from map; start vertex absent.</p>
      *
      * @param start      the source vertex.
      * @param neighbours a function mapping each vertex to its neighbours.
-     * @return the BFS came-from map; start vertex absent.
+     * @return the BFS came-from map.
      */
     public Map<V, V> bfs(V start, Function<V, Iterable<V>> neighbours) {
-        return GraphTraversal.bfs(start, neighbours);
+        return JavaFacadeBridge$.MODULE$.bfsWithNeighbours(
+                getScalaGraph(), start, v -> neighbours.apply(v));
     }
 
     /**
      * Performs a depth-first search from {@code start} using a custom
      * neighbour function.
      *
-     * <p>Returns a came-from map with the start vertex absent.</p>
+     * <p>The neighbour function is wrapped into a Scala {@code Neighbours[V,V]}
+     * given instance and passed to the Visitor engine, ensuring consistent
+     * behaviour with Option 1. Returns a came-from map; start vertex absent.</p>
      *
      * @param start      the source vertex.
      * @param neighbours a function mapping each vertex to its neighbours.
-     * @return the DFS came-from map; start vertex absent.
+     * @return the DFS came-from map.
      */
     public Map<V, V> dfs(V start, Function<V, Iterable<V>> neighbours) {
-        return GraphTraversal.dfs(start, neighbours);
+        return JavaFacadeBridge$.MODULE$.dfsWithNeighbours(
+                getScalaGraph(), start, v -> neighbours.apply(v));
     }
 
     // -------------------------------------------------------------------------

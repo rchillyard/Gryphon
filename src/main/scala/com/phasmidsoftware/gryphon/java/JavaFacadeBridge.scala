@@ -13,26 +13,24 @@ import scala.util.Random
  * All members are accessible from Java as static methods on `JavaFacadeBridge$`.
  * This object is package-private to `com.phasmidsoftware.gryphon.java`.
  *
- * V1.4.0 changes:
- *  - `bfs` and `dfs` bridge methods added; Java façade BFS/DFS now delegate
- *    to the Scala Visitor engine using `CameFromJournal`.
- *  - Start vertex is absent from the came-from map — consistent with all other
- *    algorithm façades (Dijkstra SPT, Prim/Kruskal MST, Kosaraju SCC).
+ * All BFS and DFS traversals — both Option 1 and Option 3 — delegate to the
+ * Scala Visitor engine using `CameFromJournal`. The start vertex is absent from
+ * the came-from map in all cases, consistent with all other algorithm façades.
+ *
+ * Option 3 wraps the Java `Function<V, Iterable<V>>` into a Scala
+ * `Neighbours[V, V]` given instance, then delegates to `Traversal.bfs`/`dfs`.
+ * The overhead of the `asScala` iterator conversion is O(1) per neighbour visit
+ * and negligible for all realistic graph sizes.
  */
 private[java] object JavaFacadeBridge:
 
   // ---------------------------------------------------------------------------
-  // BFS — delegates to Scala Traversal engine with CameFromJournal
+  // BFS — Option 1: graph's own adjacency
   // ---------------------------------------------------------------------------
 
   /**
-   * Runs BFS from `start` on the materialised Scala graph, returning a Java
-   * came-from map. The start vertex is absent — it has no predecessor.
-   *
-   * @param scalaGraph the materialised Scala graph.
-   * @param start      the source vertex.
-   * @tparam V the vertex type.
-   * @return an unmodifiable Java `Map<V, V>` came-from map.
+   * Runs BFS from `start` on the materialised Scala graph.
+   * The start vertex is absent from the returned came-from map.
    */
   def bfs[V](scalaGraph: AbstractGraph[V], start: V): java.util.Map[V, V] =
     given Random = Random(0)
@@ -48,7 +46,33 @@ private[java] object JavaFacadeBridge:
     cameFromToJavaMap(result)
 
   // ---------------------------------------------------------------------------
-  // DFS — delegates to Scala Traversal engine with CameFromJournal
+  // BFS — Option 3: custom neighbour function
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs BFS from `start` using a caller-supplied neighbour function,
+   * wrapped into a Scala `Neighbours[V, V]` given instance.
+   * The start vertex is absent from the returned came-from map.
+   */
+  def bfsWithNeighbours[V](
+                                  scalaGraph: AbstractGraph[V],
+                                  start: V,
+                                  neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
+                          ): java.util.Map[V, V] =
+    given Random = Random(0)
+
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+    given Neighbours[V, V] with
+      def neighbours(v: V): Iterator[V] =
+        neighboursFn.apply(v).iterator().asScala
+    val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+    val result = Traversal.bfs(start, visitor)
+            .asInstanceOf[JournaledVisitor[V, V, ?]]
+    cameFromToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // DFS — Option 1: graph's own adjacency
   // ---------------------------------------------------------------------------
 
   /**
@@ -68,6 +92,30 @@ private[java] object JavaFacadeBridge:
 
     given GraphNeighbours[V] = scalaGraph.graphNeighbours
 
+    val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
+    val result = Traversal.dfs(start, visitor)
+            .asInstanceOf[JournaledVisitor[V, V, ?]]
+    cameFromToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // DFS — Option 3: custom neighbour function
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs DFS from `start` using a caller-supplied neighbour function,
+   * wrapped into a Scala `Neighbours[V, V]` given instance.
+   * The start vertex is absent from the returned came-from map.
+   */
+  def dfsWithNeighbours[V](
+                                  scalaGraph: AbstractGraph[V],
+                                  start: V,
+                                  neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
+                          ): java.util.Map[V, V] =
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+    given Neighbours[V, V] with
+      def neighbours(v: V): Iterator[V] =
+        neighboursFn.apply(v).iterator().asScala
     val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
     val result = Traversal.dfs(start, visitor)
             .asInstanceOf[JournaledVisitor[V, V, ?]]
@@ -170,7 +218,6 @@ private[java] object JavaFacadeBridge:
     given Random = Random(0)
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-
     given Zero[Double] = summon[Zero[Double]]
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = MST.prim[V, Double](weightedGraph, start)

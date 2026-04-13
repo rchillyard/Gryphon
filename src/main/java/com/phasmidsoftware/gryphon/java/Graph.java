@@ -13,33 +13,26 @@ import java.util.function.Function;
  * A mutable, lazily-materialised façade over Gryphon's purely functional graph types.
  *
  * <p>{@code Graph<V>} accumulates vertices and edges in ordinary Java collections.
- * When a weighted algorithm ({@code ShortestPaths}, {@code MinimumSpanningTree}, etc.)
- * is requested, it materialises an immutable Scala graph from those collections,
- * caches it, and delegates to Gryphon's Scala engine. The cache is invalidated
- * whenever the graph is mutated ({@link #addEdge}, {@link #addVertex}), so the
- * Scala graph is always consistent with the Java state.</p>
+ * When any algorithm is requested, it materialises an immutable Scala graph from
+ * those collections, caches it, and delegates to Gryphon's Scala engine. The cache
+ * is invalidated whenever the graph is mutated ({@link #addEdge}, {@link #addVertex}),
+ * so the Scala graph is always consistent with the Java state.</p>
  *
- * <p>Plain BFS and DFS are implemented directly in Java (via {@link GraphTraversal})
- * and do not use the Scala graph. The Scala engine is used for algorithms that
- * require it: Dijkstra, Prim, Kruskal, Kosaraju.</p>
+ * <p>All BFS and DFS traversals — both Option 1 and Option 3 — delegate to the
+ * Scala Visitor engine via {@link JavaFacadeBridge} and return a <em>came-from
+ * map</em>: for each discovered vertex {@code v}, {@code result.get(v)} is the
+ * vertex from which {@code v} was first discovered. The start vertex is absent
+ * from the map — it has no predecessor. This is consistent with all other
+ * algorithm façades in Gryphon (Dijkstra SPT, Prim/Kruskal MST, Kosaraju SCC).</p>
  *
- * <p>Directionality is fixed at construction time via the factory methods
- * {@link #directed()} and {@link #undirected()}. For an undirected graph,
- * {@code addEdge(u, v)} automatically adds both directions internally.</p>
- *
- * <p><b>Usage example:</b>
+ * <p><b>Path reconstruction:</b>
  * <pre>{@code
- * Graph<String> g = Graph.undirected();
- * g.addEdge("A", "B");
- * g.addEdge("B", "C");
- * g.addEdge("C", "D");
- *
  * Map<String, String> tree = g.bfs("A");
- * boolean reachable = tree.containsKey("D");   // true
- * String  parent    = tree.get("C");           // "B"
- *
- * // Custom neighbour function (Option 3)
- * Map<String, String> tree2 = g.bfs("A", v -> g.neighbours(v));
+ * List<String> path = new ArrayList<>();
+ * String v = "D";
+ * path.add(v);
+ * while (tree.containsKey(v)) { v = tree.get(v); path.add(0, v); }
+ * // path == ["A", "B", "C", "D"]
  * }</pre>
  * </p>
  *
@@ -157,8 +150,7 @@ public class Graph<V> {
     }
 
     /**
-     * Returns the neighbours of {@code vertex} — the vertices directly
-     * reachable from it by a single edge.
+     * Returns the neighbours of {@code vertex}.
      *
      * @param vertex the query vertex.
      * @return an iterable of neighbouring vertices.
@@ -186,79 +178,76 @@ public class Graph<V> {
     }
 
     // -------------------------------------------------------------------------
-    // Traversals — Option 1 (sensible defaults)
+    // Traversals — Option 1 (delegates to Scala Visitor engine)
     // -------------------------------------------------------------------------
 
     /**
-     * Performs a breadth-first search from {@code start}, using the graph's
-     * own adjacency structure to determine neighbours.
+     * Performs a breadth-first search from {@code start}.
      *
-     * <p>Returns the BFS traversal tree as a parent map: for each visited
-     * vertex {@code v}, {@code result.get(v)} is {@code v}'s parent in the
-     * tree. The start vertex maps to itself.</p>
+     * <p>Returns a came-from map; start vertex absent.</p>
+     *
+     * <p>Path reconstruction: walk {@code result.get(v)} until the key is
+     * absent — that vertex is the start.</p>
      *
      * @param start the source vertex.
-     * @return the BFS parent map.
+     * @return the BFS came-from map.
      */
     public Map<V, V> bfs(V start) {
-        return bfs(start, this::neighbours);
+        return JavaFacadeBridge$.MODULE$.bfs(getScalaGraph(), start);
     }
 
     /**
-     * Performs a depth-first search from {@code start}, using the graph's
-     * own adjacency structure to determine neighbours.
+     * Performs a depth-first search from {@code start}.
      *
-     * <p>Returns the DFS traversal tree as a parent map: for each visited
-     * vertex {@code v}, {@code result.get(v)} is {@code v}'s parent in the
-     * tree. The start vertex maps to itself.</p>
+     * <p>Returns a came-from map; start vertex absent.</p>
      *
      * @param start the source vertex.
-     * @return the DFS parent map.
+     * @return the DFS came-from map.
      */
     public Map<V, V> dfs(V start) {
-        return dfs(start, this::neighbours);
+        return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start);
     }
 
     // -------------------------------------------------------------------------
-    // Traversals — Option 3 (custom neighbour function)
+    // Traversals — Option 3 (custom neighbour function, delegates to Scala engine)
     // -------------------------------------------------------------------------
 
     /**
-     * Performs a breadth-first search from {@code start}, using a custom
-     * neighbour function to determine which vertices to visit from each vertex.
-     *
-     * <p>This is Option 3 of the traversal API: the caller supplies the
-     * neighbour logic as a {@link Function}, allowing custom filtering,
-     * edge-weight-based pruning, or any other neighbour selection strategy.</p>
-     *
-     * <p>Returns the BFS traversal tree as a parent map.</p>
-     *
-     * @param start      the source vertex.
-     * @param neighbours a function mapping each vertex to its neighbours.
-     * @return the BFS parent map.
-     */
-    public Map<V, V> bfs(V start, Function<V, Iterable<V>> neighbours) {
-        return GraphTraversal.bfs(start, neighbours, vertices());
-    }
-
-    /**
-     * Performs a depth-first search from {@code start}, using a custom
+     * Performs a breadth-first search from {@code start} using a custom
      * neighbour function.
      *
-     * <p>This is Option 3 of the traversal API.</p>
-     *
-     * <p>Returns the DFS traversal tree as a parent map.</p>
+     * <p>The neighbour function is wrapped into a Scala {@code Neighbours[V,V]}
+     * given instance and passed to the Visitor engine, ensuring consistent
+     * behaviour with Option 1. Returns a came-from map; start vertex absent.</p>
      *
      * @param start      the source vertex.
      * @param neighbours a function mapping each vertex to its neighbours.
-     * @return the DFS parent map.
+     * @return the BFS came-from map.
+     */
+    public Map<V, V> bfs(V start, Function<V, Iterable<V>> neighbours) {
+        return JavaFacadeBridge$.MODULE$.bfsWithNeighbours(
+                getScalaGraph(), start, neighbours);
+    }
+
+    /**
+     * Performs a depth-first search from {@code start} using a custom
+     * neighbour function.
+     *
+     * <p>The neighbour function is wrapped into a Scala {@code Neighbours[V,V]}
+     * given instance and passed to the Visitor engine, ensuring consistent
+     * behaviour with Option 1. Returns a came-from map; start vertex absent.</p>
+     *
+     * @param start      the source vertex.
+     * @param neighbours a function mapping each vertex to its neighbours.
+     * @return the DFS came-from map.
      */
     public Map<V, V> dfs(V start, Function<V, Iterable<V>> neighbours) {
-        return GraphTraversal.dfs(start, neighbours, vertices());
+        return JavaFacadeBridge$.MODULE$.dfsWithNeighbours(
+                getScalaGraph(), start, neighbours);
     }
 
     // -------------------------------------------------------------------------
-    // Scala graph materialisation (package-private — used by ShortestPaths etc.)
+    // Scala graph materialisation (package-private)
     // -------------------------------------------------------------------------
 
     /**
@@ -334,7 +323,6 @@ public class Graph<V> {
     /**
      * Cached Scala graph. Null whenever the Java state has been mutated
      * since the last materialisation. Built lazily on first traversal call.
-     * Reserved for future use when Scala traversal delegation is wired up.
      */
     @SuppressWarnings("rawtypes")
     private AbstractGraph scalaGraph = null;

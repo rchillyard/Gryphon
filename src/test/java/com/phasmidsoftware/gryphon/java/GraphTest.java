@@ -254,11 +254,12 @@ public class GraphTest {
     class BfsTests {
 
         @Test
-        void testBfsStartMapsToItself() {
+        void testBfsStartAbsent() {
             Graph<String> g = Graph.undirected();
             g.addEdge("A", "B");
             Map<String, String> tree = g.bfs("A");
-            assertEquals("A", tree.get("A"));
+            assertFalse(tree.containsKey("A"),
+                    "Start vertex should be absent from came-from map");
         }
 
         @Test
@@ -271,7 +272,7 @@ public class GraphTest {
         }
 
         @Test
-        void testBfsParentCorrect() {
+        void testBfsCameFromCorrect() {
             Graph<String> g = Graph.undirected();
             g.addEdge("A", "B");
             g.addEdge("B", "C");
@@ -297,8 +298,7 @@ public class GraphTest {
             Map<String, String> tree = g.bfs("A");
             assertTrue(tree.containsKey("B"));
             assertTrue(tree.containsKey("C"));
-            // reverse direction not reachable
-            assertFalse(tree.containsKey("A") && tree.get("A").equals("B"));
+            assertFalse(tree.containsKey("A"));
         }
 
         @Test
@@ -307,7 +307,6 @@ public class GraphTest {
             g.addEdge("A", "B");
             g.addEdge("A", "C");
             g.addEdge("B", "D");
-            // Custom neighbour function: exclude "C"
             Map<String, String> tree = g.bfs("A",
                     v -> toList(g.neighbours(v)).stream()
                             .filter(n -> !n.equals("C"))
@@ -321,8 +320,21 @@ public class GraphTest {
             Graph<Integer> g = Graph.undirected();
             for (int i = 0; i < 5; i++) g.addEdge(i, i + 1);
             Map<Integer, Integer> tree = g.bfs(0);
-            // All vertices 0..5 reachable
-            for (int i = 0; i <= 5; i++) assertTrue(tree.containsKey(i));
+            // Start vertex 0 is absent; vertices 1..5 are reachable
+            assertFalse(tree.containsKey(0));
+            for (int i = 1; i <= 5; i++) assertTrue(tree.containsKey(i));
+        }
+
+        @Test
+        void testBfsPathReconstruction() {
+            Graph<String> g = Graph.undirected();
+            g.addEdge("A", "B");
+            g.addEdge("B", "C");
+            g.addEdge("C", "D");
+            Map<String, String> tree = g.bfs("A");
+            List<String> path = reconstructPath(tree, "A", "D");
+            assertEquals("A", path.getFirst());
+            assertEquals("D", path.getLast());
         }
     }
 
@@ -334,11 +346,12 @@ public class GraphTest {
     class DfsTests {
 
         @Test
-        void testDfsStartMapsToItself() {
+        void testDfsStartAbsent() {
             Graph<String> g = Graph.undirected();
             g.addEdge("A", "B");
             Map<String, String> tree = g.dfs("A");
-            assertEquals("A", tree.get("A"));
+            assertFalse(tree.containsKey("A"),
+                    "Start vertex should be absent from came-from map");
         }
 
         @Test
@@ -367,6 +380,7 @@ public class GraphTest {
             Map<String, String> tree = g.dfs("A");
             assertTrue(tree.containsKey("B"));
             assertTrue(tree.containsKey("C"));
+            assertFalse(tree.containsKey("A"));
         }
 
         @Test
@@ -375,7 +389,6 @@ public class GraphTest {
             g.addEdge("A", "B");
             g.addEdge("A", "C");
             g.addEdge("C", "D");
-            // Exclude B — so D is reachable via C but not via B
             Map<String, String> tree = g.dfs("A",
                     v -> toList(g.neighbours(v)).stream()
                             .filter(n -> !n.equals("B"))
@@ -385,13 +398,12 @@ public class GraphTest {
         }
 
         @Test
-        void testDfsParentMapAllowsPathReconstruction() {
+        void testDfsPathReconstruction() {
             Graph<String> g = Graph.undirected();
             g.addEdge("A", "B");
             g.addEdge("B", "C");
             g.addEdge("C", "D");
             Map<String, String> tree = g.dfs("A");
-            // Reconstruct path from D back to A
             List<String> path = reconstructPath(tree, "A", "D");
             assertEquals("A", path.getFirst());
             assertEquals("D", path.getLast());
@@ -403,7 +415,8 @@ public class GraphTest {
             Graph<Integer> g = Graph.undirected();
             for (int i = 0; i < n - 1; i++) g.addEdge(i, i + 1);
             Map<Integer, Integer> tree = g.dfs(0);
-            assertEquals(n, tree.size());
+            // n vertices total, start absent → n-1 entries
+            assertEquals(n - 1, tree.size());
         }
     }
 
@@ -417,14 +430,18 @@ public class GraphTest {
         return list;
     }
 
-    private static <V> List<V> reconstructPath(Map<V, V> parent, V start, V end) {
+    /**
+     * Reconstructs the path from {@code start} to {@code end} using the came-from map.
+     * Works with start vertex absent — walk until key is absent.
+     */
+    private static <V> List<V> reconstructPath(Map<V, V> cameFrom, V start, V end) {
         List<V> path = new java.util.ArrayList<>();
         V current = end;
-        while (!current.equals(start)) {
+        while (cameFrom.containsKey(current)) {
             path.addFirst(current);
-            current = parent.get(current);
+            current = cameFrom.get(current);
         }
-        path.addFirst(start);
+        path.addFirst(current); // add start (not in map)
         return path;
     }
 }

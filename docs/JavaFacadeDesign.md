@@ -74,28 +74,28 @@ all Scala machinery is hidden.
 
 ### Implemented
 
-| Class | Package | Description |
-|---|---|---|
-| `Edge<V>` | `gryphon.java` | Immutable unweighted edge with `from`, `to`, `reverse` |
-| `WeightedEdge<V,E>` | `gryphon.java` | Extends `Edge<V>` with typed `attribute` |
-| `Graph<V>` | `gryphon.java` | Mutable lazy-builder façade; directed/undirected |
-| `WeightedGraph<V,E>` | `gryphon.java` | Extends `Graph<V>`; typed edge attribute; `weightedEdges()` |
-| `GraphTraversal` | `gryphon.java` | Package-private BFS/DFS; returns `Map<V,V>` parent trees |
-| `Connectivity<V>` | `gryphon.java` | Mutable façade over `Connectivity` / `ConnectivityOptimized` |
-| `ShortestPaths` | `gryphon.java` | Dijkstra (Option 1: `Double`; Option 3: custom combine/zero/comparator) |
-| `MinimumSpanningTree` | `gryphon.java` | Prim and Kruskal (Option 1: `Double`; Option 3: custom comparator only) |
-| `StronglyConnectedComponents` | `gryphon.java` | Kosaraju; `count()`; `components()` |
-| `JavaFacadeBridge` | `gryphon.java` | Internal Scala bridge: graph materialisation and algorithm delegation |
+| Class                         | Package        | Description                                                             |
+|-------------------------------|----------------|-------------------------------------------------------------------------|
+| `Edge<V>`                     | `gryphon.java` | Immutable unweighted edge with `from`, `to`, `reverse`                  |
+| `WeightedEdge<V,E>`           | `gryphon.java` | Extends `Edge<V>` with typed `attribute`                                |
+| `Graph<V>`                    | `gryphon.java` | Mutable lazy-builder façade; directed/undirected                        |
+| `WeightedGraph<V,E>`          | `gryphon.java` | Extends `Graph<V>`; typed edge attribute; `weightedEdges()`             |
+| `GraphTraversal`              | `gryphon.java` | Package-private BFS/DFS; returns `Map<V,V>` parent trees                |
+| `Connectivity<V>`             | `gryphon.java` | Mutable façade over `Connectivity` / `ConnectivityOptimized`            |
+| `ShortestPaths`               | `gryphon.java` | Dijkstra (Option 1: `Double`; Option 3: custom combine/zero/comparator) |
+| `MinimumSpanningTree`         | `gryphon.java` | Prim and Kruskal (Option 1: `Double`; Option 3: custom comparator only) |
+| `StronglyConnectedComponents` | `gryphon.java` | Kosaraju; `count()`; `components()`                                     |
+| `JavaFacadeBridge`            | `gryphon.java` | Internal Scala bridge: graph materialisation and algorithm delegation   |
 
 ### Test Coverage
 
-| Test class | Framework | Status |
-|---|---|---|
-| `ConnectivityTest` | JUnit 5 | ✅ Green |
-| `GraphTest` | JUnit 5 | ✅ Green |
-| `ShortestPathsTest` | JUnit 5 | ✅ Green |
-| `MinimumSpanningTreeTest` | JUnit 5 | ✅ Green |
-| `StronglyConnectedComponentsTest` | JUnit 5 | ✅ Green |
+| Test class                        | Framework | Status  |
+|-----------------------------------|-----------|---------|
+| `ConnectivityTest`                | JUnit 5   | ✅ Green |
+| `GraphTest`                       | JUnit 5   | ✅ Green |
+| `ShortestPathsTest`               | JUnit 5   | ✅ Green |
+| `MinimumSpanningTreeTest`         | JUnit 5   | ✅ Green |
+| `StronglyConnectedComponentsTest` | JUnit 5   | ✅ Green |
 
 ### Build
 
@@ -199,23 +199,23 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 
 ## Directionality Constraints
 
-| Algorithm | Graph type required |
-|---|---|
-| `Graph.bfs` / `Graph.dfs` | either |
-| `ShortestPaths.dijkstra` | directed |
-| `MinimumSpanningTree.prim` | undirected |
-| `MinimumSpanningTree.kruskal` | undirected |
-| `StronglyConnectedComponents.kosaraju` | directed |
+| Algorithm                              | Graph type required |
+|----------------------------------------|---------------------|
+| `Graph.bfs` / `Graph.dfs`              | either              |
+| `ShortestPaths.dijkstra`               | directed            |
+| `MinimumSpanningTree.prim`             | undirected          |
+| `MinimumSpanningTree.kruskal`          | undirected          |
+| `StronglyConnectedComponents.kosaraju` | directed            |
 
 ---
 
 ## Option 3 API Summary
 
-| Algorithm | Option 3 parameters | Reason |
-|---|---|---|
-| `ShortestPaths.dijkstra` | `combine`, `zero`, `comparator` | Accumulates path costs — needs full Monoid |
-| `MinimumSpanningTree.prim` | `comparator` only | Compares edge weights; never combines |
-| `MinimumSpanningTree.kruskal` | `comparator` only | Sorts edge weights; never combines |
+| Algorithm                     | Option 3 parameters             | Reason                                     |
+|-------------------------------|---------------------------------|--------------------------------------------|
+| `ShortestPaths.dijkstra`      | `combine`, `zero`, `comparator` | Accumulates path costs — needs full Monoid |
+| `MinimumSpanningTree.prim`    | `comparator` only               | Compares edge weights; never combines      |
+| `MinimumSpanningTree.kruskal` | `comparator` only               | Sorts edge weights; never combines         |
 
 ---
 
@@ -229,7 +229,7 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
   correct — it delegates to `VertexMap.+[E]` which calls `ensure` for both
   endpoints. `DirectedGraph.addEdge` should do the same.
   **Workaround:** all `JavaFacadeBridge` materialisation methods fold directly
-  over `VertexMap.+[E]` rather than through `DirectedGraph.addEdge`.
+  over `VertexMap.+[E]` rather than through `DirectedGraph.addEdge`. See [Issue #16](https://github.com/rchillyard/Gryphon/issues/16#issue-4240244349)
 
 - **`Monoid[E].combine` is a stub in `primCustom`.**
   Prim's algorithm only uses `Monoid[E].identity` (as the initial frontier cost)
@@ -237,13 +237,12 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
   `Monoid[E]` given in `primCustom` therefore supplies a stub `combine` that
   returns `x`. This is harmless at runtime. A cleaner fix would be to decouple
   the `Ordering[E]` and `Monoid[E]` context bounds in `WeightedTraversal`,
-  making `Monoid` optional for Prim. That is a Gryphon/Visitor change.
+  making `Monoid` optional for Prim. That is a Gryphon/Visitor change. See [Issue #9](https://github.com/rchillyard/Visitor/issues/9#issue-4240254773)
 
-- **Java type erasure forces distinct factory method names on `WeightedGraph`.**
-  `WeightedGraph.directed()` and `WeightedGraph.undirected()` would clash with
-  the inherited `Graph.directed()` and `Graph.undirected()` after erasure.
-  Workaround: factory methods are named `directedWeighted()` and
-  `undirectedWeighted()`.
+- **CameFrom pointers in the Visitor engine.** Adding a `CameFromJournal[V]` to
+  Visitor would allow `GraphTraversal.bfs` / `dfs` to delegate fully to the
+  Scala engine. This is a Visitor library change, not a Gryphon change.
+  See [Issue #10](https://github.com/rchillyard/Visitor/issues/10#issue-4240254800)
 
 ---
 
@@ -259,12 +258,6 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 - **`Graph.fromEdgeList(List<Edge<V>> edges, boolean directed)`** — convenience
   factory for constructing a graph from an existing edge collection.
 
-- **`Graph.vertices()` returning `List<V>`** — currently returns `Set<V>`;
-  a deterministic `List<V>` (insertion-order) may be more useful for student
-  assignments where vertex ordering matters.
-
-### Low Priority / Aspirational
-
 - **`ConnectedComponents` façade.**
   ```java
   List<Set<V>> ConnectedComponents.find(Graph<V> g);
@@ -278,26 +271,27 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 - **Graph loading from file.** A `GraphReader` parsing the `.graph` resource
   format and producing a `Graph<V>` or `WeightedGraph<V,E>`.
 
-- **Parent pointers in the Visitor engine.** Adding a `ParentJournal[V]` to
-  Visitor would allow `GraphTraversal.bfs` / `dfs` to delegate fully to the
-  Scala engine. This is a Visitor library change, not a Gryphon change.
+### Low Priority / Aspirational
 
 - **Visitor Java façade.** Functional interfaces map to typeclasses as follows:
 
-  | Typeclass | Java equivalent |
-    |---|---|
+  | Typeclass          | Java equivalent            |
+  |--------------------|----------------------------|
   | `Neighbours[H, V]` | `Function<V, Iterable<V>>` |
-  | `VisitedSet[V]` | `Supplier<Set<V>>` |
-  | `Evaluable[V, R]` | `Function<V, R>` |
-  | `Frontier[F[_]]` | `Supplier<Deque<V>>` |
+  | `VisitedSet[V]`    | `Supplier<Set<V>>`         |
+  | `Evaluable[V, R]`  | `Function<V, R>`           |
+  | `Frontier[F[_]]`   | `Supplier<Deque<V>>`       |
+
+- **`Graph.vertices()` returning `List<V>`** — currently returns `Set<V>`;
+  a deterministic `List<V>` (insertion-order) may be more useful for student
+  assignments where vertex ordering matters.
+
+- **Graph loading from a standard interchange file.** A `GraphReader` parsing GraphML files
+  and producing a `Graph<V>` or `WeightedGraph<V,E>`.
 
 - **Scala `Graph` unification.** Collapsing `DirectedGraph[V, E]` and
   `UndirectedGraph[V, E]` into a single `Graph[V, E](directed: Boolean)` would
   simplify the Java façade's materialisation logic considerably.
-
-- **Fix `DirectedGraph.addEdge` to ensure both endpoints exist.** See Known
-  Issues. Once fixed, the materialisation workarounds in `JavaFacadeBridge` can
-  be simplified.
 
 ---
 
@@ -311,16 +305,22 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
    `com.phasmidsoftware.gryphon.java`. If the façade grows substantially, it may
    warrant sub-packages: `gryphon.java.graph`, `gryphon.java.algo`, etc.
 
+3. **Java type erasure forces distinct factory method names on `WeightedGraph`.**
+  `WeightedGraph.directed()` and `WeightedGraph.undirected()` would clash with
+  the inherited `Graph.directed()` and `Graph.undirected()` after erasure.
+  Workaround: factory methods are named `directedWeighted()` and
+  `undirectedWeighted()`.
+
 ---
 
 ## Version History
 
-| Version | Changes |
-|---|---|
-| 1.0.0 | Initial release |
-| 1.1.0 | First update post-release |
-| 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized; WeightedUnion |
-| 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity; JUnit 5; Java 21 |
-| 1.2.2 | ShortestPaths (Dijkstra Option 1 and Option 3); JavaFacadeBridge; ShortestPathsTest |
-| 1.2.3 | MinimumSpanningTree (Prim and Kruskal); StronglyConnectedComponents (Kosaraju); MST Scala entry point |
-| 1.3.0 | WeightedGraph<V,E> extending Graph<V>; typed edge attributes eliminate runtime casts; simplified Option 3 API for Prim/Kruskal (Comparator only); Dijkstra Option 3 retains combine+zero+comparator; validated against Northeastern tunnel network |
+| Version | Changes                                                                                                                                                                                                                                            |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0.0   | Initial release                                                                                                                                                                                                                                    |
+| 1.1.0   | First update post-release                                                                                                                                                                                                                          |
+| 1.2.0   | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized; WeightedUnion                                                                                                                                                         |
+| 1.2.1   | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity; JUnit 5; Java 21                                                                                                                                                             |
+| 1.2.2   | ShortestPaths (Dijkstra Option 1 and Option 3); JavaFacadeBridge; ShortestPathsTest                                                                                                                                                                |
+| 1.2.3   | MinimumSpanningTree (Prim and Kruskal); StronglyConnectedComponents (Kosaraju); MST Scala entry point                                                                                                                                              |
+| 1.3.0   | WeightedGraph<V,E> extending Graph<V>; typed edge attributes eliminate runtime casts; simplified Option 3 API for Prim/Kruskal (Comparator only); Dijkstra Option 3 retains combine+zero+comparator; validated against Northeastern tunnel network |

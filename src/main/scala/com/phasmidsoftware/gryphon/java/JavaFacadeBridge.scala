@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.java
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
 import com.phasmidsoftware.gryphon.traverse.{Kruskal, MST, ShortestPaths}
-import com.phasmidsoftware.visitor.core.{Monoid, given}
+import com.phasmidsoftware.visitor.core.{*, given}
 import scala.jdk.CollectionConverters.*
 import scala.util.Random
 
@@ -13,15 +13,113 @@ import scala.util.Random
  * All members are accessible from Java as static methods on `JavaFacadeBridge$`.
  * This object is package-private to `com.phasmidsoftware.gryphon.java`.
  *
- * V1.3.0 changes:
- *  - Weighted bridge methods accept `java.util.List[WeightedEdge[V, E]]` directly
- *    from `WeightedGraph.weightedEdges()`, eliminating all runtime casts.
- *  - `primCustom` and `kruskalCustom` take only a `Comparator[E]` — Prim and
- *    Kruskal compare but never combine costs.
- *  - `dijkstraCustom` retains `combine` and `zero` (a `BinaryOperator` and
- *    identity element) because Dijkstra accumulates path costs.
+ * All BFS and DFS traversals — both Option 1 and Option 3 — delegate to the
+ * Scala Visitor engine using `CameFromJournal`. The start vertex is absent from
+ * the came-from map in all cases, consistent with all other algorithm façades.
+ *
+ * Option 3 wraps the Java `Function<V, Iterable<V>>` into a Scala
+ * `Neighbours[V, V]` given instance, then delegates to `Traversal.bfs`/`dfs`.
+ * The overhead of the `asScala` iterator conversion is O(1) per neighbour visit
+ * and negligible for all realistic graph sizes.
  */
 private[java] object JavaFacadeBridge:
+
+  // ---------------------------------------------------------------------------
+  // BFS — Option 1: graph's own adjacency
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs BFS from `start` on the materialised Scala graph.
+   * The start vertex is absent from the returned came-from map.
+   */
+  def bfs[V](scalaGraph: AbstractGraph[V], start: V): java.util.Map[V, V] =
+    given Random = Random(0)
+
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+
+    given GraphNeighbours[V] = scalaGraph.graphNeighbours
+
+    val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+    val result = Traversal.bfs(start, visitor)
+            .asInstanceOf[JournaledVisitor[V, V, ?]]
+    cameFromToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // BFS — Option 3: custom neighbour function
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs BFS from `start` using a caller-supplied neighbour function,
+   * wrapped into a Scala `Neighbours[V, V]` given instance.
+   * The start vertex is absent from the returned came-from map.
+   */
+  def bfsWithNeighbours[V](
+                                  scalaGraph: AbstractGraph[V],
+                                  start: V,
+                                  neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
+                          ): java.util.Map[V, V] =
+    given Random = Random(0)
+
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+    given Neighbours[V, V] with
+      def neighbours(v: V): Iterator[V] =
+        neighboursFn.apply(v).iterator().asScala
+    val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+    val result = Traversal.bfs(start, visitor)
+            .asInstanceOf[JournaledVisitor[V, V, ?]]
+    cameFromToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // DFS — Option 1: graph's own adjacency
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs DFS from `start` on the materialised Scala graph, returning a Java
+   * came-from map. The start vertex is absent — it has no predecessor.
+   *
+   * @param scalaGraph the materialised Scala graph.
+   * @param start      the source vertex.
+   * @tparam V the vertex type.
+   * @return an unmodifiable Java `Map<V, V>` came-from map.
+   */
+  def dfs[V](scalaGraph: AbstractGraph[V], start: V): java.util.Map[V, V] =
+    given Random = Random(0)
+
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+
+    given GraphNeighbours[V] = scalaGraph.graphNeighbours
+
+    val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
+    val result = Traversal.dfs(start, visitor)
+            .asInstanceOf[JournaledVisitor[V, V, ?]]
+    cameFromToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // DFS — Option 3: custom neighbour function
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs DFS from `start` using a caller-supplied neighbour function,
+   * wrapped into a Scala `Neighbours[V, V]` given instance.
+   * The start vertex is absent from the returned came-from map.
+   */
+  def dfsWithNeighbours[V](
+                                  scalaGraph: AbstractGraph[V],
+                                  start: V,
+                                  neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
+                          ): java.util.Map[V, V] =
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+    given Neighbours[V, V] with
+      def neighbours(v: V): Iterator[V] =
+        neighboursFn.apply(v).iterator().asScala
+    val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
+    val result = Traversal.dfs(start, visitor)
+            .asInstanceOf[JournaledVisitor[V, V, ?]]
+    cameFromToJavaMap(result)
 
   // ---------------------------------------------------------------------------
   // Materialisation — unweighted (Unit edge attribute)
@@ -118,7 +216,9 @@ private[java] object JavaFacadeBridge:
                            start: V
                    ): java.util.Map[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
+
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+    given Zero[Double] = summon[Zero[Double]]
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = MST.prim[V, Double](weightedGraph, start)
     mstToJavaMap(result)
@@ -139,13 +239,10 @@ private[java] object JavaFacadeBridge:
                               comparator: java.util.Comparator[E]
                       ): java.util.Map[V, WeightedEdge[V, E]] =
     given Random = Random(0)
-
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
-    given Monoid[E] with
+    given Zero[E] with
       def identity: E = edges.get(0).attribute
-
-      def combine(x: E, y: E): E = x  // never called by Prim
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = MST.prim[V, E](weightedGraph, start)
     mstToJavaMap(result)
@@ -199,6 +296,19 @@ private[java] object JavaFacadeBridge:
             .stronglyConnectedComponents(directedGraph)
     val javaMap = new java.util.LinkedHashMap[V, java.lang.Integer]()
     result.foreach { case (v, id) => javaMap.put(v, id) }
+    java.util.Collections.unmodifiableMap(javaMap)
+
+  // ---------------------------------------------------------------------------
+  // Result conversion — came-from map (BFS/DFS)
+  // ---------------------------------------------------------------------------
+
+  private def cameFromToJavaMap[V](
+                                          result: JournaledVisitor[V, V, ?]
+                                  ): java.util.Map[V, V] =
+    val javaMap = new java.util.LinkedHashMap[V, V]()
+    result.cameFrom.foreach { map =>
+      map.foreach { case (v, from) => javaMap.put(v, from) }
+    }
     java.util.Collections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------

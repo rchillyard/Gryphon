@@ -10,7 +10,7 @@ import scala.util.Random
  * A family of graph traversal algorithms unified under a single abstraction.
  *
  * All four classic algorithms — DFS, BFS, Dijkstra, Prim — share the same
- * underlying `Traversal` engine from Visitor V1.3.0. They differ only in:
+ * underlying `Traversal` engine from Visitor. They differ only in:
  *   - the frontier type (Stack, Queue, IndexedPrioQueue)
  *   - the frontier element type (V for DFS/BFS, (E,V) for Dijkstra/Prim)
  *   - the cost-update strategy (none, cumulative, edge-only)
@@ -90,25 +90,31 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
  * `IndexedPrioQueue[(E, V)]` frontier, `CostUpdate` with `decreaseKey`, and
  * mutable `pred`/`bestCost` maps owned exclusively by `CostUpdate`.
  *
- * Concrete subclasses differ in exactly two ways:
- *   - `edgeCost` — how the frontier cost is computed from an edge
- *     (cumulative for Dijkstra, edge-weight-only for Prim)
- *   - `destination` — how the destination vertex is extracted from an edge
- *     (always `e.black` for directed; `e.other(v)` for undirected)
- *   - `filterEdge` — which edges are admitted and what concrete `R` type they have
- *     (only `AttributedDirectedEdge` for Dijkstra; all edges for Prim)
+ * The context bound is `E: {Zero, Ordering}` — both algorithms need a seed
+ * cost (`Zero.identity`) and a cost ordering (`Ordering`). Only Dijkstra
+ * additionally needs `Monoid.combine` for path cost accumulation; Prim
+ * never accumulates costs and so extends this class directly with `E: {Zero, Ordering}`.
+ * `DijkstraTraversal` extends this with the additional `Monoid` bound.
+ *
+ * Concrete subclasses differ in exactly three ways:
+ *   - `edgeCost` — how the frontier cost is computed from an edge:
+ *     cumulative (`Monoid.combine`) for Dijkstra; edge weight only for Prim.
+ *   - `destination` — how the destination vertex is extracted from an edge:
+ *     always `e.black` for directed; `e.other(v)` for undirected.
+ *   - `filterEdge` — which edges are admitted and what concrete `R` type they have:
+ *     only `AttributedDirectedEdge` for Dijkstra; all edges for Prim.
  *
  * NOTE on lazy evaluation: `ev._1` and `ev._2` must be extracted via strict `val`
  * with explicit type ascriptions inside `Neighbours`. Using tuple pattern matching
  * `val (accCost, v) = ev` can generate a lazy binding that captures incorrectly
  * when the resulting `Iterator` is consumed lazily, causing `edgeCost` to receive
- * `en.zero` instead of the actual accumulated cost (a Heisenbug).
+ * `zero` instead of the actual accumulated cost (a Heisenbug).
  *
  * @tparam V the vertex type.
- * @tparam E the edge-weight type; must be Monoid and Ordering.
+ * @tparam E the edge-weight type; must have Zero and Ordering.
  * @tparam R the result type; must be a subtype of Edge[V, E].
  */
-abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
+abstract class WeightedTraversal[V, E: {Zero, Ordering}, R <: Edge[V, E]]
         extends GraphTraversal[V, E, R]:
 
   /**
@@ -118,7 +124,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
    * Dijkstra: `Monoid[E].combine(accCost, e.attribute)` — cumulative path cost.
    * Prim:     `e.attribute`                              — edge weight only.
    */
-  protected def edgeCost(accCost: E, e: Edge[V, E], v: V)(using mo: Monoid[E]): E
+  protected def edgeCost(accCost: E, e: Edge[V, E], v: V): E
 
   /**
    * Extracts the destination vertex from edge `e`, viewed from vertex `v`.
@@ -137,14 +143,14 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
   protected def filterEdge(e: Edge[V, E]): Option[R]
 
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R] =
-    val mo = summon[Monoid[E]]
+    val zero = summon[Zero[E]]
 
     // pred: cheapest known incoming edge per vertex (typed as R for cast-free access).
     // bestCost: current best frontier cost per vertex — used by CostUpdate to locate
     // the stale frontier entry for decreaseKey.
     // Both maps are owned exclusively by CostUpdate; Neighbours is pure.
     val pred: mutable.Map[V, R] = mutable.Map.empty
-    val bestCost: mutable.Map[V, E] = mutable.Map(start -> mo.identity)
+    val bestCost: mutable.Map[V, E] = mutable.Map(start -> zero.identity)
 
     // Ordering: compare by cost component only.
     given Ordering[(E, V)] = Ordering.by(_._1)
@@ -196,7 +202,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
 
     val visitor: Visitor[(E, V), R, QueueJournal[((E, V), Option[R])]] =
       JournaledVisitor.withQueueJournal[(E, V), R]
-    val result = Traversal.bestFirstWeighted((mo.identity, start), visitor)
+    val result = Traversal.bestFirstWeighted((zero.identity, start), visitor)
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
     VertexTraversalResult(
@@ -214,14 +220,18 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
  * instances are admitted — the result type is `TraversalResult[V, AttributedDirectedEdge[V, E]]`,
  * preserving full edge information without casts.
  *
+ * Requires `E: {Monoid, Ordering}` — `Monoid` extends `Zero` so the `Zero`
+ * requirement of `WeightedTraversal` is automatically satisfied, and `combine`
+ * is additionally available for cumulative path cost computation.
+ *
  * @tparam V the vertex type.
- * @tparam E the edge-weight type; must be Monoid and Ordering.
+ * @tparam E the edge-weight type; must have Monoid and Ordering.
  */
 case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
         extends WeightedTraversal[V, E, AttributedDirectedEdge[V, E]]:
 
-  protected def edgeCost(accCost: E, e: Edge[V, E], v: V)(using mo: Monoid[E]): E =
-    mo.combine(accCost, e.attribute)
+  protected def edgeCost(accCost: E, e: Edge[V, E], v: V): E =
+    summon[Monoid[E]].combine(accCost, e.attribute)
 
   protected def destination(v: V, e: Edge[V, E]): V =
     e.black
@@ -241,13 +251,17 @@ case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
  * cheapest available edge to any unvisited vertex is always chosen next.
  * All edge types are admitted — the result type is `TraversalResult[V, Edge[V, E]]`.
  *
+ * Requires only `E: {Zero, Ordering}` — Prim never accumulates path costs so
+ * `Monoid.combine` is not needed. `Zero.identity` seeds the initial frontier cost
+ * for the start vertex, which is immediately replaced by actual edge weights.
+ *
  * @tparam V the vertex type.
- * @tparam E the edge-weight type; must be Monoid and Ordering.
+ * @tparam E the edge-weight type; must have Zero and Ordering.
  */
-case class PrimTraversal[V, E: {Monoid, Ordering}]()
+case class PrimTraversal[V, E: {Zero, Ordering}]()
         extends WeightedTraversal[V, E, Edge[V, E]]:
 
-  protected def edgeCost(accCost: E, e: Edge[V, E], v: V)(using mo: Monoid[E]): E =
+  protected def edgeCost(accCost: E, e: Edge[V, E], v: V): E =
     e.attribute
 
   protected def destination(v: V, e: Edge[V, E]): V = e match

@@ -8,7 +8,7 @@ ThisBuild / javacOptions ++= Seq("--release", "21")
 
 val scalaVersionNumber  = "3.7.4"
 val scalaTestVersion    = "3.2.20"
-val visitorVersion      = "1.6.0-SNAPSHOT"
+val visitorVersion      = "1.6.0"
 val logbackVersion      = "1.5.32"
 val slf4jVersion        = "2.0.17"
 lazy val scalaParserCombinatorsVersion = "2.4.0"

@@ -59,7 +59,6 @@ private[java] object JavaFacadeBridge:
                                   start: V,
                                   neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
                           ): java.util.Map[V, V] =
-    given Random = Random(0)
 
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)

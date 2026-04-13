@@ -67,8 +67,6 @@ object Kosaraju {
         then
           acc
         else
-          given VisitedSet[V] = vs
-
           tracer.trace(1, s"pass 1: seeding from ${unvisited.head}, ${unvisited.size} unvisited")
           val result = Traversal.dfs(start = unvisited.head, visitor = JournaledVisitor.withListJournal[V, V], order = DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs, Tracer.silent)
           // ListJournal prepends: head = last-finished within this component.

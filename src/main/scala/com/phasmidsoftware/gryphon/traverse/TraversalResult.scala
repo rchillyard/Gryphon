@@ -281,10 +281,10 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    * @throws GraphException if the provided connexion type is unexpected.
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
-    case d@AttributedDirectedEdge[V, E] (_, _, _) =>
-  copy (connexions = connexions + (v -> d) )
+    case d@AttributedDirectedEdge[V, E] (_, _, _)  =>
+      copy (connexions = connexions + (v -> d) )
     case u@UndirectedEdge[V, E] (q, _, _) =>
-  copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
+      copy (connexions = connexions + (v -> AttributedDirectedEdge (q, u.other (v), v) ) )
     case _ =>
       throw GraphException(s"getConnexions: unexpected connexion: $connexion")
   }

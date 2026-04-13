@@ -8,7 +8,9 @@ ThisBuild / javacOptions ++= Seq("--release", "21")
 
 val scalaVersionNumber  = "3.7.4"
 val scalaTestVersion    = "3.2.20"
+val jupiterVersion      = "6.0.3"
 val visitorVersion      = "1.6.0"
+val flogVersion         = "1.0.13"
 val logbackVersion      = "1.5.32"
 val slf4jVersion        = "2.0.17"
 lazy val scalaParserCombinatorsVersion = "2.4.0"
@@ -56,14 +58,13 @@ lazy val root = (project in file("."))
           libraryDependencies ++= Seq(
             "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
             "com.phasmidsoftware"    %% "visitor"                  % visitorVersion,
-            "com.phasmidsoftware"    %% "flog"                     % "1.0.13",
+            "com.phasmidsoftware"    %% "flog"                     % flogVersion,
             "org.slf4j"               % "slf4j-api"                % slf4jVersion,
             "ch.qos.logback"          % "logback-classic"          % logbackVersion % Runtime,
             "org.scalatest"          %% "scalatest"                % scalaTestVersion % Test,
             // JUnit 5 — for Java façade tests in src/test/java
-            "org.junit.jupiter"       % "junit-jupiter-api"        % "5.10.2" % Test,
-            "org.junit.jupiter"       % "junit-jupiter-engine"     % "5.10.2" % Test,
-            "com.github.sbt"          % "junit-interface"          % "0.13.3" % Test
+            "org.junit.jupiter"       % "junit-jupiter-api"        % jupiterVersion % Test,
+            "org.junit.jupiter"       % "junit-jupiter-engine"     % jupiterVersion % Test
           ),
 
           // Run both ScalaTest and JUnit suites with sbt test

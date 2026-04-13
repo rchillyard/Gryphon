@@ -27,7 +27,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     } match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(g: UndirectedGraph[Int, Double]) => f(g)
+          case Success(g: UndirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
           case _ => fail("not an UndirectedGraph")
       case Failure(x) => fail("parse failed", x)
@@ -40,7 +40,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     } match
       case Success(triplets) =>
         triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-          case Success(g: UndirectedGraph[Int, Unit]) => f(g)
+          case Success(g: UndirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
           case _ => fail("not an UndirectedGraph")
       case Failure(x) => fail("parse failed", x)
@@ -66,7 +66,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -77,7 +77,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(2, 3, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -87,7 +87,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(2, 3, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe false
       case other => fail(s"unexpected: $other")
 
@@ -98,7 +98,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(2, 0, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -113,7 +113,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, None, Directed)
     )
     DirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: DirectedGraph[Int, Unit]) =>
+      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         an[UnsupportedOperationException] should be thrownBy g.isConnected
       case other => fail(s"unexpected: $other")
 
@@ -133,7 +133,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -143,7 +143,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(1, 2, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -154,7 +154,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(2, 0, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe false
       case other => fail(s"unexpected: $other")
 
@@ -166,7 +166,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(3, 0, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -179,7 +179,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(4, 0, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe false
       case other => fail(s"unexpected: $other")
 
@@ -194,7 +194,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(1, 4, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -206,7 +206,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(3, 4, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
       case other => fail(s"unexpected: $other")
 
@@ -220,7 +220,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(5, 3, None, Undirected)
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Unit]) =>
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe false
       case other => fail(s"unexpected: $other")
 
@@ -235,6 +235,6 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, None, Directed)
     )
     DirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: DirectedGraph[Int, Unit]) =>
+      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         an[UnsupportedOperationException] should be thrownBy g.isBipartite
       case other => fail(s"unexpected: $other")

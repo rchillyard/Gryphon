@@ -54,7 +54,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   private def withDag[A](f: DirectedGraph[Int, Double] => A): A =
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(dagTriplets) match
-      case Success(g: DirectedGraph[Int, Double]) => f(g)
+      case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
       case Failure(x) => fail("graph construction failed", x)
       case other => fail(s"unexpected: $other")
 
@@ -156,7 +156,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
       Triplet(1, 2, Some(-2.0), Directed)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: DirectedGraph[Int, Double]) =>
+      case Success(g: DirectedGraph[Int, Double] @unchecked) =>
         val result = AcyclicShortestPaths.shortestPaths(g, 0)
         result.vertexTraverse(1).map(_.attribute) shouldBe Some(1.0)
         result.vertexTraverse(2).map(_.attribute) shouldBe Some(-2.0)
@@ -176,7 +176,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
       Triplet(3, 4, Some(1.0), Directed)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: DirectedGraph[Int, Double]) =>
+      case Success(g: DirectedGraph[Int, Double] @unchecked) =>
         val result = AcyclicShortestPaths.shortestPaths(g, 0)
         result.map.keySet shouldBe Set(1, 2)
         result.vertexTraverse(3) shouldBe None
@@ -196,6 +196,6 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
       Triplet(2, 0, Some(1.0), Directed)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: DirectedGraph[Int, Double]) =>
+      case Success(g: DirectedGraph[Int, Double] @unchecked) =>
         an[IllegalArgumentException] should be thrownBy AcyclicShortestPaths.shortestPaths(g, 0)
       case other => fail(s"unexpected: $other")

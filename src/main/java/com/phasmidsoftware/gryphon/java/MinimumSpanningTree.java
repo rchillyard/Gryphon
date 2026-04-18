@@ -167,6 +167,61 @@ public class MinimumSpanningTree {
                 graph.weightedEdges(), comparator);
     }
 
+
+    // -------------------------------------------------------------------------
+    // Boruvka — Option 1: Double weights
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs Borůvka's algorithm on a graph whose edges carry {@code Double} weights.
+     *
+     * <p>Edges are compared by natural {@code Double} ordering. The returned list
+     * contains exactly N-1 edges for a connected graph of N vertices.</p>
+     *
+     * @param <V>   the vertex type.
+     * @param graph an undirected {@code WeightedGraph<V, Double>}.
+     * @return the MST as {@code List<WeightedEdge<V, Double>>}.
+     * @throws IllegalStateException if {@code graph} is directed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> List<WeightedEdge<V, Double>> boruvka(
+            WeightedGraph<V, Double> graph) {
+        if (graph.isDirected())
+            throw new IllegalStateException(
+                    "MinimumSpanningTree.boruvka requires an undirected graph");
+        return (List<WeightedEdge<V, Double>>) (List<?>)
+                JavaFacadeBridge$.MODULE$.boruvkaDouble((java.util.List) graph.weightedEdges());
+    }
+
+    // -------------------------------------------------------------------------
+    // Boruvka — Option 3: custom attribute type, caller supplies Comparator
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs Borůvka's algorithm with a custom edge attribute type, ordered by
+     * the supplied {@link Comparator}.
+     *
+     * <p>The edge attribute is used directly as the sort key. The returned list
+     * contains exactly N-1 edges for a connected graph of N vertices.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      an undirected {@code WeightedGraph<V, E>}.
+     * @param comparator orders edge attributes.
+     * @return the MST as {@code List<WeightedEdge<V, E>>}.
+     * @throws IllegalStateException if {@code graph} is directed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V, E> List<WeightedEdge<V, E>> boruvka(
+            WeightedGraph<V, E> graph,
+            Comparator<E> comparator) {
+        if (graph.isDirected())
+            throw new IllegalStateException(
+                    "MinimumSpanningTree.boruvka requires an undirected graph");
+        return JavaFacadeBridge$.MODULE$.boruvkaCustom(
+                graph.weightedEdges(), comparator);
+    }
+
     // Not instantiable
     private MinimumSpanningTree() {
     }

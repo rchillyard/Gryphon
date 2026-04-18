@@ -276,6 +276,46 @@ private[java] object JavaFacadeBridge:
     val result = Kruskal.mst(weightedGraph)
     mstSeqToJavaList(result)
 
+
+  // ---------------------------------------------------------------------------
+  // Boruvka — Option 1: Double weights
+  // ---------------------------------------------------------------------------
+
+  def boruvkaDouble[V](
+                              edges: java.util.List[WeightedEdge[V, Double]]
+                      ): java.util.List[WeightedEdge[V, Double]] =
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    given Monoid[Double] with
+      def identity: Double = 0.0
+
+      def combine(x: Double, y: Double): Double = x + y
+    val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
+    val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
+    mstResultToJavaList(result)
+
+  // ---------------------------------------------------------------------------
+  // Boruvka — Option 3: custom type, Comparator only
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Borůvka selects minimum-weight crossing edges — costs are never accumulated.
+   * Only `Ordering[E]` is needed; the `Monoid.combine` stub is never called.
+   */
+  def boruvkaCustom[V, E](
+                                 edges: java.util.List[WeightedEdge[V, E]],
+                                 comparator: java.util.Comparator[E]
+                         ): java.util.List[WeightedEdge[V, E]] =
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    given Monoid[E] with
+      def identity: E = edges.get(0).attribute
+
+      def combine(x: E, y: E): E = identity
+    val weightedGraph = materialiseWeightedUndirected[V, E](edges)
+    val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
+    mstResultToJavaList(result)
+
   // ---------------------------------------------------------------------------
   // Kosaraju
   // ---------------------------------------------------------------------------
@@ -351,4 +391,24 @@ private[java] object JavaFacadeBridge:
     result.foreach { e =>
       javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }
+    java.util.Collections.unmodifiableList(javaList)
+
+  // ---------------------------------------------------------------------------
+  // Result conversion — MST list (Boruvka)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Converts a VertexTraversalResult to a Java List of WeightedEdge, deduplicating
+   * by unordered vertex pair since each MST edge appears for both its endpoints.
+   */
+  private def mstResultToJavaList[V, E](
+                                               result: com.phasmidsoftware.gryphon.traverse.VertexTraversalResult[V, com.phasmidsoftware.gryphon.core.Edge[V, E]]
+                                       ): java.util.List[WeightedEdge[V, E]] =
+    val javaList = new java.util.ArrayList[WeightedEdge[V, E]]()
+    result.map.values
+            .map(e => Set(e.white, e.black) -> e)
+            .toMap.values
+            .foreach { e =>
+              javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
+            }
     java.util.Collections.unmodifiableList(javaList)

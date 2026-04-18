@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{Connectivity, UndirectedGraph}
+import com.phasmidsoftware.gryphon.adjunct.{Connectivity, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.visitor.core.Monoid
 
@@ -51,8 +51,7 @@ object Boruvka:
         val cheapest: Map[V, Edge[V, E]] =
           vertices.foldLeft(Map.empty[V, Edge[V, E]]) { (acc, v) =>
             val vRoot: V = wc.getDisjointSet(v)
-            val other: Edge[V, E] => V = e => if e.white == v then e.black else e.white
-            val crossingEdges = edgesFrom(graph)(v).filter(e => wc.getDisjointSet(other(e)) != vRoot)
+            val crossingEdges = edgesFrom(graph)(v).filter(e => wc.getDisjointSet(e.other(v)) != vRoot)
             if crossingEdges.isEmpty then acc
             else
               val minEdge = crossingEdges.minBy(_.attribute)
@@ -62,15 +61,11 @@ object Boruvka:
           }
 
         // Deduplicate by unordered vertex pair — two component roots may independently
-        // select the same physical undirected edge (since it appears in both endpoints'
-        // adjacency lists). Without deduplication, the second attempt to add the edge
-        // is silently skipped via isConnected, leaving a component unmerged.
-        // TODO: remove once UndirectedEdge.equals handles flipped endpoints correctly.
+        // select the same physical undirected edge (one seeing it as u->v, the other as v->u).
+        // We use Set(white, black) as the key to collapse these to one entry explicitly,
+        // rather than relying on UndirectedEdge.equals since cheapest is typed as Edge[V,E].
         val uniqueEdges = cheapest.values.map(e => Set(e.white, e.black) -> e).toMap.values
 
-        // Add the cheapest edges, merging components.
-        // connect internally calls getDisjointSet on both arguments before merging,
-        // so we can pass raw vertices without pre-finding roots.
         val (wc1, predMap1) = uniqueEdges.foldLeft((wc, predMap)) { case ((wcAcc, pmAcc), edge) =>
           val u = edge.white
           val v = edge.black
@@ -86,9 +81,13 @@ object Boruvka:
    * Returns an iterator over all edges adjacent to vertex `v` in `graph`.
    * Uses `Vertex.adjacencies` directly — no traversal engine involvement.
    */
-  private def edgesFrom[V, E](graph: EdgeGraph[V, E])(v: V): Iterator[Edge[V, E]] =
+  private def edgesFrom[V, E](graph: EdgeGraph[V, E])(v: V): Iterator[UndirectedEdge[V, E]] =
     for
       vv <- graph.vertexMap.get(v).iterator
       a <- vv.adjacencies.iterator
       e <- a.maybeEdge[E]
-    yield e
+      ue <- e match {
+        case ee: UndirectedEdge[V, E] @unchecked => Some(ee);
+        case _ => None
+      }
+    yield ue

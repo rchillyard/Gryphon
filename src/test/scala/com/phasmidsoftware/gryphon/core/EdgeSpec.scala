@@ -46,6 +46,36 @@ class EdgeSpec extends AnyFlatSpec with Matchers:
     UndirectedEdge(0.0, 1, 2).edgeType shouldBe Undirected
   }
 
+  it should "equals" in {
+    val e1 = UndirectedEdge(99, "A", "B")
+    val e2 = UndirectedEdge(99, "B", "A")
+    val e3 = UndirectedEdge(100, "A", "B")
+    e1 shouldBe e2
+    e1 should not be e3
+  }
+  it should "equals Set" in {
+    val e1 = UndirectedEdge(99, "A", "B")
+    val e2 = UndirectedEdge(99, "B", "A")
+    val e3 = UndirectedEdge(100, "A", "B")
+    Set(e1, e2) shouldBe Set(e2, e1)
+    Set(e1, e2) should not be Set(e3, e1)
+  }
+  it should "hashCode" in {
+    val e1 = UndirectedEdge(99, "A", "B")
+    val e2 = UndirectedEdge(99, "B", "A")
+    val e3 = UndirectedEdge(100, "A", "B")
+    e1.hashCode shouldBe e2.hashCode
+    e1.hashCode should not be e3.hashCode
+  }
+
+  it should "hashCode Set" in {
+    val e1 = UndirectedEdge(99, "A", "B")
+    val e2 = UndirectedEdge(99, "B", "A")
+    val e3 = UndirectedEdge(100, "A", "B")
+    Set(e1, e2).hashCode() shouldBe Set(e2, e1).hashCode()
+    Set(e1, e2).hashCode() should not be Set(e2, e3).hashCode()
+  }
+
   behavior of "EdgeType.ParseableEdgeType"
 
   it should "parse '>' as Directed" in {

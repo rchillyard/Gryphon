@@ -13,7 +13,7 @@ see `VisitorDesign.md` in the Visitor repository.
 
 ---
 
-## Current State (Gryphon V1.4.0 / Visitor V1.6.0)
+## Current State (Gryphon V1.5.0 / Visitor V1.6.0)
 
 ### Scala Algorithm Suite
 
@@ -28,6 +28,7 @@ see `VisitorDesign.md` in the Visitor repository.
 - `ShortestPaths.dijkstra` — delegates to `DijkstraTraversal.run`
 - `MST.prim` — delegates to `PrimTraversal.run`
 - `Kruskal.mst` — greedy edge sort + `Connectivity`; requires `Ordering[E]` only
+- `Boruvka.mst` — parallel-round edge selection + `Connectivity`; requires `Monoid[E]` and `Ordering[E]`
 - `Kosaraju.stronglyConnectedComponents` — two-pass DFS on original + reversed graph
 - `ConnectedComponents` — connected components of undirected graphs
 - `TopologicalSort` — DFS post-order on directed graphs
@@ -40,7 +41,7 @@ see `VisitorDesign.md` in the Visitor repository.
 
 - `Graph<V>`, `WeightedGraph<V,E>`, `Edge<V>`, `WeightedEdge<V,E>`
 - `ShortestPaths` (Dijkstra Option 1 and Option 3)
-- `MinimumSpanningTree` (Prim and Kruskal, Option 1 and Option 3)
+- `MinimumSpanningTree` (Prim, Kruskal, and Borůvka, Option 1 and Option 3)
 - `StronglyConnectedComponents` (Kosaraju)
 - `Connectivity<V>`
 - `JavaFacadeBridge` — internal Scala bridge; see `JavaFacadeDesign.md`
@@ -115,6 +116,7 @@ All four entry points use `withQueueJournalAndCameFrom` or
 | Dijkstra | `IndexedPrioQueue[(E,V)]` | `Traversal.bestFirstWeighted` | cumulative path cost | `decreaseKey` |
 | Prim | `IndexedPrioQueue[(E,V)]` | `Traversal.bestFirstWeighted` | edge weight only | `decreaseKey` |
 | Kruskal | none (sort) | `Kruskal.mst` | edge weight (sort key) | n/a |
+| Borůvka | none (rounds) | `Boruvka.mst` | edge weight (min per component) | n/a |
 
 All four traversal algorithms share the same `Traversal.traverse` loop — they
 differ only in the `Frontier`, `Neighbours`, `Evaluable`, and `CostUpdate` given
@@ -203,6 +205,7 @@ bug is tracked as
 | `ShortestPaths.scala` | `ShortestPaths.dijkstra` entry point |
 | `MST.scala` | `MST.prim` entry point; `E: {Zero, Ordering}` |
 | `Kruskal.scala` | `Kruskal.mst`; greedy sort + `Connectivity` |
+| `Boruvka.scala` | `Boruvka.mst`; parallel-round min-edge selection + `Connectivity`; direct algorithm, no traversal engine |
 | `Kosaraju.scala` | Two-pass DFS SCC; `SCCResult[V]` type alias |
 | `ConnectedComponents.scala` | `ConnectedComponents.components` |
 | `TopologicalSort.scala` | Post-order DFS on DAGs |
@@ -211,6 +214,7 @@ bug is tracked as
 | `TraversalResult.scala` | `TraversalResult[V,T]`, `VertexTraversalResult`, `Connexions` |
 | `VertexMap.scala` | Fixed `createVerticesFromTriplet`; `keysOnly` for graph reversal |
 | `UndirectedGraph.scala` | Fixed `triplesToTryGraph`, `edges`; `isCyclic`, `isBipartite`, `isConnected` |
+| `UndirectedEdge.scala` | Symmetric `equals`/`hashCode`: `UndirectedEdge(a,u,v) == UndirectedEdge(a,v,u)` |
 | `DirectedGraph.scala` | `reverse`; `isCyclic` via `TopologicalSort`; `shortestPaths` via `BellmanFord` |
 | `JavaFacadeBridge.scala` | All bridge methods; `bfs`/`dfs`/`bfsWithNeighbours`/`dfsWithNeighbours` via `CameFromJournal` |
 
@@ -240,6 +244,11 @@ bug is tracked as
 
 - **`TopologicalSort` Java façade** — `List<V> TopologicalSort.sort(Graph<V> g)`
 
+- **Java façade graph file reader** — expose a `GraphBuilder.fromFile(path)` or
+  `GraphBuilder.fromResource(name)` factory so Java students can load `.graph`
+  resource files directly, rather than building graphs programmatically via
+  `addEdge`. Currently `GraphParser` is Scala-only with no Java wrapper.
+
 - **Verify Sedgewick & Wayne book coverage** — systematically check all graph
   algorithms from the course textbook are implemented in Gryphon.
 
@@ -253,7 +262,7 @@ com.phasmidsoftware.gryphon
   .adjunct       — DirectedGraph, UndirectedGraph, AttributedDirectedEdge,
                    UndirectedEdge, Connectivity, ConnectivityOptimized
   .traverse      — GraphTraversal, WeightedTraversal, DijkstraTraversal,
-                   PrimTraversal, ShortestPaths, MST, Kruskal, Kosaraju,
+                   PrimTraversal, ShortestPaths, MST, Kruskal, Boruvka, Kosaraju,
                    TopologicalSort, ConnectedComponents, BellmanFord,
                    AcyclicShortestPaths, TraversalResult, Connexions
   .parse         — GraphParser

@@ -28,7 +28,7 @@ that supports the author's own textbook Data Structures, Algorithms, and Invaria
 Add Gryphon to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.2.3"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.0"
 ```
 
 Gryphon requires **Scala 3** and depends on
@@ -52,6 +52,7 @@ Sedgewick & Wayne, *Algorithms* (4th ed.):
 | 4.6 | Strongly connected components (Kosaraju–Sharir) | `Kosaraju` |
 | 4.7 | Minimum spanning tree (Prim) | `MST.prim` |
 | 4.8 | Minimum spanning tree (Kruskal) | `Kruskal` |
+| — | Minimum spanning tree (Borůvka) | `Boruvka` |
 | 4.9 | Shortest paths (Dijkstra) | `ShortestPaths.dijkstra` |
 | 4.10 | Shortest paths in DAGs | `AcyclicShortestPaths` |
 | 4.11 | Shortest paths (Bellman–Ford) | `BellmanFord` |
@@ -63,7 +64,7 @@ Additionally, some algorithms and graph properties that are not directly covered
 - **Connectivity** — `UndirectedGraph.isConnected`
 - **Degree statistics** — `UndirectedGraph.degree`, `maxDegree`, `meanDegree`
 - **Self-loop count** — `EdgeGraph.numberOfSelfLoops`
-- **Union-Find** — `Connectivity`, `ConnectivityOptimized` (used internally by Kruskal)
+- **Union-Find** — `Connectivity`, `ConnectivityOptimized` (used internally by Kruskal and Borůvka)
 - **Graph reversal** — `DirectedGraph.reverse` (used internally by Kosaraju)
 
 ---
@@ -173,6 +174,13 @@ val mstEdges: Seq[Edge[Int, Double]] = Kruskal.mst(undirectedGraph)
 val totalWeight = mstEdges.map(_.attribute).sum
 ```
 
+### Minimum spanning tree (Borůvka)
+
+```scala
+val result: VertexTraversalResult[Int, Edge[Int, Double]] = Boruvka.mst(undirectedGraph)
+val totalWeight = result.map.values.map(e => Set(e.white, e.black) -> e.attribute).toMap.values.sum
+```
+
 ### Strongly connected components (Kosaraju)
 
 ```scala
@@ -209,7 +217,7 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 <dependency>
     <groupId>com.phasmidsoftware</groupId>
     <artifactId>gryphon_3</artifactId>
-    <version>1.2.3</version>
+    <version>1.5.0</version>
 </dependency>
 ````
 
@@ -224,7 +232,7 @@ The Java API is the primary interface for students in INFO6205 at Northeastern U
 | `Graph<V>` | Mutable lazy-builder façade; directed or undirected |
 | `Connectivity<V>` | Mutable Union-Find façade for disjoint-set operations |
 | `ShortestPaths` | Dijkstra's algorithm |
-| `MinimumSpanningTree` | Prim's and Kruskal's algorithms |
+| `MinimumSpanningTree` | Prim's, Kruskal's, and Borůvka's algorithms |
 | `StronglyConnectedComponents` | Kosaraju's algorithm |
 
 ### Building a graph
@@ -362,6 +370,24 @@ List<WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.kruskal(
     e -> ((WeightedEdge<Integer, Double>) e).attribute(),
     Comparator.naturalOrder());
 ```
+### Minimum spanning tree (Borůvka)
+
+`MinimumSpanningTree.boruvka` returns the MST as a
+`List<WeightedEdge<V, Double>>`. Unlike Kruskal, the list is not guaranteed
+to be in weight-sorted order — edges are added round by round.
+
+```java
+// Option 1 — Double weights
+List<WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.boruvka(g);
+
+double totalWeight = mst.stream()
+    .mapToDouble(WeightedEdge::attribute)
+    .sum(); // 1.81
+
+// Option 3 — custom comparator
+List<WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.boruvka(
+    g, Comparator.naturalOrder());
+```
 
 ### Strongly connected components (Kosaraju)
 
@@ -446,6 +472,7 @@ Map<Integer, WeightedEdge<Integer, Double>> spt =
 | `ShortestPaths.dijkstra` | directed |
 | `MinimumSpanningTree.prim` | undirected |
 | `MinimumSpanningTree.kruskal` | undirected |
+| `MinimumSpanningTree.boruvka` | undirected |
 | `StronglyConnectedComponents.kosaraju` | directed |
 
 Calling an algorithm with the wrong graph type throws `IllegalStateException`
@@ -465,7 +492,7 @@ com.phasmidsoftware.gryphon
                 UndirectedEdge, Connectivity, ConnectivityOptimized
   .traverse   — ConnectedComponents, Kosaraju, TopologicalSort,
                 ShortestPaths, MST, AcyclicShortestPaths, BellmanFord,
-                Kruskal, TraversalResult, Connexions
+                Kruskal, Boruvka, TraversalResult, Connexions
   .parse      — GraphParser, BaseParser, Parseable
   .java       — Graph, Edge, WeightedEdge, Connectivity,
                 ShortestPaths, MinimumSpanningTree,
@@ -499,14 +526,14 @@ the five orthogonal typeclasses that drive all traversals:
 
 ## Testing
 
-The library has 365+ tests covering all algorithms, graph properties, and
+The library has 380+ tests covering all algorithms, graph properties, and
 edge cases including:
 - Disconnected graphs and forests
 - Negative edge weights (Bellman–Ford, AcyclicShortestPaths)
 - Negative cycle detection
 - Self-loops
 - Agreement between Bellman–Ford and Dijkstra on non-negative graphs
-- Agreement between Prim and Kruskal on MST weight
+- Agreement between Prim, Kruskal, and Borůvka on MST weight
 - Java API tests for all major algorithms
 
 ```bash
@@ -517,14 +544,17 @@ sbt test
 
 ## Versioning
 
-| Version | Changes |
-|---|---|
-| 1.0.0 | Initial release |
-| 1.1.0 | First update post-release |
-| 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized |
-| 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity |
-| 1.2.2 | Java façade: ShortestPaths (Dijkstra), MinimumSpanningTree (Prim) |
-| 1.2.3 | Java façade: MinimumSpanningTree (Kruskal), StronglyConnectedComponents (Kosaraju) |
+| Version | Changes                                                                                           |
+|---|---------------------------------------------------------------------------------------------------|
+| 1.0.0 | Initial release                                                                                   |
+| 1.1.0 | First update post-release                                                                         |
+| 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized                       |
+| 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity                              |
+| 1.2.2 | Java façade: ShortestPaths (Dijkstra), MinimumSpanningTree (Prim)                                 |
+| 1.2.3 | Java façade: MinimumSpanningTree (Kruskal), StronglyConnectedComponents (Kosaraju)                |
+| 1.3.0 | Added WeightedGraph                                                                               |
+| 1.4.0 | All BFS/DFS now use Visitor.traverse                                                              |
+| 1.5.0 | Borůvka MST; symmetric UndirectedEdge.equals/hashCode; Java façade: MinimumSpanningTree (Borůvka) |
 
 ---
 

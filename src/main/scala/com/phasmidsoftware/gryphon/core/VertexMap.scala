@@ -62,7 +62,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random): Iterator[Adjacency[V]] =
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]] =
     map(v).adjacencies.filter(predicate).iterator
 
   /**

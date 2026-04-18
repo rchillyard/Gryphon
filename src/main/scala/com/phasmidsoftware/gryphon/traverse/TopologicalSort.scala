@@ -4,8 +4,13 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.visitor.core.{*, given}
 
 /**
- * Represents a topological sort of a directed graph, mapping each vertex to its
+ * Represents a "topological sort" of a directed acyclic graph, mapping each vertex to its
  * position in topological order.
+ * NOTE that it would also be possible to get the same effect using the Kosaraju algorithm
+ * (see `Kosaraju.stronglyConnectedComponents`) especially if you're not sure that the directed
+ * graph is in fact acyclic.
+ * If you have significant doubt, it may be better to use Kosaraju instead.
+ * A DAG will result in a topologically sorted set of SCCs, each of which holds only one vertex.
  *
  * @param map a mapping of vertices of type `V` to their position (Int) in topological order.
  * @tparam V the type representing a vertex in the graph.

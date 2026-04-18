@@ -59,7 +59,7 @@ trait Traversable[V] {
    * @param v         the vertex whose adjacent vertices are to be filtered.
    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
    */
-  def filteredAdjacentVertices(predicate: V => Boolean)(v: V)(using random: Random = Random()): Iterator[V] =
+  def filteredAdjacentVertices(predicate: V => Boolean)(v: V): Iterator[V] =
     adjacentVertices(v).filter(predicate)
 
   /**
@@ -70,7 +70,7 @@ trait Traversable[V] {
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random = Random()): Iterator[Adjacency[V]]
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]]
 
   /**
    * Performs a depth-first search (DFS) traversal starting from the specified vertex.

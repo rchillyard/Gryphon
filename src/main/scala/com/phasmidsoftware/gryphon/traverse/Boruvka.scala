@@ -33,18 +33,18 @@ object Boruvka:
    * @param graph the undirected weighted graph.
    * @tparam V the vertex attribute type.
    * @tparam E the edge weight type; must have `Monoid` and `Ordering`.
-   * @return a `VertexTraversalResult[V, Edge[V, E]]` mapping each vertex to its incident MST edge.
+   * @return a `Seq[Edge[V, E]]` — the MST edges in order of addition, consistent with `Kruskal.mst`.
    */
-  def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): VertexTraversalResult[V, Edge[V, E]] =
+  def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
     // Each vertex starts as its own component.
     val wc0 = Connectivity.create(vertices *)
 
     @scala.annotation.tailrec
-    def loop(wc: Connectivity[V], predMap: Map[V, Edge[V, E]]): Map[V, Edge[V, E]] =
+    def loop(wc: Connectivity[V], mstEdges: Seq[Edge[V, E]]): Seq[Edge[V, E]] =
       // getDisjointSet walks the parent chain to the true root.
-      if vertices.map(wc.getDisjointSet).toSet.size == 1 then predMap
+      if vertices.map(wc.getDisjointSet).toSet.size == 1 then mstEdges
       else
         // For each component (identified by its root), find the minimum-weight
         // outgoing edge crossing to a different component.
@@ -60,22 +60,31 @@ object Boruvka:
                 case _ => acc + (vRoot -> minEdge)
           }
 
-        // Deduplicate by unordered vertex pair — two component roots may independently
-        // select the same physical undirected edge (one seeing it as u->v, the other as v->u).
-        // We use Set(white, black) as the key to collapse these to one entry explicitly,
-        // rather than relying on UndirectedEdge.equals since cheapest is typed as Edge[V,E].
-        val uniqueEdges = cheapest.values.map(e => Set(e.white, e.black) -> e).toMap.values
+        // Deduplicate by unordered component-root pair.
+        // cheapest is keyed by component root, so for each entry we know exactly
+        // which root it belongs to. The other root is the root of the far endpoint.
+        // Set(root, otherRoot) correctly collapses A->B and B->A to one merge,
+        // while leaving A->D, B->D, C->D as three distinct merges.
+        val uniqueEdges = cheapest
+                .map { case (root, edge) =>
+                  val otherRoot = if wc.getDisjointSet(edge.white) == root
+                  then wc.getDisjointSet(edge.black)
+                  else wc.getDisjointSet(edge.white)
+                  Set(root, otherRoot) -> edge
+                }
+                .toMap.values
 
-        val (wc1, predMap1) = uniqueEdges.foldLeft((wc, predMap)) { case ((wcAcc, pmAcc), edge) =>
+        // Add each unique crossing edge to the MST and merge its components.
+        val (wc1, mstEdges1) = uniqueEdges.foldLeft((wc, mstEdges)) { case ((wcAcc, edges), edge) =>
           val u = edge.white
           val v = edge.black
-          if wcAcc.isConnected(u, v) then (wcAcc, pmAcc)
-          else (wcAcc.connect(u, v), pmAcc + (u -> edge) + (v -> edge))
+          if wcAcc.isConnected(u, v) then (wcAcc, edges)
+          else (wcAcc.connect(u, v), edges :+ edge)
         }
 
-        loop(wc1, predMap1)
+        loop(wc1, mstEdges1)
 
-    VertexTraversalResult(loop(wc0, Map.empty))
+    loop(wc0, Seq.empty)
 
   /**
    * Returns an iterator over all edges adjacent to vertex `v` in `graph`.

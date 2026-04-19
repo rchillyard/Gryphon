@@ -9,6 +9,8 @@ import com.phasmidsoftware.visitor.core.{*, given}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
 
+type JavaList[X] = java.util.List[X]
+
 /**
  * Internal Scala bridge used by the Java façade.
  *
@@ -133,12 +135,12 @@ private[java] object JavaFacadeBridge:
    * algorithm bridge methods that require it work correctly.
    */
   def undirectedWeightedFromResource(resourceName: String
-                                    ): (UndirectedGraph[Int, Double], java.util.List[WeightedEdge[Int, Double]]) =
+                                    ): (UndirectedGraph[Int, Double], JavaList[WeightedEdge[Int, Double]]) =
     val g = GraphBuilder.undirected[Int, Double].fromResource(resourceName).get
     (g, extractWeightedEdges(g))
 
   def directedWeightedFromResource(resourceName: String
-                                  ): (DirectedGraph[Int, Double], java.util.List[WeightedEdge[Int, Double]]) =
+                                  ): (DirectedGraph[Int, Double], JavaList[WeightedEdge[Int, Double]]) =
     val g = GraphBuilder.directed[Int, Double].fromResource(resourceName).get
     (g, extractWeightedEdges(g))
 
@@ -146,11 +148,10 @@ private[java] object JavaFacadeBridge:
                                                         resourceName: String,
                                                         vertexParser: java.util.function.Function[String, V],
                                                         edgeParser: java.util.function.Function[String, E]
-                                                ): (UndirectedGraph[V, E], java.util.List[WeightedEdge[V, E]]) =
-    given Parseable[V] = asParseable(vertexParser)
+                                                ): (UndirectedGraph[V, E], JavaList[WeightedEdge[V, E]]) =
+    given Parseable[V] = asParseable(vertexParser, """\w+""")
 
-    given Parseable[E] = asParseable(edgeParser)
-
+    given Parseable[E] = asParseable(edgeParser, """(\d+(\.\d*)?|\d*\.\d+)""")
     val g = GraphBuilder.undirected[V, E].fromResource(resourceName).get
     (g, extractWeightedEdges(g))
 
@@ -158,11 +159,10 @@ private[java] object JavaFacadeBridge:
                                                       resourceName: String,
                                                       vertexParser: java.util.function.Function[String, V],
                                                       edgeParser: java.util.function.Function[String, E]
-                                              ): (DirectedGraph[V, E], java.util.List[WeightedEdge[V, E]]) =
-    given Parseable[V] = asParseable(vertexParser)
+                                              ): (DirectedGraph[V, E], JavaList[WeightedEdge[V, E]]) =
+    given Parseable[V] = asParseable(vertexParser, """\w+""")
 
-    given Parseable[E] = asParseable(edgeParser)
-
+    given Parseable[E] = asParseable(edgeParser, """(\d+(\.\d*)?|\d*\.\d+)""")
     val g = GraphBuilder.directed[V, E].fromResource(resourceName).get
     (g, extractWeightedEdges(g))
 
@@ -171,21 +171,27 @@ private[java] object JavaFacadeBridge:
    * Only flipped=false adjacencies are included to avoid duplicates.
    */
   private def extractWeightedEdges[V, E](g: com.phasmidsoftware.gryphon.core.EdgeGraph[V, E]
-                                        ): java.util.List[WeightedEdge[V, E]] =
+                                        ): JavaList[WeightedEdge[V, E]] =
     val list = new java.util.ArrayList[WeightedEdge[V, E]]()
     g.edges.foreach { e =>
       list.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }
     java.util.Collections.unmodifiableList(list)
 
-  private def asParseable[T](f: java.util.function.Function[String, T]): Parseable[T] =
+  /**
+   * Wraps a Java `Function<String, T>` into a `Parseable[T]`.
+   * The regex must match exactly the tokens that `GraphParser` will see —
+   * use `\\w+` for string vertex keys and the double regex for numeric weights.
+   * Passing `.*` or `\\S+` causes comment lines starting with `//` to be
+   * parsed as vertex tokens rather than filtered out.
+   */
+  private def asParseable[T](f: java.util.function.Function[String, T],
+                             regexStr: String): Parseable[T] =
     new Parseable[T]:
       def parse(s: String): Try[T] = Try(f.apply(s))
 
-      def regex: scala.util.matching.Regex = ".*".r
-
+      def regex: scala.util.matching.Regex = regexStr.r
       def message: String = "custom"
-
       def none: T = throw new UnsupportedOperationException("none not supported for custom Parseable")
 
   // ---------------------------------------------------------------------------
@@ -197,7 +203,7 @@ private[java] object JavaFacadeBridge:
    * using `Unit` as the edge attribute type (for BFS/DFS).
    * Folds over `VertexMap.+[E]` directly to ensure both endpoints exist.
    */
-  def materialise[V](edges: java.util.List[Edge[V]], directed: Boolean): AbstractGraph[V] =
+  def materialise[V](edges: JavaList[Edge[V]], directed: Boolean): AbstractGraph[V] =
     if directed then
       val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
         vm + AttributedDirectedEdge(None, e.from, e.to)
@@ -212,7 +218,7 @@ private[java] object JavaFacadeBridge:
   // Materialisation — typed weighted directed
   // ---------------------------------------------------------------------------
 
-  private def materialiseWeighted[V, E](edges: java.util.List[WeightedEdge[V, E]]): DirectedGraph[V, E] =
+  private def materialiseWeighted[V, E](edges: JavaList[WeightedEdge[V, E]]): DirectedGraph[V, E] =
     val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
       vm + AttributedDirectedEdge(e.attribute, e.from, e.to)
     }
@@ -222,7 +228,7 @@ private[java] object JavaFacadeBridge:
   // Materialisation — typed weighted undirected
   // ---------------------------------------------------------------------------
 
-  private def materialiseWeightedUndirected[V, E](edges: java.util.List[WeightedEdge[V, E]]): UndirectedGraph[V, E] =
+  private def materialiseWeightedUndirected[V, E](edges: JavaList[WeightedEdge[V, E]]): UndirectedGraph[V, E] =
     val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
       vm + UndirectedEdge(e.attribute, e.from, e.to)
     }
@@ -234,7 +240,7 @@ private[java] object JavaFacadeBridge:
 
   def dijkstraDouble[V](
                                scalaGraph: AbstractGraph[V],
-                               edges: java.util.List[WeightedEdge[V, Double]],
+                               edges: JavaList[WeightedEdge[V, Double]],
                                start: V
                        ): java.util.Map[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
@@ -255,7 +261,7 @@ private[java] object JavaFacadeBridge:
    */
   def dijkstraCustom[V, E](
                                   scalaGraph: AbstractGraph[V],
-                                  edges: java.util.List[WeightedEdge[V, E]],
+                                  edges: JavaList[WeightedEdge[V, E]],
                                   start: V,
                                   combineFn: java.util.function.BinaryOperator[E],
                                   zero: E,
@@ -279,7 +285,7 @@ private[java] object JavaFacadeBridge:
 
   def primDouble[V](
                            scalaGraph: AbstractGraph[V],
-                           edges: java.util.List[WeightedEdge[V, Double]],
+                           edges: JavaList[WeightedEdge[V, Double]],
                            start: V
                    ): java.util.Map[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
@@ -301,7 +307,7 @@ private[java] object JavaFacadeBridge:
    */
   def primCustom[V, E](
                               scalaGraph: AbstractGraph[V],
-                              edges: java.util.List[WeightedEdge[V, E]],
+                              edges: JavaList[WeightedEdge[V, E]],
                               start: V,
                               comparator: java.util.Comparator[E]
                       ): java.util.Map[V, WeightedEdge[V, E]] =
@@ -319,8 +325,8 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   def kruskalDouble[V](
-                              edges: java.util.List[WeightedEdge[V, Double]]
-                      ): java.util.List[WeightedEdge[V, Double]] =
+                              edges: JavaList[WeightedEdge[V, Double]]
+                      ): JavaList[WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = Kruskal.mst(weightedGraph)
@@ -335,9 +341,9 @@ private[java] object JavaFacadeBridge:
    * accumulated. Only `Ordering[E]` is needed.
    */
   def kruskalCustom[V, E](
-                                 edges: java.util.List[WeightedEdge[V, E]],
+                                 edges: JavaList[WeightedEdge[V, E]],
                                  comparator: java.util.Comparator[E]
-                         ): java.util.List[WeightedEdge[V, E]] =
+                         ): JavaList[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
@@ -350,15 +356,15 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   def boruvkaDouble[V](
-                              edges: java.util.List[WeightedEdge[V, Double]]
-                      ): java.util.List[WeightedEdge[V, Double]] =
+                              edges: JavaList[WeightedEdge[V, Double]]
+                      ): JavaList[WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
     given Monoid[Double] with
       def identity: Double = 0.0
       def combine(x: Double, y: Double): Double = x + y
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
-    mstResultToJavaList(result)
+    mstSeqToJavaList(result)
 
   // ---------------------------------------------------------------------------
   // Boruvka — Option 3: custom type, Comparator only
@@ -369,16 +375,16 @@ private[java] object JavaFacadeBridge:
    * Only `Ordering[E]` is needed; the `Monoid.combine` stub is never called.
    */
   def boruvkaCustom[V, E](
-                                 edges: java.util.List[WeightedEdge[V, E]],
+                                 edges: JavaList[WeightedEdge[V, E]],
                                  comparator: java.util.Comparator[E]
-                         ): java.util.List[WeightedEdge[V, E]] =
+                         ): JavaList[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
     given Monoid[E] with
       def identity: E = edges.get(0).attribute
       def combine(x: E, y: E): E = identity
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
-    mstResultToJavaList(result)
+    mstSeqToJavaList(result)
 
   // ---------------------------------------------------------------------------
   // Kosaraju
@@ -386,7 +392,7 @@ private[java] object JavaFacadeBridge:
 
   def kosaraju[V](
                          scalaGraph: AbstractGraph[V],
-                         edges: java.util.List[Edge[V]]
+                         edges: JavaList[Edge[V]]
                  ): java.util.Map[V, java.lang.Integer] =
     given Random = Random(42)
 
@@ -450,7 +456,7 @@ private[java] object JavaFacadeBridge:
 
   private def mstSeqToJavaList[V, E](
                                             result: Seq[com.phasmidsoftware.gryphon.core.Edge[V, E]]
-                                    ): java.util.List[WeightedEdge[V, E]] =
+                                    ): JavaList[WeightedEdge[V, E]] =
     val javaList = new java.util.ArrayList[WeightedEdge[V, E]]()
     result.foreach { e =>
       javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
@@ -460,19 +466,3 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
   // Result conversion — MST list (Boruvka)
   // ---------------------------------------------------------------------------
-
-  /**
-   * Converts a VertexTraversalResult to a Java List of WeightedEdge, deduplicating
-   * by unordered vertex pair since each MST edge appears for both its endpoints.
-   */
-  private def mstResultToJavaList[V, E](
-                                               result: com.phasmidsoftware.gryphon.traverse.VertexTraversalResult[V, com.phasmidsoftware.gryphon.core.Edge[V, E]]
-                                       ): java.util.List[WeightedEdge[V, E]] =
-    val javaList = new java.util.ArrayList[WeightedEdge[V, E]]()
-    result.map.values
-            .map(e => Set(e.white, e.black) -> e)
-            .toMap.values
-            .foreach { e =>
-              javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
-            }
-    java.util.Collections.unmodifiableList(javaList)

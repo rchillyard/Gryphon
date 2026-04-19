@@ -28,7 +28,7 @@ that supports the author's own textbook Data Structures, Algorithms, and Invaria
 Add Gryphon to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.0"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.1"
 ```
 
 Gryphon requires **Scala 3** and depends on
@@ -177,8 +177,8 @@ val totalWeight = mstEdges.map(_.attribute).sum
 ### Minimum spanning tree (Borůvka)
 
 ```scala
-val result: VertexTraversalResult[Int, Edge[Int, Double]] = Boruvka.mst(undirectedGraph)
-val totalWeight = result.map.values.map(e => Set(e.white, e.black) -> e.attribute).toMap.values.sum
+val mstEdges: Seq[Edge[Int, Double]] = Boruvka.mst(undirectedGraph)
+val totalWeight = mstEdges.map(_.attribute).sum
 ```
 
 ### Strongly connected components (Kosaraju)
@@ -217,7 +217,7 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 <dependency>
     <groupId>com.phasmidsoftware</groupId>
     <artifactId>gryphon_3</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ````
 
@@ -233,7 +233,25 @@ The Java API is the primary interface for students in INFO6205 at Northeastern U
 | `Connectivity<V>` | Mutable Union-Find façade for disjoint-set operations |
 | `ShortestPaths` | Dijkstra's algorithm |
 | `MinimumSpanningTree` | Prim's, Kruskal's, and Borůvka's algorithms |
+| `WeightedGraph.fromResource` | Loads a graph directly from a `.graph` resource file |
 | `StronglyConnectedComponents` | Kosaraju's algorithm |
+
+### Building a graph from a resource file
+
+Java students can load a graph directly from a `.graph` classpath resource,
+avoiding verbose `addEdge` calls in test code:
+
+```java
+// Option 1 — Integer vertices, Double weights
+WeightedGraph<Integer, Double> g = WeightedGraph.undirectedFromResource("prim.graph");
+
+// Option 3 — custom vertex and edge types
+WeightedGraph<Building, TunnelProperties> g = WeightedGraph.undirectedFromResource(
+    "tunnels.graph", Building::parse, TunnelProperties::parse);
+```
+
+The `.graph` format uses `=` for undirected edges and `>` for directed edges;
+`//` introduces a comment line.
 
 ### Building a graph
 
@@ -490,6 +508,7 @@ com.phasmidsoftware.gryphon
                 Connected, Traversable, EdgeTraversable
   .adjunct    — DirectedGraph, UndirectedGraph, DirectedEdge,
                 UndirectedEdge, Connectivity, ConnectivityOptimized
+  .builder    — GraphBuilder
   .traverse   — ConnectedComponents, Kosaraju, TopologicalSort,
                 ShortestPaths, MST, AcyclicShortestPaths, BellmanFord,
                 Kruskal, Boruvka, TraversalResult, Connexions
@@ -526,7 +545,7 @@ the five orthogonal typeclasses that drive all traversals:
 
 ## Testing
 
-The library has 380+ tests covering all algorithms, graph properties, and
+The library has 531 tests covering all algorithms, graph properties, and
 edge cases including:
 - Disconnected graphs and forests
 - Negative edge weights (Bellman–Ford, AcyclicShortestPaths)
@@ -534,6 +553,7 @@ edge cases including:
 - Self-loops
 - Agreement between Bellman–Ford and Dijkstra on non-negative graphs
 - Agreement between Prim, Kruskal, and Borůvka on MST weight
+- Integration tests on the Northeastern University tunnel network (80 buildings, 79 edges, $6,648,954)
 - Java API tests for all major algorithms
 
 ```bash
@@ -555,6 +575,8 @@ sbt test
 | 1.3.0 | Added WeightedGraph                                                                               |
 | 1.4.0 | All BFS/DFS now use Visitor.traverse                                                              |
 | 1.5.0 | Borůvka MST; symmetric UndirectedEdge.equals/hashCode; Java façade: MinimumSpanningTree (Borůvka) |
+| 1.5.1 | GraphBuilder (Scala); WeightedGraph.fromResource (Java); Graph/WeightedGraph resource-load constructors |
+| 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 
 ---
 

@@ -78,9 +78,6 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * Reads an undirected weighted graph with {@code Integer} vertices and
      * {@code Double} edge weights from a classpath resource.
      *
-     * <p>The resource must use the Gryphon {@code .graph} format:
-     * {@code 0 = 1 0.16} for an undirected edge, {@code //} for comments.</p>
-     *
      * @param resourceName the classpath resource name (e.g. {@code "prim.graph"}).
      * @return a populated undirected {@code WeightedGraph<Integer, Double>}.
      * @throws RuntimeException if the resource is not found or cannot be parsed.
@@ -88,7 +85,7 @@ public class WeightedGraph<V, E> extends Graph<V> {
     @SuppressWarnings("unchecked")
     public static WeightedGraph<Integer, Double> undirectedFromResource(String resourceName) {
         scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.undirectedWeightedFromResource(resourceName);
-        return fromScalaGraph(t._1(), (java.util.List<WeightedEdge<Integer, Double>>) t._2(), false);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<Integer, Double>>) t._2(), false);
     }
 
     /**
@@ -102,7 +99,7 @@ public class WeightedGraph<V, E> extends Graph<V> {
     @SuppressWarnings("unchecked")
     public static WeightedGraph<Integer, Double> directedFromResource(String resourceName) {
         scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.directedWeightedFromResource(resourceName);
-        return fromScalaGraph(t._1(), (java.util.List<WeightedEdge<Integer, Double>>) t._2(), true);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<Integer, Double>>) t._2(), true);
     }
 
     /**
@@ -116,8 +113,8 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * @param <V>          the vertex type.
      * @param <E>          the edge attribute type.
      * @param resourceName the classpath resource name.
-     * @param vertexParser parses a single token from the graph file into a {@code V}.
-     * @param edgeParser   parses a single token from the graph file into an {@code E}.
+     * @param vertexParser parses a single token into a {@code V}.
+     * @param edgeParser   parses a single token into an {@code E}.
      * @return a populated undirected {@code WeightedGraph<V, E>}.
      * @throws RuntimeException if the resource is not found or cannot be parsed.
      */
@@ -128,7 +125,7 @@ public class WeightedGraph<V, E> extends Graph<V> {
             java.util.function.Function<String, E> edgeParser) {
         scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.undirectedWeightedFromResourceCustom(
                 resourceName, vertexParser, edgeParser);
-        return fromScalaGraph(t._1(), (java.util.List<WeightedEdge<V, E>>) t._2(), false);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<V, E>>) t._2(), false);
     }
 
     /**
@@ -138,8 +135,8 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * @param <V>          the vertex type.
      * @param <E>          the edge attribute type.
      * @param resourceName the classpath resource name.
-     * @param vertexParser parses a single token from the graph file into a {@code V}.
-     * @param edgeParser   parses a single token from the graph file into an {@code E}.
+     * @param vertexParser parses a single token into a {@code V}.
+     * @param edgeParser   parses a single token into an {@code E}.
      * @return a populated directed {@code WeightedGraph<V, E>}.
      * @throws RuntimeException if the resource is not found or cannot be parsed.
      */
@@ -150,7 +147,7 @@ public class WeightedGraph<V, E> extends Graph<V> {
             java.util.function.Function<String, E> edgeParser) {
         scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.directedWeightedFromResourceCustom(
                 resourceName, vertexParser, edgeParser);
-        return fromScalaGraph(t._1(), (java.util.List<WeightedEdge<V, E>>) t._2(), true);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<V, E>>) t._2(), true);
     }
 
     /**
@@ -160,8 +157,8 @@ public class WeightedGraph<V, E> extends Graph<V> {
      */
     @SuppressWarnings("unchecked")
     private static <V, E> WeightedGraph<V, E> fromScalaGraph(
-            Object scalaGraph, java.util.List<WeightedEdge<V, E>> edges, boolean directed) {
-        return new WeightedGraph<>(directed, scalaGraph, edges);
+            Object scalaGraph, List<WeightedEdge<V, E>> edges, boolean directed) {
+        return new WeightedGraph<V, E>(directed, scalaGraph, edges);
     }
 
     // -------------------------------------------------------------------------
@@ -245,24 +242,19 @@ public class WeightedGraph<V, E> extends Graph<V> {
     }
 
     /**
-     * Package-private constructor for graphs built from a resource file.
-     * The pre-built Scala graph is injected into the cache directly.
+     * Constructor for graphs loaded from a resource file.
+     * The pre-built Scala graph is injected into the cache.
+     * Each edge is added via super.addEdge to populate the Java adjacency map
+     * (so vertices() and neighbours() work correctly), and also recorded in
+     * weightedEdges so algorithm bridge methods have the typed edge list.
      */
-    @SuppressWarnings("unchecked")
-    private WeightedGraph(boolean directed, Object prebuiltScalaGraph) {
-        super(directed, prebuiltScalaGraph);
-    }
-
-    /**
-     * Constructor for graphs built from a resource file, with pre-extracted
-     * edge list. The Scala graph is injected into the cache and the edge list
-     * is stored so algorithm bridge methods work correctly.
-     */
-    @SuppressWarnings("unchecked")
     private WeightedGraph(boolean directed, Object prebuiltScalaGraph,
-                          java.util.List<WeightedEdge<V, E>> edges) {
+                          List<WeightedEdge<V, E>> edges) {
         super(directed, prebuiltScalaGraph);
-        weightedEdges.addAll(edges);
+        for (WeightedEdge<V, E> edge : edges) {
+            weightedEdges.add(edge);  // typed list for algorithm bridges
+            super.addEdge(edge);       // populates Java adjacency map
+        }
     }
 
     // -------------------------------------------------------------------------

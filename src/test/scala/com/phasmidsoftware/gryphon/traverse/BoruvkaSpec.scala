@@ -49,26 +49,15 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
           case _ => fail("not an UndirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
 
-  // Deduplicate pred-map values by unordered vertex pair, giving true MST edge set.
-  private def mstEdges(graph: UndirectedGraph[Int, Double]) =
-    Boruvka.mst(graph).map.values
-            .map(e => Set(e.white, e.black) -> e.attribute)
-            .toMap
-
   // -------------------------------------------------------------------------
   // Result structure
   // -------------------------------------------------------------------------
 
   behavior of "Boruvka.mst — result structure"
 
-  it should "label all 8 vertices" in :
+  it should "produce exactly 7 MST edges (N-1 for 8 vertices)" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map.size shouldBe 8
-    }
-
-  it should "produce exactly 7 distinct MST edges (N-1 for 8 vertices)" in :
-    withPrimGraph { graph =>
-      mstEdges(graph).size shouldBe 7
+      Boruvka.mst(graph).size shouldBe 7
     }
 
   // -------------------------------------------------------------------------
@@ -79,54 +68,53 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce MST with total weight 1.81" in :
     withPrimGraph { graph =>
-      val totalWeight = mstEdges(graph).values.sum
-      totalWeight shouldBe 1.81 +- 0.001
+      Boruvka.mst(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
     }
 
   // -------------------------------------------------------------------------
-  // MST edge set — same result as Kruskal and Prim
+  // MST edge set — same result as Kruskal
   // -------------------------------------------------------------------------
 
   behavior of "Boruvka.mst — edge set"
 
   it should "include edge 0-7 with weight 0.16" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.16)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.16)
     }
 
   it should "include edge 2-3 with weight 0.17" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.17)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.17)
     }
 
   it should "include edge 1-7 with weight 0.19" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.19)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.19)
     }
 
   it should "include edge 0-2 with weight 0.26" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.26)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.26)
     }
 
   it should "include edge 5-7 with weight 0.28" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.28)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.28)
     }
 
   it should "include edge 4-5 with weight 0.35" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.35)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.35)
     }
 
   it should "include edge 6-2 with weight 0.40" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should contain(0.40)
+      Boruvka.mst(graph).map(_.attribute) should contain(0.40)
     }
 
   it should "not include edge 1-3 with weight 0.29 (cycle)" in :
     withPrimGraph { graph =>
-      mstEdges(graph).values should not contain 0.29
+      Boruvka.mst(graph).map(_.attribute) should not contain 0.29
     }
 
   // -------------------------------------------------------------------------
@@ -137,7 +125,7 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce the same MST edge weights as Kruskal" in :
     withPrimGraph { graph =>
-      val boruvkaWeights = mstEdges(graph).values.toSet
+      val boruvkaWeights = Boruvka.mst(graph).map(_.attribute).toSet
       val kruskalWeights = Kruskal.mst(graph).map(_.attribute).toSet
       boruvkaWeights shouldBe kruskalWeights
     }

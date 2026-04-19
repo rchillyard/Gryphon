@@ -24,7 +24,6 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) => f(graph)
           case Failure(x) => fail(x)
-          case _ => fail("unexpected graph type")
       case Failure(x) => fail(x)
 
   it should "vertexMappedTraversalDfs on small undirected graph" in {

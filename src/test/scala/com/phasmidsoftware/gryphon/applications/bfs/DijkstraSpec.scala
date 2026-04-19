@@ -38,7 +38,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.bfs(visitor)(0)
             result.result.map(_._1).toSet.size shouldBe 8
@@ -56,7 +56,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfsAll(visitor)
             result.result.map(_._1).toSet.size shouldBe 8
@@ -78,7 +78,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.bfs(visitor)(0)
             val order = result.result.map(_._1).toList
@@ -103,7 +103,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
 
             given Random = Random(42)
@@ -130,7 +130,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfs(visitor)(0)
             val visited = result.result.map(_._1).toSet
@@ -150,7 +150,7 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: DirectedGraph[Int, Double]) =>
+          case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.bfs(visitor)(0)
             result.result.headOption.map(_._1) shouldBe Some(0)

@@ -138,6 +138,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    * This function will throw a `GraphException` if the input `Adjacency` does not match the expected pattern,
    * indicating an unsupported or an invalid edge type.
    *
+   * NOTE this method is currently unused but I think we should keep it around.
+   *
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
   private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[V, E]] = {

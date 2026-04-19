@@ -52,7 +52,7 @@ object Connectivity:
  * `ConnectivityOptimized`, both of which use identical merge strategies.
  * A single point of change ensures the two implementations cannot silently diverge.
  */
-private[adjunct] object WeightedUnion:
+object WeightedUnion:
 
   /**
    * Merges the components rooted at `v1` and `v2` in `map` by attaching the

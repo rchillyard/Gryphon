@@ -215,6 +215,7 @@ abstract class WeightedTraversal[V, E: {Zero, Ordering}, R <: Edge[V, E]]
 
 /**
  * Dijkstra's shortest-path traversal.
+ * See [Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm).
  *
  * Uses cumulative path cost as the frontier priority. Only `AttributedDirectedEdge`
  * instances are admitted — the result type is `TraversalResult[V, AttributedDirectedEdge[V, E]]`,
@@ -246,6 +247,7 @@ case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
 
 /**
  * Prim's minimum spanning tree traversal.
+ * See [Prim's Algorithm](https://en.wikipedia.org/wiki/Prim%27s_algorithm).
  *
  * Uses individual edge weight (not cumulative) as the frontier priority, so the
  * cheapest available edge to any unvisited vertex is always chosen next.

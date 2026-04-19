@@ -17,7 +17,10 @@ import scala.util.Random
 type SCCResult[V] = Map[V, Int]
 
 /**
- * Computes strongly connected components of a directed graph using Kosaraju's algorithm.
+ * Computes strongly connected components of a directed graph using the Kosaraju-Sharir algorithm.
+ * See [Kosaraju, 1962](https://doi.org/10.1016/0022-0000(62)90012-2).
+ * See [Kosaraju's Algorithm](https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm).
+ * See [A Strong Connectivity Algorithm...](https://www.sciencedirect.com/science/article/pii/0898122181900080?via%3Dihub).
  *
  * The algorithm makes two passes:
  *
@@ -32,6 +35,9 @@ type SCCResult[V] = Map[V, Int]
  *
  * NOTE: intended for directed graphs only.
  * For undirected graphs see `ConnectedComponents`.
+ *
+ * When applied to a Directed Acyclic Graph (DAG), the result is a topologically sorted
+ * set of SCCs, each of which holds only one vertex.
  */
 object Kosaraju {
 
@@ -67,8 +73,6 @@ object Kosaraju {
         then
           acc
         else
-          given VisitedSet[V] = vs
-
           tracer.trace(1, s"pass 1: seeding from ${unvisited.head}, ${unvisited.size} unvisited")
           val result = Traversal.dfs(start = unvisited.head, visitor = JournaledVisitor.withListJournal[V, V], order = DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs, Tracer.silent)
           // ListJournal prepends: head = last-finished within this component.

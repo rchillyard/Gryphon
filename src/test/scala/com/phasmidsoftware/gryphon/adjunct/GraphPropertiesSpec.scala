@@ -39,7 +39,7 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     } match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: UndirectedGraph[Int, Double]) => f(graph)
+          case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
           case Failure(x) => fail("graph construction failed", x)
           case _ => fail("not an UndirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
@@ -86,8 +86,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, Some(1.0), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        g.maxDegree shouldBe 1
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.maxDegree shouldBe 1
       case other => fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
@@ -112,8 +112,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, Some(1.0), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        g.meanDegree shouldBe 1.0 +- 0.001
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.meanDegree shouldBe 1.0 +- 0.001
       case other => fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
@@ -133,8 +133,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       Triplet(1, 2, Some(2.0), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        g.numberOfSelfLoops shouldBe 0
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.numberOfSelfLoops shouldBe 0
       case other => fail(s"unexpected: $other")
 
   it should "return 1 for a graph with one self-loop" in :
@@ -143,8 +143,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 0, Some(0.5), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        g.numberOfSelfLoops shouldBe 1
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.numberOfSelfLoops shouldBe 1
       case other => fail(s"unexpected: $other")
 
   it should "count multiple self-loops correctly" in :
@@ -154,6 +154,6 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 1, Some(3.0), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        g.numberOfSelfLoops shouldBe 2
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.numberOfSelfLoops shouldBe 2
       case other => fail(s"unexpected: $other")

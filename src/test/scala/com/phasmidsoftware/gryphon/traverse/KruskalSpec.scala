@@ -43,7 +43,7 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
     zsy match
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(graph: UndirectedGraph[Int, Double]) => f(graph)
+          case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
           case Failure(x) => fail("graph construction failed", x)
           case _ => fail("not an UndirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
@@ -161,8 +161,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
   it should "find the single MST edge in a two-vertex graph" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(Triplet(0, 1, Some(1.0), Undirected))
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        val mst = Kruskal.mst(g)
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        val mst = Kruskal.mst(graph)
         mst.size shouldBe 1
         mst.head.attribute shouldBe 1.0
       case other => fail(s"unexpected: $other")
@@ -173,8 +173,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
       Triplet(1, 2, Some(2.0), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        val mst = Kruskal.mst(g)
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        val mst = Kruskal.mst(graph)
         mst.size shouldBe 2
         mst.map(_.attribute) should contain allOf(1.0, 2.0)
       case other => fail(s"unexpected: $other")
@@ -186,8 +186,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
       Triplet(0, 2, Some(3.0), Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(g: UndirectedGraph[Int, Double]) =>
-        val mst = Kruskal.mst(g)
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        val mst = Kruskal.mst(graph)
         mst.size shouldBe 2
         mst.map(_.attribute) should contain(1.0)
         mst.map(_.attribute) should contain(2.0)

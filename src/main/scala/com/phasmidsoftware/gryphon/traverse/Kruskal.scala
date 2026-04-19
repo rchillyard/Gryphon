@@ -9,6 +9,10 @@ import com.phasmidsoftware.gryphon.core.*
 
 /**
  * Computes the minimum spanning tree of an undirected weighted graph using Kruskal's algorithm.
+ * See [Krusal's Algorithm](https://en.wikipedia.org/wiki/Kruskal%27s_algorithm).
+ *
+ * The complexity of this implementation is O(E log E), where E is the number of edges
+ * because the time is dominated by the sorting step.
  *
  * The algorithm:
  *   1. Sort all edges by weight (ascending).
@@ -17,6 +21,9 @@ import com.phasmidsoftware.gryphon.core.*
  *   3. Stop when N-1 edges have been added (MST is complete).
  *
  * Uses `WeightedUnionFind` for O(log n) connectivity queries and unions.
+ * Somewhat wastefully sorts all edges before starting. 
+ * A priority queue would be more efficient in the average case,
+ * but would not improve the worst case.
  *
  * NOTE: intended for undirected weighted graphs only.
  */

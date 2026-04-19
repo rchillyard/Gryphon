@@ -39,4 +39,4 @@ object ShortestPaths:
    */
   def undiscoveredVertices[V, E](traversable: core.Traversable[V])(v: V)(using random: Random = Random()): Seq[V] =
     undiscoveredEdges(traversable)(v)
-            .collect { case e: AttributedDirectedEdge[V, E] => e.black }
+            .collect { case e: AttributedDirectedEdge[V, E] @unchecked => e.black }

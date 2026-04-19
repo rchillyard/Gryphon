@@ -332,7 +332,7 @@ public class GraphTest {
             g.addEdge("B", "C");
             g.addEdge("C", "D");
             Map<String, String> tree = g.bfs("A");
-            List<String> path = reconstructPath(tree, "A", "D");
+            List<String> path = reconstructPath(tree, "D");
             assertEquals("A", path.getFirst());
             assertEquals("D", path.getLast());
         }
@@ -404,7 +404,7 @@ public class GraphTest {
             g.addEdge("B", "C");
             g.addEdge("C", "D");
             Map<String, String> tree = g.dfs("A");
-            List<String> path = reconstructPath(tree, "A", "D");
+            List<String> path = reconstructPath(tree, "D");
             assertEquals("A", path.getFirst());
             assertEquals("D", path.getLast());
         }
@@ -434,7 +434,7 @@ public class GraphTest {
      * Reconstructs the path from {@code start} to {@code end} using the came-from map.
      * Works with start vertex absent — walk until key is absent.
      */
-    private static <V> List<V> reconstructPath(Map<V, V> cameFrom, V start, V end) {
+    private static <V> List<V> reconstructPath(Map<V, V> cameFrom, V end) {
         List<V> path = new java.util.ArrayList<>();
         V current = end;
         while (cameFrom.containsKey(current)) {

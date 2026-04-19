@@ -5,7 +5,6 @@ import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGrap
 import com.phasmidsoftware.gryphon.core.{EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
-import com.phasmidsoftware.visitor.core.Monoid
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.io.Source
@@ -55,8 +54,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val neighbours = graph.undiscoveredVertices(0)
@@ -77,8 +74,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val neighbours = graph.undiscoveredVertices(0)
@@ -98,8 +93,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     }
     zsy match
       case Success(triplets) =>
-        given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val neighbours = graph.undiscoveredEdges(2)

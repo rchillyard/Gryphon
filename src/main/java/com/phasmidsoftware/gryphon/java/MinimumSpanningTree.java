@@ -190,7 +190,7 @@ public class MinimumSpanningTree {
             throw new IllegalStateException(
                     "MinimumSpanningTree.boruvka requires an undirected graph");
         return (List<WeightedEdge<V, Double>>) (List<?>)
-                JavaFacadeBridge$.MODULE$.boruvkaDouble((java.util.List) graph.weightedEdges());
+                JavaFacadeBridge$.MODULE$.boruvkaDouble((List) graph.weightedEdges());
     }
 
     // -------------------------------------------------------------------------

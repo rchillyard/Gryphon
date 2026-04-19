@@ -1,11 +1,13 @@
 package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
+import com.phasmidsoftware.gryphon.builder.GraphBuilder
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
+import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.traverse.{Kruskal, MST, ShortestPaths}
 import com.phasmidsoftware.visitor.core.{*, given}
 import scala.jdk.CollectionConverters.*
-import scala.util.Random
+import scala.util.{Random, Try}
 
 /**
  * Internal Scala bridge used by the Java façade.
@@ -119,6 +121,72 @@ private[java] object JavaFacadeBridge:
     val result = Traversal.dfs(start, visitor)
             .asInstanceOf[JournaledVisitor[V, V, ?]]
     cameFromToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // Graph file reader
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Loads an undirected weighted graph from a resource and returns both the
+   * Scala graph and a Java edge list extracted from it.
+   * The edge list is used to populate WeightedGraph.weightedEdges so that
+   * algorithm bridge methods that require it work correctly.
+   */
+  def undirectedWeightedFromResource(resourceName: String
+                                    ): (UndirectedGraph[Int, Double], java.util.List[WeightedEdge[Int, Double]]) =
+    val g = GraphBuilder.undirected[Int, Double].fromResource(resourceName).get
+    (g, extractWeightedEdges(g))
+
+  def directedWeightedFromResource(resourceName: String
+                                  ): (DirectedGraph[Int, Double], java.util.List[WeightedEdge[Int, Double]]) =
+    val g = GraphBuilder.directed[Int, Double].fromResource(resourceName).get
+    (g, extractWeightedEdges(g))
+
+  def undirectedWeightedFromResourceCustom[V, E](
+                                                        resourceName: String,
+                                                        vertexParser: java.util.function.Function[String, V],
+                                                        edgeParser: java.util.function.Function[String, E]
+                                                ): (UndirectedGraph[V, E], java.util.List[WeightedEdge[V, E]]) =
+    given Parseable[V] = asParseable(vertexParser)
+
+    given Parseable[E] = asParseable(edgeParser)
+
+    val g = GraphBuilder.undirected[V, E].fromResource(resourceName).get
+    (g, extractWeightedEdges(g))
+
+  def directedWeightedFromResourceCustom[V, E](
+                                                      resourceName: String,
+                                                      vertexParser: java.util.function.Function[String, V],
+                                                      edgeParser: java.util.function.Function[String, E]
+                                              ): (DirectedGraph[V, E], java.util.List[WeightedEdge[V, E]]) =
+    given Parseable[V] = asParseable(vertexParser)
+
+    given Parseable[E] = asParseable(edgeParser)
+
+    val g = GraphBuilder.directed[V, E].fromResource(resourceName).get
+    (g, extractWeightedEdges(g))
+
+  /**
+   * Extracts the edges from a Scala EdgeGraph as a Java List of WeightedEdge.
+   * Only flipped=false adjacencies are included to avoid duplicates.
+   */
+  private def extractWeightedEdges[V, E](g: com.phasmidsoftware.gryphon.core.EdgeGraph[V, E]
+                                        ): java.util.List[WeightedEdge[V, E]] =
+    val list = new java.util.ArrayList[WeightedEdge[V, E]]()
+    g.edges.foreach { e =>
+      list.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
+    }
+    java.util.Collections.unmodifiableList(list)
+
+  private def asParseable[T](f: java.util.function.Function[String, T]): Parseable[T] =
+    new Parseable[T]:
+      def parse(s: String): Try[T] = Try(f.apply(s))
+
+      def regex: scala.util.matching.Regex = ".*".r
+
+      def message: String = "custom"
+
+      def none: T = throw new UnsupportedOperationException("none not supported for custom Parseable")
 
   // ---------------------------------------------------------------------------
   // Materialisation — unweighted (Unit edge attribute)
@@ -285,10 +353,8 @@ private[java] object JavaFacadeBridge:
                               edges: java.util.List[WeightedEdge[V, Double]]
                       ): java.util.List[WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-
     given Monoid[Double] with
       def identity: Double = 0.0
-
       def combine(x: Double, y: Double): Double = x + y
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
@@ -307,10 +373,8 @@ private[java] object JavaFacadeBridge:
                                  comparator: java.util.Comparator[E]
                          ): java.util.List[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
-
     given Monoid[E] with
       def identity: E = edges.get(0).attribute
-
       def combine(x: E, y: E): E = identity
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)

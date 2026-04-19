@@ -299,6 +299,22 @@ public class Graph<V> {
         this.directed = directed;
     }
 
+    /**
+     * Package-private constructor for graphs loaded from a resource file.
+     * The pre-built Scala graph is injected directly into the cache,
+     * bypassing the normal materialisation path. The Java edge and
+     * adjacency collections are left empty — this graph is intended
+     * for read-only algorithm use via the façade, not further mutation.
+     *
+     * @param directed           whether the graph is directed.
+     * @param prebuiltScalaGraph the already-constructed Scala graph.
+     */
+    @SuppressWarnings("unchecked")
+    Graph(boolean directed, Object prebuiltScalaGraph) {
+        this.directed = directed;
+        this.scalaGraph = (AbstractGraph<V>) prebuiltScalaGraph;
+    }
+
     // -------------------------------------------------------------------------
     // Fields
     // -------------------------------------------------------------------------

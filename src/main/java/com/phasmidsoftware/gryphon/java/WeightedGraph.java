@@ -71,6 +71,97 @@ public class WeightedGraph<V, E> extends Graph<V> {
     }
 
     // -------------------------------------------------------------------------
+    // File reader factory methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Reads an undirected weighted graph with {@code Integer} vertices and
+     * {@code Double} edge weights from a classpath resource.
+     *
+     * @param resourceName the classpath resource name (e.g. {@code "prim.graph"}).
+     * @return a populated undirected {@code WeightedGraph<Integer, Double>}.
+     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     */
+    @SuppressWarnings("unchecked")
+    public static WeightedGraph<Integer, Double> undirectedFromResource(String resourceName) {
+        scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.undirectedWeightedFromResource(resourceName);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<Integer, Double>>) t._2(), false);
+    }
+
+    /**
+     * Reads a directed weighted graph with {@code Integer} vertices and
+     * {@code Double} edge weights from a classpath resource.
+     *
+     * @param resourceName the classpath resource name (e.g. {@code "routes.graph"}).
+     * @return a populated directed {@code WeightedGraph<Integer, Double>}.
+     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     */
+    @SuppressWarnings("unchecked")
+    public static WeightedGraph<Integer, Double> directedFromResource(String resourceName) {
+        scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.directedWeightedFromResource(resourceName);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<Integer, Double>>) t._2(), true);
+    }
+
+    /**
+     * Reads an undirected weighted graph from a classpath resource using
+     * custom vertex and edge parsers.
+     *
+     * <p>Use this variant when your vertices or edges are not plain
+     * {@code Integer}/{@code Double} — for example, building names or
+     * composite tunnel properties.</p>
+     *
+     * @param <V>          the vertex type.
+     * @param <E>          the edge attribute type.
+     * @param resourceName the classpath resource name.
+     * @param vertexParser parses a single token into a {@code V}.
+     * @param edgeParser   parses a single token into an {@code E}.
+     * @return a populated undirected {@code WeightedGraph<V, E>}.
+     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V, E> WeightedGraph<V, E> undirectedFromResource(
+            String resourceName,
+            java.util.function.Function<String, V> vertexParser,
+            java.util.function.Function<String, E> edgeParser) {
+        scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.undirectedWeightedFromResourceCustom(
+                resourceName, vertexParser, edgeParser);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<V, E>>) t._2(), false);
+    }
+
+    /**
+     * Reads a directed weighted graph from a classpath resource using
+     * custom vertex and edge parsers.
+     *
+     * @param <V>          the vertex type.
+     * @param <E>          the edge attribute type.
+     * @param resourceName the classpath resource name.
+     * @param vertexParser parses a single token into a {@code V}.
+     * @param edgeParser   parses a single token into an {@code E}.
+     * @return a populated directed {@code WeightedGraph<V, E>}.
+     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V, E> WeightedGraph<V, E> directedFromResource(
+            String resourceName,
+            java.util.function.Function<String, V> vertexParser,
+            java.util.function.Function<String, E> edgeParser) {
+        scala.Tuple2<?, ?> t = JavaFacadeBridge$.MODULE$.directedWeightedFromResourceCustom(
+                resourceName, vertexParser, edgeParser);
+        return fromScalaGraph(t._1(), (List<WeightedEdge<V, E>>) t._2(), true);
+    }
+
+    /**
+     * Wraps a pre-built Scala graph and its extracted edge list into a Java
+     * {@code WeightedGraph} façade. The Scala graph is injected into the cache
+     * and the edge list is stored so algorithm bridge methods work correctly.
+     */
+    @SuppressWarnings("unchecked")
+    private static <V, E> WeightedGraph<V, E> fromScalaGraph(
+            Object scalaGraph, List<WeightedEdge<V, E>> edges, boolean directed) {
+        return new WeightedGraph<V, E>(directed, scalaGraph, edges);
+    }
+
+    // -------------------------------------------------------------------------
     // Mutation
     // -------------------------------------------------------------------------
 
@@ -148,6 +239,22 @@ public class WeightedGraph<V, E> extends Graph<V> {
 
     private WeightedGraph(boolean directed) {
         super(directed);
+    }
+
+    /**
+     * Constructor for graphs loaded from a resource file.
+     * The pre-built Scala graph is injected into the cache.
+     * Each edge is added via super.addEdge to populate the Java adjacency map
+     * (so vertices() and neighbours() work correctly), and also recorded in
+     * weightedEdges so algorithm bridge methods have the typed edge list.
+     */
+    private WeightedGraph(boolean directed, Object prebuiltScalaGraph,
+                          List<WeightedEdge<V, E>> edges) {
+        super(directed, prebuiltScalaGraph);
+        for (WeightedEdge<V, E> edge : edges) {
+            weightedEdges.add(edge);  // typed list for algorithm bridges
+            super.addEdge(edge);       // populates Java adjacency map
+        }
     }
 
     // -------------------------------------------------------------------------

@@ -13,7 +13,7 @@ see `VisitorDesign.md` in the Visitor repository.
 
 ---
 
-## Current State (Gryphon V1.5.0 / Visitor V1.6.0)
+## Current State (Gryphon V1.5.1 / Visitor V1.6.0)
 
 ### Scala Algorithm Suite
 
@@ -45,6 +45,7 @@ see `VisitorDesign.md` in the Visitor repository.
 - `StronglyConnectedComponents` (Kosaraju)
 - `Connectivity<V>`
 - `JavaFacadeBridge` — internal Scala bridge; see `JavaFacadeDesign.md`
+- `WeightedGraph.undirectedFromResource` / `directedFromResource` — Option 1 and Option 3 file-reader factory methods
 - All BFS and DFS (Option 1 and Option 3) delegate to Scala Visitor engine
   via `CameFromJournal`; start vertex absent from came-from map
 
@@ -197,7 +198,7 @@ bug is tracked as
 | `Traversal.scala` | `traverse` (with `discover` calls); `dfs` (with `discover` calls); `bestFirstWeighted`; `DfsOrder` |
 | `Tracer.scala` | `Tracer[V]` typeclass |
 
-### Gryphon (V1.4.0)
+### Gryphon (V1.5.1)
 
 | File | Description |
 |------|-------------|
@@ -205,7 +206,7 @@ bug is tracked as
 | `ShortestPaths.scala` | `ShortestPaths.dijkstra` entry point |
 | `MST.scala` | `MST.prim` entry point; `E: {Zero, Ordering}` |
 | `Kruskal.scala` | `Kruskal.mst`; greedy sort + `Connectivity` |
-| `Boruvka.scala` | `Boruvka.mst`; parallel-round min-edge selection + `Connectivity`; direct algorithm, no traversal engine |
+| `Boruvka.scala` | `Boruvka.mst`; returns `Seq[Edge[V,E]]` like Kruskal; parallel-round min-edge selection + `Connectivity`; deduplicates by component-root pair |
 | `Kosaraju.scala` | Two-pass DFS SCC; `SCCResult[V]` type alias |
 | `ConnectedComponents.scala` | `ConnectedComponents.components` |
 | `TopologicalSort.scala` | Post-order DFS on DAGs |
@@ -217,6 +218,30 @@ bug is tracked as
 | `UndirectedEdge.scala` | Symmetric `equals`/`hashCode`: `UndirectedEdge(a,u,v) == UndirectedEdge(a,v,u)` |
 | `DirectedGraph.scala` | `reverse`; `isCyclic` via `TopologicalSort`; `shortestPaths` via `BellmanFord` |
 | `JavaFacadeBridge.scala` | All bridge methods; `bfs`/`dfs`/`bfsWithNeighbours`/`dfsWithNeighbours` via `CameFromJournal` |
+
+### Borůvka deduplication fix (V1.5.1)
+
+The initial implementation deduplicated cheapest crossing edges by unordered vertex pair
+`Set(e.white, e.black)`. This was insufficient: on tree-structured graphs (and any graph
+where a component pair has only one crossing edge), two component roots independently
+select the same edge. The fix deduplicates by component-root pair using the `cheapest`
+map keys directly:
+
+```scala
+val uniqueEdges = cheapest
+  .map { case (root, edge) =>
+    val otherRoot = if wc.getDisjointSet(edge.white) == root
+                    then wc.getDisjointSet(edge.black)
+                    else wc.getDisjointSet(edge.white)
+    Set(root, otherRoot) -> edge
+  }.toMap.values
+```
+
+The return type was also changed from `VertexTraversalResult[V, Edge[V,E]]` to
+`Seq[Edge[V,E]]` — consistent with Kruskal and simpler to work with.
+
+The bug was exposed by the Northeastern University tunnel integration test (80 buildings,
+79 edges) — `prim.graph` with only 8 vertices and unique edge weights never triggered it.
 
 ---
 
@@ -244,11 +269,6 @@ bug is tracked as
 
 - **`TopologicalSort` Java façade** — `List<V> TopologicalSort.sort(Graph<V> g)`
 
-- **Java façade graph file reader** — expose a `GraphBuilder.fromFile(path)` or
-  `GraphBuilder.fromResource(name)` factory so Java students can load `.graph`
-  resource files directly, rather than building graphs programmatically via
-  `addEdge`. Currently `GraphParser` is Scala-only with no Java wrapper.
-
 - **Verify Sedgewick & Wayne book coverage** — systematically check all graph
   algorithms from the course textbook are implemented in Gryphon.
 
@@ -261,6 +281,7 @@ com.phasmidsoftware.gryphon
   .core          — Graph, VertexMap, Vertex, Edge, Adjacency, Traversable
   .adjunct       — DirectedGraph, UndirectedGraph, AttributedDirectedEdge,
                    UndirectedEdge, Connectivity, ConnectivityOptimized
+  .builder       — GraphBuilder
   .traverse      — GraphTraversal, WeightedTraversal, DijkstraTraversal,
                    PrimTraversal, ShortestPaths, MST, Kruskal, Boruvka, Kosaraju,
                    TopologicalSort, ConnectedComponents, BellmanFord,

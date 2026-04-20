@@ -75,7 +75,7 @@ public class MinimumSpanningTree {
                     "MinimumSpanningTree.prim requires an undirected graph");
         return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
                 JavaFacadeBridge$.MODULE$.primDouble(
-                        graph.getScalaGraph(), (java.util.List) graph.weightedEdges(), start);
+                        graph.getScalaGraph(), (List) graph.weightedEdges(), start);
     }
 
     // -------------------------------------------------------------------------
@@ -134,7 +134,7 @@ public class MinimumSpanningTree {
             throw new IllegalStateException(
                     "MinimumSpanningTree.kruskal requires an undirected graph");
         return (List<WeightedEdge<V, Double>>) (List<?>)
-                JavaFacadeBridge$.MODULE$.kruskalDouble((java.util.List) graph.weightedEdges());
+                JavaFacadeBridge$.MODULE$.kruskalDouble((List) graph.weightedEdges());
     }
 
     // -------------------------------------------------------------------------

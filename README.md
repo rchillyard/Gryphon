@@ -11,15 +11,16 @@
 
 A Scala 3 graph algorithms library built on the
 [Visitor](https://github.com/rchillyard/Visitor) typeclass traversal engine.
+Additionally, an API allowing easy access to the library from Java.
 
 Gryphon provides clean, purely functional implementations of the classic graph
 algorithms from Sedgewick & Wayne, *Algorithms* (4th ed.), Chapter 4.
 All algorithms are implemented using Scala 3 idioms — typeclasses, `given`/`using`,
 and clean architectural separation between graph structure and traversal logic.
 
-Gryphon is intended as an artefact of the [DSAIPG](https://github.com/rchillyard/DSAIPG) repository
-that supports the author's own textbook Data Structures, Algorithms, and Invariants - a Practical Guide
-(published by Cognella).
+Gryphon is intended as an artefact of the [DSAIPG](https://github.com/rchillyard/DSAIPG) (Java) repository
+that supports the author's own textbook: _Data Structures, Algorithms, and Invariants - a Practical Guide_
+(published by Cognella, 2025).
 
 ---
 
@@ -28,7 +29,7 @@ that supports the author's own textbook Data Structures, Algorithms, and Invaria
 Add Gryphon to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.1"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.2"
 ```
 
 Gryphon requires **Scala 3** and depends on
@@ -217,7 +218,7 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 <dependency>
     <groupId>com.phasmidsoftware</groupId>
     <artifactId>gryphon_3</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ````
 

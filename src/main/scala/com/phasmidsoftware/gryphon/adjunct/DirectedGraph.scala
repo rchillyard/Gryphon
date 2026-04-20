@@ -79,16 +79,16 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *
    * @throws GraphException if the provided edge type is unexpected or unsupported.
    */
-  override def addEdge(edge: Edge[V, E]): DirectedGraph[V, E] = edge match {
-    case edge: DirectedEdge[_, _] =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case edge: OrderableEdge[_, _] =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(edge.white))
-    case edge@UndirectedEdge(_, white, _) =>
-      copy(vertexMap.modifyVertex(v => v + AdjacencyEdge(edge))(white)) // TODO we need to add this edge twice (once in each direction)
-    case _ =>
-      throw GraphException(s"unexpected edge type: $edge")
-  }
+
+  /**
+   * Delegates to `VertexMap.+[E]`, which calls `ensure` for both endpoints.
+   * This ensures the destination vertex exists in the map even if it has no
+   * outgoing edges — fixing Issue #16.
+   * This is consistent with `UndirectedGraph.addEdge` which also delegates
+   * to `VertexMap.+[E]`.
+   */
+  override def addEdge(edge: Edge[V, E]): DirectedGraph[V, E] =
+    copy(vertexMap + edge)
 
   /**
    * Retrieves all edges in the directed graph as an iterable collection of edges.

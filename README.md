@@ -29,7 +29,7 @@ that supports the author's own textbook: _Data Structures, Algorithms, and Invar
 Add Gryphon to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.2"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.3"
 ```
 
 Gryphon requires **Scala 3** and depends on
@@ -216,9 +216,9 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 
 ````xml
 <dependency>
-    <groupId>com.phasmidsoftware</groupId>
-    <artifactId>gryphon_3</artifactId>
-    <version>1.5.2</version>
+  <groupId>com.phasmidsoftware</groupId>
+  <artifactId>gryphon_3</artifactId>
+  <version>1.5.3</version>
 </dependency>
 ````
 
@@ -235,6 +235,8 @@ The Java API is the primary interface for students in INFO6205 at Northeastern U
 | `ShortestPaths` | Dijkstra's algorithm |
 | `MinimumSpanningTree` | Prim's, Kruskal's, and Borůvka's algorithms |
 | `WeightedGraph.fromResource` | Loads a graph directly from a `.graph` resource file |
+| `ConnectedComponents` | Connected components of undirected graphs |
+| `TopologicalSort` | Topological sort of DAGs; `isDAG` predicate |
 | `StronglyConnectedComponents` | Kosaraju's algorithm |
 
 ### Building a graph from a resource file
@@ -516,7 +518,8 @@ com.phasmidsoftware.gryphon
   .parse      — GraphParser, BaseParser, Parseable
   .java       — Graph, Edge, WeightedEdge, Connectivity,
                 ShortestPaths, MinimumSpanningTree,
-                StronglyConnectedComponents, JavaFacadeBridge
+                StronglyConnectedComponents, ConnectedComponents,
+                TopologicalSort, JavaFacadeBridge
 ```
 
 The traversal engine lives in the separate
@@ -546,7 +549,7 @@ the five orthogonal typeclasses that drive all traversals:
 
 ## Testing
 
-The library has 531 tests covering all algorithms, graph properties, and
+The library has 583 tests covering all algorithms, graph properties, and
 edge cases including:
 - Disconnected graphs and forests
 - Negative edge weights (Bellman–Ford, AcyclicShortestPaths)

@@ -6,10 +6,9 @@ import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
+import java.util.List as JavaList
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
-
-type JavaList[X] = java.util.List[X]
 
 /**
  * Internal Scala bridge used by the Java façade.
@@ -402,7 +401,7 @@ private[java] object JavaFacadeBridge:
   // TopologicalSort
   // ---------------------------------------------------------------------------
 
-  def topologicalSort[V](scalaGraph: AbstractGraph[V]): java.util.Optional[java.util.List[V]] =
+  def topologicalSort[V](scalaGraph: AbstractGraph[V]): java.util.Optional[JavaList[V]] =
     scalaGraph match
       case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, ?] @unchecked =>
         ScalaTopSort.sort(dg) match

@@ -4,7 +4,7 @@ import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGrap
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
-import com.phasmidsoftware.gryphon.traverse.{Kruskal, MST, ShortestPaths}
+import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
@@ -387,6 +387,35 @@ private[java] object JavaFacadeBridge:
     mstSeqToJavaList(result)
 
   // ---------------------------------------------------------------------------
+  // ConnectedComponents
+  // ---------------------------------------------------------------------------
+
+  def connectedComponents[V](scalaGraph: AbstractGraph[V]): java.util.Map[V, java.lang.Integer] =
+    given scala.util.Random = scala.util.Random(0)
+
+    val (_, componentMap) = ConnectedComponents.components[V, Unit](scalaGraph)
+    val javaMap = new java.util.LinkedHashMap[V, java.lang.Integer]()
+    componentMap.foreach { case (v, id) => javaMap.put(v, id) }
+    java.util.Collections.unmodifiableMap(javaMap)
+
+  // ---------------------------------------------------------------------------
+  // TopologicalSort
+  // ---------------------------------------------------------------------------
+
+  def topologicalSort[V](scalaGraph: AbstractGraph[V]): java.util.Optional[java.util.List[V]] =
+    scalaGraph match
+      case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, ?] @unchecked =>
+        ScalaTopSort.sort(dg) match
+          case Some(order) =>
+            val javaList = new java.util.ArrayList[V]()
+            order.foreach(javaList.add)
+            java.util.Optional.of(java.util.Collections.unmodifiableList(javaList))
+          case None =>
+            java.util.Optional.empty()
+      case _ =>
+        throw com.phasmidsoftware.gryphon.util.GraphException("topologicalSort requires a DirectedGraph")
+
+  // ---------------------------------------------------------------------------
   // Kosaraju
   // ---------------------------------------------------------------------------
 
@@ -462,7 +491,3 @@ private[java] object JavaFacadeBridge:
       javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }
     java.util.Collections.unmodifiableList(javaList)
-
-  // ---------------------------------------------------------------------------
-  // Result conversion — MST list (Boruvka)
-  // ---------------------------------------------------------------------------

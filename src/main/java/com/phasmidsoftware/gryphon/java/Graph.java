@@ -247,6 +247,31 @@ public class Graph<V> {
     }
 
     // -------------------------------------------------------------------------
+    // Graph transformation
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a new directed graph with all edge directions reversed.
+     *
+     * <p>For every edge {@code u → v} in this graph, the returned graph
+     * contains {@code v → u}. The vertex set is preserved. This operation
+     * is the first step in Kosaraju's SCC algorithm and is useful for
+     * reachability queries in the reverse direction.</p>
+     *
+     * @return a new {@code Graph<V>} with all edges reversed.
+     * @throws IllegalStateException if this graph is undirected.
+     */
+    public Graph<V> reverse() {
+        if (!directed)
+            throw new IllegalStateException(
+                    "Graph.reverse() is only defined for directed graphs");
+        Graph<V> rev = new Graph<>(true);
+        for (Edge<V> e : canonicalEdges)
+            rev.addEdge(e.reverse());
+        return rev;
+    }
+
+    // -------------------------------------------------------------------------
     // Scala graph materialisation (package-private)
     // -------------------------------------------------------------------------
 
@@ -302,12 +327,7 @@ public class Graph<V> {
     /**
      * Package-private constructor for graphs loaded from a resource file.
      * The pre-built Scala graph is injected directly into the cache,
-     * bypassing the normal materialisation path. The Java edge and
-     * adjacency collections are left empty — this graph is intended
-     * for read-only algorithm use via the façade, not further mutation.
-     *
-     * @param directed           whether the graph is directed.
-     * @param prebuiltScalaGraph the already-constructed Scala graph.
+     * bypassing the normal materialisation path.
      */
     @SuppressWarnings("unchecked")
     Graph(boolean directed, Object prebuiltScalaGraph) {

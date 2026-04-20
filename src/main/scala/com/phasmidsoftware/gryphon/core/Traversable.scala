@@ -135,23 +135,23 @@ trait Traversable[V] {
    * @tparam T the result type produced by `f`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
-  def vertexMappedTraversalDfs[T](f: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] = {
-    given Evaluable[V, T] with
-      def evaluate(v: V): Option[T] = Some(f(v))
+  def vertexMappedTraversalDfs[T](f: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
+    new BasicTraversal[V, Try[TraversalResult[V, T]]](this) {
+      given Evaluable[V, T] with
+        def evaluate(v: V): Option[T] = Some(f(v))
 
-    given GraphNeighbours[V] = graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournal[V, T]
-    val result = Traversal.dfs(start, visitor)
-    Try {
-      result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
-        case (acc, (v, Some(r))) =>
-          acc + (v, r)
-        case (acc, _) =>
-          acc
-      }
-    }
-  }
+      def traversal: Try[TraversalResult[V, T]] =
+        Try {
+          val visitor = JournaledVisitor.withQueueJournal[V, T]
+          val result = Traversal.dfs(start, visitor)
+          result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
+            case (acc, (v, Some(r))) =>
+              acc + (v, r)
+            case (acc, _) =>
+              acc
+          }
+        }
+    }.traversal
 
   /**
    * Performs a BFS traversal applying `fulfill` to each visited vertex and returns a
@@ -162,23 +162,23 @@ trait Traversable[V] {
    * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
-  def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] = {
-    given Evaluable[V, T] with
-      def evaluate(v: V): Option[T] = Some(fulfill(v))
+  def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
+    new BasicTraversal[V, Try[TraversalResult[V, T]]](this) {
+      given Evaluable[V, T] with
+        def evaluate(v: V): Option[T] = Some(fulfill(v))
 
-    given GraphNeighbours[V] = graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournal[V, T]
-    val result = Traversal.bfs(start, visitor)
-    Try {
-      result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
-        case (acc, (v, Some(r))) =>
-          acc + (v, r)
-        case (acc, _) =>
-          acc
-      }
-    }
-  }
+      def traversal =
+        Try {
+          val visitor = JournaledVisitor.withQueueJournal[V, T]
+          val result = Traversal.bfs(start, visitor)
+          result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
+            case (acc, (v, Some(r))) =>
+              acc + (v, r)
+            case (acc, _) =>
+              acc
+          }
+        }
+    }.traversal
 
   /**
    * Retrieves the connexions (edges) reachable from `start` via DFS.
@@ -251,4 +251,19 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
    * @return an `Iterator[Edge[V, E]]` over all edges.
    */
   def edges: Iterator[Edge[V, E]]
+}
+
+/**
+ * Represents an abstract class for implementing traversal mechanisms on a given traversable structure.
+ * The common feature of subclasses is that they all delegate to the `graphNeighbours` method for the GraphNeighbours typeclass.
+ *
+ * @tparam V the type of the vertices in the traversable structure
+ * @tparam T the type representing the result of the traversal
+ * @param traversable the traversable structure containing the vertices
+ * @param random      an implicit random number generator used in the traversal logic
+ */
+abstract class BasicTraversal[V, T](traversable: Traversable[V])(using random: Random) {
+  given nbrs: GraphNeighbours[V] = traversable.graphNeighbours
+
+  def traversal: T
 }

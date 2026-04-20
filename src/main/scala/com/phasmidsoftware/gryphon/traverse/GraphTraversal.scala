@@ -1,7 +1,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
-import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
+import com.phasmidsoftware.gryphon.core.{BasicTraversal, Edge, Traversable}
 import com.phasmidsoftware.visitor.core.{*, given}
 import scala.collection.mutable
 import scala.util.Random
@@ -47,13 +47,15 @@ case class DFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
-    given GraphNeighbours[V] = graph.graphNeighbours
+    new BasicTraversal[V, TraversalResult[V, V]](graph) {
+      def traversal: TraversalResult[V, V] =
+        val visitor = JournaledVisitor.withQueueJournal[V, V]
+        val result = Traversal.dfs(start, visitor)
+        VertexTraversalResult(
+          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
+        )
+    }.traversal
 
-    val visitor = JournaledVisitor.withQueueJournal[V, V]
-    val result = Traversal.dfs(start, visitor)
-    VertexTraversalResult(
-      result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
-    )
 
 // ============================================================
 // BFS
@@ -71,13 +73,14 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
-    given GraphNeighbours[V] = graph.graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournal[V, V]
-    val result = Traversal.bfs(start, visitor)
-    VertexTraversalResult(
-      result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
-    )
+    new BasicTraversal[V, TraversalResult[V, V]](graph) {
+      def traversal: TraversalResult[V, V] =
+        val visitor = JournaledVisitor.withQueueJournal[V, V]
+        val result = Traversal.bfs(start, visitor)
+        VertexTraversalResult(
+          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
+        )
+    }.traversal
 
 // ============================================================
 // WeightedTraversal — shared base for Dijkstra and Prim

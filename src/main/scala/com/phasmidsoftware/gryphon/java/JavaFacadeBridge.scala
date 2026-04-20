@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
-import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
+import com.phasmidsoftware.gryphon.core.{AbstractGraph, BasicTraversal, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
@@ -43,12 +43,13 @@ private[java] object JavaFacadeBridge:
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
-    given GraphNeighbours[V] = scalaGraph.graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
-    val result = Traversal.bfs(start, visitor)
-            .asInstanceOf[JournaledVisitor[V, V, ?]]
-    cameFromToJavaMap(result)
+    new BasicTraversal[V, JavaMap[V, V]](scalaGraph) {
+      def traversal: JavaMap[V, V] =
+        val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+        val result = Traversal.bfs(start, visitor)
+                .asInstanceOf[JournaledVisitor[V, V, ?]]
+        cameFromToJavaMap(result)
+    }.traversal
 
   // ---------------------------------------------------------------------------
   // BFS — Option 3: custom neighbour function
@@ -94,12 +95,14 @@ private[java] object JavaFacadeBridge:
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
-    given GraphNeighbours[V] = scalaGraph.graphNeighbours
+    new BasicTraversal[V, JavaMap[V, V]](scalaGraph) {
+      def traversal: JavaMap[V, V] =
+        val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
+        val result = Traversal.dfs(start, visitor)
+                .asInstanceOf[JournaledVisitor[V, V, ?]]
+        cameFromToJavaMap(result)
+    }.traversal
 
-    val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
-    val result = Traversal.dfs(start, visitor)
-            .asInstanceOf[JournaledVisitor[V, V, ?]]
-    cameFromToJavaMap(result)
 
   // ---------------------------------------------------------------------------
   // DFS — Option 3: custom neighbour function

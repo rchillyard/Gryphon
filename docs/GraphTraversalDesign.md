@@ -13,7 +13,7 @@ see `VisitorDesign.md` in the Visitor repository.
 
 ---
 
-## Current State (Gryphon V1.5.1 / Visitor V1.6.0)
+## Current State (Gryphon V1.5.2 / Visitor V1.6.0)
 
 ### Scala Algorithm Suite
 
@@ -169,19 +169,6 @@ and `UndirectedEdge` — throwing `GraphException` on properly bidirectional gra
 
 **Fix:** Pass `connexion` directly to `addConnexion` regardless of `flipped`.
 `addConnexion` already handles `UndirectedEdge` correctly via `u.other(v)`.
-
-### `DirectedGraph.addEdge` — destination vertex not ensured
-
-`DirectedGraph.addEdge` calls `vertexMap.modifyVertex` which only touches the
-`from` vertex. Destination-only vertices (reachable but never a source) are
-silently absent from the `VertexMap`, causing `key not found` errors when any
-traversal attempts to expand them. `UndirectedGraph.addEdge` is correct — it
-delegates to `VertexMap.+[E]` which calls `ensure` for both endpoints.
-
-**Workaround:** `JavaFacadeBridge` materialisation methods fold directly over
-`VertexMap.+[E]` rather than through `DirectedGraph.addEdge`. The underlying
-bug is tracked as
-[Gryphon Issue #16](https://github.com/rchillyard/Gryphon/issues/16).
 
 ---
 

@@ -70,7 +70,7 @@ all Scala machinery is hidden.
 
 ---
 
-## Current State (V1.3.0)
+## Current State (V1.5.2)
 
 ### Implemented
 
@@ -83,7 +83,7 @@ all Scala machinery is hidden.
 | `GraphTraversal`              | `gryphon.java` | Package-private BFS/DFS; returns `Map<V,V>` parent trees                |
 | `Connectivity<V>`             | `gryphon.java` | Mutable façade over `Connectivity` / `ConnectivityOptimized`            |
 | `ShortestPaths`               | `gryphon.java` | Dijkstra (Option 1: `Double`; Option 3: custom combine/zero/comparator) |
-| `MinimumSpanningTree`         | `gryphon.java` | Prim and Kruskal (Option 1: `Double`; Option 3: custom comparator only) |
+| `MinimumSpanningTree`         | `gryphon.java` | Prim, Kruskal, and Borůvka (Option 1: `Double`; Option 3: custom comparator only) |
 | `StronglyConnectedComponents` | `gryphon.java` | Kosaraju; `count()`; `components()`                                     |
 | `JavaFacadeBridge`            | `gryphon.java` | Internal Scala bridge: graph materialisation and algorithm delegation   |
 
@@ -95,6 +95,10 @@ all Scala machinery is hidden.
 | `GraphTest`                       | JUnit 5   | ✅ Green |
 | `ShortestPathsTest`               | JUnit 5   | ✅ Green |
 | `MinimumSpanningTreeTest`         | JUnit 5   | ✅ Green |
+| `BoruvkaTest`                     | JUnit 5   | ✅ Green |
+| `TunnelsTest`                     | JUnit 5   | ✅ Green |
+| `TunnelsFromResourceTest`         | JUnit 5   | ✅ Green |
+| `WeightedGraphFromResourceTest`   | JUnit 5   | ✅ Green |
 | `StronglyConnectedComponentsTest` | JUnit 5   | ✅ Green |
 
 ### Build
@@ -111,7 +115,11 @@ network design (`Tunnels_Gryphon.java` in DSAIPG). Using
 `WeightedGraph<Building, TunnelProperties>` with Prim's algorithm (ordered by
 `TunnelProperties.cost`), the façade produces a minimum spanning tree of 79
 tunnels connecting 80 campus buildings at a total cost of $6,648,954 — agreeing
-exactly with the independent Kruskal implementation, confirming correctness.
+exactly with independent Kruskal and Borůvka implementations, confirming correctness.
+
+A self-contained integration test (`TunnelsTest`, `TunnelsFromResourceTest`) is
+included in Gryphon's own test suite, using building codes as `String` vertices
+and `Long` costs, loading from `tunnels.graph` via `WeightedGraph.undirectedFromResource`.
 
 ---
 
@@ -183,6 +191,7 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 
 - **Prim** Option 3: `prim(graph, start, comparator)` — comparator only.
 - **Kruskal** Option 3: `kruskal(graph, comparator)` — comparator only.
+- **Borůvka** Option 3: `boruvka(graph, comparator)` — comparator only.
 
 ### `StronglyConnectedComponents` — Static Façade
 
@@ -205,6 +214,7 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 | `ShortestPaths.dijkstra`               | directed            |
 | `MinimumSpanningTree.prim`             | undirected          |
 | `MinimumSpanningTree.kruskal`          | undirected          |
+| `MinimumSpanningTree.boruvka`          | undirected          |
 | `StronglyConnectedComponents.kosaraju` | directed            |
 
 ---
@@ -216,20 +226,17 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 | `ShortestPaths.dijkstra`      | `combine`, `zero`, `comparator` | Accumulates path costs — needs full Monoid |
 | `MinimumSpanningTree.prim`    | `comparator` only               | Compares edge weights; never combines      |
 | `MinimumSpanningTree.kruskal` | `comparator` only               | Sorts edge weights; never combines         |
+| `MinimumSpanningTree.boruvka` | `comparator` only               | Selects min crossing edge; never combines  |
 
 ---
 
 ## Known Issues
 
-- **`DirectedGraph.addEdge` does not ensure the destination vertex exists.**
-  `DirectedGraph.addEdge` calls `vertexMap.modifyVertex` which only touches the
-  `from` vertex. If called on an empty (or incomplete) `VertexMap`,
-  destination-only vertices are silently absent, causing `key not found` errors
-  when any traversal attempts to expand them. `UndirectedGraph.addEdge` is
-  correct — it delegates to `VertexMap.+[E]` which calls `ensure` for both
-  endpoints. `DirectedGraph.addEdge` should do the same.
-  **Workaround:** all `JavaFacadeBridge` materialisation methods fold directly
-  over `VertexMap.+[E]` rather than through `DirectedGraph.addEdge`. See [Issue #16](https://github.com/rchillyard/Gryphon/issues/16#issue-4240244349)
+- ~~**`DirectedGraph.addEdge` does not ensure the destination vertex exists.**~~
+  **Fixed in V1.5.2.** `DirectedGraph.addEdge` now delegates to `VertexMap.+[E]`
+  like `UndirectedGraph.addEdge`, ensuring both endpoints exist. The `JavaFacadeBridge`
+  workaround (folding over `VertexMap.+[E]` directly) remains in place and is
+  still correct. See [Issue #16](https://github.com/rchillyard/Gryphon/issues/16#issue-4240244349)
 
 - **`Monoid[E].combine` is a stub in `primCustom`.**
   Prim's algorithm only uses `Monoid[E].identity` (as the initial frontier cost)
@@ -268,8 +275,10 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
   List<V> TopologicalSort.sort(Graph<V> g);
   ```
 
-- **Graph loading from file.** A `GraphReader` parsing the `.graph` resource
-  format and producing a `Graph<V>` or `WeightedGraph<V,E>`.
+- ~~**Graph loading from file.**~~ **Done in V1.5.1** — `WeightedGraph.undirectedFromResource`
+  and `directedFromResource` (Option 1 and Option 3) load from `.graph` classpath
+  resources via `GraphBuilder`. `asParseable` wraps Java `Function<String,T>` with
+  appropriate token regex (`\w+` for vertices, double regex for weights).
 
 ### Low Priority / Aspirational
 
@@ -306,10 +315,10 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
    warrant sub-packages: `gryphon.java.graph`, `gryphon.java.algo`, etc.
 
 3. **Java type erasure forces distinct factory method names on `WeightedGraph`.**
-  `WeightedGraph.directed()` and `WeightedGraph.undirected()` would clash with
-  the inherited `Graph.directed()` and `Graph.undirected()` after erasure.
-  Workaround: factory methods are named `directedWeighted()` and
-  `undirectedWeighted()`.
+   `WeightedGraph.directed()` and `WeightedGraph.undirected()` would clash with
+   the inherited `Graph.directed()` and `Graph.undirected()` after erasure.
+   Workaround: factory methods are named `directedWeighted()` and
+   `undirectedWeighted()`.
 
 ---
 
@@ -324,3 +333,7 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 | 1.2.2   | ShortestPaths (Dijkstra Option 1 and Option 3); JavaFacadeBridge; ShortestPathsTest                                                                                                                                                                |
 | 1.2.3   | MinimumSpanningTree (Prim and Kruskal); StronglyConnectedComponents (Kosaraju); MST Scala entry point                                                                                                                                              |
 | 1.3.0   | WeightedGraph<V,E> extending Graph<V>; typed edge attributes eliminate runtime casts; simplified Option 3 API for Prim/Kruskal (Comparator only); Dijkstra Option 3 retains combine+zero+comparator; validated against Northeastern tunnel network |
+| 1.4.0   | All BFS/DFS delegate to Scala Visitor engine via CameFromJournal |
+| 1.5.0   | MinimumSpanningTree.boruvka (Option 1 and Option 3) |
+| 1.5.1   | WeightedGraph.fromResource (Option 1 and Option 3); Graph/WeightedGraph resource-load constructors; GraphBuilder Scala API |
+| 1.5.2   | Borůvka deduplication bug fix; Boruvka returns Seq like Kruskal; DirectedGraph.addEdge fixed (Issue #16); tunnel integration tests |

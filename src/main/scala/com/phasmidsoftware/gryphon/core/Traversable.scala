@@ -127,30 +127,26 @@ trait Traversable[V] {
   def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random = Random()): Visitor[Edge[V, E], R, J]
 
   /**
-   * Performs a DFS traversal applying `f` to each visited vertex and returns a
+   * Performs a DFS traversal applying `fulfill` to each visited vertex and returns a
    * `VertexTraversalResult` mapping each vertex to its result.
    *
-   * @param f     transformation function applied to each vertex.
+   * @param fulfill transformation function applied to each vertex.
    * @param start the starting vertex.
-   * @tparam T the result type produced by `f`.
+   * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
-  def vertexMappedTraversalDfs[T](f: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
-    new BasicTraversal[V, Try[TraversalResult[V, T]]](this) {
-      given Evaluable[V, T] with
-        def evaluate(v: V): Option[T] = Some(f(v))
-
-      def traversal: Try[TraversalResult[V, T]] =
-        Try {
-          val visitor = JournaledVisitor.withQueueJournal[V, T]
-          val result = Traversal.dfs(start, visitor)
-          result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
-            case (acc, (v, Some(r))) =>
-              acc + (v, r)
-            case (acc, _) =>
-              acc
-          }
+  def vertexMappedTraversalDfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
+    new EvaluableGraphNeighboursTraversal[V, T, Try[TraversalResult[V, T]]](fulfill)(this) {
+      def traversal: Try[TraversalResult[V, T]] = Try {
+        val visitor = JournaledVisitor.withQueueJournal[V, T]
+        val result = Traversal.dfs(start, visitor)
+        result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
+          case (acc, (v, Some(r))) =>
+            acc + (v, r)
+          case (acc, _) =>
+            acc
         }
+      }
     }.traversal
 
   /**
@@ -163,21 +159,17 @@ trait Traversable[V] {
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
   def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
-    new BasicTraversal[V, Try[TraversalResult[V, T]]](this) {
-      given Evaluable[V, T] with
-        def evaluate(v: V): Option[T] = Some(fulfill(v))
-
-      def traversal =
-        Try {
-          val visitor = JournaledVisitor.withQueueJournal[V, T]
-          val result = Traversal.bfs(start, visitor)
-          result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
-            case (acc, (v, Some(r))) =>
-              acc + (v, r)
-            case (acc, _) =>
-              acc
-          }
+    new EvaluableGraphNeighboursTraversal[V, T, Try[TraversalResult[V, T]]](fulfill)(this) {
+      def traversal = Try {
+        val visitor = JournaledVisitor.withQueueJournal[V, T]
+        val result = Traversal.bfs(start, visitor)
+        result.result.foldLeft(VertexTraversalResult.empty[V, T]) {
+          case (acc, (v, Some(r))) =>
+            acc + (v, r)
+          case (acc, _) =>
+            acc
         }
+      }
     }.traversal
 
   /**
@@ -258,12 +250,33 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
  * The common feature of subclasses is that they all delegate to the `graphNeighbours` method for the GraphNeighbours typeclass.
  *
  * @tparam V the type of the vertices in the traversable structure
- * @tparam T the type representing the result of the traversal
+ * @tparam R the type representing the result of the traversal
  * @param traversable the traversable structure containing the vertices
  * @param random      an implicit random number generator used in the traversal logic
  */
-abstract class BasicTraversal[V, T](traversable: Traversable[V])(using random: Random) {
+abstract class GraphNeighboursTraversal[V, R](traversable: Traversable[V])(using random: Random) {
   given nbrs: GraphNeighbours[V] = traversable.graphNeighbours
 
-  def traversal: T
+  def traversal: R
+}
+
+/**
+ * An abstract class that extends the functionality of `GraphNeighboursTraversal` by incorporating 
+ * an evaluable mechanism for the vertices of the graph. This class allows the evaluation of graph 
+ * vertices to produce a value of type `T` through the provided fulfillment function.
+ *
+ * @tparam V The type representing a vertex in the graph.
+ * @tparam T The type produced when a vertex is evaluated.
+ * @tparam R The type representing the result of the traversal operation.
+ * @param fulfill     A function that maps a vertex of type `V` to a value of type `T`.
+ * @param traversable A traversable collection of vertices of type `V` representing the graph.
+ *
+ *                    The traversal leverages the context-bound `random` of type `Random` for any randomness needs during 
+ *                    the traversal operations. This class also provides an implicit instance of the `Evaluable` type class 
+ *                    for vertices of the graph, enabling evaluation of graph vertices via the provided `fulfill` function.
+ */
+abstract class EvaluableGraphNeighboursTraversal[V, T, R](fulfill: V => T)(traversable: Traversable[V])(using random: Random) extends
+        GraphNeighboursTraversal[V, R](traversable) {
+  given Evaluable[V, T] with
+    def evaluate(v: V): Option[T] = Some(fulfill(v))
 }

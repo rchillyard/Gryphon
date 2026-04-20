@@ -83,7 +83,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param v       the starting vertex.
    */
   def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
-    new BasicTraversal[V, Visitor[V, R, J]](this) {
+    new GraphNeighboursTraversal[V, Visitor[V, R, J]](this) {
       def traversal: Visitor[V, R, J] = Traversal.dfs(v, visitor, order)
     }.traversal
 
@@ -94,7 +94,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param visitor the visitor to accumulate results.
    */
   def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
-    new BasicTraversal[V, Visitor[V, R, J]](this) {
+    new GraphNeighboursTraversal[V, Visitor[V, R, J]](this) {
       def traversal: Visitor[V, R, J] =
         @tailrec
         def loop(vis: Visitor[V, R, J], visited: Set[V]): Visitor[V, R, J] =
@@ -119,7 +119,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param goal    early-termination predicate (default: never stop early).
    */
   def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
-    new BasicTraversal[V, Visitor[V, R, J]](this) {
+    new GraphNeighboursTraversal[V, Visitor[V, R, J]](this) {
       def traversal: Visitor[V, R, J] = Traversal.bfs(v, visitor, goal)
     }.traversal
 

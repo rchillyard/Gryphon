@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
-import com.phasmidsoftware.gryphon.core.{AbstractGraph, BasicTraversal, VertexMap}
+import com.phasmidsoftware.gryphon.core.{AbstractGraph, EvaluableGraphNeighboursTraversal, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
 import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
@@ -40,14 +40,10 @@ private[java] object JavaFacadeBridge:
   def bfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
     given Random = Random(0)
 
-    given Evaluable[V, V] with
-      def evaluate(v: V): Option[V] = Some(v)
-
-    new BasicTraversal[V, JavaMap[V, V]](scalaGraph) {
+    new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
       def traversal: JavaMap[V, V] =
         val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
-        val result = Traversal.bfs(start, visitor)
-                .asInstanceOf[JournaledVisitor[V, V, ?]]
+        val result = Traversal.bfs(start, visitor).asInstanceOf[JournaledVisitor[V, V, ?]]
         cameFromToJavaMap(result)
     }.traversal
 
@@ -92,17 +88,13 @@ private[java] object JavaFacadeBridge:
   def dfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
     given Random = Random(0)
 
-    given Evaluable[V, V] with
-      def evaluate(v: V): Option[V] = Some(v)
-
-    new BasicTraversal[V, JavaMap[V, V]](scalaGraph) {
+    new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
       def traversal: JavaMap[V, V] =
         val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
         val result = Traversal.dfs(start, visitor)
                 .asInstanceOf[JournaledVisitor[V, V, ?]]
         cameFromToJavaMap(result)
     }.traversal
-
 
   // ---------------------------------------------------------------------------
   // DFS — Option 3: custom neighbour function

@@ -13,7 +13,7 @@ see `VisitorDesign.md` in the Visitor repository.
 
 ---
 
-## Current State (Gryphon V1.5.2 / Visitor V1.6.0)
+## Current State (Gryphon V1.5.3 / Visitor V1.6.0)
 
 ### Scala Algorithm Suite
 
@@ -46,6 +46,9 @@ see `VisitorDesign.md` in the Visitor repository.
 - `Connectivity<V>`
 - `JavaFacadeBridge` — internal Scala bridge; see `JavaFacadeDesign.md`
 - `WeightedGraph.undirectedFromResource` / `directedFromResource` — Option 1 and Option 3 file-reader factory methods
+- `ConnectedComponents` — connected components of undirected graphs
+- `TopologicalSort` — topological sort of DAGs; `isDAG` predicate
+- `Graph.reverse()` — returns new directed graph with all edges flipped
 - All BFS and DFS (Option 1 and Option 3) delegate to Scala Visitor engine
   via `CameFromJournal`; start vertex absent from came-from map
 
@@ -185,7 +188,7 @@ and `UndirectedEdge` — throwing `GraphException` on properly bidirectional gra
 | `Traversal.scala` | `traverse` (with `discover` calls); `dfs` (with `discover` calls); `bestFirstWeighted`; `DfsOrder` |
 | `Tracer.scala` | `Tracer[V]` typeclass |
 
-### Gryphon (V1.5.1)
+### Gryphon (V1.5.3)
 
 | File | Description |
 |------|-------------|
@@ -205,6 +208,7 @@ and `UndirectedEdge` — throwing `GraphException` on properly bidirectional gra
 | `UndirectedEdge.scala` | Symmetric `equals`/`hashCode`: `UndirectedEdge(a,u,v) == UndirectedEdge(a,v,u)` |
 | `DirectedGraph.scala` | `reverse`; `isCyclic` via `TopologicalSort`; `shortestPaths` via `BellmanFord` |
 | `JavaFacadeBridge.scala` | All bridge methods; `bfs`/`dfs`/`bfsWithNeighbours`/`dfsWithNeighbours` via `CameFromJournal` |
+| `Parseable.scala` | Added `ParseableLong` with optional `L`/`l` suffix support |
 
 ### Borůvka deduplication fix (V1.5.1)
 
@@ -234,7 +238,7 @@ The bug was exposed by the Northeastern University tunnel integration test (80 b
 
 ## Future Work
 
-- **Fix `DirectedGraph.addEdge`** — ensure destination vertex exists in `VertexMap`.
+- ~~**Fix `DirectedGraph.addEdge`**~~ — **Fixed in V1.5.2.** Delegates to `VertexMap.+[E]`.
   See [Gryphon Issue #16](https://github.com/rchillyard/Gryphon/issues/16).
 
 - **GraphML support** — add a `GraphMLParser` in the `parse` package (using
@@ -247,14 +251,11 @@ The bug was exposed by the Northeastern University tunnel integration test (80 b
   Would simplify `JavaFacadeBridge` materialisation and remove the "architectural
   dinosaur" distinction. Also resolves Issue #16 naturally.
 
-- **`Graph.reverse()` in Java façade** — expose as a public method on `Graph<V>`
-  returning a new `Graph<V>` with all edge directions flipped. Currently
-  `DirectedGraph.reverse` is called internally by Kosaraju but not accessible
-  from Java.
+- ~~**`Graph.reverse()` in Java façade**~~ — **Done in V1.5.3.**
 
-- **`ConnectedComponents` Java façade** — `List<Set<V>> ConnectedComponents.find(Graph<V> g)`
+- ~~**`ConnectedComponents` Java façade**~~ — **Done in V1.5.3.**
 
-- **`TopologicalSort` Java façade** — `List<V> TopologicalSort.sort(Graph<V> g)`
+- ~~**`TopologicalSort` Java façade**~~ — **Done in V1.5.3.**
 
 - **Verify Sedgewick & Wayne book coverage** — systematically check all graph
   algorithms from the course textbook are implemented in Gryphon.
@@ -277,6 +278,7 @@ com.phasmidsoftware.gryphon
   .util          — TryUsing, FP, GraphException
   .java          — Graph, WeightedGraph, Edge, WeightedEdge, ShortestPaths,
                    MinimumSpanningTree, StronglyConnectedComponents,
+                   ConnectedComponents, TopologicalSort,
                    Connectivity, JavaFacadeBridge
 
 com.phasmidsoftware.visitor.core

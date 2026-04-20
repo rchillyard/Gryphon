@@ -69,4 +69,58 @@ class ParseableSpec extends AnyFlatSpec with Matchers {
     a[AssertionError] should be thrownBy parseable.parse("X").get
   }
 
+  behavior of "ParseableLong"
+
+  it should "parse a plain integer string" in :
+    Parseable.ParseableLong.parse("12345") shouldBe Success(12345L)
+
+  it should "parse a string with uppercase L suffix" in :
+    Parseable.ParseableLong.parse("12345L") shouldBe a[Success[?]]
+    Parseable.ParseableLong.parse("12345L").get shouldBe 12345L
+
+  it should "parse a string with lowercase l suffix" in :
+    Parseable.ParseableLong.parse("12345l") shouldBe a[Success[?]]
+    Parseable.ParseableLong.parse("12345l").get shouldBe 12345L
+
+  it should "parse zero" in :
+    Parseable.ParseableLong.parse("0") shouldBe Success(0L)
+
+  it should "parse Long.MaxValue" in :
+    Parseable.ParseableLong.parse(Long.MaxValue.toString) shouldBe Success(Long.MaxValue)
+
+  it should "fail on a non-numeric string" in :
+    Parseable.ParseableLong.parse("abc") shouldBe a[Failure[?]]
+
+  it should "have none == 0L" in :
+    Parseable.ParseableLong.none shouldBe 0L
+
+  it should "have message == Long" in :
+    Parseable.ParseableLong.message shouldBe "Long"
+
+  behavior of "GraphBuilder with ParseableLong — longs.graph"
+
+  it should "load longs.graph as UndirectedGraph[Int, Long]" in :
+    import com.phasmidsoftware.gryphon.builder.GraphBuilder
+    GraphBuilder.undirected[Int, Long].fromResource("longs.graph") shouldBe a[scala.util.Success[?]]
+
+  it should "produce 4 vertices and 4 edges from longs.graph" in :
+    import com.phasmidsoftware.gryphon.builder.GraphBuilder
+    GraphBuilder.undirected[Int, Long].fromResource("longs.graph") match
+      case scala.util.Success(g) =>
+        g.N shouldBe 4
+        g.M shouldBe 4
+      case scala.util.Failure(x) => fail("failed to load longs.graph", x)
+
+  it should "parse edge weights as Long from longs.graph" in :
+    import com.phasmidsoftware.gryphon.builder.GraphBuilder
+    import com.phasmidsoftware.gryphon.traverse.Kruskal
+    given Ordering[Long] = Ordering.Long
+
+    GraphBuilder.undirected[Int, Long].fromResource("longs.graph") match
+      case scala.util.Success(g) =>
+        val mst = Kruskal.mst(g)
+        mst.size shouldBe 3
+        mst.map(_.attribute).sum shouldBe 450L  // 100 + 150 + 200
+      case scala.util.Failure(x) => fail("failed to load longs.graph", x)
+
 }

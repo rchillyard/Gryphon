@@ -1,7 +1,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
-import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
+import com.phasmidsoftware.gryphon.core.{Edge, EvaluableGraphNeighboursTraversal, Traversable}
 import com.phasmidsoftware.visitor.core.{*, given}
 import scala.collection.mutable
 import scala.util.Random
@@ -44,16 +44,15 @@ trait GraphTraversal[V, E, R]:
 case class DFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
 
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, V] =
-    given Evaluable[V, V] with
-      def evaluate(v: V): Option[V] = Some(v)
+    new EvaluableGraphNeighboursTraversal[V, V, TraversalResult[V, V]](identity)(graph) {
+      def traversal: TraversalResult[V, V] =
+        val visitor = JournaledVisitor.withQueueJournal[V, V]
+        val result = Traversal.dfs(start, visitor)
+        VertexTraversalResult(
+          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
+        )
+    }.traversal
 
-    given GraphNeighbours[V] = graph.graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournal[V, V]
-    val result = Traversal.dfs(start, visitor)
-    VertexTraversalResult(
-      result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
-    )
 
 // ============================================================
 // BFS
@@ -68,16 +67,14 @@ case class DFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
 case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
 
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, V] =
-    given Evaluable[V, V] with
-      def evaluate(v: V): Option[V] = Some(v)
-
-    given GraphNeighbours[V] = graph.graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournal[V, V]
-    val result = Traversal.bfs(start, visitor)
-    VertexTraversalResult(
-      result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
-    )
+    new EvaluableGraphNeighboursTraversal[V, V, TraversalResult[V, V]](identity)(graph) {
+      def traversal: TraversalResult[V, V] =
+        val visitor = JournaledVisitor.withQueueJournal[V, V]
+        val result = Traversal.bfs(start, visitor)
+        VertexTraversalResult(
+          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
+        )
+    }.traversal
 
 // ============================================================
 // WeightedTraversal — shared base for Dijkstra and Prim

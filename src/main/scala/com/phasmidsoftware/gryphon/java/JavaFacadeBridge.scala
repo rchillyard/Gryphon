@@ -2,14 +2,15 @@ package com.phasmidsoftware.gryphon.java
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
-import com.phasmidsoftware.gryphon.core.{AbstractGraph, VertexMap}
+import com.phasmidsoftware.gryphon.core.{AbstractGraph, EvaluableGraphNeighboursTraversal, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
-import com.phasmidsoftware.gryphon.traverse.{Kruskal, MST, ShortestPaths}
+import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
+import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
+import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
+import java.util.{ArrayList as JavaArrayList, Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap, List as JavaList, Map as JavaMap, Optional as JavaOptional}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
-
-type JavaList[X] = java.util.List[X]
 
 /**
  * Internal Scala bridge used by the Java façade.
@@ -36,18 +37,15 @@ private[java] object JavaFacadeBridge:
    * Runs BFS from `start` on the materialised Scala graph.
    * The start vertex is absent from the returned came-from map.
    */
-  def bfs[V](scalaGraph: AbstractGraph[V], start: V): java.util.Map[V, V] =
+  def bfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
     given Random = Random(0)
 
-    given Evaluable[V, V] with
-      def evaluate(v: V): Option[V] = Some(v)
-
-    given GraphNeighbours[V] = scalaGraph.graphNeighbours
-
-    val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
-    val result = Traversal.bfs(start, visitor)
-            .asInstanceOf[JournaledVisitor[V, V, ?]]
-    cameFromToJavaMap(result)
+    new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
+      def traversal: JavaMap[V, V] =
+        val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+        val result = Traversal.bfs(start, visitor).asInstanceOf[JournaledVisitor[V, V, ?]]
+        cameFromToJavaMap(result)
+    }.traversal
 
   // ---------------------------------------------------------------------------
   // BFS — Option 3: custom neighbour function
@@ -61,8 +59,8 @@ private[java] object JavaFacadeBridge:
   def bfsWithNeighbours[V](
                                   scalaGraph: AbstractGraph[V],
                                   start: V,
-                                  neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
-                          ): java.util.Map[V, V] =
+                                  neighboursFn: JavaFunction[V, JavaIterable[V]]
+                          ): JavaMap[V, V] =
 
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
@@ -87,18 +85,16 @@ private[java] object JavaFacadeBridge:
    * @tparam V the vertex type.
    * @return an unmodifiable Java `Map<V, V>` came-from map.
    */
-  def dfs[V](scalaGraph: AbstractGraph[V], start: V): java.util.Map[V, V] =
+  def dfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
     given Random = Random(0)
 
-    given Evaluable[V, V] with
-      def evaluate(v: V): Option[V] = Some(v)
-
-    given GraphNeighbours[V] = scalaGraph.graphNeighbours
-
-    val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
-    val result = Traversal.dfs(start, visitor)
-            .asInstanceOf[JournaledVisitor[V, V, ?]]
-    cameFromToJavaMap(result)
+    new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
+      def traversal: JavaMap[V, V] =
+        val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
+        val result = Traversal.dfs(start, visitor)
+                .asInstanceOf[JournaledVisitor[V, V, ?]]
+        cameFromToJavaMap(result)
+    }.traversal
 
   // ---------------------------------------------------------------------------
   // DFS — Option 3: custom neighbour function
@@ -112,8 +108,8 @@ private[java] object JavaFacadeBridge:
   def dfsWithNeighbours[V](
                                   scalaGraph: AbstractGraph[V],
                                   start: V,
-                                  neighboursFn: java.util.function.Function[V, java.lang.Iterable[V]]
-                          ): java.util.Map[V, V] =
+                                  neighboursFn: JavaFunction[V, JavaIterable[V]]
+                          ): JavaMap[V, V] =
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
     given Neighbours[V, V] with
@@ -146,8 +142,8 @@ private[java] object JavaFacadeBridge:
 
   def undirectedWeightedFromResourceCustom[V, E](
                                                         resourceName: String,
-                                                        vertexParser: java.util.function.Function[String, V],
-                                                        edgeParser: java.util.function.Function[String, E]
+                                                        vertexParser: JavaFunction[String, V],
+                                                        edgeParser: JavaFunction[String, E]
                                                 ): (UndirectedGraph[V, E], JavaList[WeightedEdge[V, E]]) =
     given Parseable[V] = asParseable(vertexParser, """\w+""")
 
@@ -157,8 +153,8 @@ private[java] object JavaFacadeBridge:
 
   def directedWeightedFromResourceCustom[V, E](
                                                       resourceName: String,
-                                                      vertexParser: java.util.function.Function[String, V],
-                                                      edgeParser: java.util.function.Function[String, E]
+                                                      vertexParser: JavaFunction[String, V],
+                                                      edgeParser: JavaFunction[String, E]
                                               ): (DirectedGraph[V, E], JavaList[WeightedEdge[V, E]]) =
     given Parseable[V] = asParseable(vertexParser, """\w+""")
 
@@ -172,11 +168,11 @@ private[java] object JavaFacadeBridge:
    */
   private def extractWeightedEdges[V, E](g: com.phasmidsoftware.gryphon.core.EdgeGraph[V, E]
                                         ): JavaList[WeightedEdge[V, E]] =
-    val list = new java.util.ArrayList[WeightedEdge[V, E]]()
+    val list = new JavaArrayList[WeightedEdge[V, E]]()
     g.edges.foreach { e =>
       list.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }
-    java.util.Collections.unmodifiableList(list)
+    JavaCollections.unmodifiableList(list)
 
   /**
    * Wraps a Java `Function<String, T>` into a `Parseable[T]`.
@@ -185,7 +181,7 @@ private[java] object JavaFacadeBridge:
    * Passing `.*` or `\\S+` causes comment lines starting with `//` to be
    * parsed as vertex tokens rather than filtered out.
    */
-  private def asParseable[T](f: java.util.function.Function[String, T],
+  private def asParseable[T](f: JavaFunction[String, T],
                              regexStr: String): Parseable[T] =
     new Parseable[T]:
       def parse(s: String): Try[T] = Try(f.apply(s))
@@ -242,7 +238,7 @@ private[java] object JavaFacadeBridge:
                                scalaGraph: AbstractGraph[V],
                                edges: JavaList[WeightedEdge[V, Double]],
                                start: V
-                       ): java.util.Map[V, WeightedEdge[V, Double]] =
+                       ): JavaMap[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
@@ -263,10 +259,10 @@ private[java] object JavaFacadeBridge:
                                   scalaGraph: AbstractGraph[V],
                                   edges: JavaList[WeightedEdge[V, E]],
                                   start: V,
-                                  combineFn: java.util.function.BinaryOperator[E],
+                                  combineFn: JavaBinaryOperator[E],
                                   zero: E,
-                                  comparator: java.util.Comparator[E]
-                          ): java.util.Map[V, WeightedEdge[V, E]] =
+                                  comparator: JavaComparator[E]
+                          ): JavaMap[V, WeightedEdge[V, E]] =
     given Random = Random(0)
 
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
@@ -287,7 +283,7 @@ private[java] object JavaFacadeBridge:
                            scalaGraph: AbstractGraph[V],
                            edges: JavaList[WeightedEdge[V, Double]],
                            start: V
-                   ): java.util.Map[V, WeightedEdge[V, Double]] =
+                   ): JavaMap[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
@@ -309,8 +305,8 @@ private[java] object JavaFacadeBridge:
                               scalaGraph: AbstractGraph[V],
                               edges: JavaList[WeightedEdge[V, E]],
                               start: V,
-                              comparator: java.util.Comparator[E]
-                      ): java.util.Map[V, WeightedEdge[V, E]] =
+                              comparator: JavaComparator[E]
+                      ): JavaMap[V, WeightedEdge[V, E]] =
     given Random = Random(0)
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
@@ -342,7 +338,7 @@ private[java] object JavaFacadeBridge:
    */
   def kruskalCustom[V, E](
                                  edges: JavaList[WeightedEdge[V, E]],
-                                 comparator: java.util.Comparator[E]
+                                 comparator: JavaComparator[E]
                          ): JavaList[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
@@ -376,7 +372,7 @@ private[java] object JavaFacadeBridge:
    */
   def boruvkaCustom[V, E](
                                  edges: JavaList[WeightedEdge[V, E]],
-                                 comparator: java.util.Comparator[E]
+                                 comparator: JavaComparator[E]
                          ): JavaList[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
     given Monoid[E] with
@@ -387,13 +383,42 @@ private[java] object JavaFacadeBridge:
     mstSeqToJavaList(result)
 
   // ---------------------------------------------------------------------------
+  // ConnectedComponents
+  // ---------------------------------------------------------------------------
+
+  def connectedComponents[V](scalaGraph: AbstractGraph[V]): JavaMap[V, JavaInteger] =
+    given scala.util.Random = scala.util.Random(0)
+
+    val (_, componentMap) = ConnectedComponents.components[V, Unit](scalaGraph)
+    val javaMap = new JavaLinkedHashMap[V, JavaInteger]()
+    componentMap.foreach { case (v, id) => javaMap.put(v, id) }
+    JavaCollections.unmodifiableMap(javaMap)
+
+  // ---------------------------------------------------------------------------
+  // TopologicalSort
+  // ---------------------------------------------------------------------------
+
+  def topologicalSort[V](scalaGraph: AbstractGraph[V]): JavaOptional[JavaList[V]] =
+    scalaGraph match
+      case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, ?] @unchecked =>
+        ScalaTopSort.sort(dg) match
+          case Some(order) =>
+            val javaList = new JavaArrayList[V]()
+            order.foreach(javaList.add)
+            JavaOptional.of(JavaCollections.unmodifiableList(javaList))
+          case None =>
+            JavaOptional.empty()
+      case _ =>
+        throw com.phasmidsoftware.gryphon.util.GraphException("topologicalSort requires a DirectedGraph")
+
+  // ---------------------------------------------------------------------------
   // Kosaraju
   // ---------------------------------------------------------------------------
 
   def kosaraju[V](
                          scalaGraph: AbstractGraph[V],
                          edges: JavaList[Edge[V]]
-                 ): java.util.Map[V, java.lang.Integer] =
+                 ): JavaMap[V, JavaInteger] =
     given Random = Random(42)
 
     val directedGraph: DirectedGraph[V, Unit] =
@@ -403,9 +428,9 @@ private[java] object JavaFacadeBridge:
                 .asInstanceOf[DirectedGraph[V, Unit]]
     val result = com.phasmidsoftware.gryphon.traverse.Kosaraju
             .stronglyConnectedComponents(directedGraph)
-    val javaMap = new java.util.LinkedHashMap[V, java.lang.Integer]()
+    val javaMap = new JavaLinkedHashMap[V, JavaInteger]()
     result.foreach { case (v, id) => javaMap.put(v, id) }
-    java.util.Collections.unmodifiableMap(javaMap)
+    JavaCollections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------
   // Result conversion — came-from map (BFS/DFS)
@@ -413,12 +438,12 @@ private[java] object JavaFacadeBridge:
 
   private def cameFromToJavaMap[V](
                                           result: JournaledVisitor[V, V, ?]
-                                  ): java.util.Map[V, V] =
-    val javaMap = new java.util.LinkedHashMap[V, V]()
+                                  ): JavaMap[V, V] =
+    val javaMap = new JavaLinkedHashMap[V, V]()
     result.cameFrom.foreach { map =>
       map.foreach { case (v, from) => javaMap.put(v, from) }
     }
-    java.util.Collections.unmodifiableMap(javaMap)
+    JavaCollections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------
   // Result conversion — SPT (Dijkstra)
@@ -426,14 +451,14 @@ private[java] object JavaFacadeBridge:
 
   private def sptToJavaMap[V, E](
                                         result: com.phasmidsoftware.gryphon.traverse.TraversalResult[V, AttributedDirectedEdge[V, E]]
-                                ): java.util.Map[V, WeightedEdge[V, E]] =
-    val javaMap = new java.util.LinkedHashMap[V, WeightedEdge[V, E]]()
+                                ): JavaMap[V, WeightedEdge[V, E]] =
+    val javaMap = new JavaLinkedHashMap[V, WeightedEdge[V, E]]()
     result.keySet.foreach { v =>
       result.vertexTraverse(v).foreach { ade =>
         javaMap.put(v, new WeightedEdge[V, E](ade.white, ade.black, ade.attribute))
       }
     }
-    java.util.Collections.unmodifiableMap(javaMap)
+    JavaCollections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------
   // Result conversion — MST map (Prim)
@@ -441,14 +466,14 @@ private[java] object JavaFacadeBridge:
 
   private def mstToJavaMap[V, E](
                                         result: com.phasmidsoftware.gryphon.traverse.TraversalResult[V, com.phasmidsoftware.gryphon.core.Edge[V, E]]
-                                ): java.util.Map[V, WeightedEdge[V, E]] =
-    val javaMap = new java.util.LinkedHashMap[V, WeightedEdge[V, E]]()
+                                ): JavaMap[V, WeightedEdge[V, E]] =
+    val javaMap = new JavaLinkedHashMap[V, WeightedEdge[V, E]]()
     result.keySet.foreach { v =>
       result.vertexTraverse(v).foreach { e =>
         javaMap.put(v, new WeightedEdge[V, E](e.white, e.black, e.attribute))
       }
     }
-    java.util.Collections.unmodifiableMap(javaMap)
+    JavaCollections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------
   // Result conversion — MST list (Kruskal)
@@ -457,12 +482,8 @@ private[java] object JavaFacadeBridge:
   private def mstSeqToJavaList[V, E](
                                             result: Seq[com.phasmidsoftware.gryphon.core.Edge[V, E]]
                                     ): JavaList[WeightedEdge[V, E]] =
-    val javaList = new java.util.ArrayList[WeightedEdge[V, E]]()
+    val javaList = new JavaArrayList[WeightedEdge[V, E]]()
     result.foreach { e =>
       javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }
-    java.util.Collections.unmodifiableList(javaList)
-
-  // ---------------------------------------------------------------------------
-  // Result conversion — MST list (Boruvka)
-  // ---------------------------------------------------------------------------
+    JavaCollections.unmodifiableList(javaList)

@@ -18,7 +18,7 @@ import scala.annotation.tailrec
  * rather than the `O(n + m)` time required for a full traversal of an edge-connected graph.
  * The most typical application of this trait is `Kruskal`'s MST algorithm.
  *
- * The most typical concrete implementation of this trait is the `Connectivity` class
+ * The most typical concrete implementation of this trait is the `ConnectivityLazy` class
  * (usually known as `Union-Find`).
  *
  * The type parameter `This` is the F-bounded self-type, ensuring that `put` and

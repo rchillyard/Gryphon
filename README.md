@@ -65,7 +65,7 @@ Additionally, some algorithms and graph properties that are not directly covered
 - **Connectivity** — `UndirectedGraph.isConnected`
 - **Degree statistics** — `UndirectedGraph.degree`, `maxDegree`, `meanDegree`
 - **Self-loop count** — `EdgeGraph.numberOfSelfLoops`
-- **Union-Find** — `Connectivity`, `ConnectivityOptimized` (used internally by Kruskal and Borůvka)
+- **Union-Find** — `Connectivity` (used internally by Kruskal and Borůvka)
 - **Graph reversal** — `DirectedGraph.reverse` (used internally by Kosaraju)
 
 ---
@@ -441,7 +441,7 @@ Java-idiomatic API. Two implementations are available:
 
 ```java
 // Weighted Quick Union — O(log n) per operation
-Connectivity<String> c = Connectivity.create("A", "B", "C", "D");
+Connectivity<String> c = Connectivity.createLazy("A", "B", "C", "D");
 
 // Weighted Quick Union with path compression — amortised near-O(1)
 Connectivity<String> c = Connectivity.createOptimized("A", "B", "C", "D");
@@ -510,7 +510,7 @@ com.phasmidsoftware.gryphon
   .core       — Graph, VertexMap, Vertex, Edge, Adjacency, Connexion,
                 Connected, Traversable, EdgeTraversable
   .adjunct    — DirectedGraph, UndirectedGraph, DirectedEdge,
-                UndirectedEdge, Connectivity, ConnectivityOptimized
+                UndirectedEdge, Connectivity,
   .builder    — GraphBuilder
   .traverse   — ConnectedComponents, Kosaraju, TopologicalSort,
                 ShortestPaths, MST, AcyclicShortestPaths, BellmanFord,
@@ -568,19 +568,20 @@ sbt test
 
 ## Versioning
 
-| Version | Changes                                                                                           |
-|---|---------------------------------------------------------------------------------------------------|
-| 1.0.0 | Initial release                                                                                   |
-| 1.1.0 | First update post-release                                                                         |
-| 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized                       |
-| 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity                              |
-| 1.2.2 | Java façade: ShortestPaths (Dijkstra), MinimumSpanningTree (Prim)                                 |
-| 1.2.3 | Java façade: MinimumSpanningTree (Kruskal), StronglyConnectedComponents (Kosaraju)                |
-| 1.3.0 | Added WeightedGraph                                                                               |
-| 1.4.0 | All BFS/DFS now use Visitor.traverse                                                              |
+| Version | Changes                                                                            |
+|---|------------------------------------------------------------------------------------|
+| 1.0.0 | Initial release                                                                    |
+| 1.1.0 | First update post-release                                                          |
+| 1.2.0 | Rename UnionFind→Connectivity; F-bounded DisjointSet; ConnectivityOptimized        |
+| 1.2.1 | Java façade: Edge, WeightedEdge, Graph, GraphTraversal, Connectivity               |
+| 1.2.2 | Java façade: ShortestPaths (Dijkstra), MinimumSpanningTree (Prim)                  |
+| 1.2.3 | Java façade: MinimumSpanningTree (Kruskal), StronglyConnectedComponents (Kosaraju) |
+| 1.3.0 | Added WeightedGraph                                                                |
+| 1.4.0 | All BFS/DFS now use Visitor.traverse                                               |
 | 1.5.0 | Borůvka MST; symmetric UndirectedEdge.equals/hashCode; Java façade: MinimumSpanningTree (Borůvka) |
 | 1.5.1 | GraphBuilder (Scala); WeightedGraph.fromResource (Java); Graph/WeightedGraph resource-load constructors |
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
+| 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 
 ---
 

@@ -5,8 +5,6 @@
 package com.phasmidsoftware.gryphon.java;
 
 import com.phasmidsoftware.gryphon.adjunct.Connectivity$;
-import com.phasmidsoftware.gryphon.adjunct.ConnectivityOptimized;
-import com.phasmidsoftware.gryphon.adjunct.ConnectivityOptimized$;
 import scala.collection.immutable.Seq;
 import scala.jdk.CollectionConverters;
 
@@ -33,7 +31,7 @@ import java.util.List;
  *
  * <p><b>Usage example:</b>
  * <pre>{@code
- * Connectivity<String> c = Connectivity.createOptimized(List.of("A", "B", "C", "D"));
+ * ConnectivityLazy<String> c = ConnectivityLazy.createOptimized(List.of("A", "B", "C", "D"));
  * c.connect("A", "B");
  * c.connect("C", "D");
  * c.isConnected("A", "B"); // true
@@ -50,12 +48,12 @@ public class Connectivity<V> {
      * The underlying Scala disjoint-set instance.
      * Reassigned on every mutating operation ({@link #connect}, {@link #put}).
      */
-    private com.phasmidsoftware.gryphon.adjunct.AbstractDisjointSet<V, ?, ?> delegate;
+    private com.phasmidsoftware.gryphon.adjunct.Connectivity<V> delegate;
 
     /**
      * Private constructor — use the factory methods.
      */
-    private Connectivity(com.phasmidsoftware.gryphon.adjunct.AbstractDisjointSet<V, ?, ?> delegate) {
+    private Connectivity(com.phasmidsoftware.gryphon.adjunct.Connectivity<V> delegate) {
         this.delegate = delegate;
     }
 
@@ -68,11 +66,11 @@ public class Connectivity<V> {
      *
      * @param <V> the vertex type.
      * @param vs  the initial vertices, each placed in its own singleton component.
-     * @return a new {@code Connectivity} containing all vertices in {@code vs}.
+     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
      */
     public static <V> Connectivity<V> create(List<V> vs) {
         Seq<V> scalaSeq = CollectionConverters.ListHasAsScala(vs).asScala().toSeq();
-        com.phasmidsoftware.gryphon.adjunct.Connectivity<V> connectivity = Connectivity$.MODULE$.create(scalaSeq);
+        com.phasmidsoftware.gryphon.adjunct.Connectivity<V> connectivity = Connectivity$.MODULE$.createLazy(scalaSeq);
         return new Connectivity<>(connectivity);
     }
 
@@ -82,11 +80,11 @@ public class Connectivity<V> {
      *
      * @param <V> the vertex type.
      * @param vs  the initial vertices, each placed in its own singleton component.
-     * @return a new {@code Connectivity} containing all vertices in {@code vs}.
+     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
      */
     public static <V> Connectivity<V> createOptimized(List<V> vs) {
         Seq<V> scalaSeq = CollectionConverters.ListHasAsScala(vs).asScala().toSeq();
-        ConnectivityOptimized<V> connectivityOptimized = ConnectivityOptimized$.MODULE$.create(scalaSeq);
+        com.phasmidsoftware.gryphon.adjunct.Connectivity<V> connectivityOptimized = Connectivity$.MODULE$.createOptimized(scalaSeq);
         return new Connectivity<>(connectivityOptimized);
     }
 
@@ -95,7 +93,7 @@ public class Connectivity<V> {
      *
      * @param vs  the initial vertices.
      * @param <V> the vertex type.
-     * @return a new {@code Connectivity} containing all vertices in {@code vs}.
+     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
      */
     @SafeVarargs
     public static <V> Connectivity<V> create(V... vs) {
@@ -107,7 +105,7 @@ public class Connectivity<V> {
      *
      * @param vs  the initial vertices.
      * @param <V> the vertex type.
-     * @return a new {@code Connectivity} containing all vertices in {@code vs}.
+     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
      */
     @SafeVarargs
     public static <V> Connectivity<V> createOptimized(V... vs) {
@@ -130,7 +128,7 @@ public class Connectivity<V> {
      */
     @SuppressWarnings("unchecked")
     public void connect(V v1, V v2) {
-        delegate = (com.phasmidsoftware.gryphon.adjunct.AbstractDisjointSet<V, ?, ?>) delegate.connect(v1, v2);
+        delegate = delegate.connect(v1, v2);
     }
 
     /**
@@ -142,7 +140,7 @@ public class Connectivity<V> {
      */
     @SuppressWarnings("unchecked")
     public void put(V key) {
-        delegate = (com.phasmidsoftware.gryphon.adjunct.AbstractDisjointSet<V, ?, ?>) delegate.put(key);
+        delegate = delegate.put(key);
     }
 
     // -------------------------------------------------------------------------

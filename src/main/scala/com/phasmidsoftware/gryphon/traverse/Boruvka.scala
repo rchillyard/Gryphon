@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{ConnectivityOptimized, UndirectedEdge, UndirectedGraph}
+import com.phasmidsoftware.gryphon.adjunct.{Connectivity, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.visitor.core.Monoid
 
@@ -38,11 +38,11 @@ object Boruvka:
   def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
-    // Each vertex starts as its own component.
-    val wc0 = ConnectivityOptimized.create(vertices *)
+    // Each vertex starts as its own component using optimized Connectivity
+    val wc0: Connectivity[V] = Connectivity.createOptimized(vertices *)
 
     @scala.annotation.tailrec
-    def loop(wc: ConnectivityOptimized[V], mstEdges: Seq[Edge[V, E]]): Seq[Edge[V, E]] =
+    def loop(wc: Connectivity[V], mstEdges: Seq[Edge[V, E]]): Seq[Edge[V, E]] =
       // getDisjointSet walks the parent chain to the true root.
       if vertices.map(wc.getDisjointSet).toSet.size == 1 then mstEdges
       else
@@ -53,7 +53,7 @@ object Boruvka:
 
     loop(wc0, Seq.empty)
 
-  private def mergeUniqueEdges[E: {Monoid, Ordering}, V](wc: ConnectivityOptimized[V], mstEdges: Seq[Edge[V, E]], uniqueEdges: Iterable[Edge[V, E]]) = {
+  private def mergeUniqueEdges[E: {Monoid, Ordering}, V](wc: Connectivity[V], mstEdges: Seq[Edge[V, E]], uniqueEdges: Iterable[Edge[V, E]]) = {
     // Add each unique crossing edge to the MST and merge its components.
     val (wc1, mstEdges1) = uniqueEdges.foldLeft((wc, mstEdges)) { case ((wcAcc, edges), edge) =>
       val u = edge.white
@@ -84,7 +84,7 @@ object Boruvka:
    * @tparam V the type of the vertices in the graph.
    * @return a collection of unique crossing edges, deduplicated by unordered component-root pairs.
    */
-  private def uniqueCrossingEdgesMap[E: {Monoid, Ordering}, V](cheapest: Map[V, Edge[V, E]], wc: ConnectivityOptimized[V]) =
+  private def uniqueCrossingEdgesMap[E: {Monoid, Ordering}, V](cheapest: Map[V, Edge[V, E]], wc: Connectivity[V]) =
     cheapest.map {
       case (root, edge) =>
         val otherRoot = if wc.getDisjointSet(edge.white) == root
@@ -100,7 +100,8 @@ object Boruvka:
    * inspects its crossing edges with no inter-vertex dependencies.
    *
    * CONSIDER Replacing the sequential `foldLeft` with a parallel fold over `vertices.par` to exploit it.
-   * However, note that we would not then be ablt to use
+   * However, note that we would not then be able to use `ConnectivityOptimized` and the trade-off
+   * versus running `ConnectivityLazy` with parallelism would likely not be worth it.
    *
    * @param graph    the undirected weighted graph.
    * @param vertices all vertex keys.
@@ -110,7 +111,7 @@ object Boruvka:
   private def cheapestCrossingEdges[V, E: {Monoid, Ordering}](
                                                                      graph: UndirectedGraph[V, E],
                                                                      vertices: Seq[V],
-                                                                     wc: ConnectivityOptimized[V]
+                                                                     wc: Connectivity[V]
                                                              ): Map[V, Edge[V, E]] =
     vertices.foldLeft(Map.empty[V, Edge[V, E]]) { (acc, v) =>
       val vRoot: V = wc.getDisjointSet(v)

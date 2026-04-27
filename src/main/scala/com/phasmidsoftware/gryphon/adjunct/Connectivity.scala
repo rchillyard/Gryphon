@@ -37,11 +37,31 @@ case class Connectivity[V](map: Map[V, ParentSize[V]])
  */
 object Connectivity:
 
+  /**
+   * Constructs a new `Connectivity` instance from a sequence of value-to-`ParentSize`
+   * pairs. Each pair associates a value with its corresponding parent and size information.
+   *
+   * @param entries a sequence of pairs where each pair consists of a value and a `ParentSize`
+   *                object that defines the parent reference and the size of the component tree.
+   * @return a new `Connectivity` instance initialized with the provided entries.
+   */
   def apply[V](entries: Seq[(V, ParentSize[V])]): Connectivity[V] =
     new Connectivity(entries.toMap)
 
+  /**
+   * Creates an empty `Connectivity` instance with no elements.
+   *
+   * @return an empty `Connectivity` instance.
+   */
   def empty[V]: Connectivity[V] = apply(Nil)
 
+  /**
+   * Creates a new `Connectivity` instance from the given elements. Each provided element
+   * will represent a separate component initially, using "Weighted Quick Union" for management.
+   *
+   * @param vs the elements to initialize as individual components in the `Connectivity` instance.
+   * @return a new `Connectivity` instance containing the given elements as disjoint sets.
+   */
   def create[V](vs: V*): Connectivity[V] =
     Connectivity(vs.map(v => v -> ParentSize[V]))
 
@@ -146,11 +166,36 @@ case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
  */
 object ConnectivityOptimized:
 
+  /**
+   * Creates a new instance of `ConnectivityOptimized` from a sequence of entries.
+   *
+   * @param entries a sequence of key-value pairs where each key is associated with
+   *                a `ParentSize` representing the parent reference and size
+   *                of the component tree for that key.
+   * @tparam V the type of elements managed by the disjoint set.
+   * @return a new `ConnectivityOptimized` instance containing the provided entries.
+   */
   def apply[V](entries: Seq[(V, ParentSize[V])]): ConnectivityOptimized[V] =
     new ConnectivityOptimized(entries.toMap)
 
+  /**
+   * Creates an empty instance of `ConnectivityOptimized` with no entries.
+   *
+   * @tparam V the type of elements managed by the disjoint set.
+   * @return an empty `ConnectivityOptimized` instance.
+   */
   def empty[V]: ConnectivityOptimized[V] = apply(Nil)
 
+  /**
+   * Creates a new instance of `ConnectivityOptimized` initialized with the provided elements.
+   *
+   * Each provided element is mapped to a `ParentSize` representing it as
+   * a singleton root with a size of 1.
+   *
+   * @param vs a variable argument list of elements to be included in the disjoint set.
+   * @tparam V the type of elements managed by the disjoint set.
+   * @return a new `ConnectivityOptimized` instance containing the provided elements.
+   */
   def create[V](vs: V*): ConnectivityOptimized[V] =
     ConnectivityOptimized(vs.map(v => v -> ParentSize[V]))
 
@@ -186,10 +231,31 @@ case class ConnectivityASP[V](map: Map[V, Option[V]])
  */
 object ConnectivityASP:
 
+  /**
+   * Creates a new instance of `ConnectivityASP` from the given sequence of entries.
+   * Each entry in the sequence consists of a value of type `V` and an optional parent,
+   * where `None` indicates that the value is a root, and `Some(parent)` specifies the direct parent of the value.
+   *
+   * @param entries a sequence of pairs, where each pair contains a value of type `V` and an optional parent of type `Option[V]`.
+   * @return a `ConnectivityASP[V]` instance initialized with the specified entries.
+   */
   def apply[V](entries: Seq[(V, Option[V])]): ConnectivityASP[V] = new ConnectivityASP(entries.toMap)
 
+  /**
+   * Provides an empty instance of `ConnectivityASP` with no elements.
+   *
+   * @return a `ConnectivityASP[V]` instance that is empty, containing no entries.
+   */
   def empty[V]: ConnectivityASP[V] = apply(Nil)
 
+  /**
+   * Creates a new instance of `ConnectivityASP` using the provided sequence of values.
+   * Each value becomes a root node in the disjoint-set, with no parent initially assigned.
+   *
+   * @param vs a variable-length sequence of values of type `V` to be added as root nodes.
+   * @return a `ConnectivityASP[V]` instance initialized with the specified values, 
+   *         where each value is mapped to `None` as its parent.
+   */
   def create[V](vs: V*): ConnectivityASP[V] = ConnectivityASP(vs.map(v => v -> None))
 
 /**
@@ -204,8 +270,23 @@ object ConnectivityASP:
  */
 case class ParentSize[V](parent: Option[V], size: Int):
 
+  /**
+   * Creates a new instance of `ParentSize` with an updated parent reference.
+   *
+   * @param vo The new parent reference to be set. Use `None` to indicate no parent 
+   *           (root node) or `Some(v)` to set a specific parent `v`.
+   * @return A new `ParentSize[V]` instance with the updated parent reference.
+   */
   def reparent(vo: Option[V]): ParentSize[V] = copy(parent = vo)
 
+  /**
+   * Creates a new instance of `ParentSize` with an updated size.
+   *
+   * @param s The new size of the component tree. This value represents either the
+   *          number of objects in the tree (if at the root) or an upper bound on 
+   *          the tree's depth (rank) when path compression is active.
+   * @return A new `ParentSize[V]` instance with the updated size.
+   */
   def resize(s: Int): ParentSize[V] = copy(size = s)
 
 /**

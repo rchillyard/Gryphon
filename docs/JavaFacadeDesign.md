@@ -70,7 +70,7 @@ all Scala machinery is hidden.
 
 ---
 
-## Current State (V1.5.2)
+## Current State (V1.5.3)
 
 ### Implemented
 
@@ -85,6 +85,8 @@ all Scala machinery is hidden.
 | `ShortestPaths`               | `gryphon.java` | Dijkstra (Option 1: `Double`; Option 3: custom combine/zero/comparator) |
 | `MinimumSpanningTree`         | `gryphon.java` | Prim, Kruskal, and Borůvka (Option 1: `Double`; Option 3: custom comparator only) |
 | `StronglyConnectedComponents` | `gryphon.java` | Kosaraju; `count()`; `components()`                                     |
+| `ConnectedComponents`         | `gryphon.java` | Connected components (Option 1 only); `count`, `componentIds`, `components` |
+| `TopologicalSort`             | `gryphon.java` | Topological sort of DAGs; `sort` returns `Optional<List<V>>`; `isDAG` predicate |
 | `JavaFacadeBridge`            | `gryphon.java` | Internal Scala bridge: graph materialisation and algorithm delegation   |
 
 ### Test Coverage
@@ -98,6 +100,9 @@ all Scala machinery is hidden.
 | `BoruvkaTest`                     | JUnit 5   | ✅ Green |
 | `TunnelsTest`                     | JUnit 5   | ✅ Green |
 | `TunnelsFromResourceTest`         | JUnit 5   | ✅ Green |
+| `ConnectedComponentsTest`         | JUnit 5   | ✅ Green |
+| `TopologicalSortTest`             | JUnit 5   | ✅ Green |
+| `GraphReverseTest`                | JUnit 5   | ✅ Green |
 | `WeightedGraphFromResourceTest`   | JUnit 5   | ✅ Green |
 | `StronglyConnectedComponentsTest` | JUnit 5   | ✅ Green |
 
@@ -193,6 +198,22 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 - **Kruskal** Option 3: `kruskal(graph, comparator)` — comparator only.
 - **Borůvka** Option 3: `boruvka(graph, comparator)` — comparator only.
 
+### `ConnectedComponents` — Static Façade
+
+- `count(graph)` — number of connected components.
+- `componentIds(graph)` — `Map<V, Integer>` vertex → component id.
+- `components(graph)` — `Map<Integer, Set<V>>` grouped by component.
+
+### `TopologicalSort` — Static Façade
+
+- `sort(graph)` — `Optional<List<V>>` topological order; empty if cyclic.
+- `isDAG(graph)` — `true` if graph is acyclic.
+
+### `Graph.reverse()` — Instance Method
+
+Returns a new directed `Graph<V>` with all edges flipped. Throws
+`IllegalStateException` for undirected graphs.
+
 ### `StronglyConnectedComponents` — Static Façade
 
 - `kosaraju(graph)` — `Map<V, Integer>` vertex → SCC id.
@@ -215,6 +236,8 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 | `MinimumSpanningTree.prim`             | undirected          |
 | `MinimumSpanningTree.kruskal`          | undirected          |
 | `MinimumSpanningTree.boruvka`          | undirected          |
+| `ConnectedComponents.count` / `componentIds` / `components` | undirected |
+| `TopologicalSort.sort` / `isDAG`       | directed            |
 | `StronglyConnectedComponents.kosaraju` | directed            |
 
 ---
@@ -314,6 +337,11 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
    `com.phasmidsoftware.gryphon.java`. If the façade grows substantially, it may
    warrant sub-packages: `gryphon.java.graph`, `gryphon.java.algo`, etc.
 
+4. **Isolated vertices are not preserved in Scala materialisation.**
+   `JavaFacadeBridge.materialise` folds over `canonicalEdges` only — vertices
+   added via `Graph.addVertex` with no edges are silently absent from the
+   Scala `VertexMap`. Low priority for the student use case.
+
 3. **Java type erasure forces distinct factory method names on `WeightedGraph`.**
    `WeightedGraph.directed()` and `WeightedGraph.undirected()` would clash with
    the inherited `Graph.directed()` and `Graph.undirected()` after erasure.
@@ -337,3 +365,4 @@ Returns SPT as `Map<V, WeightedEdge<V, E>>`. Option 3 signature:
 | 1.5.0   | MinimumSpanningTree.boruvka (Option 1 and Option 3) |
 | 1.5.1   | WeightedGraph.fromResource (Option 1 and Option 3); Graph/WeightedGraph resource-load constructors; GraphBuilder Scala API |
 | 1.5.2   | Borůvka deduplication bug fix; Boruvka returns Seq like Kruskal; DirectedGraph.addEdge fixed (Issue #16); tunnel integration tests |
+| 1.5.3   | ParseableLong (optional L suffix); ConnectedComponents façade; TopologicalSort façade; Graph.reverse() |

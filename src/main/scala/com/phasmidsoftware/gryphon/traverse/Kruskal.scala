@@ -41,8 +41,8 @@ object Kruskal:
   def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
-    // Seed `Connectivity` (aka `WeightedUnionFind`) with all vertices as singleton components.
-    val wuf0 = Connectivity.create(vertices *)
+    // Seed `ConnectivityLazy` (aka `WeightedUnionFind`) with all vertices as singleton components.
+    val wuf0 = Connectivity.createLazy(vertices *)
 
     // Collect and sort all edges by weight ascending.
     val sortedEdges: Seq[UndirectedEdge[V, E]] =

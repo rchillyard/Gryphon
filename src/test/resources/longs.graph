@@ -1,0 +1,6 @@
+// Small undirected weighted graph with Long edge weights
+// Used to test ParseableLong via GraphBuilder
+0 = 1 100
+1 = 2 200
+2 = 3 150
+0 = 3 500

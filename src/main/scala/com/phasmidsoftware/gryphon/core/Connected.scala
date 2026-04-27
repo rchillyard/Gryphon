@@ -13,7 +13,7 @@ package com.phasmidsoftware.gryphon.core
  * Note the distinction from `Connexion[V]`, which models a specific edge between exactly
  * two vertices. `Connected[V]` is a higher-level oracle over the whole structure.
  *
- * Typical implementations: `Connectivity`, `WeightedUnionFind`, `ConnectedComponents`.
+ * Typical implementations: `ConnectivityLazy`, `WeightedUnionFind`, `ConnectedComponents`.
  *
  * @tparam V the underlying object type.
  */

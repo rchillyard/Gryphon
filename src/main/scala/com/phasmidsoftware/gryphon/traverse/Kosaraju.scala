@@ -20,7 +20,7 @@ type SCCResult[V] = Map[V, Int]
  * Computes strongly connected components of a directed graph using the Kosaraju-Sharir algorithm.
  * See [Kosaraju, 1962](https://doi.org/10.1016/0022-0000(62)90012-2).
  * See [Kosaraju's Algorithm](https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm).
- * See [A Strong Connectivity Algorithm...](https://www.sciencedirect.com/science/article/pii/0898122181900080?via%3Dihub).
+ * See [A Strong ConnectivityLazy Algorithm...](https://www.sciencedirect.com/science/article/pii/0898122181900080?via%3Dihub).
  *
  * The algorithm makes two passes:
  *

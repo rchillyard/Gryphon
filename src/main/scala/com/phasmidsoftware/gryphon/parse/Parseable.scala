@@ -361,4 +361,27 @@ object Parseable {
    * is required, such as in parsing operations for graph edges or numerical data.
    */
   implicit object ParseableDouble extends ParseableDouble
+
+  /**
+   * A trait that provides parsing functionality for strings into `Long` values.
+   */
+  trait ParseableLong extends Parseable[Long] {
+    def parse(input: String): Try[Long] =
+      Try(input.stripSuffix("L").stripSuffix("l").toLong)
+
+    def message: String =
+      "Long"
+
+    def regex: Regex =
+      """\d+[Ll]?""".r
+
+    def none: Long =
+      0L
+  }
+
+  /**
+   * An implicit object that provides an implementation of the `Parseable` typeclass for `Long`.
+   */
+  implicit object ParseableLong extends ParseableLong
+
 }

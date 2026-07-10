@@ -32,6 +32,8 @@ Add Gryphon to your `build.sbt`:
 libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.3"
 ```
 
+Full Scaladoc is available via [javadoc.io](https://javadoc.io/doc/com.phasmidsoftware/gryphon_3).
+
 Gryphon requires **Scala 3** and depends on
 [Visitor](https://github.com/rchillyard/Visitor) (`com.phasmidsoftware %% visitor`),
 which is pulled in automatically.

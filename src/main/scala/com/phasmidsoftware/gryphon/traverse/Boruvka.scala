@@ -47,14 +47,29 @@ object Boruvka:
       if vertices.map(wc.getDisjointSet).toSet.size == 1 then mstEdges
       else
         val cheapest = cheapestCrossingEdges(graph, vertices, wc)
-        val uniqueEdges = uniqueCrossingEdgesMap(cheapest, wc).values
+        val uniqueEdges = uniqueCrossingEdges(cheapest, wc).values
         val (wc1, mstEdges1) = mergeUniqueEdges(wc, mstEdges, uniqueEdges)
         loop(wc1, mstEdges1)
 
     loop(wc0, Seq.empty)
 
-  private def mergeUniqueEdges[E: {Monoid, Ordering}, V](wc: Connectivity[V], mstEdges: Seq[Edge[V, E]], uniqueEdges: Iterable[Edge[V, E]]) = {
-    // Add each unique crossing edge to the MST and merge its components.
+  /**
+   * Adds unique crossing edges to the current Minimum Spanning Tree (MST) and updates the
+   * connectivity structure to reflect the new connections.
+   *
+   * For each edge in `uniqueEdges`, the method checks if the edge's endpoints belong to
+   * different components. If they do, the edge is added to the MST and the components are merged.
+   *
+   * @param wc          the current connectivity state, represented as a disjoint-set structure.
+   *                    This is used to determine whether two vertices are in the same connected component.
+   * @param mstEdges    the sequence of edges that currently form the MST.
+   * @param uniqueEdges the collection of unique edges to be considered. Each edge connects two vertices
+   *                    in different components and contributes to forming the MST.
+   * @tparam V the type of the vertices in the graph.
+   * @tparam E the type of the edge weight, which must have a `Monoid` and `Ordering` instance.
+   * @return a tuple containing the updated connectivity state and the updated sequence of MST edges.
+   */
+  private def mergeUniqueEdges[V, E: {Monoid, Ordering}](wc: Connectivity[V], mstEdges: Seq[Edge[V, E]], uniqueEdges: Iterable[Edge[V, E]]) =
     val (wc1, mstEdges1) = uniqueEdges.foldLeft((wc, mstEdges)) { case ((wcAcc, edges), edge) =>
       val u = edge.white
       val v = edge.black
@@ -62,29 +77,28 @@ object Boruvka:
       else (wcAcc.connect(u, v), edges :+ edge)
     }
     (wc1, mstEdges1)
-  }
 
   /**
-   * Identifies unique crossing edges by deduplicating edges based on unordered component-root pairs.
-   * A crossing edge is an edge that connects two different components in the graph.
-   * By examining the current connectivity state, it ensures that for each edge, the two endpoints
-   * belong to different components.
+   * Creates a mapping of unique crossing edges between disjoint components in a graph.
    *
-   * Deduplicate by unordered component-root pair.
-   * cheapest is keyed by component root, so for each entry we know exactly
-   * which root it belongs to. The other root is the root of the far endpoint.
-   * Set(root, otherRoot) correctly collapses A->B and B->A to one merge,
-   * while leaving A->D, B->D, C->D as three distinct merges.
+   * Each entry in the resulting map associates a pair of component roots (represented as a `Set[V]`)
+   * with the cheapest edge connecting the corresponding components. A crossing edge is an edge that
+   * links two vertices residing in different components as determined by the disjoint-set structure.
    *
-   * @param cheapest a map where each key is a component root and the corresponding value is the
+   * This method requires the input map `cheapest` where each component's root vertex is mapped
+   * to its cheapest crossing edge. It uses the `Connectivity` structure `wc` to evaluate the
+   * disjoint components of vertices connected by an edge.
+   *
+   * @param cheapest a map where each key is a root vertex of a component, and the value is the
    *                 cheapest edge crossing out of that component.
-   * @param wc       the current connectivity state, represented as a disjoint-set structure.
-   *                 This is used to find the component roots for vertices connected by edges.
-   * @tparam E the type of the edge weight, which must have a `Monoid` and `Ordering` instance.
-   * @tparam V the type of the vertices in the graph.
-   * @return a collection of unique crossing edges, deduplicated by unordered component-root pairs.
+   * @param wc       the current connectivity information represented as a disjoint-set structure,
+   *                 which provides the root component for any given vertex.
+   * @tparam V       the vertex type in the graph.
+   * @tparam E       the edge type, which must support `Monoid` and `Ordering` instances.
+   * @return         a map whose keys are sets containing two component roots, and values are the cheapest
+   *         edges connecting those components.
    */
-  private def uniqueCrossingEdgesMap[E: {Monoid, Ordering}, V](cheapest: Map[V, Edge[V, E]], wc: Connectivity[V]) =
+  private def uniqueCrossingEdges[V, E: {Monoid, Ordering}](cheapest: Map[V, Edge[V, E]], wc: Connectivity[V]) =
     cheapest.map {
       case (root, edge) =>
         val otherRoot = if wc.getDisjointSet(edge.white) == root

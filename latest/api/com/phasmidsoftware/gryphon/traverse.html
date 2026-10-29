@@ -1,0 +1,1816 @@
+<!DOCTYPE html><html data-pathToRoot="../../../" data-rawLocation="com/phasmidsoftware/gryphon/traverse" data-dynamicSideMenu="false"><head><meta charset="utf-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta><title>com.phasmidsoftware.gryphon.traverse</title><link rel="shortcut icon" type="image/x-icon" href="../../../favicon.ico"></link><script type="text/javascript" src="../../../scripts/theme.js"></script><script type="text/javascript" src="../../../scripts/searchData.js" defer="true"></script><script type="text/javascript" src="../../../scripts/scastieConfiguration.js" defer="true"></script><link rel="stylesheet" href="../../../styles/theme/bundle.css"></link><link rel="stylesheet" href="../../../styles/theme/components/bundle.css"></link><link rel="stylesheet" href="../../../styles/theme/components/button/bundle.css"></link><link rel="stylesheet" href="../../../styles/theme/layout/bundle.css"></link><link rel="stylesheet" href="../../../styles/dotty-icons.css"></link><link rel="stylesheet" href="../../../styles/filter-bar.css"></link><link rel="stylesheet" href="../../../styles/searchbar.css"></link><link rel="stylesheet" href="../../../styles/social-links.css"></link><link rel="stylesheet" href="../../../styles/versions-dropdown.css"></link><link rel="stylesheet" href="../../../styles/content-contributors.css"></link><script type="text/javascript" src="../../../hljs/highlight.pack.js" defer="true"></script><script type="text/javascript" src="../../../scripts/hljs-scala3.js" defer="true"></script><script type="text/javascript" src="../../../scripts/ux.js" defer="true"></script><script type="text/javascript" src="../../../scripts/common/component.js" defer="true"></script><script type="text/javascript" src="../../../scripts/common/utils.js" defer="true"></script><script type="text/javascript" src="../../../scripts/components/FilterBar.js" defer="true"></script><script type="text/javascript" src="../../../scripts/components/DocumentableList.js" defer="true"></script><script type="text/javascript" src="../../../scripts/components/Input.js" defer="true"></script><script type="text/javascript" src="../../../scripts/components/FilterGroup.js" defer="true"></script><script type="text/javascript" src="../../../scripts/components/Filter.js" defer="true"></script><script type="text/javascript" src="../../../scripts/scaladoc-scalajs.js" defer="true"></script><script type="text/javascript" src="../../../scripts/contributors.js" defer="true"></script><script type="text/javascript" src="https://d3js.org/d3.v6.min.js" defer="true"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/graphlib-dot@0.6.2/dist/graphlib-dot.min.js" defer="true"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.1/dagre-d3.min.js" defer="true"></script><script type="text/javascript" src="https://scastie.scala-lang.org/embedded.js" defer="true"></script><script type="text/javascript" src="../../../scripts/data.js" defer="true"></script><script>var pathToRoot = "../../../";</script></head><body><div id=""><div id="header" class="body-small"><div class="header-container-left"><a href="../../../" class="logo-container"><span class="project-name h300">Gryphon</span></a><span onclick="dropdownHandler(event)" class="text-button with-arrow" id="dropdown-trigger"><a></a></span><div id="version-dropdown" class="dropdown-menu"></div></div><div class="header-container-right"><button id="search-toggle" class="icon-button"></button><span id="theme-toggle" class="icon-button"></span><span id="mobile-menu-toggle" class="icon-button hamburger"></span></div></div><div id="mobile-menu"><div class="mobile-menu-header body-small"><span class="mobile-menu-logo"><span class="project-name h300">Gryphon</span></span><button id="mobile-menu-close" class="icon-button close"></button></div><div class="mobile-menu-container body-medium"><input id="mobile-scaladoc-searchbar-input" class="scaladoc-searchbar-input" type="search" placeholder="Find anything"></input><span id="mobile-theme-toggle" class="mobile-menu-item mode"></span></div></div><span id="mobile-sidebar-toggle" class="floating-button"></span><div id="leftColumn" class="body-small"><div class="switcher-container"><a id="api-nav-button" class="switcher h100 selected" href="../../../index.html">API</a></div><nav id="api-nav" class="side-menu"><div class="ni n0 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../gryphon.html"><span class="micon pa"></span><span>com.phasmidsoftware.gryphon</span></a></span><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="adjunct.html"><span class="micon pa"></span><span>adjunct</span></a></span><div class="ni n2 "><span class="nh "><a href="adjunct/AbstractDisjointSet.html"><span class="micon cl"></span><span>AbstractDisjointSet</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/AbstractDisjointSetWithCompression.html"><span class="micon cl"></span><span>AbstractDisjointSetWithCompression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/AttributedDirectedEdge$.html"><span class="micon ob"></span><span>AttributedDirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/AttributedDirectedEdge.html"><span class="micon cl"></span><span>AttributedDirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/Connectivity$.html"><span class="micon ob"></span><span>Connectivity</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/Connectivity.html"><span class="micon tr"></span><span>Connectivity</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ConnectivityASP$.html"><span class="micon ob"></span><span>ConnectivityASP</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ConnectivityASP.html"><span class="micon cl"></span><span>ConnectivityASP</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ConnectivityLazy.html"><span class="micon cl"></span><span>ConnectivityLazy</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ConnectivityLazy$.html"><span class="micon ob"></span><span>ConnectivityLazy</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ConnectivityOptimized.html"><span class="micon cl"></span><span>ConnectivityOptimized</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ConnectivityOptimized$.html"><span class="micon ob"></span><span>ConnectivityOptimized</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/DirectedEdge.html"><span class="micon tr"></span><span>DirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/DirectedGraph$.html"><span class="micon ob"></span><span>DirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/DirectedGraph.html"><span class="micon cl"></span><span>DirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/DisjointSet.html"><span class="micon tr"></span><span>DisjointSet</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/OrderedEdge.html"><span class="micon cl"></span><span>OrderedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ParentSize$.html"><span class="micon ob"></span><span>ParentSize</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/ParentSize.html"><span class="micon cl"></span><span>ParentSize</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/UndirectedEdge.html"><span class="micon cl"></span><span>UndirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/UndirectedGraph$.html"><span class="micon ob"></span><span>UndirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/UndirectedGraph.html"><span class="micon cl"></span><span>UndirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="adjunct/WeightedUnion$.html"><span class="micon ob"></span><span>WeightedUnion</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="applications.html"><span class="micon pa"></span><span>applications</span></a></span><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="applications/dp.html"><span class="micon pa"></span><span>dp</span></a></span><div class="ni n3 "><span class="nh "><a href="applications/dp/Knapsack$.html"><span class="micon ob"></span><span>Knapsack</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="applications/game.html"><span class="micon pa"></span><span>game</span></a></span><div class="ni n3 "><span class="nh "><a href="applications/game/Sudoku.html"><span class="micon cl"></span><span>Sudoku</span></a></span></div><div class="ni n3 "><span class="nh "><a href="applications/game/SudokuPlayer.html"><span class="micon cl"></span><span>SudokuPlayer</span></a></span></div><div class="ni n3 "><span class="nh "><a href="applications/game/SudokuSquare.html"><span class="micon cl"></span><span>SudokuSquare</span></a></span></div><div class="ni n3 "><span class="nh "><a href="applications/game/TicTacToe.html"><span class="micon cl"></span><span>TicTacToe</span></a></span></div><div class="ni n3 "><span class="nh "><a href="applications/game/TicTacToePlayer.html"><span class="micon cl"></span><span>TicTacToePlayer</span></a></span></div><div class="ni n3 "><span class="nh "><a href="applications/game/TicTacToeSquare.html"><span class="micon cl"></span><span>TicTacToeSquare</span></a></span></div></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="builder.html"><span class="micon pa"></span><span>builder</span></a></span><div class="ni n2 "><span class="nh "><a href="builder/GraphBuilder.html"><span class="micon cl"></span><span>GraphBuilder</span></a></span></div><div class="ni n2 "><span class="nh "><a href="builder/GraphBuilder$.html"><span class="micon ob"></span><span>GraphBuilder</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="core.html"><span class="micon pa"></span><span>core</span></a></span><div class="ni n2 "><span class="nh "><a href="core/AbstractBag.html"><span class="micon cl"></span><span>AbstractBag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/AbstractGraph.html"><span class="micon cl"></span><span>AbstractGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/AbstractUnordered.html"><span class="micon cl"></span><span>AbstractUnordered</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/AbstractVertex.html"><span class="micon cl"></span><span>AbstractVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Adjacency.html"><span class="micon tr"></span><span>Adjacency</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/AdjacencyEdge.html"><span class="micon cl"></span><span>AdjacencyEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/AdjacencyVertex.html"><span class="micon cl"></span><span>AdjacencyVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/AdjacencyVertex$.html"><span class="micon ob"></span><span>AdjacencyVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Attribute.html"><span class="micon tr"></span><span>Attribute</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Attributed.html"><span class="micon tr"></span><span>Attributed</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Bag.html"><span class="micon tr"></span><span>Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Bag$.html"><span class="micon ob"></span><span>Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Connected.html"><span class="micon tr"></span><span>Connected</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Connexion.html"><span class="micon tr"></span><span>Connexion</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/DAG.html"><span class="micon tr"></span><span>DAG</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Directed$.html"><span class="micon ob"></span><span>Directed</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Edge.html"><span class="micon tr"></span><span>Edge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/EdgeGraph.html"><span class="micon tr"></span><span>EdgeGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/EdgeList.html"><span class="micon cl"></span><span>EdgeList</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/EdgeTraversable.html"><span class="micon tr"></span><span>EdgeTraversable</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="core/EdgeType$.html"><span class="micon ob"></span><span>EdgeType</span></a></span><div class="ni n3 "><span class="nh "><a href="core/EdgeType$$ParseableEdgeType$.html"><span class="micon ob"></span><span>ParseableEdgeType</span></a></span></div><div class="ni n3 "><span class="nh "><a href="core/EdgeType$$ParseableEdgeType.html"><span class="micon tr"></span><span>ParseableEdgeType</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="core/EdgeType.html"><span class="micon tr"></span><span>EdgeType</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Edges.html"><span class="micon tr"></span><span>Edges</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="core/EvaluableGraphNeighboursTraversal.html"><span class="micon cl"></span><span>EvaluableGraphNeighboursTraversal</span></a></span><div class="ni n3 "><span class="nh "><a href="core/EvaluableGraphNeighboursTraversal$given_Evaluable_V_T$.html"><span class="micon ob"></span><span>given_Evaluable_V_T</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="core/Graph$.html"><span class="micon ob"></span><span>Graph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Graph.html"><span class="micon tr"></span><span>Graph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/GraphException.html"><span class="micon cl"></span><span>GraphException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/GraphNeighboursTraversal.html"><span class="micon cl"></span><span>GraphNeighboursTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/ListBag.html"><span class="micon cl"></span><span>ListBag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/OrderableEdge.html"><span class="micon tr"></span><span>OrderableEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/OrderedAttribute.html"><span class="micon tr"></span><span>OrderedAttribute</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Pairs.html"><span class="micon tr"></span><span>Pairs</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/ProtoConnexions$.html"><span class="micon ob"></span><span>ProtoConnexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/ProtoConnexions.html"><span class="micon cl"></span><span>ProtoConnexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/RelaxableVertex$.html"><span class="micon ob"></span><span>RelaxableVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/RelaxableVertex.html"><span class="micon cl"></span><span>RelaxableVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/SerializableGraph.html"><span class="micon tr"></span><span>SerializableGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/SerializableGraph$.html"><span class="micon ob"></span><span>SerializableGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/SimpleVertex.html"><span class="micon cl"></span><span>SimpleVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Traversable.html"><span class="micon tr"></span><span>Traversable</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Triplet.html"><span class="micon cl"></span><span>Triplet</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Triplets.html"><span class="micon cl"></span><span>Triplets</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Undefined$.html"><span class="micon ob"></span><span>Undefined</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Undirected$.html"><span class="micon ob"></span><span>Undirected</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Unordered.html"><span class="micon tr"></span><span>Unordered</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Unordered_Bag$.html"><span class="micon ob"></span><span>Unordered_Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Unordered_Bag.html"><span class="micon cl"></span><span>Unordered_Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Unordered_Set.html"><span class="micon cl"></span><span>Unordered_Set</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Unordered_Set$.html"><span class="micon ob"></span><span>Unordered_Set</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Vertex$.html"><span class="micon ob"></span><span>Vertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/Vertex.html"><span class="micon tr"></span><span>Vertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/VertexMap.html"><span class="micon cl"></span><span>VertexMap</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/VertexMap$.html"><span class="micon ob"></span><span>VertexMap</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/VertexPair.html"><span class="micon cl"></span><span>VertexPair</span></a></span></div><div class="ni n2 "><span class="nh "><a href="core/VertexPairList.html"><span class="micon cl"></span><span>VertexPairList</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="games.html"><span class="micon pa"></span><span>games</span></a></span><div class="ni n2 "><span class="nh "><a href="games/Game.html"><span class="micon tr"></span><span>Game</span></a></span></div><div class="ni n2 "><span class="nh "><a href="games/Move.html"><span class="micon tr"></span><span>Move</span></a></span></div><div class="ni n2 "><span class="nh "><a href="games/Positions.html"><span class="micon cl"></span><span>Positions</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="parse.html"><span class="micon pa"></span><span>parse</span></a></span><div class="ni n2 "><span class="nh "><a href="parse/BaseParser.html"><span class="micon cl"></span><span>BaseParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="parse/EmptyStringException.html"><span class="micon cl"></span><span>EmptyStringException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="parse/GraphParser.html"><span class="micon cl"></span><span>GraphParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="parse/ParseException$.html"><span class="micon ob"></span><span>ParseException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="parse/ParseException.html"><span class="micon cl"></span><span>ParseException</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="parse/Parseable$.html"><span class="micon ob"></span><span>Parseable</span></a></span><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableBoolean$.html"><span class="micon ob"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableBoolean.html"><span class="micon tr"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableDouble$.html"><span class="micon ob"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableDouble.html"><span class="micon tr"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableInt$.html"><span class="micon ob"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableInt.html"><span class="micon tr"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableLong$.html"><span class="micon ob"></span><span>ParseableLong</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableLong.html"><span class="micon tr"></span><span>ParseableLong</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableString$.html"><span class="micon ob"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableString.html"><span class="micon tr"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableUnit$.html"><span class="micon ob"></span><span>ParseableUnit</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/Parseable$$ParseableUnit.html"><span class="micon tr"></span><span>ParseableUnit</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="parse/Parseable.html"><span class="micon tr"></span><span>Parseable</span></a></span></div></div><div class="ni n1 expanded"><span class="nh h100 selected"><button class="ar icon-button expanded"></button><a href="#"><span class="micon pa"></span><span>traverse</span></a></span><div class="ni n2 "><span class="nh "><a href="traverse/AbstractEdgeTraversalResult.html"><span class="micon cl"></span><span>AbstractEdgeTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/AbstractVertexTraversalResult.html"><span class="micon cl"></span><span>AbstractVertexTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/AcyclicShortestPaths$.html"><span class="micon ob"></span><span>AcyclicShortestPaths</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/BFSTraversal.html"><span class="micon cl"></span><span>BFSTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/BellmanFord$.html"><span class="micon ob"></span><span>BellmanFord</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/Boruvka$.html"><span class="micon ob"></span><span>Boruvka</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/ConnectedComponents$.html"><span class="micon ob"></span><span>ConnectedComponents</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/Connexions.html"><span class="micon cl"></span><span>Connexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/Connexions$.html"><span class="micon ob"></span><span>Connexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/DFSTraversal.html"><span class="micon cl"></span><span>DFSTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/DijkstraTraversal.html"><span class="micon cl"></span><span>DijkstraTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/EdgeTraversalResult.html"><span class="micon cl"></span><span>EdgeTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/GraphTraversal.html"><span class="micon tr"></span><span>GraphTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/Kosaraju$.html"><span class="micon ob"></span><span>Kosaraju</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/Kruskal$.html"><span class="micon ob"></span><span>Kruskal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/MST$.html"><span class="micon ob"></span><span>MST</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/PrimTraversal.html"><span class="micon cl"></span><span>PrimTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/ShortestPaths$.html"><span class="micon ob"></span><span>ShortestPaths</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/TopologicalSort.html"><span class="micon cl"></span><span>TopologicalSort</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/TopologicalSort$.html"><span class="micon ob"></span><span>TopologicalSort</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/TraversalResult.html"><span class="micon tr"></span><span>TraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/TraversalResult$.html"><span class="micon ob"></span><span>TraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/VertexTraversalResult$.html"><span class="micon ob"></span><span>VertexTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/VertexTraversalResult.html"><span class="micon cl"></span><span>VertexTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="traverse/WeightedTraversal.html"><span class="micon cl"></span><span>WeightedTraversal</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="util.html"><span class="micon pa"></span><span>util</span></a></span><div class="ni n2 "><span class="nh "><a href="util/FP$.html"><span class="micon ob"></span><span>FP</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/FPException.html"><span class="micon cl"></span><span>FPException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/GraphException.html"><span class="micon cl"></span><span>GraphException</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="util/HasZero$.html"><span class="micon ob"></span><span>HasZero</span></a></span><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroBoolean$.html"><span class="micon ob"></span><span>HasZeroBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroBoolean.html"><span class="micon tr"></span><span>HasZeroBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroDouble$.html"><span class="micon ob"></span><span>HasZeroDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroDouble.html"><span class="micon tr"></span><span>HasZeroDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroInt$.html"><span class="micon ob"></span><span>HasZeroInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroInt.html"><span class="micon tr"></span><span>HasZeroInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroUnit$.html"><span class="micon ob"></span><span>HasZeroUnit</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/HasZero$$HasZeroUnit.html"><span class="micon tr"></span><span>HasZeroUnit</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="util/HasZero.html"><span class="micon tr"></span><span>HasZero</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/LoggingIterator.html"><span class="micon cl"></span><span>LoggingIterator</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="util/Parseable$.html"><span class="micon ob"></span><span>Parseable</span></a></span><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableBoolean$.html"><span class="micon ob"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableBoolean.html"><span class="micon tr"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableDouble$.html"><span class="micon ob"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableDouble.html"><span class="micon tr"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableInt$.html"><span class="micon ob"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableInt.html"><span class="micon tr"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableString$.html"><span class="micon ob"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableString.html"><span class="micon tr"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableUnit$.html"><span class="micon ob"></span><span>ParseableUnit</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/Parseable$$ParseableUnit.html"><span class="micon tr"></span><span>ParseableUnit</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="util/Parseable.html"><span class="micon tr"></span><span>Parseable</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/RandomIterator.html"><span class="micon cl"></span><span>RandomIterator</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/RandomIterator$.html"><span class="micon ob"></span><span>RandomIterator</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="util/StringsParser.html"><span class="micon cl"></span><span>StringsParser</span></a></span><div class="ni n3 "><span class="nh "><a href="util/StringsParser$Comment.html"><span class="micon cl"></span><span>Comment</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/StringsParser$Strings2.html"><span class="micon cl"></span><span>Strings2</span></a></span></div><div class="ni n3 "><span class="nh "><a href="util/StringsParser$Strings3.html"><span class="micon cl"></span><span>Strings3</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="util/Stringy.html"><span class="micon tr"></span><span>Stringy</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/TryUsing$.html"><span class="micon ob"></span><span>TryUsing</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/ViewableIterator$.html"><span class="micon ob"></span><span>ViewableIterator</span></a></span></div><div class="ni n2 "><span class="nh "><a href="util/ViewableIterator.html"><span class="micon cl"></span><span>ViewableIterator</span></a></span></div></div></div></nav></div><div id="footer" class="body-small"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div><div id="scaladoc-searchBar"></div><div id="main"><div class="breadcrumbs container"><a href="../../../index.html">Gryphon</a>/<a href="../gryphon.html">com.phasmidsoftware.gryphon</a>/<a href="traverse.html">com.phasmidsoftware.gryphon.traverse</a></div><div id="content" class="body-medium"><div><div class="cover-header">
+ <span class="icon"><span class="micon pa"></span></span>
+ <h1 class="h600 single">com.phasmidsoftware.gryphon.traverse</h1>
+</div>
+<div class="fqname body-large">
+ <span></span>
+</div>
+<div class="main-signature mono-small-block">
+ <div class="signature">
+  <span class="modifiers"></span><span class="kind"><span t="k">package </span></span><a href="traverse.html" t="n" class="documentableName ">com.phasmidsoftware.gryphon.traverse</a>
+ </div>
+</div>
+<section id="members-list">
+ <h2 class="h500">Members list</h2>
+ <div class="documentableFilter">
+  <div class="filtersContainer"></div>
+  <input class="filterableInput" placeholder="Filter by any phrase" data-test-id="filterBarInput" type="search"><button class="clearButton label-only-button" data-test-id="filterBarClearButton">Clear all</button>
+ </div>
+ <div class="membersList expand">
+  <div class="tabs">
+   <div class="contents">
+    <section id="Type-members">
+     <div data-togglable="Type members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Type members" class="h400">Type members</h3>
+      </div>
+      <section id="Classlikes">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Classlikes</h4>
+        </div>
+        <div class="documentableElement" data-f-keywords="abstract">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/AbstractEdgeTraversalResult.html" t="n" class="documentableName ">AbstractEdgeTraversalResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ts</span>: <span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">T</span>])<span t="k"> extends </span><a href="traverse/TraversalResult.html" t="t">TraversalResult</a>[<span data-unresolved-link="" t="t">Int</span>, <span t="t">T</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Abstract base class for edge traversal within a graph. This class supports traversing edges in a graph-like structure by providing a specific implementation for edge traversal while delegating the vertex traversal to throw an exception, as it is not applicable for edge-based traversal.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Abstract base class for edge traversal within a graph. This class supports traversing edges in a graph-like structure by providing a specific implementation for edge traversal while delegating the vertex traversal to throw an exception, as it is not applicable for edge-based traversal.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>the type representing the result of the edge traversal</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">ts</dt>
+              <dd class="body-medium">
+               <p>a list of elements of type T representing traversal data, typically associated with edges</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="traverse/TraversalResult.html" t="n">TraversalResult</a>[<span data-unresolved-link="" t="t">Int</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Known subtypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block subtypes">
+                <div>
+                 class <a href="traverse/EdgeTraversalResult.html" t="n">EdgeTraversalResult</a>[<span t="t">V</span>, <span t="t">E</span>, <span t="t">T</span>]
+                </div>
+                <span></span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="abstract">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/AbstractVertexTraversalResult.html" t="n" class="documentableName ">AbstractVertexTraversalResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">map</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">T</span>])<span t="k"> extends </span><a href="traverse/TraversalResult.html" t="t">TraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Abstract base class for edge traversal within a graph. This class supports traversing edges in a graph-like structure by providing a specific implementation for edge traversal while delegating the vertex traversal to throw an exception, as it is not applicable for edge-based traversal.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Abstract base class for edge traversal within a graph. This class supports traversing edges in a graph-like structure by providing a specific implementation for edge traversal while delegating the vertex traversal to throw an exception, as it is not applicable for edge-based traversal.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>the type representing the result of the edge traversal</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type representing a vertex in the graph</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">map</dt>
+              <dd class="body-medium">
+               <p>the underlying map of vertex -&gt; T elements</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="traverse/TraversalResult.html" t="n">TraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Known subtypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block subtypes">
+                <div>
+                 class <a href="traverse/Connexions.html" t="n">Connexions</a>[<span t="t">V</span>, <span t="t">E</span>]
+                </div>
+                <div>
+                 class <a href="traverse/TopologicalSort.html" t="n">TopologicalSort</a>[<span t="t">V</span>]
+                </div>
+                <div>
+                 class <a href="traverse/VertexTraversalResult.html" t="n">VertexTraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]
+                </div>
+                <span></span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/AcyclicShortestPaths$.html" t="n" class="documentableName ">AcyclicShortestPaths</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes shortest paths in a weighted DAG using topological relaxation.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes shortest paths in a weighted DAG using topological relaxation.</p>
+              <p>The algorithm:</p>
+              <ol>
+               <li>Topologically sort the DAG.</li>
+               <li>Relax all outgoing edges of each vertex in topological order.</li>
+              </ol>
+              <p>Since edges are relaxed in topological order, every predecessor of a vertex has already been processed when we reach it — guaranteeing optimal substructure without a priority queue. This gives O(V+E) time and correctly handles negative edge weights (unlike Dijkstra).</p>
+              <p>The edge-weight type <code>E</code> requires only a <code>Monoid</code> (for the zero distance and addition) and an <code>Ordering</code> (for comparison) — a lighter constraint than <code>Numeric</code>, consistent with <code>RelaxableVertex</code> and <code>WeightedUnionFind</code>.</p>
+              <p>NOTE: the graph must be a DAG. If it contains a cycle, <code>TopologicalSort.sort</code> returns <code>None</code> and this method throws <code>IllegalArgumentException</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/AcyclicShortestPaths$.html" t="n">AcyclicShortestPaths</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/BFSTraversal.html" t="n" class="documentableName ">BFSTraversal</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span>)<span t="k"> extends </span><a href="traverse/GraphTraversal.html" t="t">GraphTraversal</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Unit</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Breadth-first search traversal. E = Unit, R = V. Each visited vertex maps to itself in the result.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Breadth-first search traversal. E = Unit, R = V. Each visited vertex maps to itself in the result.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the vertex type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 trait <a href="traverse/GraphTraversal.html" t="n">GraphTraversal</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Unit</span>, <span t="t">V</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/BellmanFord$.html" t="n" class="documentableName ">BellmanFord</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes shortest paths in a weighted directed graph using the Bellman-Ford-Moore algorithm (queue-based Bellman-Ford).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes shortest paths in a weighted directed graph using the Bellman-Ford-Moore algorithm (queue-based Bellman-Ford).</p>
+              <p>Unlike Dijkstra, this algorithm correctly handles negative edge weights. Unlike <code>AcyclicShortestPaths</code>, it works on graphs with cycles. It detects negative cycles reachable from the source and returns <code>None</code> in that case.</p>
+              <p>Algorithm (Bellman-Ford-Moore):</p>
+              <ol>
+               <li>Seed a queue with <code>start</code> at distance zero.</li>
+               <li>Dequeue vertex <code>v</code>; for each outgoing edge v→w: if dist(w) &gt; dist(v) + weight, relax and enqueue w (if not already queued).</li>
+               <li>Track enqueue count per vertex — if any vertex is enqueued V times, a negative cycle is reachable → return None.</li>
+               <li>Terminate when queue is empty → return Some(result).</li>
+              </ol>
+              <p>Time complexity: O(VE) worst case, much faster in practice due to early termination.</p>
+              <p>The edge-weight type <code>E</code> requires <code>Monoid</code> (zero + combine) and <code>Ordering</code> (comparison) — consistent with <code>AcyclicShortestPaths</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/BellmanFord$.html" t="n">BellmanFord</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/Boruvka$.html" t="n" class="documentableName ">Boruvka</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes the minimum spanning tree of an undirected weighted graph using Borůvka's algorithm.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes the minimum spanning tree of an undirected weighted graph using Borůvka's algorithm.</p>
+              <p>The algorithm (historically the oldest MST algorithm, 1926):</p>
+              <ol>
+               <li>Start with each vertex as its own component.</li>
+               <li>For each component, find the minimum-weight edge crossing to another component.</li>
+               <li>Add all such edges to the MST (merging components).</li>
+               <li>Repeat until only one component remains.</li>
+              </ol>
+              <p>Each round halves the number of components, giving O(E log V) overall complexity.</p>
+              <p>NOTE: this is a direct iterative algorithm and does not use the Visitor traversal engine. The per-component minimum-edge scan in each round is embarrassingly parallel and could be parallelised using parallel collections or futures (TODO).</p>
+              <p>NOTE: intended for undirected weighted graphs only.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/Boruvka$.html" t="n">Boruvka</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/ConnectedComponents$.html" t="n" class="documentableName ">ConnectedComponents</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes connected components of an undirected graph.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes connected components of an undirected graph.</p>
+              <p>Uses <code>getConnexions</code> (the manual parent-tracking DFS on <code>Traversable</code>) to explore each component in turn, labelling vertices with a monotonically increasing component ID.</p>
+              <p>NOTE: this implementation is intended for undirected graphs only. For strongly connected components of a directed graph, see <code>StronglyConnectedComponents</code> (Kosaraju's algorithm) — to be implemented.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/ConnectedComponents$.html" t="n">ConnectedComponents</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/Connexions.html" t="n" class="documentableName ">Connexions</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">connexions</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">V</span>, <a href="adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">E</span>]])<span t="k"> extends </span><a href="traverse/AbstractVertexTraversalResult.html" t="t">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <a href="adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Represents a particular traversal of vertices within a graph resulting from a depth-first-search starting at a particular vertex. Each vertex that is reached (not including the start vertex) is represented in the <code>connexions</code> <code>Map</code> by a <code>DirectedEdge</code> where the "white" (first) vertex is the start of a followed edge and the "black" (second) vertex will be the same as the key vertex. NOTE that not all edges will be followed and different random seeds will result in different results.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Represents a particular traversal of vertices within a graph resulting from a depth-first-search starting at a particular vertex. Each vertex that is reached (not including the start vertex) is represented in the <code>connexions</code> <code>Map</code> by a <code>DirectedEdge</code> where the "white" (first) vertex is the start of a followed edge and the "black" (second) vertex will be the same as the key vertex. NOTE that not all edges will be followed and different random seeds will result in different results.</p>
+              <p>CONSIDER returning a directed, rooted tree of DirectedEdge.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type representing a vertex in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">connexions</dt>
+              <dd class="body-medium">
+               <p>a map where each key is a vertex of type <code>V</code> and its value is a tuple <code>(V, V)</code> representing the result associated with traversal from this vertex.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/Connexions$.html">object</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 class <a href="traverse/AbstractVertexTraversalResult.html" t="n">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <a href="adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+                </div>
+                <div>
+                 trait <a href="traverse/TraversalResult.html" t="n">TraversalResult</a>[<span t="t">V</span>, <a href="adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/Connexions$.html" t="n" class="documentableName ">Connexions</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Provides utility methods for creating and managing instances of the <code>ProtoConnexions</code> class, which represents a specific traversal of vertices within a graph resulting from a depth-first search starting at a particular vertex.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Provides utility methods for creating and managing instances of the <code>ProtoConnexions</code> class, which represents a specific traversal of vertices within a graph resulting from a depth-first search starting at a particular vertex.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/Connexions.html">class</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Mirror</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/Connexions$.html" t="n">Connexions</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/DFSTraversal.html" t="n" class="documentableName ">DFSTraversal</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span>)<span t="k"> extends </span><a href="traverse/GraphTraversal.html" t="t">GraphTraversal</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Unit</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Depth-first search traversal. E = Unit, R = V. Each visited vertex maps to itself in the result.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Depth-first search traversal. E = Unit, R = V. Each visited vertex maps to itself in the result.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the vertex type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 trait <a href="traverse/GraphTraversal.html" t="n">GraphTraversal</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Unit</span>, <span t="t">V</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/DijkstraTraversal.html" t="n" class="documentableName ">DijkstraTraversal</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <span data-unresolved-link="" t="t">Monoid</span>[<span data-unresolved-link="" t="t">E</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <span data-unresolved-link="" t="t">Ordering</span>[<span data-unresolved-link="" t="t">E</span>])<span t="k"> extends </span><a href="traverse/WeightedTraversal.html" t="t">WeightedTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <a href="adjunct/AttributedDirectedEdge.html" t="t">AttributedDirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Dijkstra's shortest-path traversal. See Dijkstra's Algorithm.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Dijkstra's shortest-path traversal. See <a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra's Algorithm</a>.</p>
+              <p>Uses cumulative path cost as the frontier priority. Only <code>AttributedDirectedEdge</code> instances are admitted — the result type is <code>TraversalResult[V, AttributedDirectedEdge[V, E]]</code>, preserving full edge information without casts.</p>
+              <p>Requires <code>E: {Monoid, Ordering}</code> — <code>Monoid</code> extends <code>Zero</code> so the <code>Zero</code> requirement of <code>WeightedTraversal</code> is automatically satisfied, and <code>combine</code> is additionally available for cumulative path cost computation.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the edge-weight type; must have Monoid and Ordering.</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the vertex type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 class <a href="traverse/WeightedTraversal.html" t="n">WeightedTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <a href="adjunct/AttributedDirectedEdge.html" t="t">AttributedDirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+                </div>
+                <div>
+                 trait <a href="traverse/GraphTraversal.html" t="n">GraphTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <a href="adjunct/AttributedDirectedEdge.html" t="t">AttributedDirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/EdgeTraversalResult.html" t="n" class="documentableName ">EdgeTraversalResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ts</span>: <span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">T</span>])<span t="k"> extends </span><a href="traverse/AbstractEdgeTraversalResult.html" t="t">AbstractEdgeTraversalResult</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A case class representing the concrete implementation of edge traversal for a graph-like structure.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A case class representing the concrete implementation of edge traversal for a graph-like structure.</p>
+              <p>This class enables the traversal of edges by providing a list of precomputed results of type <code>T</code> associated with each edge.</p>
+              <p>Edge traversal uses the defined behavior from the <code>AbstractEdgeTraversalResult</code> base class, where <code>vertexTraverse</code> throws an exception, and <code>edgeTraverse</code> retrieves the traversal result from the precomputed list based on the edge index.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the type representing an edge in the graph.</p>
+              </dd>
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>the type of results for the edge traversal.</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type representing a vertex in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">ts</dt>
+              <dd class="body-medium">
+               <p>a list of elements of type <code>T</code> representing the computed results of edge traversal.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 class <a href="traverse/AbstractEdgeTraversalResult.html" t="n">AbstractEdgeTraversalResult</a>[<span t="t">T</span>]
+                </div>
+                <div>
+                 trait <a href="traverse/TraversalResult.html" t="n">TraversalResult</a>[<span data-unresolved-link="" t="t">Int</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="traverse/GraphTraversal.html" t="n" class="documentableName ">GraphTraversal</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>, <span t="k"></span><span data-unresolved-link="" t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A family of graph traversal algorithms unified under a single abstraction.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A family of graph traversal algorithms unified under a single abstraction.</p>
+              <p>All four classic algorithms — DFS, BFS, Dijkstra, Prim — share the same underlying <code>Traversal</code> engine from Visitor. They differ only in:</p>
+              <ul>
+               <li>the frontier type (Stack, Queue, IndexedPrioQueue)</li>
+               <li>the frontier element type (V for DFS/BFS, (E,V) for Dijkstra/Prim)</li>
+               <li>the cost-update strategy (none, cumulative, edge-only)</li>
+              </ul>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the edge-attribute type (Unit for DFS/BFS)</p>
+              </dd>
+              <dt class="body-small">R</dt>
+              <dd class="body-medium">
+               <p>the result type recorded per vertex</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the vertex type</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Known subtypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block subtypes">
+                <div>
+                 class <a href="traverse/BFSTraversal.html" t="n">BFSTraversal</a>[<span t="t">V</span>]
+                </div>
+                <div>
+                 class <a href="traverse/DFSTraversal.html" t="n">DFSTraversal</a>[<span t="t">V</span>]
+                </div>
+                <div>
+                 class <a href="traverse/WeightedTraversal.html" t="n">WeightedTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <span t="t">R</span>]
+                </div>
+                <div>
+                 class <a href="traverse/DijkstraTraversal.html" t="n">DijkstraTraversal</a>[<span t="t">V</span>, <span t="t">E</span>]
+                </div>
+                <div>
+                 class <a href="traverse/PrimTraversal.html" t="n">PrimTraversal</a>[<span t="t">V</span>, <span t="t">E</span>]
+                </div>
+                <span></span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/Kosaraju$.html" t="n" class="documentableName ">Kosaraju</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes strongly connected components of a directed graph using the Kosaraju-Sharir algorithm. See Kosaraju, 1962. See Kosaraju's Algorithm. See A Strong ConnectivityLazy Algorithm....</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes strongly connected components of a directed graph using the Kosaraju-Sharir algorithm. See <a href="https://doi.org/10.1016/0022-0000(62)90012-2">Kosaraju, 1962</a>. See <a href="https://en.wikipedia.org/wiki/Kosaraju%27s_algorithm">Kosaraju's Algorithm</a>. See <a href="https://www.sciencedirect.com/science/article/pii/0898122181900080?via%3Dihub">A Strong ConnectivityLazy Algorithm...</a>.</p>
+              <p>The algorithm makes two passes:</p>
+              <p>Pass 1 — post-order DFS over the <strong>reversed</strong> graph, collecting vertices in reverse finish order. Because <code>ListJournal</code> prepends, <code>result.result.map(_._1).toList</code> already yields vertices with the last-finished vertex at the head — exactly the seed order required for pass 2.</p>
+              <p>Pass 2 — DFS over the <strong>original</strong> graph, seeding vertices in the order produced by pass 1, with a shared visited set carried across seeds. Each DFS tree in pass 2 is exactly one SCC.</p>
+              <p>NOTE: intended for directed graphs only. For undirected graphs see <code>ConnectedComponents</code>.</p>
+              <p>When applied to a Directed Acyclic Graph (DAG), the result is a topologically sorted set of SCCs, each of which holds only one vertex.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/Kosaraju$.html" t="n">Kosaraju</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/Kruskal$.html" t="n" class="documentableName ">Kruskal</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes the minimum spanning tree of an undirected weighted graph using Kruskal's algorithm. See Krusal's Algorithm.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes the minimum spanning tree of an undirected weighted graph using Kruskal's algorithm. See <a href="https://en.wikipedia.org/wiki/Kruskal%27s_algorithm">Krusal's Algorithm</a>.</p>
+              <p>The complexity of this implementation is O(E log E), where E is the number of edges because the time is dominated by the sorting step.</p>
+              <p>The algorithm:</p>
+              <ol>
+               <li>Sort all edges by weight (ascending).</li>
+               <li>Iterate through edges; for each edge (u, v, w): if u and v are not yet connected, add the edge to the MST and union their components.</li>
+               <li>Stop when N-1 edges have been added (MST is complete).</li>
+              </ol>
+              <p>Uses <code>WeightedUnionFind</code> for O(log n) connectivity queries and unions. Somewhat wastefully sorts all edges before starting. A priority queue would be more efficient in the average case, but would not improve the worst case.</p>
+              <p>NOTE: intended for undirected weighted graphs only.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/Kruskal$.html" t="n">Kruskal</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/MST$.html" t="n" class="documentableName ">MST</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes minimum spanning trees using Prim's algorithm. Delegates to <code>PrimTraversal</code> from the <code>GraphTraversal</code> family.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes minimum spanning trees using Prim's algorithm. Delegates to <code>PrimTraversal</code> from the <code>GraphTraversal</code> family.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/MST$.html" t="n">MST</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/PrimTraversal.html" t="n" class="documentableName ">PrimTraversal</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <span data-unresolved-link="" t="t">Zero</span>[<span data-unresolved-link="" t="t">E</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <span data-unresolved-link="" t="t">Ordering</span>[<span data-unresolved-link="" t="t">E</span>])<span t="k"> extends </span><a href="traverse/WeightedTraversal.html" t="t">WeightedTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <a href="core/Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span t="t">E</span>]]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Prim's minimum spanning tree traversal. See Prim's Algorithm.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Prim's minimum spanning tree traversal. See <a href="https://en.wikipedia.org/wiki/Prim%27s_algorithm">Prim's Algorithm</a>.</p>
+              <p>Uses individual edge weight (not cumulative) as the frontier priority, so the cheapest available edge to any unvisited vertex is always chosen next. All edge types are admitted — the result type is <code>TraversalResult[V, Edge[V, E]]</code>.</p>
+              <p>Requires only <code>E: {Zero, Ordering}</code> — Prim never accumulates path costs so <code>Monoid.combine</code> is not needed. <code>Zero.identity</code> seeds the initial frontier cost for the start vertex, which is immediately replaced by actual edge weights.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the edge-weight type; must have Zero and Ordering.</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the vertex type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 class <a href="traverse/WeightedTraversal.html" t="n">WeightedTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <a href="core/Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+                </div>
+                <div>
+                 trait <a href="traverse/GraphTraversal.html" t="n">GraphTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <a href="core/Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/ShortestPaths$.html" t="n" class="documentableName ">ShortestPaths</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes shortest paths in a weighted directed graph using Dijkstra's algorithm. Delegates to <code>DijkstraTraversal</code> from the <code>GraphTraversal</code> family.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes shortest paths in a weighted directed graph using Dijkstra's algorithm. Delegates to <code>DijkstraTraversal</code> from the <code>GraphTraversal</code> family.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/ShortestPaths$.html" t="n">ShortestPaths</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/TopologicalSort.html" t="n" class="documentableName ">TopologicalSort</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">map</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">Int</span>])<span t="k"> extends </span><a href="traverse/AbstractVertexTraversalResult.html" t="t">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Int</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Represents a "topological sort" of a directed acyclic graph, mapping each vertex to its position in topological order. NOTE that it would also be possible to get the same effect using the Kosaraju algorithm (see <code>Kosaraju.stronglyConnectedComponents</code>) especially if you're not sure that the directed graph is in fact acyclic. If you have significant doubt, it may be better to use Kosaraju instead. A DAG will result in a topologically sorted set of SCCs, each of which holds only one vertex.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Represents a "topological sort" of a directed acyclic graph, mapping each vertex to its position in topological order. NOTE that it would also be possible to get the same effect using the Kosaraju algorithm (see <code>Kosaraju.stronglyConnectedComponents</code>) especially if you're not sure that the directed graph is in fact acyclic. If you have significant doubt, it may be better to use Kosaraju instead. A DAG will result in a topologically sorted set of SCCs, each of which holds only one vertex.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type representing a vertex in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">map</dt>
+              <dd class="body-medium">
+               <p>a mapping of vertices of type <code>V</code> to their position (Int) in topological order.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/TopologicalSort$.html">object</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 class <a href="traverse/AbstractVertexTraversalResult.html" t="n">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Int</span>]
+                </div>
+                <div>
+                 trait <a href="traverse/TraversalResult.html" t="n">TraversalResult</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">Int</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/TopologicalSort$.html" t="n" class="documentableName ">TopologicalSort</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Provides functionality for topological sorting of directed graphs using the Visitor V1.2.0 typeclass engine.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Provides functionality for topological sorting of directed graphs using the Visitor V1.2.0 typeclass engine.</p>
+              <p>Post-order DFS is used: a vertex is recorded only after all its descendants have been recorded, naturally yielding reverse topological order.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/TopologicalSort.html">class</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Mirror</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/TopologicalSort$.html" t="n">TopologicalSort</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="traverse/TraversalResult.html" t="n" class="documentableName ">TraversalResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>the resulting type after traversing a vertex or an edge.</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type representing a vertex in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/TraversalResult$.html">object</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Known subtypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block subtypes">
+                <div>
+                 class <a href="traverse/AbstractEdgeTraversalResult.html" t="n">AbstractEdgeTraversalResult</a>[<span t="t">T</span>]
+                </div>
+                <div>
+                 class <a href="traverse/EdgeTraversalResult.html" t="n">EdgeTraversalResult</a>[<span t="t">V</span>, <span t="t">E</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 class <a href="traverse/AbstractVertexTraversalResult.html" t="n">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 class <a href="traverse/Connexions.html" t="n">Connexions</a>[<span t="t">V</span>, <span t="t">E</span>]
+                </div>
+                <div>
+                 class <a href="traverse/TopologicalSort.html" t="n">TopologicalSort</a>[<span t="t">V</span>]
+                </div>
+                <div>
+                 class <a href="traverse/VertexTraversalResult.html" t="n">VertexTraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/TraversalResult$.html" t="n" class="documentableName ">TraversalResult</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Provides graph traversal functionality using depth-first search (DFS) for vertex traversal.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Provides graph traversal functionality using depth-first search (DFS) for vertex traversal.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/TraversalResult.html">trait</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/TraversalResult$.html" t="n">TraversalResult</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="traverse/VertexTraversalResult$.html" t="n" class="documentableName ">VertexTraversalResult</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Provides utility methods for creating and working with instances of <code>VertexTraversalResult</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Provides utility methods for creating and working with instances of <code>VertexTraversalResult</code>.</p>
+              <p>A <code>VertexTraversalResult</code> is a concrete implementation of the <code>TraversalResult</code> trait that uses a map to represent the traversal results for graph vertices. This object contains a factory method for creating an empty <code>VertexTraversalResult</code> instance.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/VertexTraversalResult.html">class</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Mirror</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Self type</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <span></span>
+                <div>
+                 <a href="traverse/VertexTraversalResult$.html" t="n">VertexTraversalResult</a>.<span t="k">type</span>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="case">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/VertexTraversalResult.html" t="n" class="documentableName ">VertexTraversalResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">map</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">T</span>])<span t="k"> extends </span><a href="traverse/AbstractVertexTraversalResult.html" t="t">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A concrete implementation of the <code>TraversalResult</code> trait that uses a map to represent vertex traversals. Each vertex in the graph is associated with a traversal result.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A concrete implementation of the <code>TraversalResult</code> trait that uses a map to represent vertex traversals. Each vertex in the graph is associated with a traversal result.</p>
+              <p>CONSIDER this class and its companion object are only used for unit testing. They could be eliminated.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>The resulting type after traversing a vertex or an edge.</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>The type representing a vertex in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">map</dt>
+              <dd class="body-medium">
+               <p>A map where each key is a vertex of type <code>V</code>, and the value is the corresponding traversal result of type <code>T</code>.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Constructor</dt>
+              <dd class="body-medium">
+               <p>Creates a <code>VertexTraversalResult</code> with the given map of vertices and their associated traversal outputs.</p>
+              </dd>
+              <dt class="body-small">Companion</dt>
+              <dd class="body-medium">
+               <a href="traverse/VertexTraversalResult$.html">object</a>
+              </dd>
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Product</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Equals</span>
+                </div>
+                <div>
+                 class <a href="traverse/AbstractVertexTraversalResult.html" t="n">AbstractVertexTraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 trait <a href="traverse/TraversalResult.html" t="n">TraversalResult</a>[<span t="t">V</span>, <span t="t">T</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" data-f-keywords="abstract">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="traverse/WeightedTraversal.html" t="n" class="documentableName ">WeightedTraversal</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><a href="core/Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span t="t">E</span>]]<span t="k"> extends </span><a href="traverse/GraphTraversal.html" t="t">GraphTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <span t="t">R</span>]</span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Abstract base class for weighted graph traversals using a tuple <code>(E, V)</code> frontier.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Abstract base class for weighted graph traversals using a tuple <code>(E, V)</code> frontier.</p>
+              <p>Encapsulates the shared structure of Dijkstra and Prim: both use an <code>IndexedPrioQueue[(E, V)]</code> frontier, <code>CostUpdate</code> with <code>decreaseKey</code>, and mutable <code>pred</code>/<code>bestCost</code> maps owned exclusively by <code>CostUpdate</code>.</p>
+              <p>The context bound is <code>E: {Zero, Ordering}</code> — both algorithms need a seed cost (<code>Zero.identity</code>) and a cost ordering (<code>Ordering</code>). Only Dijkstra additionally needs <code>Monoid.combine</code> for path cost accumulation; Prim never accumulates costs and so extends this class directly with <code>E: {Zero, Ordering}</code>. <code>DijkstraTraversal</code> extends this with the additional <code>Monoid</code> bound.</p>
+              <p>Concrete subclasses differ in exactly three ways:</p>
+              <ul>
+               <li><code>edgeCost</code> — how the frontier cost is computed from an edge: cumulative (<code>Monoid.combine</code>) for Dijkstra; edge weight only for Prim.</li>
+               <li><code>destination</code> — how the destination vertex is extracted from an edge: always <code>e.black</code> for directed; <code>e.other(v)</code> for undirected.</li>
+               <li><code>filterEdge</code> — which edges are admitted and what concrete <code>R</code> type they have: only <code>AttributedDirectedEdge</code> for Dijkstra; all edges for Prim.</li>
+              </ul>
+              <p>NOTE on lazy evaluation: <code>ev._1</code> and <code>ev._2</code> must be extracted via strict <code>val</code> with explicit type ascriptions inside <code>Neighbours</code>. Using tuple pattern matching <code>val (accCost, v) = ev</code> can generate a lazy binding that captures incorrectly when the resulting <code>Iterator</code> is consumed lazily, causing <code>edgeCost</code> to receive <code>zero</code> instead of the actual accumulated cost (a Heisenbug).</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the edge-weight type; must have Zero and Ordering.</p>
+              </dd>
+              <dt class="body-small">R</dt>
+              <dd class="body-medium">
+               <p>the result type; must be a subtype of Edge[V, E].</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the vertex type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Supertypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="traverse/GraphTraversal.html" t="n">GraphTraversal</a>[<span t="t">V</span>, <span t="t">E</span>, <span t="t">R</span>]
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div>
+                <span></span>
+               </div>
+              </dd>
+              <dt class="body-small">Known subtypes</dt>
+              <dd class="body-medium">
+               <div class="mono-small-block subtypes">
+                <div>
+                 class <a href="traverse/DijkstraTraversal.html" t="n">DijkstraTraversal</a>[<span t="t">V</span>, <span t="t">E</span>]
+                </div>
+                <div>
+                 class <a href="traverse/PrimTraversal.html" t="n">PrimTraversal</a>[<span t="t">V</span>, <span t="t">E</span>]
+                </div>
+                <span></span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+      <section id="Types">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Types</h4>
+        </div>
+        <div class="documentableElement" id="ConnectedResult-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="traverse.html#ConnectedResult-0" t="n" class="documentableName ">ConnectedResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>] = (<a href="traverse/Connexions.html" t="t">Connexions</a>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">E</span>], <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">Int</span>])
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Type alias for the result of a connected-components analysis. The first element is a <code>Connexions[V, E]</code> tracking, for each non-root vertex, the directed edge via which it was discovered. The second element maps every vertex to its integer component ID (0, 1, 2, ...).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Type alias for the result of a connected-components analysis. The first element is a <code>Connexions[V, E]</code> tracking, for each non-root vertex, the directed edge via which it was discovered. The second element maps every vertex to its integer component ID (0, 1, 2, ...).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="SCCResult-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="traverse.html#SCCResult-0" t="n" class="documentableName ">SCCResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>] = <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">Int</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Type alias for the result of a strongly-connected-components analysis. Maps every vertex to an integer SCC id (0, 1, 2, ...). Vertices sharing the same id belong to the same SCC.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Type alias for the result of a strongly-connected-components analysis. Maps every vertex to an integer SCC id (0, 1, 2, ...). Vertices sharing the same id belong to the same SCC.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
+   </div>
+  </div>
+ </div>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Classlikes">Classlikes</a></li><li><a href="#Types">Types</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

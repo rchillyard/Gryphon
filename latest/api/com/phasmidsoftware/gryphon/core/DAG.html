@@ -1,0 +1,1445 @@
+<!DOCTYPE html><html data-pathToRoot="../../../../" data-rawLocation="com/phasmidsoftware/gryphon/core/DAG" data-dynamicSideMenu="false"><head><meta charset="utf-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta><title>DAG</title><link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.ico"></link><script type="text/javascript" src="../../../../scripts/theme.js"></script><script type="text/javascript" src="../../../../scripts/searchData.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/scastieConfiguration.js" defer="true"></script><link rel="stylesheet" href="../../../../styles/theme/bundle.css"></link><link rel="stylesheet" href="../../../../styles/theme/components/bundle.css"></link><link rel="stylesheet" href="../../../../styles/theme/components/button/bundle.css"></link><link rel="stylesheet" href="../../../../styles/theme/layout/bundle.css"></link><link rel="stylesheet" href="../../../../styles/dotty-icons.css"></link><link rel="stylesheet" href="../../../../styles/filter-bar.css"></link><link rel="stylesheet" href="../../../../styles/searchbar.css"></link><link rel="stylesheet" href="../../../../styles/social-links.css"></link><link rel="stylesheet" href="../../../../styles/versions-dropdown.css"></link><link rel="stylesheet" href="../../../../styles/content-contributors.css"></link><script type="text/javascript" src="../../../../hljs/highlight.pack.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/hljs-scala3.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/ux.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/common/component.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/common/utils.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/FilterBar.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/DocumentableList.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/Input.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/FilterGroup.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/Filter.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/scaladoc-scalajs.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/contributors.js" defer="true"></script><script type="text/javascript" src="https://d3js.org/d3.v6.min.js" defer="true"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/graphlib-dot@0.6.2/dist/graphlib-dot.min.js" defer="true"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.1/dagre-d3.min.js" defer="true"></script><script type="text/javascript" src="https://scastie.scala-lang.org/embedded.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/data.js" defer="true"></script><script>var pathToRoot = "../../../../";</script></head><body><div id=""><div id="header" class="body-small"><div class="header-container-left"><a href="../../../../" class="logo-container"><span class="project-name h300">Gryphon</span></a><span onclick="dropdownHandler(event)" class="text-button with-arrow" id="dropdown-trigger"><a></a></span><div id="version-dropdown" class="dropdown-menu"></div></div><div class="header-container-right"><button id="search-toggle" class="icon-button"></button><span id="theme-toggle" class="icon-button"></span><span id="mobile-menu-toggle" class="icon-button hamburger"></span></div></div><div id="mobile-menu"><div class="mobile-menu-header body-small"><span class="mobile-menu-logo"><span class="project-name h300">Gryphon</span></span><button id="mobile-menu-close" class="icon-button close"></button></div><div class="mobile-menu-container body-medium"><input id="mobile-scaladoc-searchbar-input" class="scaladoc-searchbar-input" type="search" placeholder="Find anything"></input><span id="mobile-theme-toggle" class="mobile-menu-item mode"></span></div></div><span id="mobile-sidebar-toggle" class="floating-button"></span><div id="leftColumn" class="body-small"><div class="switcher-container"><a id="api-nav-button" class="switcher h100 selected" href="../../../../index.html">API</a></div><nav id="api-nav" class="side-menu"><div class="ni n0 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../../gryphon.html"><span class="micon pa"></span><span>com.phasmidsoftware.gryphon</span></a></span><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../adjunct.html"><span class="micon pa"></span><span>adjunct</span></a></span><div class="ni n2 "><span class="nh "><a href="../adjunct/AbstractDisjointSet.html"><span class="micon cl"></span><span>AbstractDisjointSet</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/AbstractDisjointSetWithCompression.html"><span class="micon cl"></span><span>AbstractDisjointSetWithCompression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/AttributedDirectedEdge$.html"><span class="micon ob"></span><span>AttributedDirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/AttributedDirectedEdge.html"><span class="micon cl"></span><span>AttributedDirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/Connectivity$.html"><span class="micon ob"></span><span>Connectivity</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/Connectivity.html"><span class="micon tr"></span><span>Connectivity</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ConnectivityASP$.html"><span class="micon ob"></span><span>ConnectivityASP</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ConnectivityASP.html"><span class="micon cl"></span><span>ConnectivityASP</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ConnectivityLazy.html"><span class="micon cl"></span><span>ConnectivityLazy</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ConnectivityLazy$.html"><span class="micon ob"></span><span>ConnectivityLazy</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ConnectivityOptimized.html"><span class="micon cl"></span><span>ConnectivityOptimized</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ConnectivityOptimized$.html"><span class="micon ob"></span><span>ConnectivityOptimized</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/DirectedEdge.html"><span class="micon tr"></span><span>DirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/DirectedGraph$.html"><span class="micon ob"></span><span>DirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/DirectedGraph.html"><span class="micon cl"></span><span>DirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/DisjointSet.html"><span class="micon tr"></span><span>DisjointSet</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/OrderedEdge.html"><span class="micon cl"></span><span>OrderedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ParentSize$.html"><span class="micon ob"></span><span>ParentSize</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/ParentSize.html"><span class="micon cl"></span><span>ParentSize</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/UndirectedEdge.html"><span class="micon cl"></span><span>UndirectedEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/UndirectedGraph$.html"><span class="micon ob"></span><span>UndirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/UndirectedGraph.html"><span class="micon cl"></span><span>UndirectedGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../adjunct/WeightedUnion$.html"><span class="micon ob"></span><span>WeightedUnion</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../applications.html"><span class="micon pa"></span><span>applications</span></a></span><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../applications/dp.html"><span class="micon pa"></span><span>dp</span></a></span><div class="ni n3 "><span class="nh "><a href="../applications/dp/Knapsack$.html"><span class="micon ob"></span><span>Knapsack</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../applications/game.html"><span class="micon pa"></span><span>game</span></a></span><div class="ni n3 "><span class="nh "><a href="../applications/game/Sudoku.html"><span class="micon cl"></span><span>Sudoku</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../applications/game/SudokuPlayer.html"><span class="micon cl"></span><span>SudokuPlayer</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../applications/game/SudokuSquare.html"><span class="micon cl"></span><span>SudokuSquare</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../applications/game/TicTacToe.html"><span class="micon cl"></span><span>TicTacToe</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../applications/game/TicTacToePlayer.html"><span class="micon cl"></span><span>TicTacToePlayer</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../applications/game/TicTacToeSquare.html"><span class="micon cl"></span><span>TicTacToeSquare</span></a></span></div></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../builder.html"><span class="micon pa"></span><span>builder</span></a></span><div class="ni n2 "><span class="nh "><a href="../builder/GraphBuilder.html"><span class="micon cl"></span><span>GraphBuilder</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../builder/GraphBuilder$.html"><span class="micon ob"></span><span>GraphBuilder</span></a></span></div></div><div class="ni n1 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../core.html"><span class="micon pa"></span><span>core</span></a></span><div class="ni n2 "><span class="nh "><a href="AbstractBag.html"><span class="micon cl"></span><span>AbstractBag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="AbstractGraph.html"><span class="micon cl"></span><span>AbstractGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="AbstractUnordered.html"><span class="micon cl"></span><span>AbstractUnordered</span></a></span></div><div class="ni n2 "><span class="nh "><a href="AbstractVertex.html"><span class="micon cl"></span><span>AbstractVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Adjacency.html"><span class="micon tr"></span><span>Adjacency</span></a></span></div><div class="ni n2 "><span class="nh "><a href="AdjacencyEdge.html"><span class="micon cl"></span><span>AdjacencyEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="AdjacencyVertex.html"><span class="micon cl"></span><span>AdjacencyVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="AdjacencyVertex$.html"><span class="micon ob"></span><span>AdjacencyVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Attribute.html"><span class="micon tr"></span><span>Attribute</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Attributed.html"><span class="micon tr"></span><span>Attributed</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Bag.html"><span class="micon tr"></span><span>Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Bag$.html"><span class="micon ob"></span><span>Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Connected.html"><span class="micon tr"></span><span>Connected</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Connexion.html"><span class="micon tr"></span><span>Connexion</span></a></span></div><div class="ni n2 expanded"><span class="nh h100 selected"><a href="#"><span class="micon tr"></span><span>DAG</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Directed$.html"><span class="micon ob"></span><span>Directed</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Edge.html"><span class="micon tr"></span><span>Edge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="EdgeGraph.html"><span class="micon tr"></span><span>EdgeGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="EdgeList.html"><span class="micon cl"></span><span>EdgeList</span></a></span></div><div class="ni n2 "><span class="nh "><a href="EdgeTraversable.html"><span class="micon tr"></span><span>EdgeTraversable</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="EdgeType$.html"><span class="micon ob"></span><span>EdgeType</span></a></span><div class="ni n3 "><span class="nh "><a href="EdgeType$$ParseableEdgeType$.html"><span class="micon ob"></span><span>ParseableEdgeType</span></a></span></div><div class="ni n3 "><span class="nh "><a href="EdgeType$$ParseableEdgeType.html"><span class="micon tr"></span><span>ParseableEdgeType</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="EdgeType.html"><span class="micon tr"></span><span>EdgeType</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Edges.html"><span class="micon tr"></span><span>Edges</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="EvaluableGraphNeighboursTraversal.html"><span class="micon cl"></span><span>EvaluableGraphNeighboursTraversal</span></a></span><div class="ni n3 "><span class="nh "><a href="EvaluableGraphNeighboursTraversal$given_Evaluable_V_T$.html"><span class="micon ob"></span><span>given_Evaluable_V_T</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="Graph$.html"><span class="micon ob"></span><span>Graph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Graph.html"><span class="micon tr"></span><span>Graph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="GraphException.html"><span class="micon cl"></span><span>GraphException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="GraphNeighboursTraversal.html"><span class="micon cl"></span><span>GraphNeighboursTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ListBag.html"><span class="micon cl"></span><span>ListBag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="OrderableEdge.html"><span class="micon tr"></span><span>OrderableEdge</span></a></span></div><div class="ni n2 "><span class="nh "><a href="OrderedAttribute.html"><span class="micon tr"></span><span>OrderedAttribute</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Pairs.html"><span class="micon tr"></span><span>Pairs</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ProtoConnexions$.html"><span class="micon ob"></span><span>ProtoConnexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ProtoConnexions.html"><span class="micon cl"></span><span>ProtoConnexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="RelaxableVertex$.html"><span class="micon ob"></span><span>RelaxableVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="RelaxableVertex.html"><span class="micon cl"></span><span>RelaxableVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="SerializableGraph.html"><span class="micon tr"></span><span>SerializableGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="SerializableGraph$.html"><span class="micon ob"></span><span>SerializableGraph</span></a></span></div><div class="ni n2 "><span class="nh "><a href="SimpleVertex.html"><span class="micon cl"></span><span>SimpleVertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Traversable.html"><span class="micon tr"></span><span>Traversable</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Triplet.html"><span class="micon cl"></span><span>Triplet</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Triplets.html"><span class="micon cl"></span><span>Triplets</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Undefined$.html"><span class="micon ob"></span><span>Undefined</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Undirected$.html"><span class="micon ob"></span><span>Undirected</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Unordered.html"><span class="micon tr"></span><span>Unordered</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Unordered_Bag$.html"><span class="micon ob"></span><span>Unordered_Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Unordered_Bag.html"><span class="micon cl"></span><span>Unordered_Bag</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Unordered_Set.html"><span class="micon cl"></span><span>Unordered_Set</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Unordered_Set$.html"><span class="micon ob"></span><span>Unordered_Set</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Vertex$.html"><span class="micon ob"></span><span>Vertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Vertex.html"><span class="micon tr"></span><span>Vertex</span></a></span></div><div class="ni n2 "><span class="nh "><a href="VertexMap.html"><span class="micon cl"></span><span>VertexMap</span></a></span></div><div class="ni n2 "><span class="nh "><a href="VertexMap$.html"><span class="micon ob"></span><span>VertexMap</span></a></span></div><div class="ni n2 "><span class="nh "><a href="VertexPair.html"><span class="micon cl"></span><span>VertexPair</span></a></span></div><div class="ni n2 "><span class="nh "><a href="VertexPairList.html"><span class="micon cl"></span><span>VertexPairList</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../games.html"><span class="micon pa"></span><span>games</span></a></span><div class="ni n2 "><span class="nh "><a href="../games/Game.html"><span class="micon tr"></span><span>Game</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../games/Move.html"><span class="micon tr"></span><span>Move</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../games/Positions.html"><span class="micon cl"></span><span>Positions</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../parse.html"><span class="micon pa"></span><span>parse</span></a></span><div class="ni n2 "><span class="nh "><a href="../parse/BaseParser.html"><span class="micon cl"></span><span>BaseParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../parse/EmptyStringException.html"><span class="micon cl"></span><span>EmptyStringException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../parse/GraphParser.html"><span class="micon cl"></span><span>GraphParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../parse/ParseException$.html"><span class="micon ob"></span><span>ParseException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../parse/ParseException.html"><span class="micon cl"></span><span>ParseException</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../parse/Parseable$.html"><span class="micon ob"></span><span>Parseable</span></a></span><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableBoolean$.html"><span class="micon ob"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableBoolean.html"><span class="micon tr"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableDouble$.html"><span class="micon ob"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableDouble.html"><span class="micon tr"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableInt$.html"><span class="micon ob"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableInt.html"><span class="micon tr"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableLong$.html"><span class="micon ob"></span><span>ParseableLong</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableLong.html"><span class="micon tr"></span><span>ParseableLong</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableString$.html"><span class="micon ob"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableString.html"><span class="micon tr"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableUnit$.html"><span class="micon ob"></span><span>ParseableUnit</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../parse/Parseable$$ParseableUnit.html"><span class="micon tr"></span><span>ParseableUnit</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../parse/Parseable.html"><span class="micon tr"></span><span>Parseable</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../traverse.html"><span class="micon pa"></span><span>traverse</span></a></span><div class="ni n2 "><span class="nh "><a href="../traverse/AbstractEdgeTraversalResult.html"><span class="micon cl"></span><span>AbstractEdgeTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/AbstractVertexTraversalResult.html"><span class="micon cl"></span><span>AbstractVertexTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/AcyclicShortestPaths$.html"><span class="micon ob"></span><span>AcyclicShortestPaths</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/BFSTraversal.html"><span class="micon cl"></span><span>BFSTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/BellmanFord$.html"><span class="micon ob"></span><span>BellmanFord</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/Boruvka$.html"><span class="micon ob"></span><span>Boruvka</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/ConnectedComponents$.html"><span class="micon ob"></span><span>ConnectedComponents</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/Connexions.html"><span class="micon cl"></span><span>Connexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/Connexions$.html"><span class="micon ob"></span><span>Connexions</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/DFSTraversal.html"><span class="micon cl"></span><span>DFSTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/DijkstraTraversal.html"><span class="micon cl"></span><span>DijkstraTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/EdgeTraversalResult.html"><span class="micon cl"></span><span>EdgeTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/GraphTraversal.html"><span class="micon tr"></span><span>GraphTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/Kosaraju$.html"><span class="micon ob"></span><span>Kosaraju</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/Kruskal$.html"><span class="micon ob"></span><span>Kruskal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/MST$.html"><span class="micon ob"></span><span>MST</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/PrimTraversal.html"><span class="micon cl"></span><span>PrimTraversal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/ShortestPaths$.html"><span class="micon ob"></span><span>ShortestPaths</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/TopologicalSort.html"><span class="micon cl"></span><span>TopologicalSort</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/TopologicalSort$.html"><span class="micon ob"></span><span>TopologicalSort</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/TraversalResult.html"><span class="micon tr"></span><span>TraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/TraversalResult$.html"><span class="micon ob"></span><span>TraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/VertexTraversalResult$.html"><span class="micon ob"></span><span>VertexTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/VertexTraversalResult.html"><span class="micon cl"></span><span>VertexTraversalResult</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../traverse/WeightedTraversal.html"><span class="micon cl"></span><span>WeightedTraversal</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../util.html"><span class="micon pa"></span><span>util</span></a></span><div class="ni n2 "><span class="nh "><a href="../util/FP$.html"><span class="micon ob"></span><span>FP</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/FPException.html"><span class="micon cl"></span><span>FPException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/GraphException.html"><span class="micon cl"></span><span>GraphException</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../util/HasZero$.html"><span class="micon ob"></span><span>HasZero</span></a></span><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroBoolean$.html"><span class="micon ob"></span><span>HasZeroBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroBoolean.html"><span class="micon tr"></span><span>HasZeroBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroDouble$.html"><span class="micon ob"></span><span>HasZeroDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroDouble.html"><span class="micon tr"></span><span>HasZeroDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroInt$.html"><span class="micon ob"></span><span>HasZeroInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroInt.html"><span class="micon tr"></span><span>HasZeroInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroUnit$.html"><span class="micon ob"></span><span>HasZeroUnit</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/HasZero$$HasZeroUnit.html"><span class="micon tr"></span><span>HasZeroUnit</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../util/HasZero.html"><span class="micon tr"></span><span>HasZero</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/LoggingIterator.html"><span class="micon cl"></span><span>LoggingIterator</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../util/Parseable$.html"><span class="micon ob"></span><span>Parseable</span></a></span><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableBoolean$.html"><span class="micon ob"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableBoolean.html"><span class="micon tr"></span><span>ParseableBoolean</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableDouble$.html"><span class="micon ob"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableDouble.html"><span class="micon tr"></span><span>ParseableDouble</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableInt$.html"><span class="micon ob"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableInt.html"><span class="micon tr"></span><span>ParseableInt</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableString$.html"><span class="micon ob"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableString.html"><span class="micon tr"></span><span>ParseableString</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableUnit$.html"><span class="micon ob"></span><span>ParseableUnit</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/Parseable$$ParseableUnit.html"><span class="micon tr"></span><span>ParseableUnit</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../util/Parseable.html"><span class="micon tr"></span><span>Parseable</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/RandomIterator.html"><span class="micon cl"></span><span>RandomIterator</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/RandomIterator$.html"><span class="micon ob"></span><span>RandomIterator</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../util/StringsParser.html"><span class="micon cl"></span><span>StringsParser</span></a></span><div class="ni n3 "><span class="nh "><a href="../util/StringsParser$Comment.html"><span class="micon cl"></span><span>Comment</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/StringsParser$Strings2.html"><span class="micon cl"></span><span>Strings2</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../util/StringsParser$Strings3.html"><span class="micon cl"></span><span>Strings3</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../util/Stringy.html"><span class="micon tr"></span><span>Stringy</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/TryUsing$.html"><span class="micon ob"></span><span>TryUsing</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/ViewableIterator$.html"><span class="micon ob"></span><span>ViewableIterator</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../util/ViewableIterator.html"><span class="micon cl"></span><span>ViewableIterator</span></a></span></div></div></div></nav></div><div id="footer" class="body-small"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div><div id="scaladoc-searchBar"></div><div id="main"><div class="breadcrumbs container"><a href="../../../../index.html">Gryphon</a>/<a href="../../gryphon.html">com.phasmidsoftware.gryphon</a>/<a href="../core.html">com.phasmidsoftware.gryphon.core</a>/<a href="DAG.html">DAG</a></div><div id="content" class="body-medium"><div><div class="cover-header">
+ <span class="icon"><span class="micon tr"></span></span>
+ <h1 class="h600 single">DAG</h1>
+</div>
+<div class="fqname body-large">
+ <span>com.phasmidsoftware.gryphon.core.DAG</span>
+</div>
+<div class="main-signature mono-small-block">
+ <div class="signature">
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="DAG.html" t="n" class="documentableName ">DAG</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>]<span t="k"> extends </span><a href="../adjunct/DirectedGraph.html" t="t">DirectedGraph</a>[<span t="t">V</span>, <span t="t">E</span>]</span><span class="signature-long"></span>
+ </div>
+</div>
+<div class="cover">
+ <div class="doc">
+  <p>Trait to model the behavior of directed acyclic graph.</p>
+ </div>
+ <section id="attributes">
+  <h2 class="h500">Type parameters</h2>
+  <dl class="attributes">
+   <dt class="body-small">E</dt>
+   <dd class="body-medium">
+    <p>the edge-attribute type.</p>
+   </dd>
+   <dt class="body-small">V</dt>
+   <dd class="body-medium">
+    <p>the (key) vertex-attribute type.</p>
+   </dd>
+  </dl>
+  <h2 class="h500">Attributes</h2>
+  <dl class="attributes">
+   <dt class="body-small">Graph</dt>
+   <dd class="body-medium">
+    <div id="inheritance-diagram" class="diagram-class showGraph">
+     <button type="button" class="label-only-button" onclick="zoomOut()">Reset zoom</button><button type="button" class="label-only-button" onclick="hideGraph()">Hide graph</button><button type="button" class="label-only-button" onclick="showGraph()">Show graph</button>
+     <svg id="graph"></svg>
+     <script type="text/dot" id="dot"> digraph g {
+ node0 [id=node0, label="<span style=\"color: #FFFFFF;\">trait <a href=\"DAG.html\" t=\"n\">DAG</a>[<span t=\"t\">V</span>, <span t=\"t\">E</span>]</span>", class="trait vertex"];
+node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <a href=\"../adjunct/DirectedGraph.html\" t=\"n\">DirectedGraph</a>[<span t=\"t\">V</span>, <span t=\"t\">E</span>]</span>", class="class vertex"];
+node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <a href=\"AbstractGraph.html\" t=\"n\">AbstractGraph</a>[<span t=\"t\">V</span>]</span>", class="class vertex"];
+node3 [id=node3, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Object</span></span>", class="class vertex"];
+node4 [id=node4, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
+node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
+node6 [id=node6, label="<span style=\"color: #FFFFFF;\">trait <a href=\"Graph.html\" t=\"n\">Graph</a>[<span t=\"t\">V</span>]</span>", class="trait vertex"];
+node7 [id=node7, label="<span style=\"color: #FFFFFF;\">trait <a href=\"Traversable.html\" t=\"n\">Traversable</a>[<span t=\"t\">V</span>]</span>", class="trait vertex"];
+node8 [id=node8, label="<span style=\"color: #FFFFFF;\">trait <a href=\"EdgeGraph.html\" t=\"n\">EdgeGraph</a>[<span t=\"t\">V</span>, <span t=\"t\">E</span>]</span>", class="trait vertex"];
+node9 [id=node9, label="<span style=\"color: #FFFFFF;\">trait <a href=\"EdgeTraversable.html\" t=\"n\">EdgeTraversable</a>[<span t=\"t\">V</span>, <span t=\"t\">E</span>]</span>", class="trait vertex"];
+node10 [id=node10, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Product</span></span>", class="trait vertex"];
+node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Equals</span></span>", class="trait vertex"];
+node12 [id=node12, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Serializable</span></span>", class="class vertex"];
+
+
+ node0 -> node1;
+node1 -> node2;
+node2 -> node3;
+node3 -> node4;
+node3 -> node5;
+node5 -> node4;
+node2 -> node6;
+node6 -> node3;
+node6 -> node7;
+node7 -> node3;
+node1 -> node8;
+node8 -> node3;
+node8 -> node6;
+node8 -> node9;
+node9 -> node3;
+node9 -> node7;
+node1 -> node10;
+node10 -> node4;
+node10 -> node11;
+node11 -> node4;
+node1 -> node12;
+node12 -> node4;
+
+}
+</script>
+    </div>
+   </dd>
+   <dt class="body-small">Supertypes</dt>
+   <dd class="body-medium">
+    <div class="mono-small-block supertypes">
+     <div>
+      class <a href="../adjunct/DirectedGraph.html" t="n">DirectedGraph</a>[<span t="t">V</span>, <span t="t">E</span>]
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Serializable</span>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Product</span>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Equals</span>
+     </div>
+     <div>
+      trait <a href="EdgeGraph.html" t="n">EdgeGraph</a>[<span t="t">V</span>, <span t="t">E</span>]
+     </div>
+     <div>
+      trait <a href="EdgeTraversable.html" t="n">EdgeTraversable</a>[<span t="t">V</span>, <span t="t">E</span>]
+     </div>
+     <div>
+      class <a href="AbstractGraph.html" t="n">AbstractGraph</a>[<span t="t">V</span>]
+     </div>
+     <div>
+      trait <a href="Graph.html" t="n">Graph</a>[<span t="t">V</span>]
+     </div>
+     <div>
+      trait <a href="Traversable.html" t="n">Traversable</a>[<span t="t">V</span>]
+     </div>
+     <div>
+      class <span data-unresolved-link="" t="n">Object</span>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Matchable</span>
+     </div>
+     <div>
+      class <span data-unresolved-link="" t="n">Any</span>
+     </div>
+     <span class="show-all-code show-content text-button h100">Show all</span>
+    </div>
+   </dd>
+  </dl>
+ </section>
+</div>
+<section id="members-list">
+ <h2 class="h500">Members list</h2>
+ <div class="documentableFilter">
+  <div class="filtersContainer"></div>
+  <input class="filterableInput" placeholder="Filter by any phrase" data-test-id="filterBarInput" type="search"><button class="clearButton label-only-button" data-test-id="filterBarClearButton">Clear all</button>
+ </div>
+ <div class="membersList expand">
+  <div class="tabs">
+   <div class="contents">
+    <section id="Value-members">
+     <div data-togglable="Value members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Value members" class="h400">Value members</h3>
+      </div>
+      <section id="Concrete-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="shortestPaths-34d">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#shortestPaths-34d" t="n" class="documentableName ">shortestPaths</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">start</span>: <span t="t">V</span>): <a href="../traverse/VertexTraversalResult.html" t="t">VertexTraversalResult</a>[<span t="t">V</span>, <a href="../adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+      <section id="Inherited-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="M-0" data-f-keywords="override" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#M-0" t="n" class="documentableName ">M</a>: <span data-unresolved-link="" t="t">Int</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes and returns the total number of edges in the directed graph.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes and returns the total number of edges in the directed graph.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the number of directed edges present in the graph.</p>
+              </dd>
+              <dt class="body-small">Definition Classes</dt>
+              <dd class="body-medium">
+               <div>
+                <a href="../adjunct/DirectedGraph.html#M-0">DirectedGraph</a> -&gt; <a href="AbstractGraph.html">AbstractGraph</a> -&gt; <a href="Traversable.html">Traversable</a>
+               </div>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#M-0">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="N-0" data-f-inherited="AbstractGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#N-0" t="n" class="documentableName ">N</a>: <span data-unresolved-link="" t="t">Int</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns the number of vertices in the graph.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns the number of vertices in the graph.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the number of vertices in the graph.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="AbstractGraph.html#N-0">AbstractGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="addEdge-1dd" data-f-keywords="override" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#addEdge-1dd" t="n" class="documentableName ">addEdge</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">edge</span>: <a href="Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span t="t">E</span>]): <a href="../adjunct/DirectedGraph.html" t="t">DirectedGraph</a>[<span t="t">V</span>, <span t="t">E</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Delegates to <code>VertexMap.+[E]</code>, which calls <code>ensure</code> for both endpoints. This ensures the destination vertex exists in the map even if it has no outgoing edges — fixing Issue #16. This is consistent with <code>UndirectedGraph.addEdge</code> which also delegates to <code>VertexMap.+[E]</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Delegates to <code>VertexMap.+[E]</code>, which calls <code>ensure</code> for both endpoints. This ensures the destination vertex exists in the map even if it has no outgoing edges — fixing Issue #16. This is consistent with <code>UndirectedGraph.addEdge</code> which also delegates to <code>VertexMap.+[E]</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Definition Classes</dt>
+              <dd class="body-medium">
+               <div>
+                <a href="../adjunct/DirectedGraph.html#addEdge-1dd">DirectedGraph</a> -&gt; <a href="EdgeGraph.html">EdgeGraph</a>
+               </div>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#addEdge-1dd">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="addVertex-fffff1f2" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#addVertex-fffff1f2" t="n" class="documentableName ">addVertex</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">vertex</span>: <a href="Vertex.html" t="t">Vertex</a>[<span t="t">V</span>]): <a href="Graph.html" t="t">Graph</a>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Adds a new vertex to the graph, returning a new graph instance.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Adds a new vertex to the graph, returning a new graph instance.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">vertex</dt>
+              <dd class="body-medium">
+               <p>the vertex to be added.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>a new graph containing the added vertex.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#addVertex-fffff1f2">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="adjacencies-0" data-f-inherited="AbstractGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#adjacencies-0" t="n" class="documentableName ">adjacencies</a>: <span data-unresolved-link="" t="t">Iterator</span>[<a href="Adjacency.html" t="t">Adjacency</a>[<span t="t">V</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Retrieves an iterator over all adjacencies in the graph.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Retrieves an iterator over all adjacencies in the graph.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>an iterator of <code>Adjacency[V]</code> across all vertices.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="AbstractGraph.html#adjacencies-0">AbstractGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="adjacentVertices-fffff542" data-f-inherited="AbstractGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#adjacentVertices-fffff542" t="n" class="documentableName ">adjacentVertices</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">Iterator</span>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns an iterator over the vertices adjacent to <code>v</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns an iterator over the vertices adjacent to <code>v</code>.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">v</dt>
+              <dd class="body-medium">
+               <p>the vertex to query.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>an iterator of adjacent vertex attributes.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="AbstractGraph.html#adjacentVertices-fffff542">AbstractGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="bfs-fffff48b" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#bfs-fffff48b" t="n" class="documentableName ">bfs</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">J</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Appendable</span>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">R</span>])]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">visitor</span>: <span data-unresolved-link="" t="t">Visitor</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="n">goal</span>: <span t="t">V</span> <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span> = ...)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">ev</span>: <span data-unresolved-link="" t="t">Evaluable</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">Visitor</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Performs BFS from <code>v</code>, accumulating results into <code>visitor</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Performs BFS from <code>v</code>, accumulating results into <code>visitor</code>.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+              <dt class="body-small">R</dt>
+              <dd class="body-medium">
+               <p>the result type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">goal</dt>
+              <dd class="body-medium">
+               <p>early-termination predicate (default: never stop early).</p>
+              </dd>
+              <dt class="body-small">v</dt>
+              <dd class="body-medium">
+               <p>the starting vertex.</p>
+              </dd>
+              <dt class="body-small">visitor</dt>
+              <dd class="body-medium">
+               <p>the visitor accumulating results.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the updated visitor after traversal.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#bfs-fffff48b">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="bfse-34c" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#bfse-34c" t="n" class="documentableName ">bfse</a>[<span t="k"></span><span data-unresolved-link="" t="t">E</span>, <span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">J</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Appendable</span>[(<a href="Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">E</span>], <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">R</span>])]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">visitor</span>: <span data-unresolved-link="" t="t">Visitor</span>[<a href="Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">E</span>], <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">goal</span>: <span t="t">V</span> <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">ev</span>: <span data-unresolved-link="" t="t">Evaluable</span>[<a href="Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">E</span>], <span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">Visitor</span>[<a href="Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">E</span>], <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>BFS over edges rather than vertices.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>BFS over edges rather than vertices.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the type of the edge attribute.</p>
+              </dd>
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+              <dt class="body-small">R</dt>
+              <dd class="body-medium">
+               <p>the result type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">goal</dt>
+              <dd class="body-medium">
+               <p>early-termination predicate on destination vertices.</p>
+              </dd>
+              <dt class="body-small">v</dt>
+              <dd class="body-medium">
+               <p>the starting vertex.</p>
+              </dd>
+              <dt class="body-small">visitor</dt>
+              <dd class="body-medium">
+               <p>the visitor processing edges.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the visitor after traversal.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#bfse-34c">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="debug-0" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#debug-0" t="n" class="documentableName ">debug</a>: <span data-unresolved-link="" t="t">String</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#debug-0">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="dfs-7a0" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#dfs-7a0" t="n" class="documentableName ">dfs</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">J</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Appendable</span>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">R</span>])]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">visitor</span>: <span data-unresolved-link="" t="t">Visitor</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>], <span t="k"></span><span data-unresolved-link="" t="n">order</span>: <span data-unresolved-link="" t="t">DfsOrder</span> = ...)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">ev</span>: <span data-unresolved-link="" t="t">Evaluable</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">Visitor</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Performs DFS from <code>v</code>, accumulating results into <code>visitor</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Performs DFS from <code>v</code>, accumulating results into <code>visitor</code>.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+              <dt class="body-small">R</dt>
+              <dd class="body-medium">
+               <p>the result type extracted from each node by <code>Evaluable</code>.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">v</dt>
+              <dd class="body-medium">
+               <p>the starting vertex.</p>
+              </dd>
+              <dt class="body-small">visitor</dt>
+              <dd class="body-medium">
+               <p>the visitor accumulating results.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the updated visitor after traversal.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#dfs-7a0">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="dfsAll-bb" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#dfsAll-bb" t="n" class="documentableName ">dfsAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">J</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Appendable</span>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">R</span>])]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">visitor</span>: <span data-unresolved-link="" t="t">Visitor</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>])(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">ev</span>: <span data-unresolved-link="" t="t">Evaluable</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">Visitor</span>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">J</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Performs DFS for all vertices in the graph, including those unreachable from any single start vertex.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Performs DFS for all vertices in the graph, including those unreachable from any single start vertex.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+              <dt class="body-small">R</dt>
+              <dd class="body-medium">
+               <p>the result type.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">visitor</dt>
+              <dd class="body-medium">
+               <p>the visitor accumulating results.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the updated visitor after traversing all vertices.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#dfsAll-bb">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="edges-0" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#edges-0" t="n" class="documentableName ">edges</a>: <span data-unresolved-link="" t="t">Iterator</span>[<a href="../adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Retrieves all edges in the directed graph as an iterable collection of edges.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Retrieves all edges in the directed graph as an iterable collection of edges.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>an iterable collection containing all edges of type <code>Edge[V, E]</code> in the graph.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#edges-0">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="filteredAdjacencies-fffff592" data-f-inherited="AbstractGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#filteredAdjacencies-fffff592" t="n" class="documentableName ">filteredAdjacencies</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">predicate</span>: <a href="Adjacency.html" t="t">Adjacency</a>[<span t="t">V</span>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>): <span data-unresolved-link="" t="t">Iterator</span>[<a href="Adjacency.html" t="t">Adjacency</a>[<span t="t">V</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Filters the adjacencies of a given vertex based on a specified predicate.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Filters the adjacencies of a given vertex based on a specified predicate.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">predicate</dt>
+              <dd class="body-medium">
+               <p>a function that evaluates each <code>Adjacency[V]</code> and returns true if the adjacency satisfies the specified condition.</p>
+              </dd>
+              <dt class="body-small">v</dt>
+              <dd class="body-medium">
+               <p>the vertex whose adjacencies are to be filtered.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>an iterator over the adjacencies of the given vertex that satisfy the predicate.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="AbstractGraph.html#filteredAdjacencies-fffff592">AbstractGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="filteredAdjacentVertices-fffff592" data-f-inherited="Traversable">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#filteredAdjacentVertices-fffff592" t="n" class="documentableName ">filteredAdjacentVertices</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">predicate</span>: <span t="t">V</span> <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>): <span data-unresolved-link="" t="t">Iterator</span>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Filters the adjacent vertices of a given vertex based on a specified predicate.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Filters the adjacent vertices of a given vertex based on a specified predicate.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">predicate</dt>
+              <dd class="body-medium">
+               <p>a function that evaluates each adjacent vertex and returns true if the vertex satisfies the specified condition.</p>
+              </dd>
+              <dt class="body-small">v</dt>
+              <dd class="body-medium">
+               <p>the vertex whose adjacent vertices are to be filtered.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>an iterator over the vertices that are adjacent to v and satisfy the predicate.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Traversable.html#filteredAdjacentVertices-fffff592">Traversable</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="get-fffffb50" data-f-inherited="AbstractGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#get-fffffb50" t="n" class="documentableName ">get</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">key</span>: <span t="t">V</span>): <span data-unresolved-link="" t="t">Option</span>[<a href="Vertex.html" t="t">Vertex</a>[<span t="t">V</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Retrieves the vertex associated with the given key.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Retrieves the vertex associated with the given key.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">key</dt>
+              <dd class="body-medium">
+               <p>the vertex attribute to look up.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p><code>Some(vertex)</code> if found, <code>None</code> otherwise.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="AbstractGraph.html#get-fffffb50">AbstractGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="getConnexions-ffffff23" data-f-inherited="Traversable">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#getConnexions-ffffff23" t="n" class="documentableName ">getConnexions</a>[<span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">start</span>: <span t="t">V</span>): <a href="../traverse/Connexions.html" t="t">Connexions</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">E</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Retrieves the connexions (edges) reachable from <code>start</code> via DFS.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Retrieves the connexions (edges) reachable from <code>start</code> via DFS.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the type of the edges in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">start</dt>
+              <dd class="body-medium">
+               <p>the starting vertex.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>a <code>Connexions[V, E]</code> object representing the discovered connexions.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Traversable.html#getConnexions-ffffff23">Traversable</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="graphNeighbours-fffff568" data-f-inherited="Traversable">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#graphNeighbours-fffff568" t="n" class="documentableName ">graphNeighbours</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">GraphNeighbours</span>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Derives a <code>GraphNeighbours[V]</code> instance from <code>adjacentVertices</code>. Used internally by the default implementations of <code>vertexMappedTraversalDfs</code>, <code>vertexMappedTraversalBfs</code>, and <code>getConnexions</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Derives a <code>GraphNeighbours[V]</code> instance from <code>adjacentVertices</code>. Used internally by the default implementations of <code>vertexMappedTraversalDfs</code>, <code>vertexMappedTraversalBfs</code>, and <code>getConnexions</code>.</p>
+              <p>CONSIDER making this protected again but that requires multiple instances in each type of Traversal.</p>
+              <p>NOTE: do not be tempted to add a default Random implementation for this context. We need to enforce consistency of Random instances.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Traversable.html#graphNeighbours-fffff568">Traversable</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isBipartite-0" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#isBipartite-0" t="n" class="documentableName ">isBipartite</a>: <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Not yet implemented for directed graphs.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Not yet implemented for directed graphs.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#isBipartite-0">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isConnected-0" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#isConnected-0" t="n" class="documentableName ">isConnected</a>: <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Not yet implemented for directed graphs. For directed graphs, connectivity has two distinct notions: weak (treating edges as undirected) and strong (every vertex reachable from every other via directed paths). Use ConnectedComponents for undirected connectivity or Kosaraju for strongly connected components.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Not yet implemented for directed graphs. For directed graphs, connectivity has two distinct notions: weak (treating edges as undirected) and strong (every vertex reachable from every other via directed paths). Use ConnectedComponents for undirected connectivity or Kosaraju for strongly connected components.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#isConnected-0">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isCyclic-0" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#isCyclic-0" t="n" class="documentableName ">isCyclic</a>: <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Checks whether the directed graph contains a cycle.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Checks whether the directed graph contains a cycle.</p>
+              <p>This method determines if the graph is cyclic by attempting to perform a topological sort. A graph is cyclic if and only if a topological order cannot be established.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>true if the graph is cyclic, false otherwise.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#isCyclic-0">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="numberOfSelfLoops-0" data-f-inherited="EdgeGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#numberOfSelfLoops-0" t="n" class="documentableName ">numberOfSelfLoops</a>: <span data-unresolved-link="" t="t">Int</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns the number of self-loops in the graph (edges where both endpoints are the same vertex).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns the number of self-loops in the graph (edges where both endpoints are the same vertex).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="EdgeGraph.html#numberOfSelfLoops-0">EdgeGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="productElementNames-0" data-f-inherited="Product">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#productElementNames-0" t="n" class="documentableName ">productElementNames</a>: <span data-unresolved-link="" t="t">Iterator</span>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>An iterator over the names of all the elements of this product.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>An iterator over the names of all the elements of this product.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Product</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="productIterator-0" data-f-inherited="Product">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#productIterator-0" t="n" class="documentableName ">productIterator</a>: <span data-unresolved-link="" t="t">Iterator</span>[<span data-unresolved-link="" t="t">Any</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>An iterator over all the elements of this product.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>An iterator over all the elements of this product.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>in the default implementation, an <code>Iterator[Any]</code></p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Product</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="reverse-0" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#reverse-0" t="n" class="documentableName ">reverse</a>: <a href="../adjunct/DirectedGraph.html" t="t">DirectedGraph</a>[<span t="t">V</span>, <span t="t">E</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new DirectedGraph with all edges reversed (every u→v becomes v→u). The vertex set is preserved, including any vertices with no outgoing edges.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new DirectedGraph with all edges reversed (every u→v becomes v→u). The vertex set is preserved, including any vertices with no outgoing edges.</p>
+              <p>This is the first step in Kosaraju's strongly-connected-components algorithm.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>a new <code>DirectedGraph[V, E]</code> with reversed edges.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#reverse-0">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="shortestPaths-beb" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#shortestPaths-beb" t="n" class="documentableName ">shortestPaths</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">start</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="t">Monoid</span>[<span t="t">E</span>], <span t="k"></span><span data-unresolved-link="" t="t">Ordering</span>[<span t="t">E</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="../traverse/VertexTraversalResult.html" t="t">VertexTraversalResult</a>[<span t="t">V</span>, <a href="../adjunct/DirectedEdge.html" t="t">DirectedEdge</a>[<span t="t">V</span>, <span t="t">E</span>]]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Computes shortest paths from <code>start</code> using Bellman-Ford-Moore. Returns None if a negative cycle is reachable from start.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Computes shortest paths from <code>start</code> using Bellman-Ford-Moore. Returns None if a negative cycle is reachable from start.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#shortestPaths-beb">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="undiscoveredEdges-fffffb4e" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#undiscoveredEdges-fffffb4e" t="n" class="documentableName ">undiscoveredEdges</a>[<span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span> = ...): <span data-unresolved-link="" t="t">Seq</span>[<a href="Edge.html" t="t">Edge</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">E</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns the directed edges reachable from v.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns the directed edges reachable from v.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#undiscoveredEdges-fffffb4e">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="undiscoveredVertices-fffffb4e" data-f-inherited="Graph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#undiscoveredVertices-fffffb4e" t="n" class="documentableName ">undiscoveredVertices</a>[<span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span> = ...): <span data-unresolved-link="" t="t">Seq</span>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns the vertices reachable via attributed directed edges from v. Useful for testing and inspection; the traversal engine manages visited state internally via VisitedSet.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns the vertices reachable via attributed directed edges from v. Useful for testing and inspection; the traversal engine manages visited state internally via VisitedSet.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Graph.html#undiscoveredVertices-fffffb4e">Graph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="unit-fffffec6" data-f-inherited="DirectedGraph">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#unit-fffffec6" t="n" class="documentableName ">unit</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">vertexMap</span>: <a href="VertexMap.html" t="t">VertexMap</a>[<span t="t">V</span>]): <a href="Graph.html" t="t">Graph</a>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Creates a new directed graph using the provided vertex map.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Creates a new directed graph using the provided vertex map.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">vertexMap</dt>
+              <dd class="body-medium">
+               <p>the vertex map to be used for constructing the graph. It defines the vertices and their adjacencies in the graph.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>a new directed graph constructed with the given vertex map.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="../adjunct/DirectedGraph.html#unit-fffffec6">DirectedGraph</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="vertexMappedTraversalBfs-8b" data-f-inherited="Traversable">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#vertexMappedTraversalBfs-8b" t="n" class="documentableName ">vertexMappedTraversalBfs</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">fulfill</span>: <span t="t">V</span> <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">T</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">start</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span> = ...): <span data-unresolved-link="" t="t">Try</span>[<a href="../traverse/TraversalResult.html" t="t">TraversalResult</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">T</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Performs a BFS traversal applying <code>fulfill</code> to each visited vertex and returns a <code>VertexTraversalResult</code> mapping each vertex to its result.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Performs a BFS traversal applying <code>fulfill</code> to each visited vertex and returns a <code>VertexTraversalResult</code> mapping each vertex to its result.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>the result type produced by <code>fulfill</code>.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">fulfill</dt>
+              <dd class="body-medium">
+               <p>transformation function applied to each vertex.</p>
+              </dd>
+              <dt class="body-small">start</dt>
+              <dd class="body-medium">
+               <p>the starting vertex.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p><code>Try[TraversalResult[V, T]]</code> containing the traversal result or a failure.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Traversable.html#vertexMappedTraversalBfs-8b">Traversable</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="vertexMappedTraversalDfs-8b" data-f-inherited="Traversable">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DAG.html#vertexMappedTraversalDfs-8b" t="n" class="documentableName ">vertexMappedTraversalDfs</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">fulfill</span>: <span t="t">V</span> <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">T</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">start</span>: <span t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span> = ...): <span data-unresolved-link="" t="t">Try</span>[<a href="../traverse/TraversalResult.html" t="t">TraversalResult</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">T</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Performs a DFS traversal applying <code>fulfill</code> to each visited vertex and returns a <code>VertexTraversalResult</code> mapping each vertex to its result.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Performs a DFS traversal applying <code>fulfill</code> to each visited vertex and returns a <code>VertexTraversalResult</code> mapping each vertex to its result.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">T</dt>
+              <dd class="body-medium">
+               <p>the result type produced by <code>fulfill</code>.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">fulfill</dt>
+              <dd class="body-medium">
+               <p>transformation function applied to each vertex.</p>
+              </dd>
+              <dt class="body-small">start</dt>
+              <dd class="body-medium">
+               <p>the starting vertex.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p><code>Try[TraversalResult[V, T]]</code> containing the traversal result or a failure.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="Traversable.html#vertexMappedTraversalDfs-8b">Traversable</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
+   </div>
+  </div>
+ </div>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

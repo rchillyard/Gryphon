@@ -67,7 +67,6 @@ lazy val root = (project in file("."))
 
           // Run both ScalaTest and JUnit suites with sbt test
           testOptions ++= Seq(
-            Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
             Tests.Argument(TestFrameworks.JUnit, "-v")
           )
         )

@@ -1,13 +1,14 @@
 <img src="img/gryphon-logo.svg" width="500" alt="Gryphon logo"/>
 
 [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/gryphon_3/badge.svg?color=blue)](https://central.sonatype.com/artifact/com.phasmidsoftware/gryphon_3)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Gryphon?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Gryphon&utm_campaign=Badge_Grade)
+[![API Docs](https://img.shields.io/badge/api-docs-blue)](https://rchillyard.github.io/Gryphon/latest/api/)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Gryphon/dashboard)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Gryphon/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Gryphon/tree/main)
-![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Gryphon)
-![GitHub](https://img.shields.io/github/license/rchillyard/Gryphon)
-![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Gryphon)
-![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Gryphon)
-![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Gryphon/bug)
+[![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Gryphon)](https://github.com/rchillyard/Gryphon)
+[![GitHub](https://img.shields.io/github/license/rchillyard/Gryphon)](https://github.com/rchillyard/Gryphon/blob/main/LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Gryphon)](https://github.com/rchillyard/Gryphon/commits/main)
+[![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Gryphon)](https://github.com/rchillyard/Gryphon/issues)
+[![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Gryphon/bug)](https://github.com/rchillyard/Gryphon/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
 A Scala 3 graph algorithms library built on the
 [Visitor](https://github.com/rchillyard/Visitor) typeclass traversal engine.

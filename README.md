@@ -30,10 +30,12 @@ that supports the author's own textbook: _Data Structures, Algorithms, and Invar
 Add Gryphon to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.5.3"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.6.0"
 ```
 
-Full Scaladoc is available via [javadoc.io](https://javadoc.io/doc/com.phasmidsoftware/gryphon_3).
+Gryphon 1.6.0 and later need Scala 3.9 or later; for Scala 3.7 or 3.8, use 1.5.1.
+
+Full Scaladoc is at <https://rchillyard.github.io/Gryphon/latest/api/>.
 
 Gryphon requires **Scala 3** and depends on
 [Visitor](https://github.com/rchillyard/Visitor) (`com.phasmidsoftware %% visitor`),
@@ -221,7 +223,7 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 <dependency>
   <groupId>com.phasmidsoftware</groupId>
   <artifactId>gryphon_3</artifactId>
-  <version>1.5.3</version>
+  <version>1.6.0</version>
 </dependency>
 ````
 
@@ -585,6 +587,7 @@ sbt test
 | 1.5.1 | GraphBuilder (Scala); WeightedGraph.fromResource (Java); Graph/WeightedGraph resource-load constructors |
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
+| 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
 
 ---
 

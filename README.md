@@ -2,7 +2,8 @@
 
 [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/gryphon_3/badge.svg?color=blue)](https://central.sonatype.com/artifact/com.phasmidsoftware/gryphon_3)
 [![API Docs](https://img.shields.io/badge/api-docs-blue)](https://rchillyard.github.io/Gryphon/latest/api/)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Gryphon/dashboard)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6a6fa4419f41403287ef19c619fd79a8)](https://app.codacy.com/gh/rchillyard/Gryphon/dashboard)
+[![Codacy Coverage](https://app.codacy.com/project/badge/Coverage/6a6fa4419f41403287ef19c619fd79a8)](https://app.codacy.com/gh/rchillyard/Gryphon/dashboard)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Gryphon/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Gryphon/tree/main)
 [![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Gryphon)](https://github.com/rchillyard/Gryphon)
 [![GitHub](https://img.shields.io/github/license/rchillyard/Gryphon)](https://github.com/rchillyard/Gryphon/blob/main/LICENSE)

@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.adjunct
 
+import scala.annotation.unused
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.util.GraphException
 import com.phasmidsoftware.visitor.core.{Evaluable, JournaledVisitor}
@@ -142,7 +143,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *
    * @throws GraphException if the input is not an `AdjacencyEdge` with a `DirectedEdge`.
    */
-  private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[V, E]] = {
+  @unused private val getUndirectedEdgeFromAdjacency: PartialFunction[Adjacency[V], UndirectedEdge[V, E]] = {
     case AdjacencyEdge(e: UndirectedEdge[V, E] @unchecked, false) =>
       e
     case x =>

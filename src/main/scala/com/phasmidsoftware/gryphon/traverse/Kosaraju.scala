@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.visitor.core.{*, given}
-import scala.annotation.tailrec
+import scala.annotation.{tailrec, unused}
 import scala.util.Random
 
 /**
@@ -49,7 +49,7 @@ object Kosaraju {
    * @param tracer An implicit tracer for logging and debugging, defaulting to `Tracer.silent`.
    * @return An `SCCResult[V]` mapping each vertex to its strongly connected component identifier.
    */
-  def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] = {
+  def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using @unused random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] = {
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 

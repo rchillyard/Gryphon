@@ -29,7 +29,7 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers:
 
   it should "successfully load prim.graph as an UndirectedGraph" in :
     GraphBuilder.undirected[Int, Double].fromResource("prim.graph") match
-      case Success(graph) => succeed
+      case Success(_) => succeed
       case Failure(x) => fail("failed to load prim.graph", x)
 
   it should "produce a graph with 8 vertices" in :
@@ -44,8 +44,7 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers:
 
   it should "return an UndirectedGraph instance" in :
     GraphBuilder.undirected[Int, Double].fromResource("prim.graph") match
-      case Success(graph: UndirectedGraph[Int, Double]) => succeed
-      case Success(_) => fail("not an UndirectedGraph")
+      case Success(graph) => graph shouldBe a[UndirectedGraph[Int, Double]]
       case Failure(x) => fail("failed to load prim.graph", x)
 
   it should "produce a graph whose MST (Kruskal) has total weight 1.81" in :
@@ -66,13 +65,12 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers:
 
   it should "successfully load directed.graph" in :
     GraphBuilder.directed[Int, Unit].fromResource("directed.graph") match
-      case Success(graph) => succeed
+      case Success(_) => succeed
       case Failure(x) => fail("failed to load directed.graph", x)
 
   it should "return a DirectedGraph instance" in :
     GraphBuilder.directed[Int, Unit].fromResource("directed.graph") match
-      case Success(graph: DirectedGraph[Int, Unit]) => succeed
-      case Success(_) => fail("not a DirectedGraph")
+      case Success(graph) => graph shouldBe a[DirectedGraph[Int, Unit]]
       case Failure(x) => fail("failed to load directed.graph", x)
 
   it should "produce a graph with 7 vertices from directed.graph" in :

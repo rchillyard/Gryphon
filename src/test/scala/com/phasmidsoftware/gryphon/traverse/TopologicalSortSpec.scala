@@ -68,7 +68,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
-              case Some(t@TopologicalSort(map)) =>
+              case Some(TopologicalSort(map)) =>
                 map.size shouldBe 7
                 map(6) shouldBe 1
                 map(3) shouldBe 0
@@ -96,7 +96,7 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
-              case Some(t@TopologicalSort(map)) =>
+              case Some(TopologicalSort(map)) =>
                 fail("TopologicalSort.traversal succeeded when it shouldn't (acyclic graph?)")
               case None =>
                 succeed

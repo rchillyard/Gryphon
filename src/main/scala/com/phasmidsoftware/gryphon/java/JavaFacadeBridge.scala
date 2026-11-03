@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.java
 
+import scala.annotation.unused
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, EvaluableGraphNeighboursTraversal, VertexMap}
@@ -57,7 +58,7 @@ private[java] object JavaFacadeBridge:
    * The start vertex is absent from the returned came-from map.
    */
   def bfsWithNeighbours[V](
-                                  scalaGraph: AbstractGraph[V],
+                                  @unused scalaGraph: AbstractGraph[V],
                                   start: V,
                                   neighboursFn: JavaFunction[V, JavaIterable[V]]
                           ): JavaMap[V, V] =
@@ -106,7 +107,7 @@ private[java] object JavaFacadeBridge:
    * The start vertex is absent from the returned came-from map.
    */
   def dfsWithNeighbours[V](
-                                  scalaGraph: AbstractGraph[V],
+                                  @unused scalaGraph: AbstractGraph[V],
                                   start: V,
                                   neighboursFn: JavaFunction[V, JavaIterable[V]]
                           ): JavaMap[V, V] =
@@ -235,7 +236,7 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   def dijkstraDouble[V](
-                               scalaGraph: AbstractGraph[V],
+                               @unused scalaGraph: AbstractGraph[V],
                                edges: JavaList[WeightedEdge[V, Double]],
                                start: V
                        ): JavaMap[V, WeightedEdge[V, Double]] =
@@ -256,7 +257,7 @@ private[java] object JavaFacadeBridge:
    * Unlike Prim/Kruskal, Dijkstra cannot work with Ordering alone.
    */
   def dijkstraCustom[V, E](
-                                  scalaGraph: AbstractGraph[V],
+                                  @unused scalaGraph: AbstractGraph[V],
                                   edges: JavaList[WeightedEdge[V, E]],
                                   start: V,
                                   combineFn: JavaBinaryOperator[E],
@@ -280,7 +281,7 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   def primDouble[V](
-                           scalaGraph: AbstractGraph[V],
+                           @unused scalaGraph: AbstractGraph[V],
                            edges: JavaList[WeightedEdge[V, Double]],
                            start: V
                    ): JavaMap[V, WeightedEdge[V, Double]] =
@@ -302,7 +303,7 @@ private[java] object JavaFacadeBridge:
    * returns `identity` and is never called.
    */
   def primCustom[V, E](
-                              scalaGraph: AbstractGraph[V],
+                              @unused scalaGraph: AbstractGraph[V],
                               edges: JavaList[WeightedEdge[V, E]],
                               start: V,
                               comparator: JavaComparator[E]
@@ -416,7 +417,7 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   def kosaraju[V](
-                         scalaGraph: AbstractGraph[V],
+                         @unused scalaGraph: AbstractGraph[V],
                          edges: JavaList[Edge[V]]
                  ): JavaMap[V, JavaInteger] =
     given Random = Random(42)

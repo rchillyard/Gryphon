@@ -1,5 +1,6 @@
 package com.phasmidsoftware.gryphon.core
 
+import scala.annotation.nowarn
 import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
 import com.phasmidsoftware.visitor.core.Monoid
 import scala.math.Ordered.orderingToOrdered
@@ -78,6 +79,7 @@ object Vertex:
    * @tparam R the type of the relaxable property; must have both `Monoid` and `Ordering` instances.
    * @return a new `RelaxableVertex[V, R]`.
    */
+  @nowarn("msg=unused implicit parameter") // R must be relaxable (a Monoid with an Ordering), although these methods only pass it on as a type
   def createRelaxableWithSet[V, R: {Monoid, Ordering}](attribute: V): RelaxableVertex[V, R] =
     RelaxableVertex(attribute, emptyAdjacenciesSet[V])()
 
@@ -177,6 +179,7 @@ object RelaxableVertex:
    * @param v the source `SimpleVertex`.
    * @return a new `RelaxableVertex[V, R]`.
    */
+  @nowarn("msg=unused implicit parameter") // R must be relaxable (a Monoid with an Ordering), although these methods only pass it on as a type
   def apply[V, R: {Monoid, Ordering}](v: SimpleVertex[V]): RelaxableVertex[V, R] =
     new RelaxableVertex(v.attribute, v.adjacencies)()
 
@@ -184,6 +187,7 @@ object RelaxableVertex:
    * Creates a `RelaxableVertex` with the given attribute and adjacencies.
    * `maybeR` is initialised to `None`.
    */
+  @nowarn("msg=unused implicit parameter") // R must be relaxable (a Monoid with an Ordering), although these methods only pass it on as a type
   def apply[V, R: {Monoid, Ordering}](attribute: V, adjacencies: Adjacencies[V]): RelaxableVertex[V, R] =
     new RelaxableVertex(attribute, adjacencies)()
 

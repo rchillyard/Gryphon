@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph}
-import com.phasmidsoftware.gryphon.core.{*, given}
+import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec

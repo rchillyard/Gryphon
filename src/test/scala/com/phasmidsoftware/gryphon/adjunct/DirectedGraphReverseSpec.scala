@@ -8,7 +8,6 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
-import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.io.Source

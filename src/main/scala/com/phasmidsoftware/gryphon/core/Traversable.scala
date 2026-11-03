@@ -198,7 +198,7 @@ trait Traversable[V] {
     loop(List((start, None)))
 
     result.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
-      case (acc, (child, Some(AdjacencyEdge[V, E] (connexion, flipped)))) =>
+      case (acc, (child, Some(AdjacencyEdge(connexion, _)))) =>
       acc.addConnexion(child, connexion)
       case (acc, _) =>
         acc

@@ -7,7 +7,6 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import com.phasmidsoftware.visitor.core.Monoid
 import scala.collection.mutable
-import scala.util.Random
 
 /**
  * Computes shortest paths in a weighted directed graph using the
@@ -44,8 +43,6 @@ object BellmanFord:
    *         reachable from `start`.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
-    given Random = Random(0)
-
     val em = implicitly[Monoid[E]]
     val eo = implicitly[Ordering[E]]
     val V = graph.N

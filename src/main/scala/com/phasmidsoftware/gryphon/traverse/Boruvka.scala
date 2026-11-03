@@ -7,6 +7,7 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.adjunct.{Connectivity, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.visitor.core.Monoid
+import scala.annotation.nowarn
 
 /**
  * Computes the minimum spanning tree of an undirected weighted graph using Borůvka's algorithm.
@@ -35,6 +36,7 @@ object Boruvka:
    * @tparam E the edge weight type; must have `Monoid` and `Ordering`.
    * @return a `Seq[Edge[V, E]]` — the MST edges in order of addition, consistent with `Kruskal.mst`.
    */
+  @nowarn("msg=unused implicit parameter") // E needs a Monoid, as for Kruskal.mst, although Borůvka only compares weights
   def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
@@ -69,7 +71,7 @@ object Boruvka:
    * @tparam E the type of the edge weight, which must have a `Monoid` and `Ordering` instance.
    * @return a tuple containing the updated connectivity state and the updated sequence of MST edges.
    */
-  private def mergeUniqueEdges[V, E: {Monoid, Ordering}](wc: Connectivity[V], mstEdges: Seq[Edge[V, E]], uniqueEdges: Iterable[Edge[V, E]]) =
+  private def mergeUniqueEdges[V, E](wc: Connectivity[V], mstEdges: Seq[Edge[V, E]], uniqueEdges: Iterable[Edge[V, E]]) =
     val (wc1, mstEdges1) = uniqueEdges.foldLeft((wc, mstEdges)) { case ((wcAcc, edges), edge) =>
       val u = edge.white
       val v = edge.black
@@ -98,7 +100,7 @@ object Boruvka:
    * @return         a map whose keys are sets containing two component roots, and values are the cheapest
    *         edges connecting those components.
    */
-  private def uniqueCrossingEdges[V, E: {Monoid, Ordering}](cheapest: Map[V, Edge[V, E]], wc: Connectivity[V]) =
+  private def uniqueCrossingEdges[V, E](cheapest: Map[V, Edge[V, E]], wc: Connectivity[V]) =
     cheapest.map {
       case (root, edge) =>
         val otherRoot = if wc.getDisjointSet(edge.white) == root
@@ -122,7 +124,7 @@ object Boruvka:
    * @param wc       current connectivity state.
    * @return a map from component root to the cheapest crossing edge out of that component.
    */
-  private def cheapestCrossingEdges[V, E: {Monoid, Ordering}](
+  private def cheapestCrossingEdges[V, E: Ordering](
                                                                      graph: UndirectedGraph[V, E],
                                                                      vertices: Seq[V],
                                                                      wc: Connectivity[V]

@@ -1,8 +1,9 @@
 package com.phasmidsoftware.gryphon.core
 
+import scala.annotation.unused
 import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
 import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.visitor.core.{*, given} // This is not unused
+import com.phasmidsoftware.visitor.core.*
 import scala.util.Random
 
 /**
@@ -120,7 +121,7 @@ trait Graph[V] extends Traversable[V]:
   /**
    * Returns the directed edges reachable from v.
    */
-  def undiscoveredEdges[E](v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
+  def undiscoveredEdges[E](v: V)(using @unused random: Random = Random()): Seq[Edge[V, E]] =
     filteredAdjacencies(_ => true)(v)
             .flatMap(_.maybeEdge[E])
             .toSeq
@@ -130,7 +131,7 @@ trait Graph[V] extends Traversable[V]:
    * Useful for testing and inspection; the traversal engine manages visited
    * state internally via VisitedSet.
    */
-  def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
+  def undiscoveredVertices[E](v: V)(using @unused random: Random = Random()): Seq[V] =
     undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[V, E] @unchecked => e.black }
 
   def debug: String = vertexMap.debug

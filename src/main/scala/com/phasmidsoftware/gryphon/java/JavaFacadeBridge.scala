@@ -410,7 +410,7 @@ private[java] object JavaFacadeBridge:
           case None =>
             JavaOptional.empty()
       case _ =>
-        throw com.phasmidsoftware.gryphon.util.GraphException("topologicalSort requires a DirectedGraph")
+        throw com.phasmidsoftware.gryphon.core.GraphException("topologicalSort requires a DirectedGraph")
 
   // ---------------------------------------------------------------------------
   // Kosaraju

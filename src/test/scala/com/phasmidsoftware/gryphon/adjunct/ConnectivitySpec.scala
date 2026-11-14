@@ -291,14 +291,14 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
 
   it should "throw GraphException for a missing key" in {
     val uf = ConnectivityASP.create(1, 2, 3)
-    a[com.phasmidsoftware.gryphon.util.GraphException] should be thrownBy uf.getDisjointSet(0)
+    a[com.phasmidsoftware.gryphon.core.GraphException] should be thrownBy uf.getDisjointSet(0)
   }
 
   behavior of "ConnectivityLazy — getDisjointSet error"
 
   it should "throw GraphException for a missing key" in {
     val wuf = ConnectivityLazy.create(1, 2, 3)
-    a[com.phasmidsoftware.gryphon.util.GraphException] should be thrownBy wuf.getDisjointSet(0)
+    a[com.phasmidsoftware.gryphon.core.GraphException] should be thrownBy wuf.getDisjointSet(0)
   }
 
   // -------------------------------------------------------------------------
@@ -405,7 +405,7 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
 
   it should "throw GraphException for a missing key" in {
     val co = ConnectivityOptimized.create(1, 2, 3)
-    a[com.phasmidsoftware.gryphon.util.GraphException] should be thrownBy co.getDisjointSet(0)
+    a[com.phasmidsoftware.gryphon.core.GraphException] should be thrownBy co.getDisjointSet(0)
   }
 
   // -------------------------------------------------------------------------

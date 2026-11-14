@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import scala.annotation.unused
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.gryphon.util.GraphException
+import com.phasmidsoftware.gryphon.core.GraphException
 import com.phasmidsoftware.visitor.core.{Evaluable, JournaledVisitor}
 import scala.util.{Failure, Random, Success, Try}
 

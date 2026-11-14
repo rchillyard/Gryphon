@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 import com.phasmidsoftware.gryphon.core.Bag.random
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
-import com.phasmidsoftware.gryphon.util.{GraphException, RandomIterator}
+import com.phasmidsoftware.gryphon.util.RandomIterator
 import com.phasmidsoftware.visitor.core.{*, given}
 import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec

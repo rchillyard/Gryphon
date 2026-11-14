@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.core.{Graph, Traversable}
-import com.phasmidsoftware.gryphon.util.GraphException
+import com.phasmidsoftware.gryphon.core.GraphException
 import scala.annotation.{tailrec, unused}
 import scala.util.Random
 
@@ -38,7 +38,7 @@ object ConnectedComponents:
    * @tparam V the vertex type.
    * @tparam E the edge-attribute type.
    * @return a `ConnectedResult[V, E]` — a pair of (Connexions, componentMap).
-   * @throws com.phasmidsoftware.gryphon.util.GraphException if `graph` is not a `Graph[V]`.
+   * @throws com.phasmidsoftware.gryphon.core.GraphException if `graph` is not a `Graph[V]`.
    */
   def components[V, E](graph: Traversable[V])(using @unused random: Random = Random()): ConnectedResult[V, E] =
     graph match

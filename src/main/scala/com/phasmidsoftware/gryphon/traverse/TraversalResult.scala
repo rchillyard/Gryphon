@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
-import com.phasmidsoftware.gryphon.util.GraphException
+import com.phasmidsoftware.gryphon.core.GraphException
 
 /**
  * A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.
@@ -57,7 +57,7 @@ object TraversalResult {
    * @tparam E the type of the attributes associated with the edges in the graph
    * @tparam T the resulting type after applying the function `f` to each edge
    * @return a `TraversalResult[V, T]` containing the results of applying the function `f` to each edge of the graph
-   * @throws com.phasmidsoftware.gryphon.util.GraphException if the provided `traversable` does not represent an edge graph
+   * @throws com.phasmidsoftware.gryphon.core.GraphException if the provided `traversable` does not represent an edge graph
    */
   def edgeTraversal[V, E, T](f: Edge[V, E] => T)(traversable: core.EdgeTraversable[V, E]): TraversalResult[Int, T] =
     EdgeTraversalResult(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
@@ -278,7 +278,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    * @param v         the vertex to which the connexion is to be added.
    * @param connexion the `Connexion` instance representing the connexion details (directed or undirected) between the vertices.
    * @return a new `Connexions[V, E]` instance with the updated connexion added.
-   * @throws com.phasmidsoftware.gryphon.util.GraphException if the provided connexion type is unexpected.
+   * @throws com.phasmidsoftware.gryphon.core.GraphException if the provided connexion type is unexpected.
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
     case d: AttributedDirectedEdge[V, E] @unchecked =>

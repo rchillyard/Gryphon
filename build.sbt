@@ -1,6 +1,8 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.6.1"
+import com.typesafe.tools.mima.core.{MissingClassProblem, ProblemFilters}
+
+ThisBuild / version := "1.7.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -43,6 +45,16 @@ Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 // moving previousRelease on). Note moduleName, not name: the published artifact is gryphon_3, not Gryphon_3.
 val previousRelease = "1.6.0"
 mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
+
+// Deliberate breaks in 1.7.0, with a release note in the README.
+// util.GraphException is now a type alias for core.GraphException, and a type alias is erased: the class and
+// its companion object are gone from the bytecode. Source compatibility is unaffected (the old name still
+// names the type, constructs it and pattern-matches on it), so only code *compiled* against 1.6.0 or earlier
+// and not recompiled is affected. This is why 1.7.0 is a minor release and not a patch.
+mimaBinaryIssueFilters ++= Seq(
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$")
+)
 
 // ============================================================================
 // MODULE DEFINITION

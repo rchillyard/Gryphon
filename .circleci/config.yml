@@ -54,10 +54,12 @@ jobs:
           name: Binary compatibility
           command: cat /dev/null | sbt mimaReportBinaryIssues
 
-      # Generate Scaladoc (catches doc warnings, and the docs are published to GitHub Pages)
+      # Generate Scaladoc and the Java façade's Javadoc. Both are published to GitHub Pages, and
+      # building them here catches broken doc comments: javaApiDoc runs javadoc with -Xdoclint, so
+      # a malformed tag or a dead @link fails the build rather than silently degrading the docs.
       - run:
           name: Doc
-          command: cat /dev/null | sbt doc
+          command: cat /dev/null | sbt doc javaApiDoc
 
       - store_test_results:
           path: target/test-reports

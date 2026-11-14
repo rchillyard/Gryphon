@@ -36,7 +36,6 @@ import java.util.function.BinaryOperator;
  * // spt.get("B").from()      == "C"   (via C, total cost 2.0)
  * // spt.get("B").attribute() == 1.0   (the C→B edge weight)
  * }</pre>
- * </p>
  *
  * <p><b>Option 3 example</b> (custom attribute type):
  * <pre>{@code
@@ -49,7 +48,6 @@ import java.util.function.BinaryOperator;
  *         TunnelProperties.ZERO,                                  // identity
  *         Comparator.comparingInt(tp -> tp.cost));                // ordering
  * }</pre>
- * </p>
  */
 public class ShortestPaths {
 

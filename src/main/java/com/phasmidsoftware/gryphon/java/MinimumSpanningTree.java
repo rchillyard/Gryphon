@@ -33,7 +33,6 @@ import java.util.Map;
  * Map<Integer, WeightedEdge<Integer, Double>> mst = MinimumSpanningTree.prim(g, 0);
  * double total = mst.values().stream().mapToDouble(WeightedEdge::attribute).sum();
  * }</pre>
- * </p>
  *
  * <p><b>Option 3 example</b> (custom attribute type):
  * <pre>{@code
@@ -46,7 +45,6 @@ import java.util.Map;
  * mst.forEach((b, e) -> System.out.println(b + ": cost=" + e.attribute().cost
  *                                           + " length=" + e.attribute().length));
  * }</pre>
- * </p>
  */
 public class MinimumSpanningTree {
 

@@ -37,7 +37,8 @@ libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "x.y.z"
 
 Gryphon 1.6.0 and later need Scala 3.9 or later; for Scala 3.7 or 3.8, use 1.5.1.
 
-Full Scaladoc is at <https://rchillyard.github.io/Gryphon/latest/api/>.
+Full Scaladoc is at <https://rchillyard.github.io/Gryphon/latest/api/>, and the Java façade's
+Javadoc is at <https://rchillyard.github.io/Gryphon/latest/javadoc/>.
 
 Gryphon requires **Scala 3** and depends on
 [Visitor](https://github.com/rchillyard/Visitor) (`com.phasmidsoftware %% visitor`),
@@ -216,6 +217,11 @@ graph.numberOfSelfLoops // Int
 Gryphon provides a complete Java façade in the `com.phasmidsoftware.gryphon.java`
 package, giving Java students access to all major graph algorithms without
 exposure to Scala typeclasses, `given`/`using`, or companion object syntax.
+
+Its API documentation is published separately from the Scaladoc, at
+<https://rchillyard.github.io/Gryphon/latest/javadoc/>. The Scaladoc covers the Scala
+library only — Scaladoc does not process Java sources — so the façade does not appear
+there.
 
 ### Building with Maven
 

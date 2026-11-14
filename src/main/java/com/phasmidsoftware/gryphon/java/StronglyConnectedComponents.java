@@ -43,7 +43,6 @@ import java.util.*;
  * sccs.forEach((v, id) ->
  *     groups.computeIfAbsent(id, k -> new ArrayList<>()).add(v));
  * }</pre>
- * </p>
  */
 public class StronglyConnectedComponents {
 

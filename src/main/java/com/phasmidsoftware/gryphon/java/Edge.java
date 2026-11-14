@@ -22,7 +22,6 @@ import java.util.Objects;
  * String to   = e.to();     // "B"
  * Edge<String> rev = e.reverse();  // Edge("B", "A")
  * }</pre>
- * </p>
  *
  * @param <V> the vertex type.
  */

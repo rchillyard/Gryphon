@@ -34,7 +34,6 @@ import java.util.function.Function;
  * while (tree.containsKey(v)) { v = tree.get(v); path.add(0, v); }
  * // path == ["A", "B", "C", "D"]
  * }</pre>
- * </p>
  *
  * @param <V> the vertex type. Must implement {@code equals} and {@code hashCode}.
  */
@@ -203,31 +202,33 @@ public class Graph<V> {
      * Returns the degree of {@code vertex}: the number of edges incident to it.
      *
      * <p>Undirected graphs only. A vertex of a directed graph has an in-degree
-     * and an out-degree, not a single degree.</p>
+     * and an out-degree, not a single degree; on a directed graph this throws
+     * {@code com.phasmidsoftware.gryphon.core.GraphException}.</p>
      *
      * @param vertex the query vertex.
      * @return the degree.
-     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
      */
     public int degree(V vertex) {
         return JavaFacadeBridge$.MODULE$.degree(getScalaGraph(), vertex);
     }
 
     /**
-     * Returns the largest degree of any vertex. Undirected graphs only.
+     * Returns the largest degree of any vertex. Undirected graphs only; on a
+     * directed graph this throws
+     * {@code com.phasmidsoftware.gryphon.core.GraphException}.
      *
      * @return the maximum degree.
-     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
      */
     public int maxDegree() {
         return JavaFacadeBridge$.MODULE$.maxDegree(getScalaGraph());
     }
 
     /**
-     * Returns the mean degree, {@code 2M/N}. Undirected graphs only.
+     * Returns the mean degree, {@code 2M/N}. Undirected graphs only; on a
+     * directed graph this throws
+     * {@code com.phasmidsoftware.gryphon.core.GraphException}.
      *
      * @return the average degree.
-     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
      */
     public double meanDegree() {
         return JavaFacadeBridge$.MODULE$.meanDegree(getScalaGraph());

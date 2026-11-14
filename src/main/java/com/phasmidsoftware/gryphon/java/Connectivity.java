@@ -20,13 +20,13 @@ import java.util.List;
  * mutating operation. From a Java caller's perspective the object behaves
  * as an ordinary mutable data structure.</p>
  *
- * <p>Two implementations are available via the factory methods:
+ * <p>Two implementations are available via the factory methods:</p>
  * <ul>
  *   <li>{@link #create(List)} — Weighted Quick Union, O(log n) per operation.</li>
  *   <li>{@link #createOptimized(List)} — Weighted Quick Union with path
  *       compression, amortized near-O(1) per operation.</li>
  * </ul>
- * For most purposes {@code createOptimized} is the better choice; {@code create}
+ * <p>For most purposes {@code createOptimized} is the better choice; {@code create}
  * is provided so students can observe the effect of path compression directly.</p>
  *
  * <p><b>Usage example:</b>
@@ -38,7 +38,6 @@ import java.util.List;
  * c.isConnected("A", "C"); // false
  * c.size();                // 2  (two components)
  * }</pre>
- * </p>
  *
  * @param <V> the vertex type. Must implement {@code equals} and {@code hashCode}.
  */

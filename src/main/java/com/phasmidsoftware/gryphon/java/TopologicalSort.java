@@ -35,7 +35,6 @@ import java.util.Optional;
  * cyclic.addEdge("B", "A");
  * TopologicalSort.sort(cyclic);  // Optional.empty()
  * }</pre>
- * </p>
  */
 public class TopologicalSort {
 

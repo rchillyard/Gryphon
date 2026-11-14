@@ -28,10 +28,11 @@ that supports the author's own textbook: _Data Structures, Algorithms, and Invar
 
 ## Getting Started
 
-Add Gryphon to your `build.sbt`:
+Gryphon is published on Maven Central. Add it to your `build.sbt`,
+where `x.y.z` is the latest version on Maven Central: it's shown on the [Sonatype Central](https://central.sonatype.com/artifact/com.phasmidsoftware/gryphon_3) badge at the top of this page.
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "1.6.0"
+libraryDependencies += "com.phasmidsoftware" %% "gryphon" % "x.y.z"
 ```
 
 Gryphon 1.6.0 and later need Scala 3.9 or later; for Scala 3.7 or 3.8, use 1.5.1.
@@ -224,7 +225,7 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 <dependency>
   <groupId>com.phasmidsoftware</groupId>
   <artifactId>gryphon_3</artifactId>
-  <version>1.6.0</version>
+  <version>x.y.z</version>
 </dependency>
 ````
 
@@ -589,6 +590,7 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
+| 1.6.1 | Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 
 ---
 

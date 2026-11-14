@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.6.0"
+ThisBuild / version := "1.6.1"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -27,10 +27,22 @@ scalacOptions ++= Seq(
   "-unchecked",
   "-Wunused:all",
   "-Wvalue-discard",
-  "-Wnonunit-statement"
+  "-Wnonunit-statement",
+  "-Werror"
 )
 // Tests may use a value as a statement (for example, in a matcher), so they skip -Wnonunit-statement.
 Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
+
+// ============================================================================
+// BINARY COMPATIBILITY
+// ============================================================================
+
+// MiMa checks the published artifact for binary compatibility with the last release: `sbt mimaReportBinaryIssues`.
+// The version scheme is PVP (see publish.sbt): a patch release must pass; a minor release may break compatibility,
+// on purpose and with a release note, by listing the breaks in mimaBinaryIssueFilters (or, after the release, by
+// moving previousRelease on). Note moduleName, not name: the published artifact is gryphon_3, not Gryphon_3.
+val previousRelease = "1.6.0"
+mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
 
 // ============================================================================
 // MODULE DEFINITION
@@ -48,7 +60,8 @@ lazy val root = (project in file("."))
             "com.phasmidsoftware"    %% "visitor"                  % visitorVersion,
             "com.phasmidsoftware"    %% "flog"                     % flogVersion,
             "org.slf4j"               % "slf4j-api"                % slf4jVersion,
-            "ch.qos.logback"          % "logback-classic"          % logbackVersion % Runtime,
+            // Test scope only: a library must not publish a logging backend for its users.
+            "ch.qos.logback"          % "logback-classic"          % logbackVersion % Test,
             "org.scalatest"          %% "scalatest"                % scalaTestVersion % Test,
             // JUnit 5 — for Java façade tests in src/test/java
             "org.junit.jupiter"       % "junit-jupiter-api"        % jupiterVersion % Test,

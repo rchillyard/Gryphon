@@ -590,12 +590,11 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
-| 1.6.1 | Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
-| 1.7.0 | One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`. **Binary-incompatible** — see the note below |
+| 1.7.0 | One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException` (**binary-incompatible** — see the note below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 
 ### Note on 1.7.0: `GraphException`
 
-Up to 1.6.1 Gryphon had two identical `GraphException` case classes, `core.GraphException` and
+Up to 1.6.0 Gryphon had two identical `GraphException` case classes, `core.GraphException` and
 `util.GraphException`. They were unrelated types, so catching one did not catch the other, and which one a
 method threw was effectively arbitrary. From 1.7.0 `core.GraphException` is the only one, and
 `util.GraphException` is a deprecated alias for it.
@@ -605,7 +604,7 @@ so existing code compiles unchanged — with a deprecation warning. Change the i
 `com.phasmidsoftware.gryphon.core.GraphException` to clear it.
 
 **Not binary compatible:** a type alias is erased, so the class `com.phasmidsoftware.gryphon.util.GraphException`
-is no longer in the jar. Code compiled against 1.6.1 or earlier must be recompiled. This is why 1.7.0 is a
+is no longer in the jar. Code compiled against 1.6.0 or earlier must be recompiled. This is why 1.7.0 is a
 minor release rather than a patch.
 
 ---

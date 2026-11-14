@@ -257,7 +257,14 @@ public class Graph<V> {
     /**
      * Returns whether every vertex is reachable from every other.
      *
+     * <p>Undirected graphs only. For a directed graph this throws
+     * {@link UnsupportedOperationException}, because connectivity there has two
+     * distinct meanings and neither is assumed: use {@link ConnectedComponents}
+     * for weak connectivity, treating edges as undirected, or
+     * {@link StronglyConnectedComponents#kosaraju(Graph)} for strong.</p>
+     *
      * @return {@code true} if the graph is connected.
+     * @throws UnsupportedOperationException if this graph is directed.
      */
     public boolean isConnected() {
         return JavaFacadeBridge$.MODULE$.isConnected(getScalaGraph());
@@ -267,7 +274,12 @@ public class Graph<V> {
      * Returns whether the vertices can be two-coloured so that no edge joins
      * two vertices of the same colour.
      *
+     * <p>Undirected graphs only. For a directed graph this throws
+     * {@link UnsupportedOperationException}: the Scala layer does not implement
+     * it there.</p>
+     *
      * @return {@code true} if the graph is bipartite.
+     * @throws UnsupportedOperationException if this graph is directed.
      */
     public boolean isBipartite() {
         return JavaFacadeBridge$.MODULE$.isBipartite(getScalaGraph());

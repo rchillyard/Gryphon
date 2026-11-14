@@ -88,6 +88,36 @@ public class GraphPropertiesTest {
         assertEquals(4.0 / 3.0, p.meanDegree(), 1e-12);
     }
 
+    /**
+     * `order`, `size`, `numberOfSelfLoops` and `isCyclic` are the properties that
+     * work on both kinds of graph. This pins that, so that narrowing any of them
+     * to undirected-only would fail here rather than in a user's code.
+     */
+    @Test
+    void the_shared_properties_work_on_a_directed_graph() {
+        Graph<Integer> g = Graph.directed();
+        g.addEdge(0, 1);
+        g.addEdge(1, 2);
+
+        assertEquals(3, g.order());
+        assertEquals(2, g.size());
+        assertEquals(0, g.numberOfSelfLoops());
+        assertFalse(g.isCyclic());
+    }
+
+    /**
+     * Connectivity of a digraph has two meanings, weak and strong, and the Scala
+     * layer commits to neither; `ConnectedComponents` and `Kosaraju` are the ways
+     * to ask. This pins the refusal so the documented behaviour stays true.
+     */
+    @Test
+    void isConnected_and_isBipartite_are_undefined_for_a_directed_graph() {
+        Graph<Integer> g = Graph.directed();
+        g.addEdge(0, 1);
+        assertThrows(UnsupportedOperationException.class, g::isConnected);
+        assertThrows(UnsupportedOperationException.class, g::isBipartite);
+    }
+
     @Test
     void degree_is_undefined_for_a_directed_graph() {
         Graph<Integer> g = Graph.directed();

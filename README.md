@@ -437,10 +437,20 @@ g.isConnected();        // true
 g.isBipartite();        // false — a 3-cycle cannot be two-coloured
 ```
 
-`degree`, `maxDegree` and `meanDegree` are undirected-only, and throw
-`GraphException` on a directed graph: a vertex there has an in-degree and an
-out-degree, not one degree. The rest apply to both, and `WeightedGraph` inherits
-all of them.
+`order`, `size`, `numberOfSelfLoops` and `isCyclic` apply to both kinds of graph,
+and `WeightedGraph` inherits all of them.
+
+Two groups do not:
+
+- `degree`, `maxDegree` and `meanDegree` throw `GraphException` on a directed
+  graph. A vertex of a digraph has an in-degree and an out-degree, not one
+  degree, and Gryphon does not currently offer either.
+- `isConnected` and `isBipartite` throw `UnsupportedOperationException` on a
+  directed graph: the Scala layer does not implement them there. Connectivity of
+  a digraph has two meanings — weak (ignoring direction) and strong (every
+  vertex reachable from every other) — and neither is assumed. Use
+  `ConnectedComponents` for the first and `StronglyConnectedComponents.kosaraju`
+  for the second.
 
 ### Minimum spanning tree (Prim)
 
@@ -588,7 +598,8 @@ Map<Integer, WeightedEdge<Integer, Double>> spt =
 |---|---|
 | `Graph.bfs` / `Graph.dfs` / `Graph.dfsAll` / `Graph.bfsUntil` | either |
 | `Graph.order` / `size` / `numberOfSelfLoops` | either |
-| `Graph.isCyclic` / `isConnected` / `isBipartite` | either |
+| `Graph.isCyclic` | either |
+| `Graph.isConnected` / `isBipartite` | undirected |
 | `Graph.degree` / `maxDegree` / `meanDegree` | undirected |
 | `ShortestPaths.dijkstra` | directed |
 | `ShortestPaths.bellmanFord` | directed |

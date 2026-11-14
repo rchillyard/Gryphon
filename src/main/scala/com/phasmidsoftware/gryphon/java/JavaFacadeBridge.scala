@@ -14,10 +14,12 @@ import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, 
 import com.phasmidsoftware.visitor.core.{*, given}
 import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
 import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
-// Split across two clauses to stay under the six-selector limit. Not a wildcard: every name here is
-// renamed because java.util.List, Map, Set and Optional would otherwise shadow Scala's own.
-import java.util.{ArrayList as JavaArrayList, Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap}
-import java.util.{List as JavaList, Map as JavaMap, Optional as JavaOptional, Set as JavaSet}
+// Exactly six selectors, in one clause, because Codacy enforces two rules that leave no other
+// option: more than six in a clause asks for a wildcard, and splitting the package across two
+// clauses is itself a finding. A wildcard is not available, since every name here is renamed to
+// stop java.util's List, Map and Set shadowing Scala's own. The two least-used names,
+// ArrayList and Set, are therefore written out in full at their use sites.
+import java.util.{Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap, List as JavaList, Map as JavaMap, Optional as JavaOptional}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
 
@@ -177,7 +179,7 @@ private[java] object JavaFacadeBridge:
    */
   private def extractWeightedEdges[V, E](g: com.phasmidsoftware.gryphon.core.EdgeGraph[V, E]
                                         ): JavaList[WeightedEdge[V, E]] =
-    val list = new JavaArrayList[WeightedEdge[V, E]]()
+    val list = new java.util.ArrayList[WeightedEdge[V, E]]()
     g.edges.foreach { e =>
       list.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }
@@ -213,7 +215,7 @@ private[java] object JavaFacadeBridge:
    * graph. Without it such a vertex was silently dropped, and every algorithm
    * — the component count in particular — behaved as if it were not there.
    */
-  def materialise[V](edges: JavaList[Edge[V]], vertices: JavaSet[V], directed: Boolean): AbstractGraph[V] =
+  def materialise[V](edges: JavaList[Edge[V]], vertices: java.util.Set[V], directed: Boolean): AbstractGraph[V] =
     if directed then
       val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
         vm + AttributedDirectedEdge(None, e.from, e.to)
@@ -229,7 +231,7 @@ private[java] object JavaFacadeBridge:
    * Adds any vertex of `vertices` that the edges did not already introduce.
    * Vertices already present are left alone, so their adjacencies survive.
    */
-  private def withIsolatedVertices[V](vm: VertexMap[V], vertices: JavaSet[V]): VertexMap[V] =
+  private def withIsolatedVertices[V](vm: VertexMap[V], vertices: java.util.Set[V]): VertexMap[V] =
     vertices.asScala.foldLeft(vm) { (acc, v) =>
       if acc.get(v).isDefined then acc else acc + Vertex.createWithBag(v)
     }
@@ -587,7 +589,7 @@ private[java] object JavaFacadeBridge:
       case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, ?] @unchecked =>
         ScalaTopSort.sort(dg) match
           case Some(order) =>
-            val javaList = new JavaArrayList[V]()
+            val javaList = new java.util.ArrayList[V]()
             order.foreach(javaList.add)
             JavaOptional.of(JavaCollections.unmodifiableList(javaList))
           case None =>
@@ -665,7 +667,7 @@ private[java] object JavaFacadeBridge:
   private def mstSeqToJavaList[V, E](
                                             result: Seq[com.phasmidsoftware.gryphon.core.Edge[V, E]]
                                     ): JavaList[WeightedEdge[V, E]] =
-    val javaList = new JavaArrayList[WeightedEdge[V, E]]()
+    val javaList = new java.util.ArrayList[WeightedEdge[V, E]]()
     result.foreach { e =>
       javaList.add(new WeightedEdge[V, E](e.white, e.black, e.attribute))
     }

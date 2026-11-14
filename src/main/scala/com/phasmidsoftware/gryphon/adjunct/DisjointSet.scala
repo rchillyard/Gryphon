@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.Connected
-import com.phasmidsoftware.gryphon.util.GraphException
+import com.phasmidsoftware.gryphon.core.GraphException
 import scala.annotation.tailrec
 
 /**

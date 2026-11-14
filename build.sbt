@@ -54,7 +54,10 @@ mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRe
 // and not recompiled is affected. This is why 1.7.0 is a minor release and not a patch.
 mimaBinaryIssueFilters ++= Seq(
   ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$")
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$"),
+  // core.DAG was a trait extending the DirectedGraph case class. Nothing referenced it, and nothing
+  // could: a case class may not extend another case class, so no concrete graph could ever be a DAG.
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.DAG")
 )
 
 // ============================================================================

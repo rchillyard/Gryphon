@@ -244,6 +244,8 @@ The Java API is the primary interface for students in INFO6205 at Northeastern U
 | `WeightedGraph.fromResource` | Loads a graph directly from a `.graph` resource file |
 | `ConnectedComponents` | Connected components of undirected graphs |
 | `TopologicalSort` | Topological sort of DAGs; `isDAG` predicate |
+| `ShortestPaths.bellmanFord` | Shortest paths with negative weights; detects negative cycles |
+| `ShortestPaths.acyclic` | Linear-time shortest paths in a DAG |
 | `StronglyConnectedComponents` | Kosaraju's algorithm |
 
 ### Building a graph from a resource file
@@ -284,9 +286,10 @@ g.addEdge(new WeightedEdge<>(1, 7, 0.19));
 
 ### BFS and DFS
 
-Both traversals return a parent map — a `Map<V, V>` where each entry `v → parent`
-records who discovered `v`. The start vertex maps to itself. Unreachable vertices
-are absent.
+Both traversals return a came-from map — a `Map<V, V>` where each entry
+`v → parent` records who discovered `v`. **The start vertex is absent**: it has no
+predecessor. So are unreachable vertices. This is the same convention as the
+Dijkstra SPT, the Prim MST and the Kosaraju SCC map.
 
 ```java
 Graph<String> g = Graph.undirected();
@@ -298,18 +301,42 @@ Map<String, String> bfsTree = g.bfs("A");
 boolean reachable = bfsTree.containsKey("D");   // true
 String parent     = bfsTree.get("C");           // "B"
 
-// Reconstruct path from D back to A
+// Reconstruct path from D back to A: walk until the key is absent.
 List<String> path = new ArrayList<>();
 String v = "D";
-while (!v.equals(bfsTree.get(v))) {
-    path.add(0, v);
+path.add(v);
+while (bfsTree.containsKey(v)) {
     v = bfsTree.get(v);
+    path.add(0, v);
 }
-path.add(0, v); // add start
 // path == ["A", "B", "C", "D"]
 
 Map<String, String> dfsTree = g.dfs("A");
 ```
+
+`dfs` explores only the component containing its start vertex. To cover the
+whole graph, use `dfsAll`, which restarts from each undiscovered vertex and
+returns a depth-first *forest*. One root per component is absent from the map,
+so the number of absent vertices is the number of components.
+
+```java
+Graph<Integer> g = Graph.undirected();
+g.addEdge(0, 1);
+g.addEdge(2, 3);          // a second, disjoint component
+
+g.dfs(0).size();          // 1 — only vertex 1, in the first component
+g.dfsAll().size();        // 2 — both components, less one root each
+```
+
+To stop as soon as you reach a known target, use `bfsUntil`. The came-from map
+then covers only what was discovered before stopping.
+
+```java
+Map<Integer, Integer> toGoal = g.bfsUntil(0, v -> v == 3);
+```
+
+It is named `bfsUntil` rather than being an overload of `bfs`, because a lambda
+could not then be resolved against the `Function<V, Iterable<V>>` overload.
 
 ### Shortest paths (Dijkstra)
 
@@ -318,7 +345,7 @@ Map<String, String> dfsTree = g.dfs("A");
 incoming edge to `v`. The start vertex is absent.
 
 ```java
-Graph<Integer> g = Graph.directed();
+WeightedGraph<Integer, Double> g = WeightedGraph.directedWeighted();
 g.addEdge(new WeightedEdge<>(0, 1,  5.0));
 g.addEdge(new WeightedEdge<>(0, 4,  9.0));
 g.addEdge(new WeightedEdge<>(0, 7,  8.0));
@@ -343,14 +370,87 @@ while (spt.containsKey(v)) {
 path.add(0, v); // add start vertex
 // path == [0, 4, 5, 2]
 
-// Option 3 — custom weight extractor, combiner, and comparator
+// Option 3 — custom cost type: combine, zero, and comparator
 Map<Integer, WeightedEdge<Integer, Double>> spt3 = ShortestPaths.dijkstra(
     g, 0,
-    e -> ((WeightedEdge<Integer, Double>) e).attribute(),
     Double::sum,
     0.0,
     Comparator.naturalOrder());
 ```
+
+### Shortest paths with negative weights (Bellman–Ford)
+
+Dijkstra assumes no edge makes a path cheaper the further you go, so it is wrong
+on negative weights. `ShortestPaths.bellmanFord` handles them. Where a negative
+cycle is reachable from the source no shortest path exists — each lap round the
+cycle is cheaper than the last — and the result is an empty `Optional`.
+
+```java
+WeightedGraph<Integer, Double> g = WeightedGraph.directedWeighted();
+g.addEdge(new WeightedEdge<>(0, 1,  1.0));
+g.addEdge(new WeightedEdge<>(1, 2, -2.0));
+g.addEdge(new WeightedEdge<>(0, 2,  0.5));
+
+Map<Integer, WeightedEdge<Integer, Double>> spt =
+    ShortestPaths.bellmanFord(g, 0).orElseThrow();
+
+spt.get(2).from();   // 1 — going via 1 costs −1.0, cheaper than the direct 0.5
+
+// A negative cycle is reported rather than thrown:
+g.addEdge(new WeightedEdge<>(2, 1, -1.0));
+ShortestPaths.bellmanFord(g, 0);   // Optional.empty()
+```
+
+An Option 3 overload takes `combine`, `zero` and a `Comparator`, as Dijkstra's does.
+
+### Shortest paths in a DAG
+
+If the graph is acyclic, `ShortestPaths.acyclic` relaxes edges in topological
+order, visiting each edge once. That is linear in the size of the graph — faster
+than both Dijkstra and Bellman–Ford — and negative weights are safe, because a
+DAG has no cycle for them to make cheaper.
+
+```java
+Map<Integer, WeightedEdge<Integer, Double>> spt = ShortestPaths.acyclic(dag, 0);
+```
+
+It throws `IllegalArgumentException` if the graph has a cycle; test first with
+`TopologicalSort.isDAG(g)` if you are not sure.
+
+### Graph properties and predicates
+
+```java
+Graph<Integer> g = Graph.undirected();
+g.addEdge(0, 1);
+g.addEdge(1, 2);
+g.addEdge(2, 0);
+
+g.order();              // 3 — the number of vertices, N
+g.size();               // 3 — the number of edges, M
+g.degree(0);            // 2
+g.maxDegree();          // 2
+g.meanDegree();         // 2.0, which is 2M/N
+g.numberOfSelfLoops();  // 0
+
+g.isCyclic();           // true
+g.isConnected();        // true
+g.isBipartite();        // false — a 3-cycle cannot be two-coloured
+```
+
+`order`, `size`, `numberOfSelfLoops` and `isCyclic` apply to both kinds of graph,
+and `WeightedGraph` inherits all of them.
+
+Two groups do not:
+
+- `degree`, `maxDegree` and `meanDegree` throw `GraphException` on a directed
+  graph. A vertex of a digraph has an in-degree and an out-degree, not one
+  degree, and Gryphon does not currently offer either.
+- `isConnected` and `isBipartite` throw `UnsupportedOperationException` on a
+  directed graph: the Scala layer does not implement them there. Connectivity of
+  a digraph has two meanings — weak (ignoring direction) and strong (every
+  vertex reachable from every other) — and neither is assumed. Use
+  `ConnectedComponents` for the first and `StronglyConnectedComponents.kosaraju`
+  for the second.
 
 ### Minimum spanning tree (Prim)
 
@@ -496,15 +596,24 @@ Map<Integer, WeightedEdge<Integer, Double>> spt =
 
 | Algorithm | Graph type required |
 |---|---|
-| `Graph.bfs` / `Graph.dfs` | either |
+| `Graph.bfs` / `Graph.dfs` / `Graph.dfsAll` / `Graph.bfsUntil` | either |
+| `Graph.order` / `size` / `numberOfSelfLoops` | either |
+| `Graph.isCyclic` | either |
+| `Graph.isConnected` / `isBipartite` | undirected |
+| `Graph.degree` / `maxDegree` / `meanDegree` | undirected |
 | `ShortestPaths.dijkstra` | directed |
+| `ShortestPaths.bellmanFord` | directed |
+| `ShortestPaths.acyclic` | directed, and acyclic |
 | `MinimumSpanningTree.prim` | undirected |
 | `MinimumSpanningTree.kruskal` | undirected |
 | `MinimumSpanningTree.boruvka` | undirected |
 | `StronglyConnectedComponents.kosaraju` | directed |
 
 Calling an algorithm with the wrong graph type throws `IllegalStateException`
-with a descriptive message.
+with a descriptive message. The exception is the degree family, which throws
+`GraphException`: it is a property of the graph rather than an algorithm over
+it, and the check happens in the Scala layer. `ShortestPaths.acyclic` throws
+`IllegalArgumentException` if the graph is directed but has a cycle.
 
 ---
 
@@ -590,7 +699,7 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
-| 1.7.0 | One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException` (**binary-incompatible** — see the note below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
+| 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 
 ### Note on 1.7.0: `GraphException`
 
@@ -606,6 +715,14 @@ so existing code compiles unchanged — with a deprecation warning. Change the i
 **Not binary compatible:** a type alias is erased, so the class `com.phasmidsoftware.gryphon.util.GraphException`
 is no longer in the jar. Code compiled against 1.6.0 or earlier must be recompiled. This is why 1.7.0 is a
 minor release rather than a patch.
+
+### Note on 1.7.0: `core.DAG` removed
+
+The trait `com.phasmidsoftware.gryphon.core.DAG` has been removed. It extended the `DirectedGraph` case
+class, so nothing could implement it — a case class may not extend another case class — and nothing in the
+library referenced it. No working code can have depended on it, but it was a public type, so its removal is
+listed here with the other binary-incompatible change above. For shortest paths in a DAG, use
+`AcyclicShortestPaths.shortestPaths` (Scala) or `ShortestPaths.acyclic` (Java).
 
 ---
 

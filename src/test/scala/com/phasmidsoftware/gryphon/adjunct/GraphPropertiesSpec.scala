@@ -198,3 +198,31 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
         graph.inDegree(v) shouldBe graph.degree(v)
         graph.outDegree(v) shouldBe graph.degree(v)
     }
+
+  behavior of "an undirected edge with no attribute"
+
+  // The builder used to make these AttributedDirectedEdges, which UndirectedGraph.edges then
+  // discarded: the adjacency was there, so degree counted it, but edges and M did not.
+  it should "appear in edges and M, consistently with degree" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, None, Undirected)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.edges.size shouldBe 1
+        graph.M shouldBe 1
+        graph.degree(0) shouldBe 1
+        graph.degree(1) shouldBe 1
+      case other => fail(s"unexpected: $other")
+
+  it should "mix with attributed edges without being lost" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.5), Undirected),
+      Triplet(1, 2, None, Undirected)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+        graph.edges.size shouldBe 2
+        graph.M shouldBe 2
+        graph.degree(1) shouldBe 2
+      case other => fail(s"unexpected: $other")

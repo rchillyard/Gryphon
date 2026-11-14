@@ -99,7 +99,10 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * This is consistent with `UndirectedGraph.addEdge` which also delegates
    * to `VertexMap.+[E]`.
    */
-  override def addEdge(edge: Edge[V, E]): DirectedGraph[V, E] =
+  /** A directed graph admits directed edges only. */
+  type EdgeT = DirectedEdge[V, E]
+
+  override def addEdge(edge: DirectedEdge[V, E]): DirectedGraph[V, E] =
     copy(vertexMap + edge)
 
   /**

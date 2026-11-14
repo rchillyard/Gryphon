@@ -215,7 +215,27 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    * @param edge the edge to add.
    * @return a new `EdgeGraph[V, E]` containing the added edge.
    */
-  def addEdge(edge: Edge[V, E]): EdgeGraph[V, E]
+  /**
+   * The kind of edge this graph admits.
+   *
+   * An undirected graph admits `UndirectedEdge`s and a directed one `DirectedEdge`s. Before 2.0.0
+   * `addEdge` took any `Edge`, so either graph would accept either kind — and the mismatch was not
+   * rejected but silently absorbed, leaving the graph inconsistent with itself: the adjacency was
+   * added, so `degree` counted it, while `edges` and `M`, which select by edge type, did not.
+   *
+   * Making this a type member rather than narrowing `addEdge`'s parameter in each subclass is what
+   * Scala allows: a parameter type may not be narrowed in an override, since that would break
+   * substitutability, but an abstract type member may be refined.
+   */
+  type EdgeT <: Edge[V, E]
+
+  /**
+   * Adds an edge, which must be of the kind this graph admits.
+   *
+   * @param edge the edge to add.
+   * @return a graph including `edge`.
+   */
+  def addEdge(edge: EdgeT): EdgeGraph[V, E]
 
   /**
    * Returns the number of self-loops in the graph

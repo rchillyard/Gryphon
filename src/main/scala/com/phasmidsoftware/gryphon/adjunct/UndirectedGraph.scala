@@ -27,7 +27,10 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *             an ending vertex (`black`), and an associated attribute that defines the edge.
    * @return a new instance of the graph that includes the specified edge and updated vertices.
    */
-  def addEdge(edge: Edge[V, E]): UndirectedGraph[V, E] =
+  /** An undirected graph admits undirected edges only. */
+  type EdgeT = UndirectedEdge[V, E]
+
+  def addEdge(edge: UndirectedEdge[V, E]): UndirectedGraph[V, E] =
     copy(vertexMap + edge)
 
   /**
@@ -199,8 +202,12 @@ object UndirectedGraph {
               z.createVerticesFromTriplet[E, EdgeType](f) {
                         case (vv1, vv2, Some(e)) =>
                           AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
-                        case (vv1, vv2, None) => // TODO fix this case so that it doesn't use a directed edge.
-                          AdjacencyEdge(AttributedDirectedEdge(None, vv1.attribute, vv2.attribute))
+                        case (vv1, vv2, None) =>
+                          // An edge with no attribute is still an edge of this graph, so it must be
+                          // undirected like the rest. It used to be an AttributedDirectedEdge, which
+                          // UndirectedGraph.edges then discarded — the graph counted the adjacency in
+                          // `degree` but not the edge in `edges` or `M`.
+                          AdjacencyEdge(UndirectedEdge(None, vv1.attribute, vv2.attribute))
                       }(!t._4.oneWay)
                       (t)
           }

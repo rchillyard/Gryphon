@@ -77,22 +77,13 @@ trait Graph[V] extends Traversable[V]:
   def isCyclic: Boolean
 
 
-  /**
-   * Returns true if this graph is connected.
-   *
-   * For undirected graphs: true iff every vertex is reachable from every other.
-   * For directed graphs: semantics (strong vs weak connectivity) are
-   * implementation-defined and not yet supported — throws UnsupportedOperationException.
-   */
-  def isConnected: Boolean
-
-  /**
-   * Returns true if this graph is bipartite (2-colorable).
-   *
-   * For undirected graphs: true iff the graph contains no odd-length cycle.
-   * For directed graphs: not yet implemented — throws UnsupportedOperationException.
-   */
-  def isBipartite: Boolean
+  // isConnected and isBipartite are deliberately NOT declared here. They are meaningful for an
+  // undirected graph and ambiguous for a directed one — connectivity of a digraph is either weak
+  // or strong, and this library commits to neither — so they live on UndirectedGraph alone.
+  // Until 2.0.0 they were abstract members of this trait and DirectedGraph implemented both as
+  // `throw UnsupportedOperationException`, which made a run-time failure out of something the
+  // compiler can decide. For a digraph, use ConnectedComponents for weak connectivity and
+  // Kosaraju for strong.
 
   /**
    * Retrieves the vertex map representation of the graph.
@@ -215,7 +206,27 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    * @param edge the edge to add.
    * @return a new `EdgeGraph[V, E]` containing the added edge.
    */
-  def addEdge(edge: Edge[V, E]): EdgeGraph[V, E]
+  /**
+   * The kind of edge this graph admits.
+   *
+   * An undirected graph admits `UndirectedEdge`s and a directed one `DirectedEdge`s. Before 2.0.0
+   * `addEdge` took any `Edge`, so either graph would accept either kind — and the mismatch was not
+   * rejected but silently absorbed, leaving the graph inconsistent with itself: the adjacency was
+   * added, so `degree` counted it, while `edges` and `M`, which select by edge type, did not.
+   *
+   * Making this a type member rather than narrowing `addEdge`'s parameter in each subclass is what
+   * Scala allows: a parameter type may not be narrowed in an override, since that would break
+   * substitutability, but an abstract type member may be refined.
+   */
+  type EdgeT <: Edge[V, E]
+
+  /**
+   * Adds an edge, which must be of the kind this graph admits.
+   *
+   * @param edge the edge to add.
+   * @return a graph including `edge`.
+   */
+  def addEdge(edge: EdgeT): EdgeGraph[V, E]
 
   /**
    * Returns the number of self-loops in the graph

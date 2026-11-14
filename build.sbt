@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-import com.typesafe.tools.mima.core.{MissingClassProblem, ProblemFilters, ReversedMissingMethodProblem}
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleResultTypeProblem, MissingClassProblem, ProblemFilters, ReversedMissingMethodProblem}
 
 ThisBuild / version := "2.0.0"
 
@@ -56,7 +56,28 @@ mimaBinaryIssueFilters ++= Seq(
   // for a directed graph (count edges whose tail is v) is silently wrong for an undirected one,
   // where both endpoints count, so leaving them abstract makes every implementor answer.
   ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeGraph.inDegree"),
-  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeGraph.outDegree")
+  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeGraph.outDegree"),
+  // addEdge now takes the graph's own edge kind (EdgeGraph#EdgeT) rather than any Edge, so the
+  // erased signature changed. Deliberate, and the point of the change: an UndirectedGraph used to
+  // accept a DirectedEdge and absorb it silently, leaving the graph inconsistent with itself —
+  // degree counted the adjacency while edges and M, which select by edge type, did not.
+  ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.addEdge(com.phasmidsoftware.gryphon.core.Edge)com.phasmidsoftware.gryphon.adjunct.DirectedGraph"),
+  ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.addEdge(com.phasmidsoftware.gryphon.core.Edge)com.phasmidsoftware.gryphon.adjunct.UndirectedGraph"),
+  // isConnected and isBipartite are gone from the Graph trait and from DirectedGraph, where they
+  // were implemented as `throw UnsupportedOperationException`. They are meaningful only for an
+  // undirected graph, so `digraph.isConnected` is now a compile error rather than a run-time one.
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.isConnected()Boolean"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.isBipartite()Boolean"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.isConnected()Boolean"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.isBipartite()Boolean"),
+  // prim and dijkstra took Traversable[V], which says nothing about orientation, while the other
+  // seven algorithms already demanded DirectedGraph or UndirectedGraph. They now match: prim takes
+  // an UndirectedGraph and dijkstra a DirectedGraph. The $default$5 entries are the synthetic
+  // accessors for their default Random argument, whose signatures move with them.
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim$default$5"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra$default$5")
 )
 
 // ============================================================================

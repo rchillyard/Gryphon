@@ -56,21 +56,11 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
 
   def isCyclic: Boolean = TopologicalSort.sort(this).isEmpty
 
-  /**
-   * Not yet implemented for directed graphs.
-   * For directed graphs, connectivity has two distinct notions:
-   * weak (treating edges as undirected) and strong (every vertex reachable
-   * from every other via directed paths). Use ConnectedComponents for
-   * undirected connectivity or Kosaraju for strongly connected components.
-   */
-  def isConnected: Boolean =
-    throw UnsupportedOperationException("isConnected is not yet implemented for DirectedGraph — use ConnectedComponents or Kosaraju")
-
-  /**
-   * Not yet implemented for directed graphs.
-   */
-  def isBipartite: Boolean =
-    throw UnsupportedOperationException("isBipartite is not yet implemented for DirectedGraph")
+  // There is no isConnected or isBipartite here, and that is the point: both used to be declared
+  // on the Graph trait and implemented here as `throw UnsupportedOperationException`. Connectivity
+  // of a digraph has two meanings, weak and strong, and this library commits to neither — so
+  // rather than failing at run time, `digraph.isConnected` no longer compiles. Use
+  // ConnectedComponents for weak connectivity, or Kosaraju for strong.
 
   /**
    * Computes shortest paths from `start` using Bellman-Ford-Moore.
@@ -99,7 +89,10 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    * This is consistent with `UndirectedGraph.addEdge` which also delegates
    * to `VertexMap.+[E]`.
    */
-  override def addEdge(edge: Edge[V, E]): DirectedGraph[V, E] =
+  /** A directed graph admits directed edges only. */
+  type EdgeT = DirectedEdge[V, E]
+
+  override def addEdge(edge: DirectedEdge[V, E]): DirectedGraph[V, E] =
     copy(vertexMap + edge)
 
   /**

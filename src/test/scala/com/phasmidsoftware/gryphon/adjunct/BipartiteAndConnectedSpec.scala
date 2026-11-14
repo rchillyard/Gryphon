@@ -7,6 +7,7 @@ package com.phasmidsoftware.gryphon.adjunct
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
+import com.phasmidsoftware.gryphon.traverse.ConnectedComponents
 import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -106,15 +107,24 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
   // isConnected — DirectedGraph throws
   // -------------------------------------------------------------------------
 
-  behavior of "DirectedGraph.isConnected"
+  behavior of "DirectedGraph and isConnected"
 
-  it should "throw UnsupportedOperationException" in :
+  // Until 2.0.0 this spec asserted that `g.isConnected` threw UnsupportedOperationException.
+  // It no longer compiles: isConnected is not declared on a directed graph at all, because
+  // connectivity of a digraph is either weak or strong and the library commits to neither.
+  // There is no run-time behaviour left to assert, so what follows checks the replacement —
+  // ConnectedComponents, which gives the weak reading.
+  it should "be answered for a digraph by ConnectedComponents instead" in :
+    // Attributed triplets: ConnectedComponents cannot currently handle attribute-less ones,
+    // which surface as VertexPair connexions and make Connexions.addConnexion throw.
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
-      Triplet(0, 1, None, Directed)
+      Triplet(0, 1, Some(()), Directed),
+      Triplet(2, 3, Some(()), Directed)
     )
     DirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        an[UnsupportedOperationException] should be thrownBy g.isConnected
+        val (_, componentMap) = ConnectedComponents.components[Int, Unit](g)
+        componentMap.values.toSet.size shouldBe 2 // two weakly connected components
       case other => fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
@@ -228,13 +238,16 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
   // isBipartite — DirectedGraph throws
   // -------------------------------------------------------------------------
 
-  behavior of "DirectedGraph.isBipartite"
+  behavior of "DirectedGraph and isBipartite"
 
-  it should "throw UnsupportedOperationException" in :
+  // As above: `g.isBipartite` on a digraph no longer compiles rather than throwing, so there is
+  // nothing to assert at run time. The Java façade, which cannot express the distinction, still
+  // refuses it there — see GraphPropertiesTest.
+  it should "still be available on the undirected graph built from the same vertices" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
-      Triplet(0, 1, None, Directed)
+      Triplet(0, 1, None, Undirected)
     )
-    DirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
-      case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        an[UnsupportedOperationException] should be thrownBy g.isBipartite
+    UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
+        g.isBipartite shouldBe true
       case other => fail(s"unexpected: $other")

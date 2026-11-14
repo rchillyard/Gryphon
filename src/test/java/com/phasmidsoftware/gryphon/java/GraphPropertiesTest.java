@@ -109,13 +109,18 @@ public class GraphPropertiesTest {
      * Connectivity of a digraph has two meanings, weak and strong, and the Scala
      * layer commits to neither; `ConnectedComponents` and `Kosaraju` are the ways
      * to ask. This pins the refusal so the documented behaviour stays true.
+     *
+     * <p>From 2.0.0 these are not declared on a directed graph at all, so Scala
+     * callers get a compile error. Java cannot express that, so the façade checks
+     * and throws {@code GraphException} — the same exception as the degree family,
+     * where it used to be {@code UnsupportedOperationException}.</p>
      */
     @Test
     void isConnected_and_isBipartite_are_undefined_for_a_directed_graph() {
         Graph<Integer> g = Graph.directed();
         g.addEdge(0, 1);
-        assertThrows(UnsupportedOperationException.class, g::isConnected);
-        assertThrows(UnsupportedOperationException.class, g::isBipartite);
+        assertThrows(GraphException.class, g::isConnected);
+        assertThrows(GraphException.class, g::isBipartite);
     }
 
     @Test

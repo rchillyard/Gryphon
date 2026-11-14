@@ -283,14 +283,16 @@ public class Graph<V> {
     /**
      * Returns whether every vertex is reachable from every other.
      *
-     * <p>Undirected graphs only. For a directed graph this throws
-     * {@link UnsupportedOperationException}, because connectivity there has two
+     * <p>Undirected graphs only, because connectivity of a directed graph has two
      * distinct meanings and neither is assumed: use {@link ConnectedComponents}
      * for weak connectivity, treating edges as undirected, or
      * {@link StronglyConnectedComponents#kosaraju(Graph)} for strong.</p>
      *
+     * <p>In Scala this is not declared on a directed graph, so the compiler rejects
+     * it. Java cannot express that, so the façade checks and throws instead.</p>
+     *
      * @return {@code true} if the graph is connected.
-     * @throws UnsupportedOperationException if this graph is directed.
+     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
      */
     public boolean isConnected() {
         return JavaFacadeBridge$.MODULE$.isConnected(getScalaGraph());
@@ -300,12 +302,11 @@ public class Graph<V> {
      * Returns whether the vertices can be two-coloured so that no edge joins
      * two vertices of the same colour.
      *
-     * <p>Undirected graphs only. For a directed graph this throws
-     * {@link UnsupportedOperationException}: the Scala layer does not implement
-     * it there.</p>
+     * <p>Undirected graphs only; see {@link #isConnected()} for why, and for why
+     * Scala callers get a compile error where Java callers get an exception.</p>
      *
      * @return {@code true} if the graph is bipartite.
-     * @throws UnsupportedOperationException if this graph is directed.
+     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
      */
     public boolean isBipartite() {
         return JavaFacadeBridge$.MODULE$.isBipartite(getScalaGraph());

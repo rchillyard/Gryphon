@@ -14,7 +14,10 @@ import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, 
 import com.phasmidsoftware.visitor.core.{*, given}
 import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
 import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
-import java.util.{ArrayList as JavaArrayList, Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap, List as JavaList, Map as JavaMap, Optional as JavaOptional, Set as JavaSet}
+// Split across two clauses to stay under the six-selector limit. Not a wildcard: every name here is
+// renamed because java.util.List, Map, Set and Optional would otherwise shadow Scala's own.
+import java.util.{ArrayList as JavaArrayList, Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap}
+import java.util.{List as JavaList, Map as JavaMap, Optional as JavaOptional, Set as JavaSet}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
 

@@ -11,7 +11,10 @@ import com.phasmidsoftware.gryphon.parse.Parseable
 // rebind to the Java façade class. BellmanFord, AcyclicShortestPaths, Boruvka and Kosaraju are
 // written out in full at their use sites instead.
 import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
-import com.phasmidsoftware.visitor.core.{*, given}
+// Visitor's own Monoid and Zero are hidden: Gryphon's algorithms take cats.kernel.Monoid now,
+// and the wildcard would otherwise make the two ambiguous.
+import cats.kernel.Monoid
+import com.phasmidsoftware.visitor.core.{Monoid as _, *, given}
 import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
 import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
 // Exactly six selectors, in one clause, because Codacy enforces two rules that leave no other
@@ -294,7 +297,7 @@ private[java] object JavaFacadeBridge:
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     given Monoid[E] with
-      def identity: E = zero
+      def empty: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
     val weightedGraph = materialiseWeighted[V, E](edges)
@@ -313,7 +316,9 @@ private[java] object JavaFacadeBridge:
     given Random = Random(0)
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-    given Zero[Double] = summon[Zero[Double]]
+    // Prim compares edge weights and never accumulates them, so only `empty` is ever used.
+    // Cats has no identity-only type class — a lone identity satisfies no law — so this is a
+    // Monoid whose combine is the honest one for Double rather than a stub.
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = MST.prim[V, Double](weightedGraph, start)
     edgeResultToJavaMap(result)
@@ -336,8 +341,12 @@ private[java] object JavaFacadeBridge:
     given Random = Random(0)
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
-    given Zero[E] with
-      def identity: E = edges.get(0).attribute
+    // As above, Prim never accumulates, so combine is never called; with a caller-supplied
+    // attribute type there is nothing sensible to combine with, so it returns empty.
+    given Monoid[E] with
+      def empty: E = edges.get(0).attribute
+
+      def combine(x: E, y: E): E = empty
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = MST.prim[V, E](weightedGraph, start)
     edgeResultToJavaMap(result)
@@ -381,9 +390,6 @@ private[java] object JavaFacadeBridge:
                               edges: JavaList[WeightedEdge[V, Double]]
                       ): JavaList[WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-    given Monoid[Double] with
-      def identity: Double = 0.0
-      def combine(x: Double, y: Double): Double = x + y
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
     mstSeqToJavaList(result)
@@ -402,8 +408,8 @@ private[java] object JavaFacadeBridge:
                          ): JavaList[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
     given Monoid[E] with
-      def identity: E = edges.get(0).attribute
-      def combine(x: E, y: E): E = identity
+      def empty: E = edges.get(0).attribute
+      def combine(x: E, y: E): E = empty
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
     mstSeqToJavaList(result)
@@ -422,10 +428,6 @@ private[java] object JavaFacadeBridge:
                           ): JavaOptional[JavaMap[V, WeightedEdge[V, Double]]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
-    given Monoid[Double] with
-      def identity: Double = 0.0
-
-      def combine(x: Double, y: Double): Double = x + y
     optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, Double](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
@@ -447,7 +449,7 @@ private[java] object JavaFacadeBridge:
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     given Monoid[E] with
-      def identity: E = zero
+      def empty: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
     optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, E](materialiseWeighted(edges), start))
@@ -466,10 +468,6 @@ private[java] object JavaFacadeBridge:
                                    ): JavaMap[V, WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
-    given Monoid[Double] with
-      def identity: Double = 0.0
-
-      def combine(x: Double, y: Double): Double = x + y
     edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths[V, Double](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
@@ -486,7 +484,7 @@ private[java] object JavaFacadeBridge:
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     given Monoid[E] with
-      def identity: E = zero
+      def empty: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
     edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths[V, E](materialiseWeighted(edges), start))

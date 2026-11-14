@@ -4,7 +4,7 @@ import scala.annotation.unused
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
-import com.phasmidsoftware.visitor.core.Monoid
+import cats.kernel.Monoid
 import scala.util.Random
 
 /**

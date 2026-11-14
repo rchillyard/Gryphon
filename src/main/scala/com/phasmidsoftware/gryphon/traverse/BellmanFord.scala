@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
-import com.phasmidsoftware.visitor.core.Monoid
+import cats.kernel.Monoid
 import scala.collection.mutable
 
 /**
@@ -48,7 +48,7 @@ object BellmanFord:
     val V = graph.N
 
     // NOTE Create all the working data structures.
-    val dist: mutable.Map[V, E] = mutable.Map(start -> em.identity)
+    val dist: mutable.Map[V, E] = mutable.Map(start -> em.empty)
     val pred: mutable.Map[V, DirectedEdge[V, E]] = mutable.Map.empty
     val onQueue: mutable.Set[V] = mutable.Set(start)
     val enqueued: mutable.Map[V, Int] = mutable.Map(start -> 1)

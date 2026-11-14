@@ -11,6 +11,9 @@ ThisBuild / javacOptions ++= Seq("--release", "21")
 val scalaVersionNumber  = "3.9.0" // the current LTS
 val scalaTestVersion    = "3.2.20"
 val jupiterVersion      = "6.0.3"
+// cats-kernel only: Eq, Order, Semigroup and Monoid, with no transitive dependencies of its own.
+// Gryphon needs none of cats-core, so the dependency list grows by exactly one small jar.
+val catsKernelVersion   = "2.13.0"
 val jupiterInterfaceVersion = "0.19.0"
 val visitorVersion      = "1.7.0"
 val flogVersion         = "1.1.0"
@@ -77,7 +80,39 @@ mimaBinaryIssueFilters ++= Seq(
   ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim"),
   ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim$default$5"),
   ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra$default$5")
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra$default$5"),
+  // The typeclasses moved to cats-kernel, so every signature with a Monoid or Zero context bound
+  // changed: Visitor's Monoid/Zero became cats.kernel.Monoid. Nothing about the algorithms needed
+  // the bespoke versions; the two Monoids are the same abstraction, Cats' with laws and instances.
+  // Prim and Borůvka are slightly over-constrained as a result — they compare weights but never
+  // accumulate, so Zero was enough — but Cats has no identity-only class, deliberately, since a
+  // lone identity satisfies no law.
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka.mst"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.shortestPaths"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.DijkstraTraversal.apply"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.DijkstraTraversal.copy"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.DijkstraTraversal.this"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.PrimTraversal.apply"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.PrimTraversal.copy"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.PrimTraversal.this"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.WeightedTraversal.this"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex.apply"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.core.Vertex.createRelaxableWithSet"),
+  // util.HasZero is deleted. It was an identity-only type class whose own comment read "I suppose
+  // we could get it from Cats but that seems like overkill", and nothing outside its own file ever
+  // referenced it. cats.kernel.Monoid is the Cats answer it anticipated.
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroUnit"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroUnit$"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroBoolean"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroBoolean$"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroInt"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroInt$"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble$")
 )
 
 // ============================================================================
@@ -93,6 +128,7 @@ lazy val root = (project in file("."))
 
           libraryDependencies ++= Seq(
             "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
+            "org.typelevel"          %% "cats-kernel"              % catsKernelVersion,
             "com.phasmidsoftware"    %% "visitor"                  % visitorVersion,
             "com.phasmidsoftware"    %% "flog"                     % flogVersion,
             "org.slf4j"               % "slf4j-api"                % slf4jVersion,

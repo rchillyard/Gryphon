@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{Connectivity, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.visitor.core.Monoid
+import cats.kernel.Monoid
 import scala.annotation.nowarn
 
 /**

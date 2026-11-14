@@ -10,7 +10,6 @@ import com.phasmidsoftware.gryphon.core.{Edge, EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.traverse.{MST, PrimTraversal, TraversalResult}
 import com.phasmidsoftware.gryphon.util.{FP, TryUsing}
-import com.phasmidsoftware.visitor.core.given
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.io.Source

@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.core
 
 import scala.annotation.nowarn
 import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
-import com.phasmidsoftware.visitor.core.Monoid
+import cats.kernel.Monoid
 import scala.math.Ordered.orderingToOrdered
 
 /**

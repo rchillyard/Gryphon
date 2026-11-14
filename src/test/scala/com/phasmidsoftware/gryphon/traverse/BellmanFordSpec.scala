@@ -84,7 +84,6 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   behavior of "BellmanFord — result structure"
 
-  import com.phasmidsoftware.visitor.core.given_Monoid_Double
 
   it should "return Some for a graph with no negative cycle" in :
     withNegativeGraph { graph =>

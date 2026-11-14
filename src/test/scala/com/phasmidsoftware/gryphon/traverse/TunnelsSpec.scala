@@ -6,7 +6,6 @@ package com.phasmidsoftware.gryphon.builder
 
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
 import com.phasmidsoftware.gryphon.traverse.{Boruvka, Kruskal}
-import com.phasmidsoftware.visitor.core.given_Monoid_Double
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success}

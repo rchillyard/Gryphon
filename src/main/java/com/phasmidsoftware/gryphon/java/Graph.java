@@ -235,6 +235,32 @@ public class Graph<V> {
     }
 
     /**
+     * Returns the in-degree of {@code vertex}: the number of edges arriving at it.
+     *
+     * <p>Unlike {@link #degree(Object)}, this works on both kinds of graph. In an undirected
+     * graph every edge can be traversed both ways, so the in-degree, the out-degree and the
+     * degree are the same number. A self-loop counts once towards each of the in- and
+     * out-degrees.</p>
+     *
+     * @param vertex the query vertex.
+     * @return the number of edges arriving at {@code vertex}.
+     */
+    public int inDegree(V vertex) {
+        return JavaFacadeBridge$.MODULE$.inDegree(getScalaGraph(), vertex);
+    }
+
+    /**
+     * Returns the out-degree of {@code vertex}: the number of edges leaving it.
+     * See {@link #inDegree(Object)} for how this behaves on an undirected graph.
+     *
+     * @param vertex the query vertex.
+     * @return the number of edges leaving {@code vertex}.
+     */
+    public int outDegree(V vertex) {
+        return JavaFacadeBridge$.MODULE$.outDegree(getScalaGraph(), vertex);
+    }
+
+    /**
      * Returns the number of self-loops: edges whose endpoints are the same vertex.
      *
      * @return the self-loop count.

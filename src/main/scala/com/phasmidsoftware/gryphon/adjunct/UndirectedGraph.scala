@@ -50,6 +50,17 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
   /**
    * Returns the maximum degree of any vertex in the graph.
    */
+  /**
+   * Returns the in-degree of `v`, which for an undirected graph is simply its degree:
+   * every edge can be traversed in both directions.
+   */
+  def inDegree(v: V): Int = degree(v)
+
+  /**
+   * Returns the out-degree of `v`, which for an undirected graph is simply its degree.
+   */
+  def outDegree(v: V): Int = degree(v)
+
   def maxDegree: Int =
     vertexMap.keySet.toSeq.map(degree).max
 

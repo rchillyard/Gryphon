@@ -434,6 +434,8 @@ g.addEdge(2, 0);
 g.order();              // 3 — the number of vertices, N
 g.size();               // 3 — the number of edges, M
 g.degree(0);            // 2
+g.inDegree(0);          // 2 — same as degree, in an undirected graph
+g.outDegree(0);         // 2
 g.maxDegree();          // 2
 g.meanDegree();         // 2.0, which is 2M/N
 g.numberOfSelfLoops();  // 0
@@ -446,11 +448,25 @@ g.isBipartite();        // false — a 3-cycle cannot be two-coloured
 `order`, `size`, `numberOfSelfLoops` and `isCyclic` apply to both kinds of graph,
 and `WeightedGraph` inherits all of them.
 
-Two groups do not:
+`inDegree` and `outDegree` apply to both as well. In an undirected graph every edge can be
+traversed both ways, so the in-degree, the out-degree and the degree are the same number; in a
+directed one they count arcs arriving and leaving, and a self-loop counts once towards each.
+
+```java
+Graph<Integer> d = Graph.directed();
+d.addEdge(0, 1);
+d.addEdge(0, 2);
+
+d.outDegree(0);   // 2
+d.inDegree(0);    // 0 — a source
+d.inDegree(2);    // 1
+```
+
+Two groups do not apply to both:
 
 - `degree`, `maxDegree` and `meanDegree` throw `GraphException` on a directed
   graph. A vertex of a digraph has an in-degree and an out-degree, not one
-  degree, and Gryphon does not currently offer either.
+  degree — use those.
 - `isConnected` and `isBipartite` throw `UnsupportedOperationException` on a
   directed graph: the Scala layer does not implement them there. Connectivity of
   a digraph has two meanings — weak (ignoring direction) and strong (every
@@ -604,6 +620,7 @@ Map<Integer, WeightedEdge<Integer, Double>> spt =
 |---|---|
 | `Graph.bfs` / `Graph.dfs` / `Graph.dfsAll` / `Graph.bfsUntil` | either |
 | `Graph.order` / `size` / `numberOfSelfLoops` | either |
+| `Graph.inDegree` / `outDegree` | either |
 | `Graph.isCyclic` | either |
 | `Graph.isConnected` / `isBipartite` | undirected |
 | `Graph.degree` / `maxDegree` / `meanDegree` | undirected |
@@ -705,6 +722,7 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
+| 2.0.0 | *In progress.* Javadoc published for the Java façade at `latest/javadoc`; `inDegree` and `outDegree`, defined for directed graphs as well as undirected (**binary-incompatible** for anyone implementing the `EdgeGraph` trait themselves: both are abstract members of it). See `docs/2.0.0-plan.md` |
 | 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 
 ### Note on 1.7.0: `GraphException`

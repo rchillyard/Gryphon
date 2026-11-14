@@ -157,3 +157,44 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.numberOfSelfLoops shouldBe 2
       case other => fail(s"unexpected: $other")
+  behavior of "inDegree and outDegree"
+
+  // 0→1, 0→2, 1→2, 3→0. Built directly, since the parser's triples are undirected here.
+  private def digraph: DirectedGraph[Int, Double] =
+    Seq((0, 1), (0, 2), (1, 2), (3, 0)).foldLeft(DirectedGraph[Int, Double]) { case (g, (f, t)) =>
+      g.addEdge(AttributedDirectedEdge(1.0, f, t)).asInstanceOf[DirectedGraph[Int, Double]]
+    }
+
+  it should "count arcs leaving a vertex" in :
+    digraph.outDegree(0) shouldBe 2
+    digraph.outDegree(1) shouldBe 1
+    digraph.outDegree(2) shouldBe 0 // a sink
+    digraph.outDegree(3) shouldBe 1
+
+  it should "count arcs arriving at a vertex" in :
+    digraph.inDegree(0) shouldBe 1
+    digraph.inDegree(1) shouldBe 1
+    digraph.inDegree(2) shouldBe 2
+    digraph.inDegree(3) shouldBe 0 // a source
+
+  // Every arc leaves one vertex and arrives at one, so each sum is the edge count.
+  // This catches a white/black mix-up that per-vertex assertions could miss.
+  it should "sum to the edge count, both ways" in :
+    val g = digraph
+    val vs = g.vertexMap.keySet
+    vs.toSeq.map(g.inDegree).sum shouldBe g.M
+    vs.toSeq.map(g.outDegree).sum shouldBe g.M
+
+  it should "swap when the graph is reversed" in :
+    val g = digraph
+    val r = g.reverse
+    for v <- g.vertexMap.keySet do
+      r.inDegree(v) shouldBe g.outDegree(v)
+      r.outDegree(v) shouldBe g.inDegree(v)
+
+  it should "equal the degree for an undirected graph" in :
+    withPrimGraph { graph =>
+      for v <- graph.vertexMap.keySet do
+        graph.inDegree(v) shouldBe graph.degree(v)
+        graph.outDegree(v) shouldBe graph.degree(v)
+    }

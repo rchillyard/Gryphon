@@ -511,9 +511,20 @@ private[java] object JavaFacadeBridge:
     asUndirected(scalaGraph, "meanDegree").meanDegree
 
   def numberOfSelfLoops[V](scalaGraph: AbstractGraph[V]): Int =
+    asEdgeGraph(scalaGraph, "numberOfSelfLoops").numberOfSelfLoops
+
+  /** Defined for both kinds of graph, unlike `degree`. */
+  def inDegree[V](scalaGraph: AbstractGraph[V], v: V): Int =
+    asEdgeGraph(scalaGraph, "inDegree").inDegree(v)
+
+  /** Defined for both kinds of graph, unlike `degree`. */
+  def outDegree[V](scalaGraph: AbstractGraph[V], v: V): Int =
+    asEdgeGraph(scalaGraph, "outDegree").outDegree(v)
+
+  private def asEdgeGraph[V](scalaGraph: AbstractGraph[V], method: String): EdgeGraph[V, ?] =
     scalaGraph match
-      case eg: EdgeGraph[V, ?] @unchecked => eg.numberOfSelfLoops
-      case _ => throw GraphException("numberOfSelfLoops requires a graph with edges")
+      case eg: EdgeGraph[V, ?] @unchecked => eg
+      case _ => throw GraphException(s"$method requires a graph with edges")
 
   def isCyclic[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isCyclic
 

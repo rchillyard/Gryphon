@@ -223,3 +223,27 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    */
   def numberOfSelfLoops: Int =
     edges.count(e => e.white == e.black)
+
+  /**
+   * Returns the in-degree of `v`: the number of edges arriving at it.
+   *
+   * Unlike `degree`, which is defined for undirected graphs only, this is meaningful for both:
+   * in an undirected graph every edge is traversable both ways, so the in-degree, the out-degree
+   * and the degree coincide.
+   *
+   * Left abstract rather than given a default, because a default correct for one kind of graph
+   * would be silently wrong for the other.
+   *
+   * @param v the vertex.
+   * @return the number of edges arriving at `v`.
+   */
+  def inDegree(v: V): Int
+
+  /**
+   * Returns the out-degree of `v`: the number of edges leaving it.
+   * See `inDegree` for why this is abstract and how it behaves on an undirected graph.
+   *
+   * @param v the vertex.
+   * @return the number of edges leaving `v`.
+   */
+  def outDegree(v: V): Int

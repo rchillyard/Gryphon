@@ -42,6 +42,18 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *
    * @return true if the graph is cyclic, false otherwise.
    */
+  /**
+   * Returns the in-degree of `v`: the number of arcs whose head is `v`.
+   * A self-loop counts once, towards both the in-degree and the out-degree.
+   */
+  def inDegree(v: V): Int = edges.count(_.black == v)
+
+  /**
+   * Returns the out-degree of `v`: the number of arcs whose tail is `v`.
+   * A self-loop counts once, towards both the in-degree and the out-degree.
+   */
+  def outDegree(v: V): Int = edges.count(_.white == v)
+
   def isCyclic: Boolean = TopologicalSort.sort(this).isEmpty
 
   /**

@@ -42,19 +42,27 @@ public class GraphExceptionTest {
 
     @Test
     void a_java_caller_can_catch_it_around_maxDegree_and_meanDegree() {
+        GraphException fromMaxDegree = null;
         try {
             directedGraph().maxDegree();
             fail("maxDegree should have thrown on a directed graph");
-        } catch (GraphException expected) {
-            // the catch clause compiling is the assertion
+        } catch (GraphException e) {
+            fromMaxDegree = e;
         }
+        assertNotNull(fromMaxDegree);
+        assertTrue(fromMaxDegree.getMessage().contains("maxDegree"),
+                "message should name the method: " + fromMaxDegree.getMessage());
+
+        GraphException fromMeanDegree = null;
         try {
             directedGraph().meanDegree();
             fail("meanDegree should have thrown on a directed graph");
-        } catch (GraphException expected) {
-            // as above
+        } catch (GraphException e) {
+            fromMeanDegree = e;
         }
-        assertTrue(true, "both catch clauses compiled");
+        assertNotNull(fromMeanDegree);
+        assertTrue(fromMeanDegree.getMessage().contains("meanDegree"),
+                "message should name the method: " + fromMeanDegree.getMessage());
     }
 
     @Test

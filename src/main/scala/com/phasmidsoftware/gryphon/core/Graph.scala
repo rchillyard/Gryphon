@@ -77,22 +77,13 @@ trait Graph[V] extends Traversable[V]:
   def isCyclic: Boolean
 
 
-  /**
-   * Returns true if this graph is connected.
-   *
-   * For undirected graphs: true iff every vertex is reachable from every other.
-   * For directed graphs: semantics (strong vs weak connectivity) are
-   * implementation-defined and not yet supported — throws UnsupportedOperationException.
-   */
-  def isConnected: Boolean
-
-  /**
-   * Returns true if this graph is bipartite (2-colorable).
-   *
-   * For undirected graphs: true iff the graph contains no odd-length cycle.
-   * For directed graphs: not yet implemented — throws UnsupportedOperationException.
-   */
-  def isBipartite: Boolean
+  // isConnected and isBipartite are deliberately NOT declared here. They are meaningful for an
+  // undirected graph and ambiguous for a directed one — connectivity of a digraph is either weak
+  // or strong, and this library commits to neither — so they live on UndirectedGraph alone.
+  // Until 2.0.0 they were abstract members of this trait and DirectedGraph implemented both as
+  // `throw UnsupportedOperationException`, which made a run-time failure out of something the
+  // compiler can decide. For a digraph, use ConnectedComponents for weak connectivity and
+  // Kosaraju for strong.
 
   /**
    * Retrieves the vertex map representation of the graph.

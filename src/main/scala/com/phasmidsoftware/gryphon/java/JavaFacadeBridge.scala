@@ -528,9 +528,16 @@ private[java] object JavaFacadeBridge:
 
   def isCyclic[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isCyclic
 
-  def isConnected[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isConnected
+  /**
+   * Undirected only. A Scala caller gets a compile error on a digraph; Java has no way to express
+   * that, so the façade checks and throws, as it does for the degree family.
+   */
+  def isConnected[V](scalaGraph: AbstractGraph[V]): Boolean =
+    asUndirected(scalaGraph, "isConnected").isConnected
 
-  def isBipartite[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isBipartite
+  /** Undirected only; see `isConnected`. */
+  def isBipartite[V](scalaGraph: AbstractGraph[V]): Boolean =
+    asUndirected(scalaGraph, "isBipartite").isBipartite
 
   /**
    * Degree is defined for undirected graphs only: a vertex of a directed graph

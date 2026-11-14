@@ -71,7 +71,8 @@ Additionally, some algorithms and graph properties that are not directly covered
 - **Cycle detection** — `Graph.isCyclic` (undirected and directed)
 - **Bipartite checking** — `UndirectedGraph.isBipartite`
 - **Connectivity** — `UndirectedGraph.isConnected`
-- **Degree statistics** — `UndirectedGraph.degree`, `maxDegree`, `meanDegree`
+- **Degree statistics** — `UndirectedGraph.degree`, `maxDegree`, `meanDegree`;
+  `EdgeGraph.inDegree` and `outDegree`, which are defined for directed graphs too
 - **Self-loop count** — `EdgeGraph.numberOfSelfLoops`
 - **Union-Find** — `Connectivity` (used internally by Kruskal and Borůvka)
 - **Graph reversal** — `DirectedGraph.reverse` (used internally by Kosaraju)
@@ -155,9 +156,9 @@ TopologicalSort.sort(dag) match
 
 ```scala
 given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-import com.phasmidsoftware.visitor.core.given // provides Monoid[Double]
+// Monoid[Double] comes from cats-kernel's implicit scope; no import is needed.
 
-val result = ShortestPaths.dijkstra(graph, 0)
+val result = ShortestPaths.dijkstra(graph, 0)   // graph must be a DirectedGraph
 result.vertexTraverse(5).foreach(e => println(s"Shortest edge into 5: $e"))
 ```
 
@@ -202,13 +203,22 @@ val numSCCs = sccResult.values.toSet.size
 
 ```scala
 graph.isCyclic          // Boolean
-graph.isBipartite       // Boolean (undirected only)
-graph.isConnected       // Boolean (undirected only)
-graph.degree(v)         // Int (undirected only)
-graph.maxDegree         // Int (undirected only)
-graph.meanDegree        // Double (undirected only) — equals 2*M/N
 graph.numberOfSelfLoops // Int
+graph.inDegree(v)       // Int — for an undirected graph, the same as degree
+graph.outDegree(v)      // Int
+
+// Undirected only. These are not declared for a DirectedGraph, so calling one
+// on a digraph is a compile error rather than an exception.
+graph.isBipartite       // Boolean
+graph.isConnected       // Boolean
+graph.degree(v)         // Int
+graph.maxDegree         // Int
+graph.meanDegree        // Double — equals 2*M/N
 ```
+
+For a directed graph, use `ConnectedComponents` for weak connectivity,
+`StronglyConnectedComponents.kosaraju` for strong, and `inDegree`/`outDegree`
+in place of `degree`.
 
 ---
 
@@ -264,7 +274,7 @@ avoiding verbose `addEdge` calls in test code:
 WeightedGraph<Integer, Double> g = WeightedGraph.undirectedFromResource("prim.graph");
 
 // Option 3 — custom vertex and edge types
-WeightedGraph<Building, TunnelProperties> g = WeightedGraph.undirectedFromResource(
+WeightedGraph<Building, TunnelProperties> tunnels = WeightedGraph.undirectedFromResource(
     "tunnels.graph", Building::parse, TunnelProperties::parse);
 ```
 
@@ -283,11 +293,12 @@ g.addEdge("A", "B");
 g.addEdge("B", "C");
 g.addEdge("C", "A");
 
-// Weighted undirected graph
-Graph<Integer> g = Graph.undirected();
-g.addEdge(new WeightedEdge<>(0, 1, 0.26));
-g.addEdge(new WeightedEdge<>(0, 7, 0.16));
-g.addEdge(new WeightedEdge<>(1, 7, 0.19));
+// Weighted undirected graph. Note WeightedGraph, not Graph: a plain Graph<V>
+// accepts a WeightedEdge but keeps no weight, so the algorithms cannot use it.
+WeightedGraph<Integer, Double> w = WeightedGraph.undirectedWeighted();
+w.addEdge(new WeightedEdge<>(0, 1, 0.26));
+w.addEdge(new WeightedEdge<>(0, 7, 0.16));
+w.addEdge(new WeightedEdge<>(1, 7, 0.19));
 ```
 
 ### BFS and DFS
@@ -484,7 +495,7 @@ Two groups do not apply to both:
 mapping each non-source vertex to its cheapest MST edge. The start vertex is absent.
 
 ```java
-Graph<Integer> g = Graph.undirected();
+WeightedGraph<Integer, Double> g = WeightedGraph.undirectedWeighted();
 g.addEdge(new WeightedEdge<>(0, 7, 0.16));
 g.addEdge(new WeightedEdge<>(2, 3, 0.17));
 // ... add remaining edges
@@ -518,10 +529,9 @@ double primTotal   = primMst.values().stream().mapToDouble(WeightedEdge::attribu
 double kruskalTotal = mst.stream().mapToDouble(WeightedEdge::attribute).sum();
 // primTotal == kruskalTotal == 1.81
 
-// Option 3 — custom weight and comparator
+// Option 3 — custom comparator
 List<WeightedEdge<Integer, Double>> mst3 = MinimumSpanningTree.kruskal(
     g,
-    e -> ((WeightedEdge<Integer, Double>) e).attribute(),
     Comparator.naturalOrder());
 ```
 ### Minimum spanning tree (Borůvka)
@@ -574,10 +584,10 @@ Java-idiomatic API. Two implementations are available:
 
 ```java
 // Weighted Quick Union — O(log n) per operation
-Connectivity<String> c = Connectivity.createLazy("A", "B", "C", "D");
+Connectivity<String> c = Connectivity.create("A", "B", "C", "D");
 
 // Weighted Quick Union with path compression — amortised near-O(1)
-Connectivity<String> c = Connectivity.createOptimized("A", "B", "C", "D");
+Connectivity<String> optimized = Connectivity.createOptimized("A", "B", "C", "D");
 
 c.connect("A", "B");
 c.connect("C", "D");
@@ -599,20 +609,22 @@ Every algorithm method in the Java façade is available in two forms:
   read from `WeightedEdge.attribute()` and treated as `Double`. No
   configuration required.
 
-- **Option 3** — the caller supplies functional interfaces (`Function`,
-  `BinaryOperator`, `Comparator`) that control weight extraction and
-  comparison. This mirrors the typeclass abstraction of the Scala engine
+- **Option 3** — the caller supplies functional interfaces
+  (`BinaryOperator`, `Comparator`) that control how costs are combined and
+  compared. This mirrors the typeclass abstraction of the Scala engine
   and is suitable for non-`Double` weight types or custom orderings.
+  Algorithms that only compare costs, such as Prim, Kruskal and Borůvka, take
+  a `Comparator` alone; those that accumulate them, such as Dijkstra and
+  Bellman–Ford, also take a combiner and its identity.
 
 ```java
 // Option 1 — Dijkstra with Double weights
 Map<Integer, WeightedEdge<Integer, Double>> spt =
     ShortestPaths.dijkstra(g, 0);
 
-// Option 3 — Dijkstra with custom weight, combiner, and comparator
-Map<Integer, WeightedEdge<Integer, Double>> spt =
+// Option 3 — Dijkstra with a custom combiner, identity and comparator
+Map<Integer, WeightedEdge<Integer, Double>> spt3 =
     ShortestPaths.dijkstra(g, 0,
-        e -> ((WeightedEdge<Integer, Double>) e).attribute(),
         Double::sum,
         0.0,
         Comparator.naturalOrder());
@@ -726,8 +738,31 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
-| 2.0.0 | *In progress.* Javadoc published for the Java façade at `latest/javadoc`; `inDegree` and `outDegree`, defined for directed graphs as well as undirected (**binary-incompatible** for anyone implementing the `EdgeGraph` trait themselves: both are abstract members of it); `GraphException` is now unchecked, so a Java caller can catch it; `addEdge` accepts only the kind of edge its graph admits, closing a hole where a directed edge added to an undirected graph left the graph inconsistent with itself; `MST.prim` and `ShortestPaths.dijkstra` now require an undirected and a directed graph respectively, as the other algorithms already did; `isConnected` and `isBipartite` are no longer declared for directed graphs, so Scala rejects them at compile time and the Java façade throws `GraphException` rather than `UnsupportedOperationException`; the algorithms' type classes are now `cats.kernel.Monoid` instead of Visitor's `Monoid` and `Zero`, adding a dependency on `cats-kernel`. See `docs/2.0.0-plan.md` |
+| 2.0.0 | One `GraphException`; `core.DAG` and `util.HasZero` removed; `addEdge` constrained to the graph's own edge kind; `prim` and `dijkstra` require the right orientation; `isConnected` and `isBipartite` are undirected-only; `inDegree`/`outDegree` added; type classes moved to `cats-kernel`; Javadoc published for the Java façade. **Breaking** — see "Migrating from 1.x" below |
 | 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
+
+### Migrating from 1.x to 2.0.0
+
+Most code needs no change. Everything below is a compile error rather than a silent change of
+behaviour, so the compiler will find each site for you.
+
+| 1.x | 2.0.0 | Why |
+|---|---|---|
+| `com.phasmidsoftware.gryphon.util.GraphException` | `...core.GraphException` | The two identical classes are now one. The old name is a deprecated alias and still compiles; the class is gone from the jar, so recompile. |
+| `GraphException` caught as a checked exception in Java | unchecked | It extends `RuntimeException`, so a Java caller can finally write `catch (GraphException e)` — previously javac refused. |
+| `trait DAG[V, E]` | `AcyclicShortestPaths.shortestPaths`, or `ShortestPaths.acyclic` from Java | `DAG` extended the `DirectedGraph` case class, so nothing could implement it. Nothing did. |
+| `trait HasZero[T]` | `cats.kernel.Monoid[T]` | Unused dead code; Cats is the answer its own comment pointed at. |
+| `undirectedGraph.addEdge(someDirectedEdge)` | use an `UndirectedEdge` | It used to be accepted and silently mishandled: the adjacency was added, so `degree` counted it, while `edges` and `M` did not. |
+| `MST.prim(traversable, start)` | `MST.prim(undirectedGraph, start)` | Prim needs an undirected graph; the signature now says so. |
+| `ShortestPaths.dijkstra(traversable, start)` | `ShortestPaths.dijkstra(directedGraph, start)` | As above, for a directed graph. |
+| `directedGraph.isConnected` / `.isBipartite` | `ConnectedComponents` (weak) or `Kosaraju` (strong) | They used to throw `UnsupportedOperationException`; now they are not declared for a digraph, so the compiler says so. From Java, they throw `GraphException`. |
+| `visitor.core.Monoid` / `visitor.core.Zero` bounds | `cats.kernel.Monoid` | Same abstraction, with laws and standard instances. `identity` is called `empty`. A `Zero` bound becomes a `Monoid` bound. |
+| `import com.phasmidsoftware.visitor.core.given` for `Monoid[Double]` | delete the import | `cats-kernel` supplies it through the implicit scope. |
+
+Unchanged, in case you expect otherwise: `Ordering` is still `scala.math.Ordering` rather than
+`cats.kernel.Order`; `degree`, `maxDegree` and `meanDegree` are still undirected-only; and the Java
+façade's class and method names are the same throughout, so Java code that compiled against 1.7.0
+compiles against 2.0.0 unless it caught `UnsupportedOperationException` from the two predicates.
 
 ### Note on 1.7.0: `GraphException`
 

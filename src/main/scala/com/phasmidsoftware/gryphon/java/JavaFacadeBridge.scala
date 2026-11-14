@@ -3,13 +3,13 @@ package com.phasmidsoftware.gryphon.java
 import scala.annotation.unused
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
-import com.phasmidsoftware.gryphon.core.{AbstractGraph, EvaluableGraphNeighboursTraversal, VertexMap}
+import com.phasmidsoftware.gryphon.core.{AbstractGraph, EdgeGraph, EvaluableGraphNeighboursTraversal, GraphException, Vertex, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
-import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
+import com.phasmidsoftware.gryphon.traverse.{AcyclicShortestPaths, BellmanFord, ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
 import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
 import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
-import java.util.{ArrayList as JavaArrayList, Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap, List as JavaList, Map as JavaMap, Optional as JavaOptional}
+import java.util.{ArrayList as JavaArrayList, Collections as JavaCollections, Comparator as JavaComparator, LinkedHashMap as JavaLinkedHashMap, List as JavaList, Map as JavaMap, Optional as JavaOptional, Set as JavaSet}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
 
@@ -199,17 +199,32 @@ private[java] object JavaFacadeBridge:
    * Builds an immutable Scala graph from the Java canonical edge list,
    * using `Unit` as the edge attribute type (for BFS/DFS).
    * Folds over `VertexMap.+[E]` directly to ensure both endpoints exist.
+   *
+   * `vertices` carries the façade's whole vertex set, so that a vertex added
+   * with `addVertex` and never joined by an edge still exists in the Scala
+   * graph. Without it such a vertex was silently dropped, and every algorithm
+   * — the component count in particular — behaved as if it were not there.
    */
-  def materialise[V](edges: JavaList[Edge[V]], directed: Boolean): AbstractGraph[V] =
+  def materialise[V](edges: JavaList[Edge[V]], vertices: JavaSet[V], directed: Boolean): AbstractGraph[V] =
     if directed then
       val vm = edges.asScala.foldLeft(VertexMap[V]) { (vm, e) =>
         vm + AttributedDirectedEdge(None, e.from, e.to)
       }
-      DirectedGraph[V, Unit](vm)
+      DirectedGraph[V, Unit](withIsolatedVertices(vm, vertices))
     else
-      edges.asScala.foldLeft(UndirectedGraph[V, Unit](VertexMap[V])) { (g, e) =>
+      val g = edges.asScala.foldLeft(UndirectedGraph[V, Unit](VertexMap[V])) { (g, e) =>
         g.addEdge(UndirectedEdge((), e.from, e.to))
       }
+      UndirectedGraph[V, Unit](withIsolatedVertices(g.vertexMap, vertices))
+
+  /**
+   * Adds any vertex of `vertices` that the edges did not already introduce.
+   * Vertices already present are left alone, so their adjacencies survive.
+   */
+  private def withIsolatedVertices[V](vm: VertexMap[V], vertices: JavaSet[V]): VertexMap[V] =
+    vertices.asScala.foldLeft(vm) { (acc, v) =>
+      if acc.get(v).isDefined then acc else acc + Vertex.createWithBag(v)
+    }
 
   // ---------------------------------------------------------------------------
   // Materialisation — typed weighted directed
@@ -245,7 +260,7 @@ private[java] object JavaFacadeBridge:
 
     val weightedGraph = materialiseWeighted[V, Double](edges)
     val result = ShortestPaths.dijkstra[V, Double](weightedGraph, start)
-    sptToJavaMap(result)
+    edgeResultToJavaMap(result)
 
   // ---------------------------------------------------------------------------
   // Dijkstra — Option 3: custom type, combine + zero + comparator
@@ -274,7 +289,7 @@ private[java] object JavaFacadeBridge:
       def combine(x: E, y: E): E = combineFn.apply(x, y)
     val weightedGraph = materialiseWeighted[V, E](edges)
     val result = ShortestPaths.dijkstra[V, E](weightedGraph, start)
-    sptToJavaMap(result)
+    edgeResultToJavaMap(result)
 
   // ---------------------------------------------------------------------------
   // Prim — Option 1: Double weights
@@ -291,7 +306,7 @@ private[java] object JavaFacadeBridge:
     given Zero[Double] = summon[Zero[Double]]
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = MST.prim[V, Double](weightedGraph, start)
-    mstToJavaMap(result)
+    edgeResultToJavaMap(result)
 
   // ---------------------------------------------------------------------------
   // Prim — Option 3: custom type, Comparator only
@@ -315,7 +330,7 @@ private[java] object JavaFacadeBridge:
       def identity: E = edges.get(0).attribute
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = MST.prim[V, E](weightedGraph, start)
-    mstToJavaMap(result)
+    edgeResultToJavaMap(result)
 
   // ---------------------------------------------------------------------------
   // Kruskal — Option 1: Double weights
@@ -384,6 +399,166 @@ private[java] object JavaFacadeBridge:
     mstSeqToJavaList(result)
 
   // ---------------------------------------------------------------------------
+  // Bellman-Ford — Option 1: Double weights
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Shortest paths allowing negative edge weights.
+   * Empty if a negative cycle is reachable from `start`.
+   */
+  def bellmanFordDouble[V](
+                                  edges: JavaList[WeightedEdge[V, Double]],
+                                  start: V
+                          ): JavaOptional[JavaMap[V, WeightedEdge[V, Double]]] =
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    given Monoid[Double] with
+      def identity: Double = 0.0
+
+      def combine(x: Double, y: Double): Double = x + y
+    optionalEdgeResult(BellmanFord.shortestPaths[V, Double](materialiseWeighted(edges), start))
+
+  // ---------------------------------------------------------------------------
+  // Bellman-Ford — Option 3: custom type, combine + zero + comparator
+  // ---------------------------------------------------------------------------
+
+  /**
+   * As `bellmanFordDouble`, with a caller-supplied cost type. Like Dijkstra and
+   * unlike Prim/Kruskal/Borůvka, Bellman-Ford accumulates costs, so it needs a
+   * `Monoid` as well as an `Ordering`.
+   */
+  def bellmanFordCustom[V, E](
+                                     edges: JavaList[WeightedEdge[V, E]],
+                                     start: V,
+                                     combineFn: JavaBinaryOperator[E],
+                                     zero: E,
+                                     comparator: JavaComparator[E]
+                             ): JavaOptional[JavaMap[V, WeightedEdge[V, E]]] =
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    given Monoid[E] with
+      def identity: E = zero
+
+      def combine(x: E, y: E): E = combineFn.apply(x, y)
+    optionalEdgeResult(BellmanFord.shortestPaths[V, E](materialiseWeighted(edges), start))
+
+  // ---------------------------------------------------------------------------
+  // Acyclic shortest paths — Option 1: Double weights
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Shortest paths in a DAG, in topological order: linear time, and negative
+   * weights are allowed because a DAG has no cycles.
+   */
+  def acyclicShortestPathsDouble[V](
+                                           edges: JavaList[WeightedEdge[V, Double]],
+                                           start: V
+                                   ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    given Monoid[Double] with
+      def identity: Double = 0.0
+
+      def combine(x: Double, y: Double): Double = x + y
+    edgeResultToJavaMap(AcyclicShortestPaths.shortestPaths[V, Double](materialiseWeighted(edges), start))
+
+  // ---------------------------------------------------------------------------
+  // Acyclic shortest paths — Option 3: custom type
+  // ---------------------------------------------------------------------------
+
+  def acyclicShortestPathsCustom[V, E](
+                                              edges: JavaList[WeightedEdge[V, E]],
+                                              start: V,
+                                              combineFn: JavaBinaryOperator[E],
+                                              zero: E,
+                                              comparator: JavaComparator[E]
+                                      ): JavaMap[V, WeightedEdge[V, E]] =
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    given Monoid[E] with
+      def identity: E = zero
+
+      def combine(x: E, y: E): E = combineFn.apply(x, y)
+    edgeResultToJavaMap(AcyclicShortestPaths.shortestPaths[V, E](materialiseWeighted(edges), start))
+
+  // ---------------------------------------------------------------------------
+  // Graph properties
+  // ---------------------------------------------------------------------------
+
+  /** The number of vertices, N in Sedgewick's notation. */
+  def order[V](scalaGraph: AbstractGraph[V]): Int = scalaGraph.N
+
+  /** The number of edges, M in Sedgewick's notation. */
+  def size[V](scalaGraph: AbstractGraph[V]): Int = scalaGraph.M
+
+  def degree[V](scalaGraph: AbstractGraph[V], v: V): Int =
+    asUndirected(scalaGraph, "degree").degree(v)
+
+  def maxDegree[V](scalaGraph: AbstractGraph[V]): Int =
+    asUndirected(scalaGraph, "maxDegree").maxDegree
+
+  def meanDegree[V](scalaGraph: AbstractGraph[V]): Double =
+    asUndirected(scalaGraph, "meanDegree").meanDegree
+
+  def numberOfSelfLoops[V](scalaGraph: AbstractGraph[V]): Int =
+    scalaGraph match
+      case eg: EdgeGraph[V, ?] @unchecked => eg.numberOfSelfLoops
+      case _ => throw GraphException("numberOfSelfLoops requires a graph with edges")
+
+  def isCyclic[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isCyclic
+
+  def isConnected[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isConnected
+
+  def isBipartite[V](scalaGraph: AbstractGraph[V]): Boolean = scalaGraph.isBipartite
+
+  /**
+   * Degree is defined for undirected graphs only: a vertex of a directed graph
+   * has an in-degree and an out-degree, not one degree.
+   */
+  private def asUndirected[V](scalaGraph: AbstractGraph[V], method: String): UndirectedGraph[V, ?] =
+    scalaGraph match
+      case ug: UndirectedGraph[V, ?] @unchecked => ug
+      case _ => throw GraphException(s"$method requires an undirected graph")
+
+  // ---------------------------------------------------------------------------
+  // DFS over every component
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs DFS from every vertex not already discovered, so the came-from map
+   * covers the whole graph rather than one component. Each component's root is
+   * absent from the map, as the start vertex is for a single DFS.
+   */
+  def dfsAll[V](scalaGraph: AbstractGraph[V]): JavaMap[V, V] =
+    given Random = Random(0)
+
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+    val visitor = JournaledVisitor.withListJournalAndCameFrom[V, V]
+    cameFromToJavaMap(scalaGraph.dfsAll(visitor).asInstanceOf[JournaledVisitor[V, V, ?]])
+
+  // ---------------------------------------------------------------------------
+  // BFS stopping at a goal
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Runs BFS from `start`, stopping as soon as `goal` holds for a vertex.
+   * The came-from map then covers only what was discovered before stopping.
+   */
+  def bfsUntil[V](
+                         scalaGraph: AbstractGraph[V],
+                         start: V,
+                         goal: JavaFunction[V, java.lang.Boolean]
+                 ): JavaMap[V, V] =
+    given Random = Random(0)
+
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
+    val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+    val result = scalaGraph.bfs(visitor)(start, v => goal.apply(v).booleanValue())
+    cameFromToJavaMap(result.asInstanceOf[JournaledVisitor[V, V, ?]])
+
+  // ---------------------------------------------------------------------------
   // ConnectedComponents
   // ---------------------------------------------------------------------------
 
@@ -425,7 +600,7 @@ private[java] object JavaFacadeBridge:
     val directedGraph: DirectedGraph[V, Unit] =
       scalaGraph match
         case dg: DirectedGraph[V, Unit] @unchecked => dg
-        case _ => materialise(edges, directed = true)
+        case _ => materialise(edges, JavaCollections.emptySet[V](), directed = true)
                 .asInstanceOf[DirectedGraph[V, Unit]]
     val result = com.phasmidsoftware.gryphon.traverse.Kosaraju
             .stronglyConnectedComponents(directedGraph)
@@ -447,27 +622,18 @@ private[java] object JavaFacadeBridge:
     JavaCollections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------
-  // Result conversion — SPT (Dijkstra)
+  // Result conversion — any vertex-keyed map of edges
   // ---------------------------------------------------------------------------
 
-  private def sptToJavaMap[V, E](
-                                        result: com.phasmidsoftware.gryphon.traverse.TraversalResult[V, AttributedDirectedEdge[V, E]]
-                                ): JavaMap[V, WeightedEdge[V, E]] =
-    val javaMap = new JavaLinkedHashMap[V, WeightedEdge[V, E]]()
-    result.keySet.foreach { v =>
-      result.vertexTraverse(v).foreach { ade =>
-        javaMap.put(v, new WeightedEdge[V, E](ade.white, ade.black, ade.attribute))
-      }
-    }
-    JavaCollections.unmodifiableMap(javaMap)
-
-  // ---------------------------------------------------------------------------
-  // Result conversion — MST map (Prim)
-  // ---------------------------------------------------------------------------
-
-  private def mstToJavaMap[V, E](
-                                        result: com.phasmidsoftware.gryphon.traverse.TraversalResult[V, com.phasmidsoftware.gryphon.core.Edge[V, E]]
-                                ): JavaMap[V, WeightedEdge[V, E]] =
+  /**
+   * Converts a vertex-keyed traversal result into a Java map of `WeightedEdge`.
+   * Serves the SPT (Dijkstra, Bellman-Ford, acyclic) and the MST map (Prim).
+   * `TraversalResult` is invariant in its second parameter, hence the type
+   * parameter `X` rather than plain `Edge[V, E]`.
+   */
+  private def edgeResultToJavaMap[V, E, X <: com.phasmidsoftware.gryphon.core.Edge[V, E]](
+                                                                                                 result: com.phasmidsoftware.gryphon.traverse.TraversalResult[V, X]
+                                                                                         ): JavaMap[V, WeightedEdge[V, E]] =
     val javaMap = new JavaLinkedHashMap[V, WeightedEdge[V, E]]()
     result.keySet.foreach { v =>
       result.vertexTraverse(v).foreach { e =>
@@ -475,6 +641,14 @@ private[java] object JavaFacadeBridge:
       }
     }
     JavaCollections.unmodifiableMap(javaMap)
+
+  /** As `edgeResultToJavaMap`, for an algorithm that may report failure. */
+  private def optionalEdgeResult[V, E, X <: com.phasmidsoftware.gryphon.core.Edge[V, E]](
+                                                                                                result: Option[com.phasmidsoftware.gryphon.traverse.TraversalResult[V, X]]
+                                                                                        ): JavaOptional[JavaMap[V, WeightedEdge[V, E]]] =
+    result match
+      case Some(r) => JavaOptional.of(edgeResultToJavaMap(r))
+      case None => JavaOptional.empty()
 
   // ---------------------------------------------------------------------------
   // Result conversion — MST list (Kruskal)

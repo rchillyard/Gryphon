@@ -178,6 +178,102 @@ public class Graph<V> {
     }
 
     // -------------------------------------------------------------------------
+    // Graph properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the number of vertices — {@code N} in Sedgewick's notation.
+     *
+     * @return the vertex count.
+     */
+    public int order() {
+        return JavaFacadeBridge$.MODULE$.order(getScalaGraph());
+    }
+
+    /**
+     * Returns the number of edges — {@code M} in Sedgewick's notation.
+     *
+     * @return the edge count.
+     */
+    public int size() {
+        return JavaFacadeBridge$.MODULE$.size(getScalaGraph());
+    }
+
+    /**
+     * Returns the degree of {@code vertex}: the number of edges incident to it.
+     *
+     * <p>Undirected graphs only. A vertex of a directed graph has an in-degree
+     * and an out-degree, not a single degree.</p>
+     *
+     * @param vertex the query vertex.
+     * @return the degree.
+     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
+     */
+    public int degree(V vertex) {
+        return JavaFacadeBridge$.MODULE$.degree(getScalaGraph(), vertex);
+    }
+
+    /**
+     * Returns the largest degree of any vertex. Undirected graphs only.
+     *
+     * @return the maximum degree.
+     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
+     */
+    public int maxDegree() {
+        return JavaFacadeBridge$.MODULE$.maxDegree(getScalaGraph());
+    }
+
+    /**
+     * Returns the mean degree, {@code 2M/N}. Undirected graphs only.
+     *
+     * @return the average degree.
+     * @throws com.phasmidsoftware.gryphon.core.GraphException if this graph is directed.
+     */
+    public double meanDegree() {
+        return JavaFacadeBridge$.MODULE$.meanDegree(getScalaGraph());
+    }
+
+    /**
+     * Returns the number of self-loops: edges whose endpoints are the same vertex.
+     *
+     * @return the self-loop count.
+     */
+    public int numberOfSelfLoops() {
+        return JavaFacadeBridge$.MODULE$.numberOfSelfLoops(getScalaGraph());
+    }
+
+    /**
+     * Returns whether this graph contains a cycle.
+     *
+     * <p>For a directed graph this is the negation of
+     * {@link TopologicalSort#isDAG(Graph)}.</p>
+     *
+     * @return {@code true} if a cycle exists.
+     */
+    public boolean isCyclic() {
+        return JavaFacadeBridge$.MODULE$.isCyclic(getScalaGraph());
+    }
+
+    /**
+     * Returns whether every vertex is reachable from every other.
+     *
+     * @return {@code true} if the graph is connected.
+     */
+    public boolean isConnected() {
+        return JavaFacadeBridge$.MODULE$.isConnected(getScalaGraph());
+    }
+
+    /**
+     * Returns whether the vertices can be two-coloured so that no edge joins
+     * two vertices of the same colour.
+     *
+     * @return {@code true} if the graph is bipartite.
+     */
+    public boolean isBipartite() {
+        return JavaFacadeBridge$.MODULE$.isBipartite(getScalaGraph());
+    }
+
+    // -------------------------------------------------------------------------
     // Traversals — Option 1 (delegates to Scala Visitor engine)
     // -------------------------------------------------------------------------
 
@@ -206,6 +302,42 @@ public class Graph<V> {
      */
     public Map<V, V> dfs(V start) {
         return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start);
+    }
+
+    /**
+     * Performs a depth-first search over every component of the graph.
+     *
+     * <p>{@link #dfs(Object)} explores only the component containing its start
+     * vertex. This method restarts from each vertex not yet discovered, so the
+     * came-from map covers the whole graph — a depth-first <em>forest</em>.
+     * Each component's root is absent from the map, just as the start vertex is
+     * for a single DFS, so the number of absent vertices is the number of
+     * components.</p>
+     *
+     * @return the came-from map over all components.
+     */
+    public Map<V, V> dfsAll() {
+        return JavaFacadeBridge$.MODULE$.dfsAll(getScalaGraph());
+    }
+
+    /**
+     * Performs a breadth-first search from {@code start}, stopping as soon as
+     * {@code goal} holds for a discovered vertex.
+     *
+     * <p>Use this to find a shortest path to a known target without exploring
+     * the rest of the graph. The came-from map covers only what was discovered
+     * before stopping, so a vertex beyond the goal will be absent.</p>
+     *
+     * <p>Named {@code bfsUntil} rather than overloading {@code bfs}, because a
+     * lambda argument could not then be resolved against the
+     * {@code Function<V, Iterable<V>>} overload.</p>
+     *
+     * @param start the source vertex.
+     * @param goal  the stopping condition.
+     * @return the partial BFS came-from map.
+     */
+    public Map<V, V> bfsUntil(V start, java.util.function.Predicate<V> goal) {
+        return JavaFacadeBridge$.MODULE$.bfsUntil(getScalaGraph(), start, goal::test);
     }
 
     // -------------------------------------------------------------------------
@@ -288,7 +420,8 @@ public class Graph<V> {
     @SuppressWarnings("unchecked")
     AbstractGraph<V> getScalaGraph() {
         if (scalaGraph == null)
-            scalaGraph = JavaFacadeBridge$.MODULE$.materialise(canonicalEdges, directed);
+            scalaGraph = JavaFacadeBridge$.MODULE$.materialise(
+                    canonicalEdges, adjacency.keySet(), directed);
         return (AbstractGraph<V>) scalaGraph;
     }
 

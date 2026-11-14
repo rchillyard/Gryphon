@@ -6,6 +6,7 @@ package com.phasmidsoftware.gryphon.java;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 /**
@@ -127,6 +128,137 @@ public class ShortestPaths {
                 graph.getScalaGraph(),
                 graph.weightedEdges(),
                 start, combine, zero, comparator);
+    }
+
+    // -------------------------------------------------------------------------
+    // Bellman-Ford — negative weights allowed
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs the Bellman-Ford algorithm on a graph whose edges carry
+     * {@code Double} weights.
+     *
+     * <p>Unlike {@link #dijkstra(WeightedGraph, Object)}, Bellman-Ford accepts
+     * negative edge weights. It cannot give an answer when a negative cycle is
+     * reachable from {@code start} — every path round such a cycle is cheaper
+     * than the last, so no shortest path exists — and reports that by returning
+     * an empty {@code Optional}.</p>
+     *
+     * <p>The graph must be directed.</p>
+     *
+     * @param <V>   the vertex type.
+     * @param graph a directed {@code WeightedGraph<V, Double>}.
+     * @param start the source vertex.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, Double>>} with the start
+     *         vertex absent, or an empty {@code Optional} if a negative cycle is
+     *         reachable from {@code start}.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Optional<Map<V, WeightedEdge<V, Double>>> bellmanFord(
+            WeightedGraph<V, Double> graph,
+            V start) {
+        requireDirected(graph, "bellmanFord");
+        return (Optional<Map<V, WeightedEdge<V, Double>>>) (Optional<?>)
+                JavaFacadeBridge$.MODULE$.bellmanFordDouble(
+                        (java.util.List) graph.weightedEdges(), start);
+    }
+
+    /**
+     * Runs the Bellman-Ford algorithm with a custom edge attribute type.
+     *
+     * <p>Like Dijkstra, Bellman-Ford accumulates path costs, so {@code combine}
+     * and {@code zero} are required as well as {@code comparator}.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @return the SPT, or an empty {@code Optional} if a negative cycle is
+     *         reachable from {@code start}.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    public static <V, E> Optional<Map<V, WeightedEdge<V, E>>> bellmanFord(
+            WeightedGraph<V, E> graph,
+            V start,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator) {
+        requireDirected(graph, "bellmanFord");
+        return JavaFacadeBridge$.MODULE$.bellmanFordCustom(
+                graph.weightedEdges(), start, combine, zero, comparator);
+    }
+
+    // -------------------------------------------------------------------------
+    // Acyclic shortest paths — DAGs, in linear time
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs the acyclic shortest-paths algorithm on a directed acyclic graph
+     * whose edges carry {@code Double} weights.
+     *
+     * <p>Relaxing edges in topological order visits each edge once, so this is
+     * linear in the size of the graph — faster than both Dijkstra and
+     * Bellman-Ford. Negative weights are allowed, since a DAG has no cycles for
+     * them to make cheaper.</p>
+     *
+     * <p>The graph must be directed and acyclic. Test with
+     * {@link TopologicalSort#isDAG(Graph)} if you are not sure.</p>
+     *
+     * @param <V>   the vertex type.
+     * @param graph a directed acyclic {@code WeightedGraph<V, Double>}.
+     * @param start the source vertex.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, Double>>};
+     *         the start vertex is absent.
+     * @throws IllegalStateException    if {@code graph} is undirected.
+     * @throws IllegalArgumentException if {@code graph} contains a cycle.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Map<V, WeightedEdge<V, Double>> acyclic(
+            WeightedGraph<V, Double> graph,
+            V start) {
+        requireDirected(graph, "acyclic");
+        return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
+                JavaFacadeBridge$.MODULE$.acyclicShortestPathsDouble(
+                        (java.util.List) graph.weightedEdges(), start);
+    }
+
+    /**
+     * Runs the acyclic shortest-paths algorithm with a custom edge attribute type.
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed acyclic {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @return the SPT; the start vertex is absent.
+     * @throws IllegalStateException    if {@code graph} is undirected.
+     * @throws IllegalArgumentException if {@code graph} contains a cycle.
+     */
+    public static <V, E> Map<V, WeightedEdge<V, E>> acyclic(
+            WeightedGraph<V, E> graph,
+            V start,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator) {
+        requireDirected(graph, "acyclic");
+        return JavaFacadeBridge$.MODULE$.acyclicShortestPathsCustom(
+                graph.weightedEdges(), start, combine, zero, comparator);
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    private static void requireDirected(WeightedGraph<?, ?> graph, String method) {
+        if (!graph.isDirected())
+            throw new IllegalStateException(
+                    "ShortestPaths." + method + " requires a directed graph");
     }
 
     // Not instantiable

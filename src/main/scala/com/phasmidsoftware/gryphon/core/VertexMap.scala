@@ -105,10 +105,34 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
             // Pre-mark all already-visited vertices so the engine skips them
             val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
             val result = Traversal.dfs(next, vis)(using nbrs, ev, vs, summon[Tracer[V]])
-            loop(result, visited + next)
+            // `visited` must grow by every vertex this DFS reached, not just by its root.
+            // Adding only `next` left the rest of the component unvisited as far as the loop
+            // was concerned, so each of them started another DFS over ground already covered,
+            // and a came-from journal ended up with mutually-referring entries (0 from 1 and
+            // 1 from 0) rather than a forest.
+            loop(result, visited ++ reachableFrom(next, visited))
 
         loop(visitor, Set.empty)
     }.traversal
+
+  /**
+   * The set of vertices a traversal starting at `start` can reach without
+   * entering `excluded` — that is, exactly the vertices `dfsAll`'s DFS from
+   * `start` covers, given that `excluded` is pre-marked as visited.
+   *
+   * @param start    the vertex to start from.
+   * @param excluded the vertices already visited, which the DFS will skip.
+   * @return the reached vertices, including `start` unless it is excluded.
+   */
+  private def reachableFrom(start: V, excluded: Set[V])(using Random): Set[V] =
+    @tailrec
+    def loop(stack: List[V], acc: Set[V]): Set[V] = stack match
+      case Nil => acc
+      case v :: rest =>
+        if acc.contains(v) || excluded.contains(v) then loop(rest, acc)
+        else loop(adjacentVertices(v).toList ::: rest, acc + v)
+
+    loop(List(start), Set.empty)
 
 
   /**

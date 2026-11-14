@@ -466,7 +466,10 @@ Two groups do not apply to both:
 
 - `degree`, `maxDegree` and `meanDegree` throw `GraphException` on a directed
   graph. A vertex of a digraph has an in-degree and an out-degree, not one
-  degree — use those.
+  degree — use those. `GraphException` is unchecked from 2.0.0, so Java callers
+  can catch it; before that they could not, because the façade's methods do not
+  declare it and javac rejects a `catch` for a checked exception the called
+  method cannot throw.
 - `isConnected` and `isBipartite` throw `UnsupportedOperationException` on a
   directed graph: the Scala layer does not implement them there. Connectivity of
   a digraph has two meanings — weak (ignoring direction) and strong (every
@@ -722,7 +725,7 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
-| 2.0.0 | *In progress.* Javadoc published for the Java façade at `latest/javadoc`; `inDegree` and `outDegree`, defined for directed graphs as well as undirected (**binary-incompatible** for anyone implementing the `EdgeGraph` trait themselves: both are abstract members of it). See `docs/2.0.0-plan.md` |
+| 2.0.0 | *In progress.* Javadoc published for the Java façade at `latest/javadoc`; `inDegree` and `outDegree`, defined for directed graphs as well as undirected (**binary-incompatible** for anyone implementing the `EdgeGraph` trait themselves: both are abstract members of it); `GraphException` is now unchecked, so a Java caller can catch it. See `docs/2.0.0-plan.md` |
 | 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 
 ### Note on 1.7.0: `GraphException`

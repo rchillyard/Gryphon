@@ -84,9 +84,14 @@ public class DfsAllAndBfsUntilTest {
     @Test
     void dfsAll_came_from_entries_are_real_edges() {
         Map<Integer, Integer> forest = path().dfsAll();
-        forest.forEach((v, from) ->
-                assertEquals(1, Math.abs(v - from),
-                        "came-from " + from + "→" + v + " is not an edge of the path"));
+
+        assertFalse(forest.isEmpty(), "the forest should have entries to check");
+        for (Map.Entry<Integer, Integer> entry : forest.entrySet()) {
+            int v = entry.getKey();
+            int from = entry.getValue();
+            assertEquals(1, Math.abs(v - from),
+                    "came-from " + from + "→" + v + " is not an edge of the path");
+        }
     }
 
     // -------------------------------------------------------------------------

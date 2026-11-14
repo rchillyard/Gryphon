@@ -5,7 +5,12 @@ import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGrap
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, EdgeGraph, EvaluableGraphNeighboursTraversal, GraphException, Vertex, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
-import com.phasmidsoftware.gryphon.traverse.{AcyclicShortestPaths, BellmanFord, ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
+// Kept to six selectors or fewer, and deliberately not a wildcard: this file is in package
+// `...gryphon.java`, which has its own ShortestPaths, ConnectedComponents and TopologicalSort.
+// A wildcard import has lower precedence than same-package definitions, so `ShortestPaths` would
+// rebind to the Java façade class. BellmanFord, AcyclicShortestPaths, Boruvka and Kosaraju are
+// written out in full at their use sites instead.
+import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
 import com.phasmidsoftware.visitor.core.{*, given}
 import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
 import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
@@ -416,7 +421,7 @@ private[java] object JavaFacadeBridge:
       def identity: Double = 0.0
 
       def combine(x: Double, y: Double): Double = x + y
-    optionalEdgeResult(BellmanFord.shortestPaths[V, Double](materialiseWeighted(edges), start))
+    optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, Double](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Bellman-Ford — Option 3: custom type, combine + zero + comparator
@@ -440,7 +445,7 @@ private[java] object JavaFacadeBridge:
       def identity: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
-    optionalEdgeResult(BellmanFord.shortestPaths[V, E](materialiseWeighted(edges), start))
+    optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, E](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Acyclic shortest paths — Option 1: Double weights
@@ -460,7 +465,7 @@ private[java] object JavaFacadeBridge:
       def identity: Double = 0.0
 
       def combine(x: Double, y: Double): Double = x + y
-    edgeResultToJavaMap(AcyclicShortestPaths.shortestPaths[V, Double](materialiseWeighted(edges), start))
+    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths[V, Double](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Acyclic shortest paths — Option 3: custom type
@@ -479,7 +484,7 @@ private[java] object JavaFacadeBridge:
       def identity: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
-    edgeResultToJavaMap(AcyclicShortestPaths.shortestPaths[V, E](materialiseWeighted(edges), start))
+    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths[V, E](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Graph properties

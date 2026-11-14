@@ -699,7 +699,7 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
-| 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException` (**binary-incompatible** — see the note below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
+| 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 
 ### Note on 1.7.0: `GraphException`
 
@@ -715,6 +715,14 @@ so existing code compiles unchanged — with a deprecation warning. Change the i
 **Not binary compatible:** a type alias is erased, so the class `com.phasmidsoftware.gryphon.util.GraphException`
 is no longer in the jar. Code compiled against 1.6.0 or earlier must be recompiled. This is why 1.7.0 is a
 minor release rather than a patch.
+
+### Note on 1.7.0: `core.DAG` removed
+
+The trait `com.phasmidsoftware.gryphon.core.DAG` has been removed. It extended the `DirectedGraph` case
+class, so nothing could implement it — a case class may not extend another case class — and nothing in the
+library referenced it. No working code can have depended on it, but it was a public type, so its removal is
+listed here with the other binary-incompatible change above. For shortest paths in a DAG, use
+`AcyclicShortestPaths.shortestPaths` (Scala) or `ShortestPaths.acyclic` (Java).
 
 ---
 

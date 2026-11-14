@@ -9,7 +9,6 @@ import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.{EdgeType, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
-import com.phasmidsoftware.visitor.core.given_Monoid_Double
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.io.Source

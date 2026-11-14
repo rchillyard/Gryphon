@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
 import com.phasmidsoftware.gryphon.core.Edge
-import com.phasmidsoftware.visitor.core.Zero
+import cats.kernel.Monoid
 import scala.util.Random
 
 /**
@@ -25,5 +25,5 @@ object MST:
    * @return a `TraversalResult[V, Edge[V, E]]` mapping each MST vertex to its
    *         cheapest incoming edge.
    */
-  def prim[V, E: {Zero, Ordering}](graph: UndirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, Edge[V, E]] =
+  def prim[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, Edge[V, E]] =
     PrimTraversal[V, E]().run(graph)(start)

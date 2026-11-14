@@ -26,7 +26,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-        import com.phasmidsoftware.visitor.core.given
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
@@ -123,7 +122,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-        import com.phasmidsoftware.visitor.core.given_Monoid_Double
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
@@ -153,7 +151,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
     zsy match
       case Success(triplets) =>
         given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
-        import com.phasmidsoftware.visitor.core.given_Monoid_Double
 
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>

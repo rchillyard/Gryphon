@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.adjunct
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.traverse.{BellmanFord, TopologicalSort, VertexTraversalResult}
 import com.phasmidsoftware.gryphon.core.GraphException
-import com.phasmidsoftware.visitor.core.Monoid
+import cats.kernel.Monoid
 import scala.util.{Failure, Success, Try}
 
 /**

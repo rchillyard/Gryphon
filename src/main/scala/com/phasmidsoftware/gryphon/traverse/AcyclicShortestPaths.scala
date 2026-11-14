@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
-import com.phasmidsoftware.visitor.core.Monoid
+import cats.kernel.Monoid
 import scala.collection.mutable
 
 /**
@@ -48,7 +48,7 @@ object AcyclicShortestPaths:
     val topoOrder: Seq[V] = TopologicalSort.sort(graph)
             .getOrElse(throw IllegalArgumentException("AcyclicShortestPaths: graph contains a cycle"))
 
-    val dist: mutable.Map[V, E] = mutable.Map(start -> mn.identity)
+    val dist: mutable.Map[V, E] = mutable.Map(start -> mn.empty)
     val pred: mutable.Map[V, DirectedEdge[V, E]] = mutable.Map.empty
 
     for v <- topoOrder if dist.contains(v) do

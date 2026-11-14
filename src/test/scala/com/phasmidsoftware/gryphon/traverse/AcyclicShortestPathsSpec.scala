@@ -7,7 +7,6 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.visitor.core.given_Monoid_Double
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success}

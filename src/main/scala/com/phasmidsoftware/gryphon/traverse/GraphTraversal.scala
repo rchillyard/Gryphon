@@ -2,7 +2,9 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core.{Edge, EvaluableGraphNeighboursTraversal, Traversable}
-import com.phasmidsoftware.visitor.core.{*, given}
+import cats.kernel.Monoid
+// Visitor's own Monoid is hidden so that the wildcard does not make it ambiguous with Cats'.
+import com.phasmidsoftware.visitor.core.{Monoid as _, *, given}
 import scala.collection.mutable
 import scala.util.Random
 
@@ -87,10 +89,10 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
  * `IndexedPrioQueue[(E, V)]` frontier, `CostUpdate` with `decreaseKey`, and
  * mutable `pred`/`bestCost` maps owned exclusively by `CostUpdate`.
  *
- * The context bound is `E: {Zero, Ordering}` — both algorithms need a seed
+ * The context bound is `E: {Monoid, Ordering}` — both algorithms need a seed
  * cost (`Zero.identity`) and a cost ordering (`Ordering`). Only Dijkstra
  * additionally needs `Monoid.combine` for path cost accumulation; Prim
- * never accumulates costs and so extends this class directly with `E: {Zero, Ordering}`.
+ * never accumulates costs and so extends this class directly with `E: {Monoid, Ordering}`.
  * `DijkstraTraversal` extends this with the additional `Monoid` bound.
  *
  * Concrete subclasses differ in exactly three ways:
@@ -111,7 +113,7 @@ case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
  * @tparam E the edge-weight type; must have Zero and Ordering.
  * @tparam R the result type; must be a subtype of Edge[V, E].
  */
-abstract class WeightedTraversal[V, E: {Zero, Ordering}, R <: Edge[V, E]]
+abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
         extends GraphTraversal[V, E, R]:
 
   /**
@@ -140,14 +142,14 @@ abstract class WeightedTraversal[V, E: {Zero, Ordering}, R <: Edge[V, E]]
   protected def filterEdge(e: Edge[V, E]): Option[R]
 
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R] =
-    val zero = summon[Zero[E]]
+    val zero = summon[Monoid[E]]
 
     // pred: cheapest known incoming edge per vertex (typed as R for cast-free access).
     // bestCost: current best frontier cost per vertex — used by CostUpdate to locate
     // the stale frontier entry for decreaseKey.
     // Both maps are owned exclusively by CostUpdate; Neighbours is pure.
     val pred: mutable.Map[V, R] = mutable.Map.empty
-    val bestCost: mutable.Map[V, E] = mutable.Map(start -> zero.identity)
+    val bestCost: mutable.Map[V, E] = mutable.Map(start -> zero.empty)
 
     // Ordering: compare by cost component only.
     given Ordering[(E, V)] = Ordering.by(_._1)
@@ -199,7 +201,7 @@ abstract class WeightedTraversal[V, E: {Zero, Ordering}, R <: Edge[V, E]]
 
     val visitor: Visitor[(E, V), R, QueueJournal[((E, V), Option[R])]] =
       JournaledVisitor.withQueueJournal[(E, V), R]
-    val result = Traversal.bestFirstWeighted((zero.identity, start), visitor)
+    val result = Traversal.bestFirstWeighted((zero.empty, start), visitor)
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
     VertexTraversalResult(
@@ -250,14 +252,14 @@ case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
  * cheapest available edge to any unvisited vertex is always chosen next.
  * All edge types are admitted — the result type is `TraversalResult[V, Edge[V, E]]`.
  *
- * Requires only `E: {Zero, Ordering}` — Prim never accumulates path costs so
+ * Requires only `E: {Monoid, Ordering}` — Prim never accumulates path costs so
  * `Monoid.combine` is not needed. `Zero.identity` seeds the initial frontier cost
  * for the start vertex, which is immediately replaced by actual edge weights.
  *
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must have Zero and Ordering.
  */
-case class PrimTraversal[V, E: {Zero, Ordering}]()
+case class PrimTraversal[V, E: {Monoid, Ordering}]()
         extends WeightedTraversal[V, E, Edge[V, E]]:
 
   protected def edgeCost(accCost: E, e: Edge[V, E], v: V): E =

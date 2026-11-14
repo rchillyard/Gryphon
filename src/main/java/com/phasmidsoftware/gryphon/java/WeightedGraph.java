@@ -37,7 +37,6 @@ import java.util.List;
  *     MinimumSpanningTree.prim(g, start,
  *         Comparator.comparingInt(tp -> tp.cost));
  * }</pre>
- * </p>
  *
  * @param <V> the vertex type. Must implement {@code equals} and {@code hashCode}.
  * @param <E> the edge attribute (weight) type.

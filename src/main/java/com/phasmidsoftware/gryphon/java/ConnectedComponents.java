@@ -29,7 +29,6 @@ import java.util.*;
  * Map<Integer, Set<String>> groups = ConnectedComponents.components(g);
  * // groups: {0 -> {A, B}, 1 -> {C, D}}
  * }</pre>
- * </p>
  */
 public class ConnectedComponents {
 

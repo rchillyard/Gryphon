@@ -30,7 +30,6 @@ import java.util.Objects;
  * double weight = e.attribute(); // 3.7
  * WeightedEdge<String, Double> rev = e.reverse(); // WeightedEdge("B", "A", 3.7)
  * }</pre>
- * </p>
  *
  * @param <V> the vertex type.
  * @param <E> the attribute (weight) type.

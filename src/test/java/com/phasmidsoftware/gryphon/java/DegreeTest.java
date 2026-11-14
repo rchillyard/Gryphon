@@ -54,7 +54,8 @@ public class DegreeTest {
     @Test
     void both_degree_sums_equal_the_edge_count() {
         Graph<Integer> g = digraph();
-        int in = 0, out = 0;
+        int in = 0;
+        int out = 0;
         for (int v : g.vertices()) {
             in += g.inDegree(v);
             out += g.outDegree(v);

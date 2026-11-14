@@ -11,6 +11,7 @@ ThisBuild / javacOptions ++= Seq("--release", "21")
 val scalaVersionNumber  = "3.9.0" // the current LTS
 val scalaTestVersion    = "3.2.20"
 val jupiterVersion      = "6.0.3"
+val jupiterInterfaceVersion = "0.19.0"
 val visitorVersion      = "1.7.0"
 val flogVersion         = "1.1.0"
 val logbackVersion      = "1.5.32"
@@ -75,14 +76,12 @@ lazy val root = (project in file("."))
             // Test scope only: a library must not publish a logging backend for its users.
             "ch.qos.logback"          % "logback-classic"          % logbackVersion % Test,
             "org.scalatest"          %% "scalatest"                % scalaTestVersion % Test,
-            // JUnit 5 — for Java façade tests in src/test/java
+            // JUnit 5 — for Java façade tests in src/test/java.
+            // jupiter-interface is the sbt test interface: without it sbt compiles these tests and
+            // never runs them, because sbt only discovers tests through a framework on the classpath.
             "org.junit.jupiter"       % "junit-jupiter-api"        % jupiterVersion % Test,
-            "org.junit.jupiter"       % "junit-jupiter-engine"     % jupiterVersion % Test
-          ),
-
-          // Run both ScalaTest and JUnit suites with sbt test
-          testOptions ++= Seq(
-            Tests.Argument(TestFrameworks.JUnit, "-v")
+            "org.junit.jupiter"       % "junit-jupiter-engine"     % jupiterVersion % Test,
+            "com.github.sbt.junit"    % "jupiter-interface"        % jupiterInterfaceVersion % Test
           )
         )
         // Scaladoc is published to https://rchillyard.github.io/Gryphon/latest/api/ by `sbt ghpagesPushSite`

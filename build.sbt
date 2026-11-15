@@ -1,7 +1,5 @@
 // Gryphon project build file.
 
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, MissingClassProblem, ProblemFilters, ReversedMissingMethodProblem}
-
 ThisBuild / version := "1.9.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
@@ -50,41 +48,10 @@ Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 val previousRelease = "1.8.1"
 mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
 
-// 1.8.0's deliberate breaks were filtered here while previousRelease was 1.7.0, and went with it when
-// the baseline moved on. These are 1.9.0's, each with a release note in the README.
-mimaBinaryIssueFilters ++= Seq(
-  // RelaxableVertex is deleted, with its companion and the Vertex.createRelaxableWithSet factory.
-  // It carried the Dijkstra relaxation cost as a `var` on the vertex itself. Commit 9e06526
-  // (Gryphon 0.2.5) moved that state into the traversal — GraphTraversal.run owns `pred` and
-  // `bestCost` as locals, and the frontier carries (cost, vertex) tuples — after which nothing in
-  // src/main referenced it. Only its own tests did. Deleting it removes one of the two pieces of
-  // mutable state in the permanent structure of a graph; VertexMap.edgeCount is the other.
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex$"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Vertex.createRelaxableWithSet(java.lang.Object,cats.kernel.Monoid,scala.math.Ordering)com.phasmidsoftware.gryphon.core.RelaxableVertex"),
-  // addEdge moved to the new AbstractAdjunctGraph base, where it is written once as
-  // `unit(vertexMap + edge)` instead of twice as `copy(vertexMap + edge)`. Source compatibility is
-  // unaffected — each subclass still fixes `EdgeT` to its own edge kind and `G` to itself, so
-  // `directedGraph.addEdge(e)` still takes a DirectedEdge and still returns a DirectedGraph — but
-  // the *erased* signature is now (Edge)AbstractAdjunctGraph, declared on the base.
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.addEdge"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.addEdge"),
-  // `N` and `M` become `order` and `size` — the standard graph-theory terms, and what the Java
-  // façade has always called them. `N` and `M` survive as deprecated aliases with bodies, so
-  // calling code still compiles; what moves is the *abstract* member each trait requires.
-  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.order"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.M()Int"),
-  // `size` moves from Traversable down to EdgeTraversable, because counting edges requires knowing
-  // what an edge is. A VertexMap is a Traversable and does not know: it cannot tell whether an
-  // adjacency it holds is half of an undirected edge or the whole of a directed one. Requiring the
-  // count one level too high is precisely what forced VertexMap to carry a mutable `edgeCount`,
-  // which `+` incremented on the receiver while returning a map whose own count was always 0.
-  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeTraversable.size"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.M()Int"),
-  // AbstractGraph's own `M` went with it. It was `vertexMap.M`, so it inherited that wrongness;
-  // both concrete graphs overrode it, which is the only reason nothing user-facing was broken.
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.M()Int")
-)
+// Deliberate breaks are listed in src/main/mima-filters/<previousRelease>.backwards.excludes,
+// which MiMa reads automatically. Keeping them there rather than here means they retire by
+// themselves: when previousRelease moves on, the old file stops being consulted. Up to 1.8.1 they
+// lived in this file and had to be deleted by hand after each release.
 
 // ============================================================================
 // MODULE DEFINITION

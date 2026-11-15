@@ -742,7 +742,50 @@ sbt test
 | 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
 | 1.8.0 | `GraphException` is now unchecked, so Java callers can catch it; `addEdge` accepts only the kind of edge its graph admits; `prim` and `dijkstra` require an undirected and a directed graph respectively; `isConnected` and `isBipartite` are undirected-only; `inDegree`/`outDegree` added; the Java façade's `Connectivity.create` is renamed `createLazy`; type classes moved to `cats.kernel.Monoid`, adding a `cats-kernel` dependency, and the unused `util.HasZero` is removed; Javadoc published for the Java façade. **Breaking** — see "Migrating from 1.x" below |
 | 1.8.1 | Bug fix: `UndirectedGraph.unit` built a `DirectedGraph`, so `undirectedGraph.addVertex(v)` returned a directed graph. Present in every earlier version. Binary compatible with 1.8.0 |
-| 1.9.0 | *In progress.* `RelaxableVertex`, its companion and `Vertex.createRelaxableWithSet` are removed, along with the `DiscoverableRelaxableVertex` alias: relaxation moved into the traversal in 0.2.5 and nothing has used them since. `DirectedGraph` and `UndirectedGraph` now share an `AbstractAdjunctGraph` base, and `unit` and `triplesToTryGraph` return the concrete graph type rather than `Graph[V]`. `N` and `M` are renamed `order` and `size`, the standard graph-theory terms and the names the Java façade already used; the old names remain as deprecated aliases. `size` moves to `EdgeTraversable`, and `VertexMap`'s mutable `edgeCount` is deleted, and the traversals carry their working state immutably — with those, no mutable state remains in the permanent structure of a graph. `Traversable.bfse` is removed: it was a stub that returned its own argument. The package-private `java.GraphTraversal` is removed, being unreferenced. **Breaking** |
+| 1.9.0 | `N` and `M` become `order` and `size` — the standard graph-theory terms, and the names the Java façade already used; the old names remain as deprecated aliases, so calling code still compiles. `size` moves to `EdgeTraversable`, where edges are known, and `VertexMap`'s mutable `edgeCount` is deleted. The traversals carry their working state immutably: with those two, no mutable state remains in the permanent structure of a graph. `DirectedGraph` and `UndirectedGraph` share a new `AbstractAdjunctGraph` base, and `unit` and `triplesToTryGraph` return the concrete graph type rather than `Graph[V]`. Removed: `RelaxableVertex` with its factory and alias, superseded in 0.2.5; `Traversable.bfse`, a stub that returned its own argument; and the unreferenced package-private `java.GraphTraversal`. **Breaking** — see "Migrating from 1.8" below |
+
+### Migrating from 1.8 to 1.9.0
+
+Most code needs no change at all, and the rest the compiler will find for you. Unusually for a
+breaking release, the two most visible changes are *deprecations* rather than removals: `N` and `M`
+still compile.
+
+| 1.8 | 1.9.0 | Why |
+|---|---|---|
+| `graph.N` | `graph.order` | *Order* is the standard graph-theory term for the number of vertices, and is what the Java façade has always called it. `N` still works, deprecated. |
+| `graph.M` | `graph.size` | Likewise *size* for the number of edges. `M` still works, deprecated. A single capital letter also reads as a type parameter in Scala, which these are not. |
+| `RelaxableVertex`, `Vertex.createRelaxableWithSet`, `DiscoverableRelaxableVertex` | the traversal API — `ShortestPaths.dijkstra` and friends | Relaxation moved into the traversal in 0.2.5, when the frontier became `(cost, vertex)` tuples. Nothing in the library had used these since. |
+| `Traversable.bfse` | — | It was a stub that returned its own argument, so it reported every graph as having no edges. Nothing called it. |
+| `VertexMap.M` | `graph.size` | It read a mutable counter that `+` incremented on the *receiver* while returning a map whose own count was always 0. Counting edges belongs to the graph. |
+| implementing `Traversable` or `Graph` yourself | implement `order`; implement `size` on `EdgeTraversable` | `size` moved down to `EdgeTraversable`, because counting edges needs to know what an edge is — a `VertexMap` is a `Traversable` and cannot tell half an undirected edge from a whole directed one. |
+| subclassing `AbstractVertexTraversalResult` | `unit` returns your concrete type | So that `+` need not cast its own result back down. |
+| `EdgeList[V, E, Z]` with an unrelated `Z` | `Z >: EdgeType` | `Z` was unbounded, which made a cast inside `triplets` sound only for `Z = EdgeType` — the one instantiation anyone uses. |
+
+Unchanged, in case you expect otherwise: `directedGraph.addEdge(e)` still takes a `DirectedEdge`
+and still returns a `DirectedGraph`, though its erased signature moved to the new
+`AbstractAdjunctGraph` base; and every algorithm gives the same answers as in 1.8.1.
+
+### Note on 1.9.0: the traversals are now pure
+
+`isCyclic`, `isBipartite`, `BellmanFord`, `AcyclicShortestPaths` and `getConnexions` carried their
+working state in mutable collections. They now thread it immutably. Results are identical — this is
+an internal change, and each of those methods was already referentially transparent.
+
+It is not free, and the cost was measured rather than assumed, on a 1491-vertex, 6000-edge graph:
+
+| | 1.8.1 | 1.9.0 |
+|---|---|---|
+| `isCyclic` | 0.023 ms | 0.061 ms |
+| `isBipartite` | 0.031 ms | 0.081 ms |
+| `BellmanFord.shortestPaths` | 0.800 ms | 1.125 ms |
+| `getConnexions` | 3.155 ms | 3.851 ms |
+
+Two algorithms that did not change — `TopologicalSort` and `filteredAdjacencies` — were measured
+alongside as controls and came out at 1.00–1.03×, which is what makes the rest readable as signal.
+
+With these, and with `VertexMap`'s `edgeCount`, no mutable state remains in the permanent structure
+of a graph. The one exception left in the library is `GraphTraversal`'s decrease-key bookkeeping for
+Dijkstra and Prim, which is an algorithmic question rather than a refactor.
 
 ### Migrating from 1.x to 1.8.0
 

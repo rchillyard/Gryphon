@@ -50,14 +50,17 @@ abstract class AbstractAdjunctGraph[V, E, G <: AbstractAdjunctGraph[V, E, G]](ve
   def addEdge(edge: EdgeT): G = unit(vertexMap + edge)
 
   /**
-   * The number of edges.
+   * The *size* of the graph: the number of edges. Identical in both subclasses.
    *
-   * Identical in both subclasses, and overrides the inherited `Graph.M`, which reads
-   * `VertexMap`'s mutable `edgeCount` and is wrong. See `docs/stocktake-2026-11-15.md` §2.
+   * This is where `size` is first given a body. `AbstractGraph` leaves it abstract on purpose,
+   * because counting edges needs to know what an edge is — which is this level's business, not
+   * that one's. Until 1.9.0 `AbstractGraph` did define it, as `vertexMap.M`, reading a mutable
+   * counter that was wrong; both subclasses happened to override it, so nothing user-facing
+   * broke. See `docs/stocktake-2026-11-15.md` §2.
    *
    * @return the number of edges in this graph.
    */
-  override def M: Int = edges.size
+  def size: Int = edges.size
 
 /**
  * Shared construction for the concrete edge graphs.

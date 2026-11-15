@@ -30,16 +30,13 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    *
    * @return the number of vertices in the graph.
    */
-  def N: Int = map.size
+  def order: Int = map.size
 
-  /**
-   * Returns the number of edges in the graph.
-   *
-   * TODO: this mechanism uses a var and we should change that.
-   *
-   * @return the number of edges in the graph.
-   */
-  def M: Int = edgeCount
+  // There is no `M` here any more, and no `edgeCount` behind it. The counter was a `var` on an
+  // otherwise immutable structure: `+` incremented it on the *receiver* — a value the caller still
+  // held — and returned a fresh map whose own count started at 0. So `(VertexMap[Int] + e1 + e2).M`
+  // was 0, while the map it was derived from silently went up. Counting edges belongs to the graph,
+  // which does it as `edges.size`.
 
   /**
    * Returns an iterator over the vertices adjacent to the given vertex.
@@ -202,7 +199,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
     val addAdj = addAdjFunction
     val adjFrom = AdjacencyEdge[V, E](edge)
     val adjTo = AdjacencyEdge[V, E](edge, flipped = true)
-    edgeCount = edgeCount + 1
     // Ensure both vertices exist, then always add adjacencies using modifyVertex
     // so that existing vertices correctly accumulate adjacencies from multiple edges.
     val m0 = ensure(createWithSet[V])(edge.black).ensure(createWithSet[V])(edge.white)
@@ -320,10 +316,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
     map.map((v, vv) => s"v:$v, vv:${vv.render}").mkString("[", ", ", "]")
 
   def debug: String =
-    s"VertexMap(size=${map.size}, edgeCount=$edgeCount, vertices=$map)"
+    s"VertexMap(order=${map.size}, vertices=$map)"
 
-  // CONSIDER making this a member and use copy to increment the edgeCount
-  private var edgeCount: Int = 0
 
   // -----------------------------------------------------------------------
   // Private helpers

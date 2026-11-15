@@ -56,14 +56,14 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
 
   it should "preserve vertex count" in {
     val (original, reversed) = loadDagGraphs
-    reversed.N shouldBe original.N   // 7 vertices
-    reversed.N shouldBe 7
+    reversed.order shouldBe original.order   // 7 vertices
+    reversed.order shouldBe 7
   }
 
   it should "preserve edge count" in {
     val (original, reversed) = loadDagGraphs
-    reversed.M shouldBe original.M   // 11 edges
-    reversed.M shouldBe 11
+    reversed.size shouldBe original.size   // 11 edges
+    reversed.size shouldBe 11
   }
 
   it should "contain all original vertices" in {
@@ -192,8 +192,8 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
         val r = g.reverse
-        r.N shouldBe 2
-        r.M shouldBe 1
+        r.order shouldBe 2
+        r.size shouldBe 1
         r.edges.map(e => (e.white, e.black)).toSet shouldBe Set((1, 0))
       case other => fail(s"unexpected: $other")
   }
@@ -233,7 +233,7 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
         // Add vertex 99 with no edges via addVertex
         val withIsolated = g.addVertex(Vertex.createWithSet(99)).asInstanceOf[DirectedGraph[Int, Unit]]
         val r = withIsolated.reverse
-        r.N shouldBe 3            // 0, 1, 99
+        r.order shouldBe 3            // 0, 1, 99
         r.vertexMap.keySet should contain(99)
 
         given Random = Random(42)

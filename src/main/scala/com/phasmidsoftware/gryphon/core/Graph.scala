@@ -141,18 +141,18 @@ object Graph
 abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
 
   /**
-   * Returns the number of vertices in the graph.
+   * The order of the graph: the number of vertices, which the vertex map knows.
    *
    * @return the number of vertices in the graph.
    */
-  def N: Int = vertexMap.N
+  def order: Int = vertexMap.order
 
-  /**
-   * Returns the number of edges in the graph.
-   *
-   * @return the number of edges in the graph.
-   */
-  def M: Int = vertexMap.M
+  // `size` is deliberately left abstract here. Until 1.9.0 this class defined it (as `M`) to be
+  // `vertexMap.M`, which read a mutable counter that `VertexMap.+` incremented on the *receiver*
+  // while returning a fresh map whose own count was always 0. Both concrete graphs overrode it
+  // with `edges.size`, so nothing user-facing was wrong — but any new graph class would have
+  // inherited the broken default. Counting edges needs to know what an edge is, which is
+  // `EdgeGraph`'s business, not this class's.
 
   /**
    * Retrieves an iterator over all adjacencies in the graph.

@@ -21,18 +21,20 @@ import scala.util.{Random, Try}
 trait Traversable[V] {
 
   /**
-   * Returns the number of vertices in the graph.
+   * The *order* of the graph: the number of vertices.
    *
    * @return the number of vertices in the graph.
    */
-  def N: Int
+  def order: Int
 
   /**
-   * Returns the number of edges in the graph.
-   *
-   * @return the number of edges in the graph.
+   * @return the number of vertices in the graph.
+   * @deprecated `order` is the standard graph-theory term for this, and is what the Java façade
+   *             has always called it. A single capital letter also reads as a type parameter in
+   *             Scala, which `N` is not.
    */
-  def M: Int
+  @deprecated("Use order", "1.9.0")
+  def N: Int = order
 
   /**
    * Retrieves the vertex associated with the given key.
@@ -250,6 +252,27 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
    * @return an `Iterator[Edge[V, E]]` over all edges.
    */
   def edges: Iterator[Edge[V, E]]
+
+  /**
+   * The *size* of the graph: the number of edges.
+   *
+   * Declared here rather than on `Traversable`, because counting edges requires knowing what an
+   * edge is. `Traversable` does not: a `VertexMap` is one, and has no idea whether an adjacency
+   * it holds is half of an undirected edge or the whole of a directed one. Putting the count on
+   * `Traversable` is what forced `VertexMap` to carry the mutable `edgeCount` that gave wrong
+   * answers until 1.9.0.
+   *
+   * @return the number of edges in the graph.
+   */
+  def size: Int
+
+  /**
+   * @return the number of edges in the graph.
+   * @deprecated `size` is the standard graph-theory term for this, and is what the Java façade
+   *             has always called it. See the note on [[Traversable.N]].
+   */
+  @deprecated("Use size", "1.9.0")
+  def M: Int = size
 }
 
 /**

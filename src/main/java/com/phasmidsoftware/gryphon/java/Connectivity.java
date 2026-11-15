@@ -22,16 +22,19 @@ import java.util.List;
  *
  * <p>Two implementations are available via the factory methods:</p>
  * <ul>
- *   <li>{@link #create(List)} — Weighted Quick Union, O(log n) per operation.</li>
+ *   <li>{@link #createLazy(List)} — Weighted Quick Union, O(log n) per operation.</li>
  *   <li>{@link #createOptimized(List)} — Weighted Quick Union with path
  *       compression, amortized near-O(1) per operation.</li>
  * </ul>
- * <p>For most purposes {@code createOptimized} is the better choice; {@code create}
- * is provided so students can observe the effect of path compression directly.</p>
+ * <p>For most purposes {@code createOptimized} is the better choice; {@code createLazy}
+ * is provided so students can observe the effect of path compression directly. The names
+ * match the Scala layer's {@code Connectivity.createLazy} and {@code createOptimized},
+ * which these delegate to; "lazy" here means without path compression, not lazily
+ * evaluated.</p>
  *
  * <p><b>Usage example:</b>
  * <pre>{@code
- * ConnectivityLazy<String> c = ConnectivityLazy.createOptimized(List.of("A", "B", "C", "D"));
+ * Connectivity<String> c = Connectivity.createOptimized(List.of("A", "B", "C", "D"));
  * c.connect("A", "B");
  * c.connect("C", "D");
  * c.isConnected("A", "B"); // true
@@ -65,9 +68,9 @@ public class Connectivity<V> {
      *
      * @param <V> the vertex type.
      * @param vs  the initial vertices, each placed in its own singleton component.
-     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
+     * @return a new {@code Connectivity} without path compression, containing every vertex of {@code vs}.
      */
-    public static <V> Connectivity<V> create(List<V> vs) {
+    public static <V> Connectivity<V> createLazy(List<V> vs) {
         Seq<V> scalaSeq = CollectionConverters.ListHasAsScala(vs).asScala().toSeq();
         com.phasmidsoftware.gryphon.adjunct.Connectivity<V> connectivity = Connectivity$.MODULE$.createLazy(scalaSeq);
         return new Connectivity<>(connectivity);
@@ -79,7 +82,7 @@ public class Connectivity<V> {
      *
      * @param <V> the vertex type.
      * @param vs  the initial vertices, each placed in its own singleton component.
-     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
+     * @return a new {@code Connectivity} with path compression, containing every vertex of {@code vs}.
      */
     public static <V> Connectivity<V> createOptimized(List<V> vs) {
         Seq<V> scalaSeq = CollectionConverters.ListHasAsScala(vs).asScala().toSeq();
@@ -92,11 +95,11 @@ public class Connectivity<V> {
      *
      * @param vs  the initial vertices.
      * @param <V> the vertex type.
-     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
+     * @return a new {@code Connectivity} without path compression, containing every vertex of {@code vs}.
      */
     @SafeVarargs
-    public static <V> Connectivity<V> create(V... vs) {
-        return create(Arrays.asList(vs));
+    public static <V> Connectivity<V> createLazy(V... vs) {
+        return createLazy(Arrays.asList(vs));
     }
 
     /**
@@ -104,7 +107,7 @@ public class Connectivity<V> {
      *
      * @param vs  the initial vertices.
      * @param <V> the vertex type.
-     * @return a new {@code ConnectivityLazy} containing all vertices in {@code vs}.
+     * @return a new {@code Connectivity} with path compression, containing every vertex of {@code vs}.
      */
     @SafeVarargs
     public static <V> Connectivity<V> createOptimized(V... vs) {

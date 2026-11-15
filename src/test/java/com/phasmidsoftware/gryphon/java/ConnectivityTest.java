@@ -25,7 +25,7 @@ public class ConnectivityTest {
 
     @Test
     public void testCreateFromList() {
-        Connectivity<Integer> c = Connectivity.create(List.of(0, 1, 2, 3, 4));
+        Connectivity<Integer> c = Connectivity.createLazy(List.of(0, 1, 2, 3, 4));
         assertEquals(5, c.size());
     }
 
@@ -37,7 +37,7 @@ public class ConnectivityTest {
 
     @Test
     public void testCreateFromVarargs() {
-        Connectivity<String> c = Connectivity.create("A", "B", "C");
+        Connectivity<String> c = Connectivity.createLazy("A", "B", "C");
         assertEquals(3, c.size());
     }
 
@@ -53,7 +53,7 @@ public class ConnectivityTest {
 
     @Test
     public void testPutAddsNewComponent() {
-        Connectivity<Integer> c = Connectivity.create(List.of());
+        Connectivity<Integer> c = Connectivity.createLazy(List.of());
         c.put(1);
         c.put(2);
         assertEquals(2, c.size());
@@ -65,28 +65,28 @@ public class ConnectivityTest {
 
     @Test
     public void testConnectTwoVertices() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         c.connect(0, 1);
         assertTrue(c.isConnected(0, 1));
     }
 
     @Test
     public void testConnectReducesSize() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         c.connect(0, 1);
         assertEquals(2, c.size());
     }
 
     @Test
     public void testConnectSameVertexNoEffect() {
-        Connectivity<Integer> c = Connectivity.create(0, 1);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1);
         c.connect(0, 0);
         assertEquals(2, c.size());
     }
 
     @Test
     public void testConnectAlreadyConnectedNoEffect() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         c.connect(0, 1);
         c.connect(0, 1);
         assertEquals(2, c.size());
@@ -94,7 +94,7 @@ public class ConnectivityTest {
 
     @Test
     public void testTransitiveConnectivity() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         c.connect(0, 1);
         c.connect(1, 2);
         assertTrue(c.isConnected(0, 2));
@@ -102,7 +102,7 @@ public class ConnectivityTest {
 
     @Test
     public void testUnconnectedVerticesRemainSeparate() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2, 3);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2, 3);
         c.connect(0, 1);
         c.connect(2, 3);
         assertFalse(c.isConnected(0, 2));
@@ -111,7 +111,7 @@ public class ConnectivityTest {
 
     @Test
     public void testMergeAllIntoOneComponent() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2, 3, 4);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2, 3, 4);
         c.connect(0, 1);
         c.connect(1, 2);
         c.connect(2, 3);
@@ -165,14 +165,14 @@ public class ConnectivityTest {
 
     @Test
     public void testGetComponentInitiallyReturnsSelf() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         assertEquals(Integer.valueOf(0), c.getComponent(0));
         assertEquals(Integer.valueOf(1), c.getComponent(1));
     }
 
     @Test
     public void testGetComponentSameAfterConnect() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         c.connect(0, 1);
         // both 0 and 1 must now share the same representative
         assertEquals(c.getComponent(0), c.getComponent(1));
@@ -184,7 +184,7 @@ public class ConnectivityTest {
 
     @Test
     public void testToString() {
-        Connectivity<Integer> c = Connectivity.create(0, 1, 2);
+        Connectivity<Integer> c = Connectivity.createLazy(0, 1, 2);
         c.connect(0, 1);
         assertEquals("Connectivity{components=2}", c.toString());
     }

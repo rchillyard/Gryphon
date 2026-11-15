@@ -144,17 +144,6 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
       def traversal: Visitor[V, R, J] = Traversal.bfs(v, visitor, goal)
     }.traversal
 
-  /**
-   * BFS over edges rather than vertices.
-   * NOTE: this is a stub — the old implementation was also effectively a stub.
-   * TODO implement this properly.
-   *
-   * @param visitor the visitor processing edges.
-   * @param v       the starting vertex.
-   * @param goal    early-termination predicate on destination vertices.
-   */
-  def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random): Visitor[Edge[V, E], R, J] =
-    visitor // stub — full edge-BFS implementation deferred
 
   // -----------------------------------------------------------------------
   // Graph mutation
@@ -251,7 +240,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   /**
    * Adds the edges from the provided EdgeList to this VertexMap.
    */
-  def addEdges[E, Z](edgeList: EdgeList[V, E, Z]): VertexMap[V] =
+  def addEdges[E, Z >: EdgeType](edgeList: EdgeList[V, E, Z]): VertexMap[V] =
     edgeList.edges.foldLeft[VertexMap[V]](this)((vm, e) => vm + e)
 
   /**

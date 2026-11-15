@@ -18,7 +18,7 @@ package com.phasmidsoftware.gryphon.core
  * @tparam E the type of the attributes associated with the edges.
  * @tparam Z a type parameter to describe additional properties, such as the nature of the edges.
  */
-case class EdgeList[V, E, Z](edges: Seq[Edge[V, E]]) extends SerializableGraph[V, E, Z] with Edges[V, E]:
+case class EdgeList[V, E, Z >: EdgeType](edges: Seq[Edge[V, E]]) extends SerializableGraph[V, E, Z] with Edges[V, E]:
   /**
    * Generates a sequence of triplets, where each triplet represents an edge in the graph.
    * Each triplet contains the source vertex, the target vertex, the attribute associated with the edge, 
@@ -28,9 +28,11 @@ case class EdgeList[V, E, Z](edges: Seq[Edge[V, E]]) extends SerializableGraph[V
    *         the `black` vertex, the edge attribute (`attribute`), and the edge type (`edgeType`)
    *         of an edge in the graph.
    */
-  // CONSIDER eliminate this asInstanceOf
+  // `Z >: EdgeType` on the class is what retires the cast this line used to need: `edgeType` is
+  // an EdgeType, so with Z a supertype of it no conversion is required. Z was unbounded, which
+  // made the cast sound only for the one instantiation anyone actually uses, Z = EdgeType.
   def triplets: Seq[Triplet[V, E, Z]] =
-    edges.map(e => Triplet(e.white, e.black, Some(e.attribute), e.edgeType.asInstanceOf[Z]))
+    edges.map(e => Triplet(e.white, e.black, Some(e.attribute), e.edgeType))
 
 /**
  * A case class representing a collection of graph triplets.

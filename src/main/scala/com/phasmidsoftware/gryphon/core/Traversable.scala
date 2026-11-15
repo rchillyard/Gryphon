@@ -114,19 +114,6 @@ trait Traversable[V] {
    */
   def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
 
-  /**
-   * Performs a BFS traversal visiting edges rather than vertices, starting from `v`.
-   * Traversal stops when `goal` returns true for a destination vertex.
-   *
-   * @param visitor the visitor responsible for processing edges.
-   * @param v       the starting vertex.
-   * @param goal    early-termination predicate on destination vertices.
-   * @tparam E the type of the edge attribute.
-   * @tparam R the result type.
-   * @tparam J the journal type.
-   * @return the visitor after traversal.
-   */
-  def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random = Random()): Visitor[Edge[V, E], R, J]
 
   /**
    * Performs a DFS traversal applying `fulfill` to each visited vertex and returns a

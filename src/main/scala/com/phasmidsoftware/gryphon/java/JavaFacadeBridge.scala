@@ -57,6 +57,10 @@ private[java] object JavaFacadeBridge:
     new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
       def traversal: JavaMap[V, V] =
         val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+        // The seven casts to JournaledVisitor in this file are all the same thing, and none is
+        // removable here: Visitor's `Traversal.bfs`/`dfs` are declared to return `Visitor[V, R, J]`,
+        // the supertype, while the journal — the whole point of the call — is only reachable on the
+        // JournaledVisitor subtype. The fix belongs in Visitor's signatures, not in this file.
         val result = Traversal.bfs(start, visitor).asInstanceOf[JournaledVisitor[V, V, ?]]
         cameFromToJavaMap(result)
     }.traversal

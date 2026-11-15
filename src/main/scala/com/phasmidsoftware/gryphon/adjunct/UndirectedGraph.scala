@@ -18,16 +18,6 @@ import scala.util.{Random, Try}
 case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
         extends AbstractAdjunctGraph[V, E, UndirectedGraph[V, E]](vertexMap) {
 
-  /**
-   * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies
-   * accordingly. The edge is connected between its `from` and `black` vertices.
-   *
-   * CONSIDER eliminating this method.
-   *
-   * @param edge the edge to be added to the graph. It contains a starting vertex (`from`),
-   *             an ending vertex (`black`), and an associated attribute that defines the edge.
-   * @return a new instance of the graph that includes the specified edge and updated vertices.
-   */
   /** An undirected graph admits undirected edges only. */
   type EdgeT = UndirectedEdge[V, E]
 

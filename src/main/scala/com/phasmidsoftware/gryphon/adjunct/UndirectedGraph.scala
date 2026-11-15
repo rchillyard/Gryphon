@@ -137,14 +137,18 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
     }
 
   /**
-   * Creates a new directed graph using the provided vertex map.
+   * Creates a new undirected graph using the provided vertex map.
+   *
+   * Must build an `UndirectedGraph`: `unit` is how every derived graph is rebuilt, so returning
+   * the other kind here silently changed an undirected graph into a directed one. `addVertex` is
+   * the public route to it.
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
-   * @return a new directed graph constructed with the given vertex map.
+   * @return a new undirected graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): Graph[V] =
-    DirectedGraph(vertexMap)
+    UndirectedGraph[V, E](vertexMap)
 
   /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`

@@ -41,7 +41,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             sp.vertexTraverse(6) shouldBe Some(AttributedDirectedEdge(11.0, 2, 6))
             sp.vertexTraverse(7) shouldBe Some(AttributedDirectedEdge(8.0, 0, 7))
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("Graph is not a DirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -58,7 +57,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             val neighbours = graph.undiscoveredVertices(0)
             neighbours should not be empty
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("Graph is not a DirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -79,7 +77,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             neighbours.size shouldBe 3
             neighbours.toSet shouldBe Set(1, 4, 7)
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("Graph is not a DirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -100,7 +97,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             edgeMap(3) shouldBe 3.0
             edgeMap(6) shouldBe 11.0
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("Graph is not a DirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -133,7 +129,6 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             // The source has no predecessor
             sp.vertexTraverse(0) shouldBe None
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("Graph is not a DirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -162,6 +157,5 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             sp.vertexTraverse(2).map(_.white) shouldBe Some(5)
             sp.vertexTraverse(2).map(_.attribute) shouldBe Some(1.0)
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("Graph is not a DirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
   }

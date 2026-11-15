@@ -40,7 +40,6 @@ class PrimSpec extends AnyFlatSpec with Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
           case Failure(x) => fail("graph construction failed", x)
-          case _ => fail("not an UndirectedGraph[Int, Double]")
       case Failure(x) => fail("parse failed", x)
 
   private def maybeEdges(result: TraversalResult[Int, Edge[Int, Double]]): Option[Seq[Edge[Int, Double]]] =

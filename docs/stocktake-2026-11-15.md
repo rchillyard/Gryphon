@@ -98,7 +98,11 @@ that algorithm — not the type system — should drive the design.
 | tests (Scala + Java) | 56 | 7,881 |
 
 By package: `core` 2,364 · `traverse` 1,351 · `adjunct` 1,218 · `java` (bridge) 690 · `parse` 623 ·
-`util` 514. Roughly 1:1 code to tests, which is healthy.
+`util` 514 · `builder` 102 · `games` 54, plus `applications` (TicTacToe, Sudoku, Knapsack). Roughly
+1:1 code to tests, which is healthy.
+
+> **Correction (2026-11-15).** The last three were missing from this list when it was first
+> written. All are live and tested; `applications` uses `games`.
 
 ### What is good
 
@@ -114,11 +118,22 @@ By package: `core` 2,364 · `traverse` 1,351 · `adjunct` 1,218 · `java` (bridg
 
 ### What could be better, in the order worth tackling
 
-1. **The two graph classes are ~80% identical.** Normalising the names away leaves 253 differing
-   lines out of 1,218. That duplication is what produced the bug in §1, and it has already produced
-   four copies of the same `// TODO find another way to handle this anomaly`
-   (`DirectedGraph.scala:185,197`, `UndirectedGraph.scala:204,219`). A shared base holding the
-   common half would remove a whole class of defect rather than one instance of it.
+1. **The two graph classes duplicate their construction machinery.** `addEdge`, `M`, the shape of
+   `unit`, and the whole skeleton of `triplesToTryGraph` — including a block labelled
+   `NOTE duplicated code in UndirectedGraph` — are written twice, and there are four copies of the
+   same `// TODO find another way to handle this anomaly` (`DirectedGraph.scala:185,197`,
+   `UndirectedGraph.scala:204,219`). That duplication is what produced the bug in §1. A shared base
+   would remove a whole class of defect rather than one instance of it.
+
+   > **Correction (2026-11-15).** This section first said the two classes were "~80% identical —
+   > 253 differing lines out of 1,218". The 1,218 was wrong: it is the line count of *all six*
+   > files in `adjunct/`, not of the two graph classes, which are 450 lines (156 once comments and
+   > blanks are stripped). The duplication was real but smaller than stated. Taken at face value
+   > the figure also implies a line-count saving that the work does not deliver: after the
+   > extraction the same code is 159 lines, three *more* than before, because the shared base
+   > carries its own declarations. **The gain is structural, not arithmetic** — one construction
+   > path that cannot return the wrong kind of graph, concrete return types, and one copy of the
+   > triplets skeleton.
 
 2. **"Purely functional" is not quite true, and the exceptions that matter are not the obvious
    ones.** `BellmanFord`, `AcyclicShortestPaths` and `GraphTraversal` use mutable maps internally

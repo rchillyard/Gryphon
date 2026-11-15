@@ -60,7 +60,6 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
             val result = graph.dfsAll(visitor)
             result.result.map(_._1).toSet.size shouldBe 8
           case Failure(x) => fail("parse failed: ", x)
-          case _ => fail("Graph is not an EdgeGraph")
       case Failure(x) => fail("parse failed", x)
   }
 

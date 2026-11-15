@@ -45,7 +45,6 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     }.get
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets).get match
       case g: DirectedGraph[Int, Double] @unchecked => g
-      case other => fail(s"unexpected graph type: $other")
 
   // -------------------------------------------------------------------------
   // Structure of the result

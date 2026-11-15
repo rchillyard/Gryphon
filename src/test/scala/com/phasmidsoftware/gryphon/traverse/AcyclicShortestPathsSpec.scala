@@ -55,7 +55,6 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(dagTriplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
       case Failure(x) => fail("graph construction failed", x)
-      case other => fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // Result structure

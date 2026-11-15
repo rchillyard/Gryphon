@@ -4,7 +4,7 @@ import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.traverse.{BellmanFord, TopologicalSort, VertexTraversalResult}
 import com.phasmidsoftware.gryphon.core.GraphException
 import cats.kernel.Monoid
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
  * Represents a directed graph structure that supports operations on vertexMap and edges.
@@ -15,7 +15,8 @@ import scala.util.{Failure, Success, Try}
  * @tparam E the type of attributes for the edges in the graph (invariant).
  * @param vertexMap the `VertexMap` that represents this `Graph`.
  */
-case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V](vertexMap) with EdgeGraph[V, E] {
+case class DirectedGraph[V, E](vertexMap: VertexMap[V])
+        extends AbstractAdjunctGraph[V, E, DirectedGraph[V, E]](vertexMap) {
   /**
    * Returns a new DirectedGraph with all edges reversed (every u→v becomes v→u).
    * The vertex set is preserved, including any vertices with no outgoing edges.
@@ -92,9 +93,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
   /** A directed graph admits directed edges only. */
   type EdgeT = DirectedEdge[V, E]
 
-  override def addEdge(edge: DirectedEdge[V, E]): DirectedGraph[V, E] =
-    copy(vertexMap + edge)
-
   /**
    * Retrieves all edges in the directed graph as an iterable collection of edges.
    *
@@ -104,13 +102,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
     adjacencies map DirectedGraph.getDirectedEdgeFromAdjacency[V, E]
 
   /**
-   * Computes and returns the total number of edges in the directed graph.
-   *
-   * @return the number of directed edges present in the graph.
-   */
-  override def M: Int = edges.size
-
-  /**
    * Creates a new directed graph using the provided vertex map.
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
@@ -118,7 +109,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V]
    *
    * @return a new directed graph constructed with the given vertex map.
    */
-  def unit(vertexMap: VertexMap[V]): Graph[V] =
+  def unit(vertexMap: VertexMap[V]): DirectedGraph[V, E] =
     DirectedGraph(vertexMap)
 }
 
@@ -176,33 +167,17 @@ object DirectedGraph {
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
-  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
-    SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match {
-      case triplets: Triplets[V, E, EdgeType] =>
-        val vm: VertexMap[V] =
-          triplets.triplets.foldLeft(VertexMap[V]) {
-            (z, t) =>
-              // TODO find another way to handle this anomaly
-              if (!t.edgeType.oneWay)
-                System.err.println(s"WARNING: edge ${t.maybeAttribute} is not directed.")
-              z.createVerticesFromTriplet[E, EdgeType](f) {
-                        case (vv1, vv2, Some(e)) =>
-                          AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
-                        case (vv1, vv2, None) =>
-                          AdjacencyEdge(VertexPair(vv1.attribute, vv2.attribute))
-                      }(false)
-                      (t)
-          }
-        val graph = DirectedGraph(vm)
-        // TODO find another way to handle this anomaly
-        // NOTE duplicated code in UndirectedGraph
-        val expectedAdjacencies = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum
-        if (graph.adjacencies.size != expectedAdjacencies)
-          System.err.println(s"WARNING: ${graph.adjacencies.size} != $expectedAdjacencies")
-        Success(graph)
-      case z =>
-        Failure(GraphException(s"parse failed: $z"))
-    }
+  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[DirectedGraph[V, E]] =
+    AbstractAdjunctGraph.fromTriplets[V, E, DirectedGraph[V, E]](
+      f = f,
+      warn = t => Option.when(!t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is not directed."),
+      adjacency = {
+        case (vv1, vv2, Some(e)) => AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
+        case (vv1, vv2, None) => AdjacencyEdge(VertexPair(vv1.attribute, vv2.attribute))
+      },
+      bothWays = _ => false,
+      build = DirectedGraph(_)
+    )(triples)
 
   /**
    * A partial function that extracts a `DirectedEdge` from an `Adjacency`, specifically when the `Adjacency`

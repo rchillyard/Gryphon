@@ -110,7 +110,7 @@ public class GraphPropertiesTest {
      * layer commits to neither; `ConnectedComponents` and `Kosaraju` are the ways
      * to ask. This pins the refusal so the documented behaviour stays true.
      *
-     * <p>From 2.0.0 these are not declared on a directed graph at all, so Scala
+     * <p>From 1.8.0 these are not declared on a directed graph at all, so Scala
      * callers get a compile error. Java cannot express that, so the façade checks
      * and throws {@code GraphException} — the same exception as the degree family,
      * where it used to be {@code UnsupportedOperationException}.</p>

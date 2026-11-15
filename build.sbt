@@ -2,7 +2,7 @@
 
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleResultTypeProblem, MissingClassProblem, ProblemFilters, ReversedMissingMethodProblem}
 
-ThisBuild / version := "2.0.0"
+ThisBuild / version := "1.8.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -52,7 +52,7 @@ mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRe
 
 // 1.7.0's deliberate breaks — the erased util.GraphException alias and the removal of core.DAG — were
 // filtered here while previousRelease was 1.6.0. They are part of 1.7.0 now, so the filters have gone with
-// them. Add new ones here as 2.0.0 breaks compatibility, each with a release note in the README.
+// them. Add new ones here as 1.8.0 breaks compatibility, each with a release note in the README.
 mimaBinaryIssueFilters ++= Seq(
   // inDegree and outDegree are new *abstract* members of the public EdgeGraph trait, so anyone who
   // implemented that trait outside Gryphon would no longer compile. Deliberate: a default correct

@@ -80,7 +80,7 @@ trait Graph[V] extends Traversable[V]:
   // isConnected and isBipartite are deliberately NOT declared here. They are meaningful for an
   // undirected graph and ambiguous for a directed one — connectivity of a digraph is either weak
   // or strong, and this library commits to neither — so they live on UndirectedGraph alone.
-  // Until 2.0.0 they were abstract members of this trait and DirectedGraph implemented both as
+  // Until 1.8.0 they were abstract members of this trait and DirectedGraph implemented both as
   // `throw UnsupportedOperationException`, which made a run-time failure out of something the
   // compiler can decide. For a digraph, use ConnectedComponents for weak connectivity and
   // Kosaraju for strong.
@@ -209,7 +209,7 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
   /**
    * The kind of edge this graph admits.
    *
-   * An undirected graph admits `UndirectedEdge`s and a directed one `DirectedEdge`s. Before 2.0.0
+   * An undirected graph admits `UndirectedEdge`s and a directed one `DirectedEdge`s. Before 1.8.0
    * `addEdge` took any `Edge`, so either graph would accept either kind — and the mismatch was not
    * rejected but silently absorbed, leaving the graph inconsistent with itself: the adjacency was
    * added, so `degree` counted it, while `edges` and `M`, which select by edge type, did not.

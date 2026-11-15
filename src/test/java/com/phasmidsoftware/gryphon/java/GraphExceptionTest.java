@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * GraphException is unchecked from 2.0.0.
+ * GraphException is unchecked from 1.8.0.
  *
  * <p>The point of this class is that it <em>compiles</em>. Up to 1.7.0 GraphException extended
  * Exception, so Java saw a checked exception; the façade methods that throw it do not declare

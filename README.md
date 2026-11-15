@@ -477,7 +477,7 @@ Two groups do not apply to both:
 
 - `degree`, `maxDegree` and `meanDegree` throw `GraphException` on a directed
   graph. A vertex of a digraph has an in-degree and an out-degree, not one
-  degree — use those. `GraphException` is unchecked from 2.0.0, so Java callers
+  degree — use those. `GraphException` is unchecked from 1.8.0, so Java callers
   can catch it; before that they could not, because the façade's methods do not
   declare it and javac rejects a `catch` for a checked exception the called
   method cannot throw.
@@ -738,15 +738,15 @@ sbt test
 | 1.5.2 | Borůvka.mst returns Seq[Edge[V,E]] like Kruskal; Borůvka deduplication bug fix; tunnel integration tests |
 | 1.5.3 | Refactoring: Connectivity is now a trait with factory methods; Java façade updates |
 | 1.6.0 | Scala 3.9.0, Visitor 1.7.0, Flog 1.1.0; Borůvka refactoring. First published release since 1.5.1, so it also brings the 1.5.2 and 1.5.3 changes to Central |
-| 2.0.0 | `GraphException` is now unchecked, so Java callers can catch it; `addEdge` accepts only the kind of edge its graph admits; `prim` and `dijkstra` require an undirected and a directed graph respectively; `isConnected` and `isBipartite` are undirected-only; `inDegree`/`outDegree` added; the Java façade's `Connectivity.create` is renamed `createLazy`; type classes moved to `cats.kernel.Monoid`, adding a `cats-kernel` dependency, and the unused `util.HasZero` is removed; Javadoc published for the Java façade. **Breaking** — see "Migrating from 1.x" below |
 | 1.7.0 | Java API for the rest of the Scala library: Bellman–Ford, acyclic shortest paths, graph properties and predicates, `dfsAll` and `bfsUntil`. Two bug fixes: an isolated vertex added with `addVertex` no longer vanishes when the graph is materialised, and `dfsAll` no longer revisits vertices. One `GraphException`: `util.GraphException` is now a deprecated type alias for `core.GraphException`, and the unusable `core.DAG` trait is removed (both **binary-incompatible** — see the notes below). Build and release standardisation: `-Werror`, the PVP version scheme, MiMa binary-compatibility checking, and logback-classic moved to Test scope (it is no longer pulled in by Gryphon's users) |
+| 1.8.0 | `GraphException` is now unchecked, so Java callers can catch it; `addEdge` accepts only the kind of edge its graph admits; `prim` and `dijkstra` require an undirected and a directed graph respectively; `isConnected` and `isBipartite` are undirected-only; `inDegree`/`outDegree` added; the Java façade's `Connectivity.create` is renamed `createLazy`; type classes moved to `cats.kernel.Monoid`, adding a `cats-kernel` dependency, and the unused `util.HasZero` is removed; Javadoc published for the Java façade. **Breaking** — see "Migrating from 1.x" below |
 
-### Migrating from 1.x to 2.0.0
+### Migrating from 1.x to 1.8.0
 
 Most code needs no change. Everything below is a compile error rather than a silent change of
 behaviour, so the compiler will find each site for you.
 
-| 1.x | 2.0.0 | Why |
+| 1.x | 1.8.0 | Why |
 |---|---|---|
 | `com.phasmidsoftware.gryphon.util.GraphException` | `...core.GraphException` | The two identical classes are now one. The old name is a deprecated alias and still compiles; the class is gone from the jar, so recompile. |
 | `GraphException` caught as a checked exception in Java | unchecked | It extends `RuntimeException`, so a Java caller can finally write `catch (GraphException e)` — previously javac refused. |
@@ -763,7 +763,7 @@ behaviour, so the compiler will find each site for you.
 Unchanged, in case you expect otherwise: `Ordering` is still `scala.math.Ordering` rather than
 `cats.kernel.Order`; `degree`, `maxDegree` and `meanDegree` are still undirected-only; and the Java
 façade's class and method names are the same throughout, so Java code that compiled against 1.7.0
-compiles against 2.0.0 unless it caught `UnsupportedOperationException` from the two predicates.
+compiles against 1.8.0 unless it caught `UnsupportedOperationException` from the two predicates.
 
 ### Note on 1.7.0: `GraphException`
 

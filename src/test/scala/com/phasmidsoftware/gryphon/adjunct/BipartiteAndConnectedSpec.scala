@@ -109,7 +109,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
 
   behavior of "DirectedGraph and isConnected"
 
-  // Until 2.0.0 this spec asserted that `g.isConnected` threw UnsupportedOperationException.
+  // Until 1.8.0 this spec asserted that `g.isConnected` threw UnsupportedOperationException.
   // It no longer compiles: isConnected is not declared on a directed graph at all, because
   // connectivity of a digraph is either weak or strong and the library commits to neither.
   // There is no run-time behaviour left to assert, so what follows checks the replacement —

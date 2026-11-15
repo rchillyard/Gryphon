@@ -532,11 +532,12 @@ node11 -> node3;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Creates a new directed graph using the provided vertex map.</p>
+             <p>Creates a new undirected graph using the provided vertex map.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Creates a new directed graph using the provided vertex map.</p>
+              <p>Creates a new undirected graph using the provided vertex map.</p>
+              <p>Must build an <code>UndirectedGraph</code>: <code>unit</code> is how every derived graph is rebuilt, so returning the other kind here silently changed an undirected graph into a directed one. <code>addVertex</code> is the public route to it.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -549,7 +550,7 @@ node11 -> node3;
              <dl class="attributes attributes-small">
               <dt class="body-small">Returns</dt>
               <dd class="body-medium">
-               <p>a new directed graph constructed with the given vertex map.</p>
+               <p>a new undirected graph constructed with the given vertex map.</p>
               </dd>
              </dl>
             </div>

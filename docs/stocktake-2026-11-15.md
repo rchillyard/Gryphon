@@ -58,7 +58,10 @@ minor release and a MiMa filter, exactly as `inDegree`/`outDegree` did in 1.8.0.
 
 ---
 
-## 3. The capability parameter (plan question 5): recommend closing it
+## 3. The capability parameter (plan question 5): CLOSED
+
+**Robin closed it on 2026-11-15**, on the reasoning below. The plan document's question 5 and §8
+are updated to match.
 
 The question was whether to record self-loops and multi-edges as type-level facts, as JGraphT's
 `GraphType` records them — the case where type parameters start to beat class proliferation, since
@@ -76,8 +79,8 @@ one binary capability needs two classes, two need four, three need eight.
 
 So a capability parameter would enforce preconditions that do not exist. That is the opposite of
 the 1.8.0 situation, which had three real ones waiting to be expressed (`addEdge`, `prim`/`dijkstra`,
-and the two undirected-only predicates). **Recommend closing question 5** rather than deferring it
-again — on the same grounds as the Scala 3.3.8 build: not "later", but "not this".
+and the two undirected-only predicates). So question 5 was closed rather than deferred a second
+time — on the same grounds as the Scala 3.3.8 build: not "later", but "not this".
 
 If the answer ever changes it will be because an algorithm is *added* that needs a simple graph, and
 that algorithm — not the type system — should drive the design.

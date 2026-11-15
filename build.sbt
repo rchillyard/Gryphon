@@ -1,7 +1,5 @@
 // Gryphon project build file.
 
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, IncompatibleResultTypeProblem, MissingClassProblem, ProblemFilters, ReversedMissingMethodProblem}
-
 ThisBuild / version := "1.8.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
@@ -47,78 +45,15 @@ Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 // The version scheme is PVP (see publish.sbt): a patch release must pass; a minor release may break compatibility,
 // on purpose and with a release note, by listing the breaks in mimaBinaryIssueFilters (or, after the release, by
 // moving previousRelease on). Note moduleName, not name: the published artifact is gryphon_3, not Gryphon_3.
-val previousRelease = "1.7.0"
+val previousRelease = "1.8.0"
 mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
 
-// 1.7.0's deliberate breaks — the erased util.GraphException alias and the removal of core.DAG — were
-// filtered here while previousRelease was 1.6.0. They are part of 1.7.0 now, so the filters have gone with
-// them. Add new ones here as 1.8.0 breaks compatibility, each with a release note in the README.
-mimaBinaryIssueFilters ++= Seq(
-  // inDegree and outDegree are new *abstract* members of the public EdgeGraph trait, so anyone who
-  // implemented that trait outside Gryphon would no longer compile. Deliberate: a default correct
-  // for a directed graph (count edges whose tail is v) is silently wrong for an undirected one,
-  // where both endpoints count, so leaving them abstract makes every implementor answer.
-  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeGraph.inDegree"),
-  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeGraph.outDegree"),
-  // addEdge now takes the graph's own edge kind (EdgeGraph#EdgeT) rather than any Edge, so the
-  // erased signature changed. Deliberate, and the point of the change: an UndirectedGraph used to
-  // accept a DirectedEdge and absorb it silently, leaving the graph inconsistent with itself —
-  // degree counted the adjacency while edges and M, which select by edge type, did not.
-  ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.addEdge(com.phasmidsoftware.gryphon.core.Edge)com.phasmidsoftware.gryphon.adjunct.DirectedGraph"),
-  ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.addEdge(com.phasmidsoftware.gryphon.core.Edge)com.phasmidsoftware.gryphon.adjunct.UndirectedGraph"),
-  // isConnected and isBipartite are gone from the Graph trait and from DirectedGraph, where they
-  // were implemented as `throw UnsupportedOperationException`. They are meaningful only for an
-  // undirected graph, so `digraph.isConnected` is now a compile error rather than a run-time one.
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.isConnected()Boolean"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.isBipartite()Boolean"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.isConnected()Boolean"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.isBipartite()Boolean"),
-  // prim and dijkstra took Traversable[V], which says nothing about orientation, while the other
-  // seven algorithms already demanded DirectedGraph or UndirectedGraph. They now match: prim takes
-  // an UndirectedGraph and dijkstra a DirectedGraph. The $default$5 entries are the synthetic
-  // accessors for their default Random argument, whose signatures move with them.
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim$default$5"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.dijkstra$default$5"),
-  // The typeclasses moved to cats-kernel, so every signature with a Monoid or Zero context bound
-  // changed: Visitor's Monoid/Zero became cats.kernel.Monoid. Nothing about the algorithms needed
-  // the bespoke versions; the two Monoids are the same abstraction, Cats' with laws and instances.
-  // Prim and Borůvka are slightly over-constrained as a result — they compare weights but never
-  // accumulate, so Zero was enough — but Cats has no identity-only class, deliberately, since a
-  // lone identity satisfies no law.
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka.mst"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.shortestPaths"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.DijkstraTraversal.apply"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.DijkstraTraversal.copy"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.DijkstraTraversal.this"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.PrimTraversal.apply"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.PrimTraversal.copy"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.PrimTraversal.this"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.traverse.WeightedTraversal.this"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex.apply"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.core.Vertex.createRelaxableWithSet"),
-  // util.HasZero is deleted. It was an identity-only type class whose own comment read "I suppose
-  // we could get it from Cats but that seems like overkill", and nothing outside its own file ever
-  // referenced it. cats.kernel.Monoid is the Cats answer it anticipated.
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroUnit"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroUnit$"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroBoolean"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroBoolean$"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroInt"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroInt$"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble$"),
-  // The Java façade's Connectivity.create is renamed createLazy, matching the Scala layer it
-  // delegates to. "create" read as the default choice when it is the one *without* path
-  // compression; "lazy" is the Scala layer's long-standing name for that, and means unoptimised
-  // rather than lazily evaluated. createOptimized is unchanged.
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.java.Connectivity.create")
-)
+// 1.8.0's deliberate breaks — the orientation-constrained addEdge, prim and dijkstra, the removal of
+// isConnected/isBipartite from Graph and DirectedGraph, the new abstract inDegree/outDegree, the move
+// to cats.kernel.Monoid, the deletion of util.HasZero, and the Java Connectivity.create rename — were
+// filtered here while previousRelease was 1.7.0. They are part of 1.8.0 now, so the filters have gone
+// with them. Add new ones here as the next release breaks compatibility, each with a release note in
+// the README. (Re-add the ProblemFilters import above when you do: it went with the last batch.)
 
 // ============================================================================
 // MODULE DEFINITION

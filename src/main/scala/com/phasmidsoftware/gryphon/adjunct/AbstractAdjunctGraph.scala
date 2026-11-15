@@ -47,7 +47,7 @@ abstract class AbstractAdjunctGraph[V, E, G <: AbstractAdjunctGraph[V, E, G]](ve
    * @param edge the edge to add.
    * @return a graph of the same kind, including `edge`.
    */
-  override def addEdge(edge: EdgeT): G = unit(vertexMap + edge)
+  def addEdge(edge: EdgeT): G = unit(vertexMap + edge)
 
   /**
    * The number of edges.

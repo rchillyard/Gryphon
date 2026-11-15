@@ -1,6 +1,8 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.8.2"
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, MissingClassProblem, ProblemFilters}
+
+ThisBuild / version := "1.9.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -48,12 +50,19 @@ Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 val previousRelease = "1.8.1"
 mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
 
-// 1.8.0's deliberate breaks — the orientation-constrained addEdge, prim and dijkstra, the removal of
-// isConnected/isBipartite from Graph and DirectedGraph, the new abstract inDegree/outDegree, the move
-// to cats.kernel.Monoid, the deletion of util.HasZero, and the Java Connectivity.create rename — were
-// filtered here while previousRelease was 1.7.0. They are part of 1.8.0 now, so the filters have gone
-// with them. Add new ones here as the next release breaks compatibility, each with a release note in
-// the README. (Re-add the ProblemFilters import above when you do: it went with the last batch.)
+// 1.8.0's deliberate breaks were filtered here while previousRelease was 1.7.0, and went with it when
+// the baseline moved on. These are 1.9.0's, each with a release note in the README.
+mimaBinaryIssueFilters ++= Seq(
+  // RelaxableVertex is deleted, with its companion and the Vertex.createRelaxableWithSet factory.
+  // It carried the Dijkstra relaxation cost as a `var` on the vertex itself. Commit 9e06526
+  // (Gryphon 0.2.5) moved that state into the traversal — GraphTraversal.run owns `pred` and
+  // `bestCost` as locals, and the frontier carries (cost, vertex) tuples — after which nothing in
+  // src/main referenced it. Only its own tests did. Deleting it removes one of the two pieces of
+  // mutable state in the permanent structure of a graph; VertexMap.edgeCount is the other.
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex"),
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex$"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Vertex.createRelaxableWithSet(java.lang.Object,cats.kernel.Monoid,scala.math.Ordering)com.phasmidsoftware.gryphon.core.RelaxableVertex")
+)
 
 // ============================================================================
 // MODULE DEFINITION

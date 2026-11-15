@@ -57,7 +57,6 @@ trait Traversable[V] {
    *
    * @param predicate a function that evaluates each adjacent vertex and returns true
    *                  if the vertex satisfies the specified condition.
-   *
    * @param v         the vertex whose adjacent vertices are to be filtered.
    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
    */
@@ -69,6 +68,7 @@ trait Traversable[V] {
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
@@ -107,7 +107,6 @@ trait Traversable[V] {
    * @param v       the starting vertex.
    * @param goal    an optional early-termination predicate; traversal halts after recording
    *                the first node for which `goal` returns true.
-   *
    * @tparam R the result type extracted from each node.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
@@ -120,7 +119,7 @@ trait Traversable[V] {
    * `VertexTraversalResult` mapping each vertex to its result.
    *
    * @param fulfill transformation function applied to each vertex.
-   * @param start the starting vertex.
+   * @param start   the starting vertex.
    * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
@@ -187,11 +186,11 @@ trait Traversable[V] {
 
     loop(List((start, None)), Set.empty, Map.empty)
             .foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
-      case (acc, (child, Some(AdjacencyEdge(connexion, _)))) =>
-      acc.addConnexion(child, connexion)
-      case (acc, _) =>
-        acc
-    }
+              case (acc, (child, Some(AdjacencyEdge(connexion, _)))) =>
+                acc.addConnexion(child, connexion)
+              case (acc, _) =>
+                acc
+            }
   }
 
   /**
@@ -213,6 +212,7 @@ trait Traversable[V] {
    * @param visitor The visitor containing the traversal results captured in a journal.
    *                The journal consists of entries where each vertex is optionally
    *                associated with a result of type `T`.
+   *
    * @tparam T The result type associated with each vertex in the traversal.
    * @return A `VertexTraversalResult` mapping vertices to their respective results
    *         as processed from the input `result`.

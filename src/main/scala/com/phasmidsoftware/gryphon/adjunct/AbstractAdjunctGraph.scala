@@ -84,12 +84,12 @@ object AbstractAdjunctGraph:
    * @return `Success(G)`, or `Failure(GraphException)` if the triplets could not be parsed.
    */
   def fromTriplets[V, E, G <: AbstractGraph[V]](
-                                               f: V => Vertex[V],
-                                               warn: Triplet[V, E, EdgeType] => Option[String],
-                                               adjacency: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V],
-                                               bothWays: Triplet[V, E, EdgeType] => Boolean,
-                                               build: VertexMap[V] => G
-                                       )(triples: Seq[Triplet[V, E, EdgeType]]): Try[G] =
+                                                       f: V => Vertex[V],
+                                                       warn: Triplet[V, E, EdgeType] => Option[String],
+                                                       adjacency: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V],
+                                                       bothWays: Triplet[V, E, EdgeType] => Boolean,
+                                                       build: VertexMap[V] => G
+                                               )(triples: Seq[Triplet[V, E, EdgeType]]): Try[G] =
     SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match
       case triplets: Triplets[V, E, EdgeType] =>
         val vertexMap: VertexMap[V] =
@@ -111,7 +111,7 @@ object AbstractAdjunctGraph:
    * one-way triplet, two for each of the others.
    *
    * TODO see issue #57 — like the warning above, this notices a real inconsistency and then
-   *  carries on regardless.
+   * carries on regardless.
    */
   private def checkAdjacencies[V, E](graph: AbstractGraph[V], triplets: Triplets[V, E, EdgeType]): Unit =
     val expected = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum

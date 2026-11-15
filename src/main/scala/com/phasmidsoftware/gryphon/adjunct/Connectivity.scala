@@ -4,8 +4,7 @@
 
 package com.phasmidsoftware.gryphon.adjunct
 
-import com.phasmidsoftware.gryphon.core.Connected
-import com.phasmidsoftware.gryphon.core.GraphException
+import com.phasmidsoftware.gryphon.core.{Connected, GraphException}
 
 /**
  * A trait that combines the functionalities of a disjoint set and connectivity queries.
@@ -88,7 +87,6 @@ object ConnectivityLazy:
    *
    * @param entries a sequence of pairs where each pair consists of a value and a `ParentSize`
    *                object that defines the parent reference and the size of the component tree.
-   *
    * @return a new `ConnectivityLazy` instance initialized with the provided entries.
    */
   def apply[V](entries: Seq[(V, ParentSize[V])]): ConnectivityLazy[V] =
@@ -218,6 +216,7 @@ object ConnectivityOptimized:
    * @param entries a sequence of key-value pairs where each key is associated with
    *                a `ParentSize` representing the parent reference and size
    *                of the component tree for that key.
+   *
    * @tparam V the type of elements managed by the disjoint set.
    * @return a new `ConnectivityOptimized` instance containing the provided entries.
    */
@@ -311,8 +310,7 @@ object ConnectivityASP:
  * @param size   the number of objects in this component tree (meaningful only at the root).
  *               With path compression active, this becomes an upper bound on depth
  *               (rank) rather than the precise tree size.
- *
- * @tparam V     the underlying object type.
+ * @tparam V the underlying object type.
  */
 case class ParentSize[V](parent: Option[V], size: Int):
 
@@ -321,6 +319,7 @@ case class ParentSize[V](parent: Option[V], size: Int):
    *
    * @param vo The new parent reference to be set. Use `None` to indicate no parent
    *           (root node) or `Some(v)` to set a specific parent `v`.
+   *
    * @return A new `ParentSize[V]` instance with the updated parent reference.
    */
   def reparent(vo: Option[V]): ParentSize[V] = copy(parent = vo)
@@ -331,6 +330,7 @@ case class ParentSize[V](parent: Option[V], size: Int):
    * @param s The new size of the component tree. This value represents either the
    *          number of objects in the tree (if at the root) or an upper bound on
    *          the tree's depth (rank) when path compression is active.
+   *
    * @return A new `ParentSize[V]` instance with the updated size.
    */
   def resize(s: Int): ParentSize[V] = copy(size = s)

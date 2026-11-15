@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
+import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{Connectivity, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.core.*
-import cats.kernel.Monoid
 import scala.annotation.nowarn
 
 /**
@@ -66,9 +66,11 @@ object Boruvka:
    *
    * @param wc          the current connectivity state, represented as a disjoint-set structure.
    *                    This is used to determine whether two vertices are in the same connected component.
+   *
    * @param mstEdges    the sequence of edges that currently form the MST.
    * @param uniqueEdges the collection of unique edges to be considered. Each edge connects two vertices
    *                    in different components and contributes to forming the MST.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edge weight, which must have a `Monoid` and `Ordering` instance.
    * @return a tuple containing the updated connectivity state and the updated sequence of MST edges.
@@ -95,11 +97,13 @@ object Boruvka:
    *
    * @param cheapest a map where each key is a root vertex of a component, and the value is the
    *                 cheapest edge crossing out of that component.
+   *
    * @param wc       the current connectivity information represented as a disjoint-set structure,
    *                 which provides the root component for any given vertex.
-   * @tparam V       the vertex type in the graph.
-   * @tparam E       the edge type, which must support `Monoid` and `Ordering` instances.
-   * @return         a map whose keys are sets containing two component roots, and values are the cheapest
+   *
+   * @tparam V the vertex type in the graph.
+   * @tparam E the edge type, which must support `Monoid` and `Ordering` instances.
+   * @return a map whose keys are sets containing two component roots, and values are the cheapest
    *         edges connecting those components.
    */
   private def uniqueCrossingEdges[V, E](cheapest: Map[V, Edge[V, E]], wc: Connectivity[V]) =
@@ -127,10 +131,10 @@ object Boruvka:
    * @return a map from component root to the cheapest crossing edge out of that component.
    */
   private def cheapestCrossingEdges[V, E: Ordering](
-                                                                     graph: UndirectedGraph[V, E],
-                                                                     vertices: Seq[V],
-                                                                     wc: Connectivity[V]
-                                                             ): Map[V, Edge[V, E]] =
+                                                           graph: UndirectedGraph[V, E],
+                                                           vertices: Seq[V],
+                                                           wc: Connectivity[V]
+                                                   ): Map[V, Edge[V, E]] =
     vertices.foldLeft(Map.empty[V, Edge[V, E]]) { (acc, v) =>
       val vRoot: V = wc.getDisjointSet(v)
       val crossingEdges = edgesFrom(graph)(v).filter(e => wc.getDisjointSet(e.other(v)) != vRoot)

@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import cats.kernel.Monoid
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 
 /**
  * Computes shortest paths in a weighted DAG using topological relaxation.
@@ -37,7 +37,6 @@ object AcyclicShortestPaths:
    * @tparam E the edge-weight type; must have `Monoid` (zero + combine) and `Ordering`.
    * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
    *         vertex (except `start`) to its shortest-path incoming edge.
-   *
    * @throws IllegalArgumentException if the graph contains a cycle.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =

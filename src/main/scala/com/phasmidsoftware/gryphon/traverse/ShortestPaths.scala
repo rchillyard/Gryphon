@@ -1,10 +1,10 @@
 package com.phasmidsoftware.gryphon.traverse
 
-import scala.annotation.unused
+import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
-import cats.kernel.Monoid
+import scala.annotation.unused
 import scala.util.Random
 
 /**

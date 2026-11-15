@@ -51,6 +51,7 @@ object SerializableGraph {
    *                 - the first element is the source vertex of type `V`.
    *                 - the second element is the target vertex of type `V`.
    *                 - the third element is the edge attribute of type `E`.
+   *
    * @tparam V the type associated with the vertices in the graph.
    * @tparam E the type associated with the edges in the graph.
    * @tparam Z the generic type for edge type.
@@ -68,6 +69,7 @@ object SerializableGraph {
    *
    * @param pairs a sequence of tuples `(V, V)` where each tuple represents a vertex pair in the graph.
    *              The first element of the tuple is the source vertex, and the second element is the target vertex.
+   *
    * @tparam V the type associated with the vertices in the graph.
    * @tparam Z the generic type for edge type.
    * @return a `ProtoConnexions[V]` representing the graph constructed from the specified vertex pairs.

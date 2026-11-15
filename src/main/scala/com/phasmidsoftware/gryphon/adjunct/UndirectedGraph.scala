@@ -1,9 +1,8 @@
 package com.phasmidsoftware.gryphon.adjunct
 
-import scala.annotation.unused
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.gryphon.core.GraphException
 import com.phasmidsoftware.visitor.core.{Evaluable, JournaledVisitor}
+import scala.annotation.unused
 import scala.util.{Random, Try}
 
 /**
@@ -39,6 +38,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
   /**
    * Returns the maximum degree of any vertex in the graph.
    */
+
   /**
    * Returns the in-degree of `v`, which for an undirected graph is simply its degree:
    * every edge can be traversed in both directions.
@@ -140,6 +140,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
+   *
    * @return a new undirected graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): UndirectedGraph[V, E] =
@@ -184,6 +185,7 @@ object UndirectedGraph {
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return a `Try[Graph[V]]`, where:

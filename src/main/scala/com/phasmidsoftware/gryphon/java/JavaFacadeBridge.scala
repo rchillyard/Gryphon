@@ -494,10 +494,17 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   /** The number of vertices, N in Sedgewick's notation. */
-  def order[V](scalaGraph: AbstractGraph[V]): Int = scalaGraph.N
+  def order[V](scalaGraph: AbstractGraph[V]): Int = scalaGraph.order
 
-  /** The number of edges, M in Sedgewick's notation. */
-  def size[V](scalaGraph: AbstractGraph[V]): Int = scalaGraph.M
+  /**
+   * The number of edges, M in Sedgewick's notation.
+   *
+   * Needs an edge graph: from 1.9.0 the count lives on `EdgeTraversable`, because counting edges
+   * requires knowing what an edge is. In Scala that is a compile-time matter; here, as everywhere
+   * in the façade, it is a `GraphException`.
+   */
+  def size[V](scalaGraph: AbstractGraph[V]): Int =
+    asEdgeGraph(scalaGraph, "size").size
 
   def degree[V](scalaGraph: AbstractGraph[V], v: V): Int =
     asUndirected(scalaGraph, "degree").degree(v)

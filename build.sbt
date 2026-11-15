@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, MissingClassProblem, ProblemFilters}
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, MissingClassProblem, ProblemFilters, ReversedMissingMethodProblem}
 
 ThisBuild / version := "1.9.0"
 
@@ -68,7 +68,22 @@ mimaBinaryIssueFilters ++= Seq(
   // `directedGraph.addEdge(e)` still takes a DirectedEdge and still returns a DirectedGraph — but
   // the *erased* signature is now (Edge)AbstractAdjunctGraph, declared on the base.
   ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.addEdge"),
-  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.addEdge")
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.addEdge"),
+  // `N` and `M` become `order` and `size` — the standard graph-theory terms, and what the Java
+  // façade has always called them. `N` and `M` survive as deprecated aliases with bodies, so
+  // calling code still compiles; what moves is the *abstract* member each trait requires.
+  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.order"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.M()Int"),
+  // `size` moves from Traversable down to EdgeTraversable, because counting edges requires knowing
+  // what an edge is. A VertexMap is a Traversable and does not know: it cannot tell whether an
+  // adjacency it holds is half of an undirected edge or the whole of a directed one. Requiring the
+  // count one level too high is precisely what forced VertexMap to carry a mutable `edgeCount`,
+  // which `+` incremented on the receiver while returning a map whose own count was always 0.
+  ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeTraversable.size"),
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.M()Int"),
+  // AbstractGraph's own `M` went with it. It was `vertexMap.M`, so it inherited that wrongness;
+  // both concrete graphs overrode it, which is the only reason nothing user-facing was broken.
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.M()Int")
 )
 
 // ============================================================================

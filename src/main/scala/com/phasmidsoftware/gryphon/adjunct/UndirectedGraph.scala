@@ -67,7 +67,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    * Returns the mean degree across all vertices in the graph.
    */
   def meanDegree: Double =
-    vertexMap.keySet.toSeq.map(degree).sum.toDouble / N
+    vertexMap.keySet.toSeq.map(degree).sum.toDouble / order
 
   /**
    * Determines whether the graph contains a cycle using DFS to detect is we encounter a previously visited vertex.
@@ -98,7 +98,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    * all N vertices were visited.
    */
   def isConnected: Boolean =
-    if N == 0 then true
+    if order == 0 then true
     else
       given Random = Random(0)
 
@@ -106,7 +106,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
         def evaluate(v: V): Option[V] = Some(v)
       val start = vertexMap.keySet.head
       dfs(JournaledVisitor.withQueueJournal[V, V])(start)
-              .result.map(_._1).toSet.size == N
+              .result.map(_._1).toSet.size == order
 
   /**
    * Returns true if this undirected graph is bipartite — i.e. its vertices

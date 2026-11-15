@@ -107,8 +107,8 @@ class ParseableSpec extends AnyFlatSpec with Matchers {
     import com.phasmidsoftware.gryphon.builder.GraphBuilder
     GraphBuilder.undirected[Int, Long].fromResource("longs.graph") match
       case scala.util.Success(g) =>
-        g.N shouldBe 4
-        g.M shouldBe 4
+        g.order shouldBe 4
+        g.size shouldBe 4
       case scala.util.Failure(x) => fail("failed to load longs.graph", x)
 
   it should "parse edge weights as Long from longs.graph" in :

@@ -103,7 +103,7 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
   it should "satisfy meanDegree == 2*M/N for prim.graph (handshaking lemma)" in :
     // For any undirected graph: sum of degrees = 2 * number of edges
     withPrimGraph { graph =>
-      graph.meanDegree shouldBe (2.0 * graph.M / graph.N) +- 0.001
+      graph.meanDegree shouldBe (2.0 * graph.size / graph.order) +- 0.001
     }
 
   it should "return 1.0 for a single-edge graph" in :
@@ -181,8 +181,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
   it should "sum to the edge count, both ways" in :
     val g = digraph
     val vs = g.vertexMap.keySet
-    vs.toSeq.map(g.inDegree).sum shouldBe g.M
-    vs.toSeq.map(g.outDegree).sum shouldBe g.M
+    vs.toSeq.map(g.inDegree).sum shouldBe g.size
+    vs.toSeq.map(g.outDegree).sum shouldBe g.size
 
   it should "swap when the graph is reversed" in :
     val g = digraph
@@ -209,7 +209,7 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.edges.size shouldBe 1
-        graph.M shouldBe 1
+        graph.size shouldBe 1
         graph.degree(0) shouldBe 1
         graph.degree(1) shouldBe 1
       case other => fail(s"unexpected: $other")
@@ -222,6 +222,6 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.edges.size shouldBe 2
-        graph.M shouldBe 2
+        graph.size shouldBe 2
         graph.degree(1) shouldBe 2
       case other => fail(s"unexpected: $other")

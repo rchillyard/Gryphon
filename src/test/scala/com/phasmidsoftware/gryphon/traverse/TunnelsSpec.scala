@@ -46,10 +46,10 @@ class TunnelsSpec extends AnyFlatSpec with should.Matchers:
     GraphBuilder.undirected[String, Double].fromResource("tunnels.graph") shouldBe a[Success[?]]
 
   it should "produce a graph with 80 buildings" in :
-    withTunnelGraph { graph => graph.N shouldBe KNOWN_BUILDINGS }
+    withTunnelGraph { graph => graph.order shouldBe KNOWN_BUILDINGS }
 
   it should "produce a graph with 79 edges" in :
-    withTunnelGraph { graph => graph.M shouldBe KNOWN_MST_EDGES }
+    withTunnelGraph { graph => graph.size shouldBe KNOWN_MST_EDGES }
 
   // -------------------------------------------------------------------------
   // Kruskal

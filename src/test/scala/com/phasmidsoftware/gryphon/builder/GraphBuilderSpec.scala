@@ -34,12 +34,12 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce a graph with 8 vertices" in :
     GraphBuilder.undirected[Int, Double].fromResource("prim.graph") match
-      case Success(graph) => graph.N shouldBe 8
+      case Success(graph) => graph.order shouldBe 8
       case Failure(x) => fail("failed to load prim.graph", x)
 
   it should "produce a graph with 16 edges" in :
     GraphBuilder.undirected[Int, Double].fromResource("prim.graph") match
-      case Success(graph) => graph.M shouldBe 16
+      case Success(graph) => graph.size shouldBe 16
       case Failure(x) => fail("failed to load prim.graph", x)
 
   it should "return an UndirectedGraph instance" in :
@@ -75,12 +75,12 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce a graph with 7 vertices from directed.graph" in :
     GraphBuilder.directed[Int, Unit].fromResource("directed.graph") match
-      case Success(graph) => graph.N shouldBe 7
+      case Success(graph) => graph.order shouldBe 7
       case Failure(x) => fail("failed to load directed.graph", x)
 
   it should "produce a graph with 12 edges from directed.graph" in :
     GraphBuilder.directed[Int, Unit].fromResource("directed.graph") match
-      case Success(graph) => graph.M shouldBe 12
+      case Success(graph) => graph.size shouldBe 12
       case Failure(x) => fail("failed to load directed.graph", x)
 
   // -------------------------------------------------------------------------

@@ -54,12 +54,12 @@ class PrimSpec extends AnyFlatSpec with Matchers:
 
   "prim.graph" should "have 8 vertices" in :
     withPrimGraph { graph =>
-      graph.N shouldBe 8
+      graph.order shouldBe 8
     }
 
   it should "have 16 edges (each undirected edge stored once)" in :
     withPrimGraph { graph =>
-      graph.M shouldBe 16
+      graph.size shouldBe 16
     }
 
   // -----------------------------------------------------------------------

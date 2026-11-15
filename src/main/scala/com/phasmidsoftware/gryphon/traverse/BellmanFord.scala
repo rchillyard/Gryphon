@@ -45,7 +45,7 @@ object BellmanFord:
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     val em = implicitly[Monoid[E]]
     val eo = implicitly[Ordering[E]]
-    val V = graph.N
+    val V = graph.order
 
     // NOTE Create all the working data structures.
     val dist: mutable.Map[V, E] = mutable.Map(start -> em.empty)

@@ -34,7 +34,18 @@ case class RandomIterator[T](private val iterable: Iterable[T])(implicit random:
   def next(): T =
     list.remove(random.nextInt(list.size))
 
-  random.nextLong(): Unit // XXX burn the first value
+  // Burn the first value, to avoid an initial bias in the sequence.
+  //
+  // Not because the first value is the seed — it is not; java.util.Random scrambles the seed on
+  // construction. The real problem is that the first output is very nearly a linear function of
+  // the seed, which is the usual weakness of a linear congruential generator. Measured on Java 21,
+  // `new Random(s).nextInt(100000)` for s = 0..9 gives
+  //
+  //   41360 48985 26108 33734 71862 79487 56611 64236 2364 9989
+  //
+  // which steps by +7625 repeatedly, wrapping. The *second* value shows no such structure. So one
+  // discarded draw is enough, and it matters here because nearby seeds are a normal thing to use.
+  random.nextLong(): Unit
 
   private val list: mutable.ListBuffer[T] =
     mutable.ListBuffer(iterable.toSeq *)

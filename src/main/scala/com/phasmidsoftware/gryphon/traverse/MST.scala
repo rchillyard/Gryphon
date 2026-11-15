@@ -1,8 +1,8 @@
 package com.phasmidsoftware.gryphon.traverse
 
+import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
 import com.phasmidsoftware.gryphon.core.Edge
-import cats.kernel.Monoid
 import scala.util.Random
 
 /**

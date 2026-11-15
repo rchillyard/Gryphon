@@ -1,8 +1,8 @@
 package com.phasmidsoftware.gryphon.traverse
 
+import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core.{Edge, EvaluableGraphNeighboursTraversal, Traversable}
-import cats.kernel.Monoid
 // Visitor's own Monoid is hidden so that the wildcard does not make it ambiguous with Cats'.
 import com.phasmidsoftware.visitor.core.{Monoid as _, *, given}
 import scala.collection.mutable

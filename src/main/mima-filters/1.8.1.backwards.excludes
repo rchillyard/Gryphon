@@ -41,3 +41,29 @@ ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.
 # --- AbstractGraph's own M went with it. It was `vertexMap.M`, so it inherited that wrongness;
 # both concrete graphs overrode it, which is the only reason nothing user-facing was broken.
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.M()Int")
+
+# --- VertexTraversalResult.unit and Connexions.unit are declared as their own concrete types now,
+# rather than the base TraversalResult, which is what let `+` stop casting its own result straight
+# back down. Same shape as the Graph.unit bug fixed in 1.8.1 — a construction method widened to a
+# base type, then narrowed again by hand.
+ProblemFilters.exclude[DirectAbstractMethodProblem]("com.phasmidsoftware.gryphon.traverse.AbstractVertexTraversalResult.unit(scala.collection.immutable.Map)com.phasmidsoftware.gryphon.traverse.TraversalResult")
+
+# --- EdgeList gains `Z >: EdgeType`, which retires the cast in its `triplets`. Z was unbounded,
+# so the cast was sound only for Z = EdgeType, the one instantiation anyone uses. VertexMap.addEdges
+# carries the same bound.
+ProblemFilters.exclude[IncompatibleSignatureProblem]("com.phasmidsoftware.gryphon.core.EdgeList.*")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("com.phasmidsoftware.gryphon.core.VertexMap.addEdges")
+
+# --- java.GraphTraversal is deleted. It was package-private, had zero references anywhere, and
+# carried its own "TODO move this to the attic as it is no longer used".
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.java.GraphTraversal")
+
+# --- bfse is deleted from Traversable, VertexMap, Graph and AbstractGraph. It was declared,
+# forwarded, and implemented as `visitor` — it returned its own argument unchanged, so a caller
+# got an empty visitor back and would conclude the graph had no edges. Nothing called it anywhere.
+# A signature that silently answers wrongly is worse than no signature, so it goes; anyone who was
+# relying on it now gets a compile error instead of an empty result.
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.bfse*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.bfse*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.bfse*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.bfse*")

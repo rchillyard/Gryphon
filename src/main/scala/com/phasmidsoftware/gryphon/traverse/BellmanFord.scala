@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import cats.kernel.Monoid
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 

@@ -4,8 +4,7 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
-import com.phasmidsoftware.gryphon.core.{Graph, Traversable}
-import com.phasmidsoftware.gryphon.core.GraphException
+import com.phasmidsoftware.gryphon.core.{Graph, GraphException, Traversable}
 import scala.annotation.{tailrec, unused}
 import scala.util.Random
 

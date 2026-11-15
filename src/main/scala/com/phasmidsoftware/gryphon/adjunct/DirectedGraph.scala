@@ -1,9 +1,8 @@
 package com.phasmidsoftware.gryphon.adjunct
 
+import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.traverse.{BellmanFord, TopologicalSort, VertexTraversalResult}
-import com.phasmidsoftware.gryphon.core.GraphException
-import cats.kernel.Monoid
 import scala.util.Try
 
 /**
@@ -43,6 +42,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @return true if the graph is cyclic, false otherwise.
    */
+
   /**
    * Returns the in-degree of `v`: the number of arcs whose head is `v`.
    * A self-loop counts once, towards both the in-degree and the out-degree.
@@ -76,10 +76,8 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @param edge the edge to be added, which is an instance of `Edge[V, E]`. The edge defines the connection
    *             between two vertices of type `V` and may have a direction and an associated attribute of type `E`.
-   *
    * @return a new `EdgeGraph[V, E]` instance that includes the newly added edge. The returned graph preserves
    *         all existing edges and vertices.
-   *
    * @throws GraphException if the provided edge type is unexpected or unsupported.
    */
 
@@ -106,7 +104,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
-   *
    * @return a new directed graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): DirectedGraph[V, E] =
@@ -125,7 +122,6 @@ object DirectedGraph {
    *
    * @param vertexMap a map containing the vertices of type `V` as keys and their associated
    *                  adjacency lists or other vertex-specific data.
-   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return an instance of `DirectedGraph[V, E]` initialized with the given vertex map.
@@ -160,7 +156,6 @@ object DirectedGraph {
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
-   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return a `Try[Graph[V]]`, where:
@@ -192,7 +187,12 @@ object DirectedGraph {
     case AdjacencyEdge(e: DirectedEdge[V, E] @unchecked, false) =>
       e
     case AdjacencyEdge(e: VertexPair[V], false) =>
-      OrderedEdge(e.white, e.black).asInstanceOf[DirectedEdge[V, E]] // E should be Unit
+      // TODO this cast is unsound and should go — see issue #56. An OrderedEdge carries no
+      //  attribute, so this is a DirectedEdge[V, Unit] being read as a DirectedEdge[V, E], which
+      //  holds only where E is Unit. A VertexPair reaches here when a triplet had no attribute,
+      //  the same anomaly the construction warnings in AbstractAdjunctGraph report. Fixing it
+      //  means not admitting attributeless edges into an attributed graph in the first place.
+      OrderedEdge(e.white, e.black).asInstanceOf[DirectedEdge[V, E]]
     case x =>
       throw GraphException(s"unexpected edge type: $x")
   }

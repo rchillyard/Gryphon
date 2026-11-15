@@ -2,8 +2,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.gryphon.core.{Connexion, Edge}
-import com.phasmidsoftware.gryphon.core.GraphException
+import com.phasmidsoftware.gryphon.core.{Connexion, Edge, GraphException}
 
 /**
  * A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.
@@ -163,7 +162,6 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   def +(t: (V, T)): TraversalResult[V, T] =
@@ -205,11 +203,10 @@ case class VertexTraversalResult[V, T](map: Map[V, T]) extends AbstractVertexTra
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   override def +(t: (V, T)): VertexTraversalResult[V, T] =
-    super.+(t).asInstanceOf[VertexTraversalResult[V, T]]
+    unit(map + t)
 
   /**
    * Creates a new traversal instance based on the provided map of vertices and their associated traversal results.
@@ -217,7 +214,10 @@ case class VertexTraversalResult[V, T](map: Map[V, T]) extends AbstractVertexTra
    * @param map a map where the keys are vertices of type `V` and the values are the associated traversal results of type `T`.
    * @return a new traversal instance of type `TraversalResult[V, T]` constructed with the given map.
    */
-  def unit(map: Map[V, T]): TraversalResult[V, T] =
+  // Declared as the concrete type, not TraversalResult[V, T]: `unit` is the single construction
+  // point, so widening it here forced `+` to cast its own result straight back down. Same shape as
+  // the Graph.unit bug fixed in 1.8.1.
+  override def unit(map: Map[V, T]): VertexTraversalResult[V, T] =
     VertexTraversalResult(map)
 }
 
@@ -255,8 +255,7 @@ object VertexTraversalResult {
  *
  * @param connexions a map where each key is a vertex of type `V` and its value is a tuple `(V, V)`
  *                   representing the result associated with traversal from this vertex.
- *
- * @tparam V         the type representing a vertex in the graph.
+ * @tparam V the type representing a vertex in the graph.
  */
 case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends AbstractVertexTraversalResult[V, DirectedEdge[V, E]](connexions) {
   /**
@@ -264,10 +263,10 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    *
    * @param map a map where each key is a vertex of type `V` and its value is a tuple `(V, V)` representing
    *            the result associated with traversal from this vertex.
-   *
    * @return a new `TraversalResult` instance of type `TraversalResult[V, (V, V)]` initialized with the provided map.
    */
-  def unit(map: Map[V, DirectedEdge[V, E]]): TraversalResult[V, DirectedEdge[V, E]] =
+  // As in VertexTraversalResult: the concrete type, so `+` need not cast.
+  override def unit(map: Map[V, DirectedEdge[V, E]]): Connexions[V, E] =
     copy(connexions = map)
 
   /**
@@ -282,7 +281,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    */
   def addConnexion(v: V, connexion: Connexion[V]): Connexions[V, E] = connexion match {
     case d: AttributedDirectedEdge[V, E] @unchecked =>
-      copy (connexions = connexions + (v -> d) )
+      copy(connexions = connexions + (v -> d))
     case u: UndirectedEdge[V, E] @unchecked =>
       copy(connexions = connexions + (v -> AttributedDirectedEdge(u.attribute, u.other(v), v)))
     case _ =>
@@ -295,11 +294,10 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
-   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   override def +(t: (V, DirectedEdge[V, E])): Connexions[V, E] =
-    super.+(t).asInstanceOf[Connexions[V, E]]
+    unit(connexions + t)
 }
 
 /**

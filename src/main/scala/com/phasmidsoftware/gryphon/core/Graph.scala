@@ -1,9 +1,9 @@
 package com.phasmidsoftware.gryphon.core
 
-import scala.annotation.unused
 import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.visitor.core.*
+import scala.annotation.unused
 import scala.util.Random
 
 /**
@@ -55,19 +55,6 @@ trait Graph[V] extends Traversable[V]:
   def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
     vertexMap.bfs(visitor)(v, goal)
 
-  /**
-   * BFS over edges rather than vertices.
-   *
-   * @param visitor the visitor processing edges.
-   * @param v       the starting vertex.
-   * @param goal    early-termination predicate on destination vertices.
-   * @tparam E the type of the edge attribute.
-   * @tparam R the result type.
-   * @tparam J the journal type.
-   * @return the visitor after traversal.
-   */
-  def bfse[E, R, J <: Appendable[(Edge[V, E], Option[R])]](visitor: Visitor[Edge[V, E], R, J])(v: V)(goal: V => Boolean)(using ev: Evaluable[Edge[V, E], R], random: Random): Visitor[Edge[V, E], R, J] =
-    vertexMap.bfse(visitor)(v)(goal)
 
   /**
    * Determines if the graph contains any cycles.
@@ -169,7 +156,6 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
-   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */

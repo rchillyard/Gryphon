@@ -1,10 +1,14 @@
 package com.phasmidsoftware.gryphon.java
 
-import scala.annotation.unused
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedEdge, UndirectedGraph}
 import com.phasmidsoftware.gryphon.builder.GraphBuilder
+// Deliberately not a wildcard, for the same reason as the traverse import below: package
+// `...gryphon.java` has its own `Edge` and `Graph`, and Scala ranks a wildcard import ABOVE
+// package members that come from a different file. So `core.*` rebinds `Edge` to `core.Edge[V, E]`
+// and `materialise`'s `JavaList[Edge[V]]` stops compiling — which is exactly what happened.
 import com.phasmidsoftware.gryphon.core.{AbstractGraph, EdgeGraph, EvaluableGraphNeighboursTraversal, GraphException, Vertex, VertexMap}
 import com.phasmidsoftware.gryphon.parse.Parseable
+import scala.annotation.unused
 // Kept to six selectors or fewer, and deliberately not a wildcard: this file is in package
 // `...gryphon.java`, which has its own ShortestPaths, ConnectedComponents and TopologicalSort.
 // A wildcard import has lower precedence than same-package definitions, so `ShortestPaths` would
@@ -57,6 +61,10 @@ private[java] object JavaFacadeBridge:
     new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
       def traversal: JavaMap[V, V] =
         val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
+        // The seven casts to JournaledVisitor in this file are all the same thing, and none is
+        // removable here: Visitor's `Traversal.bfs`/`dfs` are declared to return `Visitor[V, R, J]`,
+        // the supertype, while the journal — the whole point of the call — is only reachable on the
+        // JournaledVisitor subtype. The fix belongs in Visitor's signatures, not in this file.
         val result = Traversal.bfs(start, visitor).asInstanceOf[JournaledVisitor[V, V, ?]]
         cameFromToJavaMap(result)
     }.traversal
@@ -162,6 +170,7 @@ private[java] object JavaFacadeBridge:
     given Parseable[V] = asParseable(vertexParser, """\w+""")
 
     given Parseable[E] = asParseable(edgeParser, """(\d+(\.\d*)?|\d*\.\d+)""")
+
     val g = GraphBuilder.undirected[V, E].fromResource(resourceName).get
     (g, extractWeightedEdges(g))
 
@@ -173,6 +182,7 @@ private[java] object JavaFacadeBridge:
     given Parseable[V] = asParseable(vertexParser, """\w+""")
 
     given Parseable[E] = asParseable(edgeParser, """(\d+(\.\d*)?|\d*\.\d+)""")
+
     val g = GraphBuilder.directed[V, E].fromResource(resourceName).get
     (g, extractWeightedEdges(g))
 
@@ -201,7 +211,9 @@ private[java] object JavaFacadeBridge:
       def parse(s: String): Try[T] = Try(f.apply(s))
 
       def regex: scala.util.matching.Regex = regexStr.r
+
       def message: String = "custom"
+
       def none: T = throw new UnsupportedOperationException("none not supported for custom Parseable")
 
   // ---------------------------------------------------------------------------
@@ -269,6 +281,7 @@ private[java] object JavaFacadeBridge:
                                start: V
                        ): JavaMap[V, WeightedEdge[V, Double]] =
     given Random = Random(0)
+
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
     val weightedGraph = materialiseWeighted[V, Double](edges)
@@ -316,6 +329,7 @@ private[java] object JavaFacadeBridge:
     given Random = Random(0)
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
     // Prim compares edge weights and never accumulates them, so only `empty` is ever used.
     // Cats has no identity-only type class — a lone identity satisfies no law — so this is a
     // Monoid whose combine is the honest one for Double rather than a stub.
@@ -339,6 +353,7 @@ private[java] object JavaFacadeBridge:
                               comparator: JavaComparator[E]
                       ): JavaMap[V, WeightedEdge[V, E]] =
     given Random = Random(0)
+
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     // As above, Prim never accumulates, so combine is never called; with a caller-supplied
@@ -359,6 +374,7 @@ private[java] object JavaFacadeBridge:
                               edges: JavaList[WeightedEdge[V, Double]]
                       ): JavaList[WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = Kruskal.mst(weightedGraph)
     mstSeqToJavaList(result)
@@ -390,6 +406,7 @@ private[java] object JavaFacadeBridge:
                               edges: JavaList[WeightedEdge[V, Double]]
                       ): JavaList[WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
     mstSeqToJavaList(result)
@@ -407,8 +424,10 @@ private[java] object JavaFacadeBridge:
                                  comparator: JavaComparator[E]
                          ): JavaList[WeightedEdge[V, E]] =
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
     given Monoid[E] with
       def empty: E = edges.get(0).attribute
+
       def combine(x: E, y: E): E = empty
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)

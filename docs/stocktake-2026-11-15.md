@@ -152,6 +152,36 @@ By package: `core` 2,364 · `traverse` 1,351 · `adjunct` 1,218 · `java` (bridg
 Nineteen `TODO`/`CONSIDER`/`FIXME` markers in `src/main` overall, and 22 `asInstanceOf` casts, of
 which the `DisjointSet` ones are documented as safe with reasons.
 
+### Deferred past 1.9.0: the Dijkstra/Prim frontier
+
+`GraphTraversal.run` keeps `pred` and `bestCost` as `mutable.Map`s
+(`GraphTraversal.scala:151-152`). They are the last mutable state in the library that is not a
+utility, and they are **not** convertible by the method used for the other four. They exist for
+*decrease-key*: when a neighbour is relaxed, `CostUpdate` must find that vertex's stale entry in
+the `IndexedPrioQueue` frontier, and `bestCost` is the index into it.
+
+Dijkstra has already had the migration the other four got — commit `9e06526` moved the cost into
+the frontier, which carries `(E, V)` tuples, and that is what retired `RelaxableVertex`. These two
+maps are what was left over.
+
+Making them immutable is an **algorithmic** choice, not a refactor. Either adopt a purely
+functional heap, or use lazy deletion — push duplicate entries and skip vertices already settled —
+which trades a larger heap for no mutation. That is a trade worth making deliberately, on its own,
+rather than as a by-product of a purity sweep.
+
+**Does Visitor need to change first?** Less than expected. Checked against the published
+`visitor_3-1.7.0.jar`: Visitor already has `TupleVisitedSet[E, V]`, which keys visited-ness on the
+`V` of an `(E, V)` pair — exactly the projection this needs, since the frontier holds tuples while
+settled-ness is a property of the vertex alone. **Gryphon does not use it.** So the first thing to
+try is `TupleVisitedSet` plus the `IndexedPrioQueue` and `CostUpdate` already in use, before
+proposing any change to Visitor.
+
+Where Visitor *is* genuinely short: `getConnexions` (`Traversable.scala`) hand-rolls a DFS, and
+says why — "the V1.2.0 engine does not expose parent information through `Evaluable`". An
+algorithm that needs the edge it arrived by cannot use the engine. That is the Visitor feature
+request worth writing up, and it would also simplify `isCyclic`, which needs the parent for the
+same reason.
+
 ### A coherent 1.9.0
 
 Items 1–3 are one release, because they are one theme — and it is §8's theme: the gap between what

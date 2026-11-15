@@ -6,7 +6,8 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import cats.kernel.Monoid
-import scala.collection.mutable
+import scala.annotation.tailrec
+import scala.collection.immutable.Queue
 
 /**
  * Computes shortest paths in a weighted directed graph using the
@@ -45,37 +46,61 @@ object BellmanFord:
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     val em = implicitly[Monoid[E]]
     val eo = implicitly[Ordering[E]]
-    val V = graph.order
+    val vertexCount = graph.order
 
-    // NOTE Create all the working data structures.
-    val dist: mutable.Map[V, E] = mutable.Map(start -> em.empty)
-    val pred: mutable.Map[V, DirectedEdge[V, E]] = mutable.Map.empty
-    val onQueue: mutable.Set[V] = mutable.Set(start)
-    val enqueued: mutable.Map[V, Int] = mutable.Map(start -> 1)
-    val queue: mutable.Queue[V] = mutable.Queue(start)
+    /**
+     * Everything the queue-based relaxation carries. These five travelled as five mutable
+     * collections and a `var`; they are one immutable value now, threaded through the loop.
+     *
+     * @param dist     best known cost to each reached vertex.
+     * @param pred     the edge by which each vertex was last relaxed — the result.
+     * @param onQueue  which vertices are already waiting, so they are not queued twice.
+     * @param enqueued how many times each vertex has been queued; `vertexCount` proves a cycle.
+     * @param queue    the work still to do.
+     */
+    final case class State(
+                                  dist: Map[V, E],
+                                  pred: Map[V, DirectedEdge[V, E]],
+                                  onQueue: Set[V],
+                                  enqueued: Map[V, Int],
+                                  queue: Queue[V]
+                          )
 
-    // NOTE this is a mutable variable, but it is only used in the loop condition.
-    var negativeCycle = false
+    /**
+     * Relaxes one edge leaving `v`. `None` means a negative cycle has been proved: a vertex
+     * queued `vertexCount` times cannot be explained by any simple path.
+     */
+    def relax(state: State, v: V, edge: AttributedDirectedEdge[V, E]): Option[State] =
+      val w = edge.black
+      val newDist = em.combine(state.dist(v), edge.attribute)
+      if !state.dist.get(w).forall(eo.lt(newDist, _)) then Some(state)
+      else
+        val relaxed = state.copy(dist = state.dist + (w -> newDist), pred = state.pred + (w -> edge))
+        if relaxed.onQueue.contains(w) then Some(relaxed)
+        else
+          val count = relaxed.enqueued.getOrElse(w, 0) + 1
+          Option.when(count < vertexCount)(relaxed.copy(
+            queue = relaxed.queue.enqueue(w),
+            onQueue = relaxed.onQueue + w,
+            enqueued = relaxed.enqueued + (w -> count)
+          ))
 
-    while queue.nonEmpty && !negativeCycle do
-      val v = queue.dequeue()
-      onQueue -= v
-      for
-        adj <- graph.filteredAdjacencies(_ => true)(v)
-        edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e }
-        if !negativeCycle
-      do
-        val w = edge.black
-        val newDist = em.combine(dist(v), edge.attribute)
-        if dist.get(w).forall(eo.lt(newDist, _)) then
-          dist(w) = newDist
-          pred(w) = edge
-          if !onQueue.contains(w) then
-            queue.enqueue(w)
-            onQueue += w
-            val count = enqueued.getOrElse(w, 0) + 1
-            enqueued(w) = count
-            if count >= V then negativeCycle = true
+    @tailrec
+    def loop(state: State): Option[State] =
+      state.queue.dequeueOption match
+        case None =>
+          Some(state) // nothing left to relax: the distances are final
+        case Some((v, rest)) =>
+          val popped = state.copy(queue = rest, onQueue = state.onQueue - v)
+          val relaxedAll = graph.filteredAdjacencies(_ => true)(v)
+                  .flatMap(_.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e })
+                  .foldLeft(Option(popped)) {
+                    case (None, _) => None // a negative cycle is already proved; stop
+                    case (Some(acc), edge) => relax(acc, v, edge)
+                  }
+          relaxedAll match
+            case None => None
+            case Some(next) => loop(next)
 
-    if negativeCycle then None
-    else Some(VertexTraversalResult(pred.toMap))
+    loop(State(Map(start -> em.empty), Map.empty, Set(start), Map(start -> 1), Queue(start)))
+            .map(state => VertexTraversalResult(state.pred))

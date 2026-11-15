@@ -77,18 +77,22 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
   def isCyclic: Boolean =
     given Random = Random(0)
 
-    val visited = scala.collection.mutable.Set.empty[V]
-
-    def dfs(v: V, parent: Option[V]): Boolean =
-      visited += v
-      adjacentVertices(v).exists { w =>
-        if !visited.contains(w) then dfs(w, Some(v))
-        else !parent.contains(w)
+    // The visited set is threaded through rather than mutated: each call returns both its answer
+    // and the set as it stands, so a later sibling sees what an earlier one reached — which is
+    // what the mutable version got from sharing one `Set`.
+    def dfs(v: V, parent: Option[V], visited: Set[V]): (Boolean, Set[V]) =
+      adjacentVertices(v).foldLeft(false -> (visited + v)) {
+        case (found@(true, _), _) => found // a cycle is already known; stop looking
+        case ((false, seen), w) =>
+          if !seen.contains(w) then dfs(w, Some(v), seen)
+          else !parent.contains(w) -> seen // a back edge to anything but the parent is a cycle
       }
 
-    vertexMap.keySet.exists { v =>
-      !visited.contains(v) && dfs(v, None)
-    }
+    vertexMap.keySet.foldLeft(false -> Set.empty[V]) {
+      case (found@(true, _), _) => found
+      case ((false, seen), v) =>
+        if seen.contains(v) then false -> seen else dfs(v, None, seen)
+    }._1
 
   /**
    * Returns true if this undirected graph is connected — i.e. every vertex
@@ -119,18 +123,23 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
   def isBipartite: Boolean =
     given Random = Random(0)
 
-    val color = scala.collection.mutable.Map.empty[V, Boolean]
-
-    def dfs(v: V, c: Boolean): Boolean =
-      color(v) = c
-      adjacentVertices(v).forall { w =>
-        if !color.contains(w) then dfs(w, !c)
-        else color(w) != c
+    // `None` means a conflict was found and the answer is already false; otherwise the colouring
+    // so far is carried forward, so each component starts from what the previous ones coloured.
+    // A self-loop reaches an already-coloured `v` with the same colour, so it correctly fails:
+    // a self-loop is an odd cycle.
+    def dfs(v: V, c: Boolean, colours: Map[V, Boolean]): Option[Map[V, Boolean]] =
+      adjacentVertices(v).foldLeft(Option(colours + (v -> c))) {
+        case (None, _) => None
+        case (Some(acc), w) =>
+          acc.get(w) match
+            case Some(cw) => Option.when(cw != c)(acc)
+            case None => dfs(w, !c, acc)
       }
 
-    vertexMap.keySet.forall { v =>
-      color.contains(v) || dfs(v, true)
-    }
+    vertexMap.keySet.foldLeft(Option(Map.empty[V, Boolean])) {
+      case (None, _) => None
+      case (Some(acc), v) => if acc.contains(v) then Some(acc) else dfs(v, true, acc)
+    }.isDefined
 
   /**
    * Creates a new undirected graph using the provided vertex map.

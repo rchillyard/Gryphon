@@ -174,32 +174,32 @@ trait Traversable[V] {
     // so we run a manual DFS that explicitly tracks the incoming adjacency for
     // each discovered vertex (i.e. the edge used to reach it from its DFS parent).
     import scala.annotation.tailrec
-    import scala.collection.mutable
 
-    // Stack holds (child, incomingAdjacency) pairs.
-    // start has no incoming adjacency (it is the root).
-    val visited = mutable.Set.empty[V]
-    val result = mutable.Map.empty[V, Option[Adjacency[V]]]
-
+    // Stack holds (child, incomingAdjacency) pairs; `start` has no incoming adjacency, being the
+    // root. `visited` and `result` are carried as arguments rather than mutated — the loop was
+    // already tail-recursive, so they had only to be threaded through it.
     @tailrec
-    def loop(stack: List[(V, Option[Adjacency[V]])]): Unit = stack match
-      case Nil => ()
+    def loop(
+                    stack: List[(V, Option[Adjacency[V]])],
+                    visited: Set[V],
+                    result: Map[V, Option[Adjacency[V]]]
+            ): Map[V, Option[Adjacency[V]]] = stack match
+      case Nil =>
+        result
+      case (v, _) :: rest if visited.contains(v) =>
+        loop(rest, visited, result)
       case (v, incoming) :: rest =>
-        if visited.contains(v) then loop(rest)
-        else
-          visited += v
-          result(v) = incoming
-          // Push unvisited neighbours with the adjacency used to reach them.
-          val children: List[(V, Option[Adjacency[V]])] =
-            filteredAdjacencies(_ => true)(v)
-                    .filterNot(a => visited.contains(a.vertex))
-                    .map(a => (a.vertex, Some(a)))
-                    .toList
-          loop(children ::: rest)
+        val seen = visited + v
+        // Push unvisited neighbours with the adjacency used to reach them.
+        val children: List[(V, Option[Adjacency[V]])] =
+          filteredAdjacencies(_ => true)(v)
+                  .filterNot(a => seen.contains(a.vertex))
+                  .map(a => (a.vertex, Some(a)))
+                  .toList
+        loop(children ::: rest, seen, result + (v -> incoming))
 
-    loop(List((start, None)))
-
-    result.foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
+    loop(List((start, None)), Set.empty, Map.empty)
+            .foldLeft[Connexions[V, E]](Connexions.empty[V, E]) {
       case (acc, (child, Some(AdjacencyEdge(connexion, _)))) =>
       acc.addConnexion(child, connexion)
       case (acc, _) =>

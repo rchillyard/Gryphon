@@ -6,7 +6,6 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import cats.kernel.Monoid
-import scala.collection.mutable
 
 /**
  * Computes shortest paths in a weighted DAG using topological relaxation.
@@ -48,17 +47,23 @@ object AcyclicShortestPaths:
     val topoOrder: Seq[V] = TopologicalSort.sort(graph)
             .getOrElse(throw IllegalArgumentException("AcyclicShortestPaths: graph contains a cycle"))
 
-    val dist: mutable.Map[V, E] = mutable.Map(start -> mn.empty)
-    val pred: mutable.Map[V, DirectedEdge[V, E]] = mutable.Map.empty
+    // One pass in topological order, so each vertex is final by the time it is reached and the
+    // state can simply be threaded through rather than mutated. `dist` and `pred` travel together
+    // because they are updated together, on exactly the edges that relax.
+    type State = (Map[V, E], Map[V, DirectedEdge[V, E]])
 
-    for v <- topoOrder if dist.contains(v) do
-      for
-        adj <- graph.filteredAdjacencies(_ => true)(v)
-        edge <- adj.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e }
-      do
-        val newDist = mn.combine(dist(v), edge.attribute)
-        if dist.get(edge.black).forall(ord.lt(newDist, _)) then
-          dist(edge.black) = newDist
-          pred(edge.black) = edge
+    val (_, pred) = topoOrder.foldLeft[State](Map(start -> mn.empty) -> Map.empty) {
+      case (state@(dist, _), v) if !dist.contains(v) =>
+        state // not reachable from start, so nothing leaving it can relax
+      case (state, v) =>
+        graph.filteredAdjacencies(_ => true)(v)
+                .flatMap(_.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e })
+                .foldLeft(state) { case ((dist, pred), edge) =>
+                  val newDist = mn.combine(dist(v), edge.attribute)
+                  if dist.get(edge.black).forall(ord.lt(newDist, _)) then
+                    (dist + (edge.black -> newDist)) -> (pred + (edge.black -> edge))
+                  else dist -> pred
+                }
+    }
 
-    VertexTraversalResult(pred.toMap)
+    VertexTraversalResult(pred)

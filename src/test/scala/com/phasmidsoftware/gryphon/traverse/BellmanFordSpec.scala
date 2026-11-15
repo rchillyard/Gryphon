@@ -57,13 +57,11 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(negativeTriplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
       case Failure(x) => fail("graph construction failed", x)
-      case other => fail(s"unexpected: $other")
 
   private def withNegativeCycleGraph[A](f: DirectedGraph[Int, Double] => A): A =
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(negativeCycleTriplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
       case Failure(x) => fail("graph construction failed", x)
-      case other => fail(s"unexpected: $other")
 
   private def withDijkstraGraph[A](f: DirectedGraph[Int, Double] => A): A =
     val p = new GraphParser[Int, Double, EdgeType]
@@ -75,7 +73,6 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-          case other => fail(s"unexpected: $other")
       case Failure(x) => fail("parse failed", x)
 
   // -------------------------------------------------------------------------

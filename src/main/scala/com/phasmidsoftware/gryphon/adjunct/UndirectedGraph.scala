@@ -4,7 +4,7 @@ import scala.annotation.unused
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.core.GraphException
 import com.phasmidsoftware.visitor.core.{Evaluable, JournaledVisitor}
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.{Random, Try}
 
 /**
  * Represents a directed graph structure that supports operations on vertexMap and edges. 
@@ -15,7 +15,8 @@ import scala.util.{Failure, Random, Success, Try}
  * @tparam E the type of attributes for the edges in the graph (invariant).
  * @param vertexMap the `VertexMap` that represents this `Graph`.
  */
-case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[V](vertexMap) with EdgeGraph[V, E] {
+case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
+        extends AbstractAdjunctGraph[V, E, UndirectedGraph[V, E]](vertexMap) {
 
   /**
    * Adds an edge to the directed graph, creating or updating the vertices and their adjacencies
@@ -30,9 +31,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
   /** An undirected graph admits undirected edges only. */
   type EdgeT = UndirectedEdge[V, E]
 
-  def addEdge(edge: UndirectedEdge[V, E]): UndirectedGraph[V, E] =
-    copy(vertexMap + edge)
-
   /**
    * Retrieves all edges in the directed graph as an iterable collection of edges.
    *
@@ -41,8 +39,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
   def edges: Iterator[UndirectedEdge[V, E]] = {
     adjacencies.collect { case AdjacencyEdge(e: UndirectedEdge[V, E] @unchecked, false) => e }
   }
-
-  override def M: Int = edges.size
 
   /**
    * Returns the degree of vertex `v` — the number of edges incident to it.
@@ -147,7 +143,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V]) extends AbstractGraph[
    *                  and their adjacencies in the graph.
    * @return a new undirected graph constructed with the given vertex map.
    */
-  def unit(vertexMap: VertexMap[V]): Graph[V] =
+  def unit(vertexMap: VertexMap[V]): UndirectedGraph[V, E] =
     UndirectedGraph[V, E](vertexMap)
 
   /**
@@ -195,33 +191,19 @@ object UndirectedGraph {
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
-  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[Graph[V]] =
-    SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match {
-      case triplets: Triplets[V, E, EdgeType] =>
-        val vm: VertexMap[V] =
-          triplets.triplets.foldLeft(VertexMap[V]) {
-            (z, t) =>
-              // TODO find another way to handle this anomaly
-              if (t._4.oneWay) System.err.println(s"WARNING: edge ${t._3} is directed.")
-              z.createVerticesFromTriplet[E, EdgeType](f) {
-                        case (vv1, vv2, Some(e)) =>
-                          AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
-                        case (vv1, vv2, None) =>
-                          // An edge with no attribute is still an edge of this graph, so it must be
-                          // undirected like the rest. It used to be an AttributedDirectedEdge, which
-                          // UndirectedGraph.edges then discarded — the graph counted the adjacency in
-                          // `degree` but not the edge in `edges` or `M`.
-                          AdjacencyEdge(UndirectedEdge(None, vv1.attribute, vv2.attribute))
-                      }(!t._4.oneWay)
-                      (t)
-          }
-        val graph = UndirectedGraph(vm)
-        // TODO find another way to handle this anomaly
-        val expectedAdjacencies = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum
-        if graph.adjacencies.size != expectedAdjacencies then
-          System.err.println(s"WARNING: ${graph.adjacencies.size} != $expectedAdjacencies")
-        Success(graph)
-      case z =>
-        Failure(GraphException(s"parse failed: $z"))
-    }
+  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[UndirectedGraph[V, E]] =
+    AbstractAdjunctGraph.fromTriplets[V, E, UndirectedGraph[V, E]](
+      f = f,
+      warn = t => Option.when(t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is directed."),
+      adjacency = {
+        // An edge with no attribute is still an edge of this graph, so it must be undirected
+        // like the rest. It used to be an AttributedDirectedEdge, which UndirectedGraph.edges
+        // then discarded — the graph counted the adjacency in `degree` but not the edge in
+        // `edges` or `M`.
+        case (vv1, vv2, Some(e)) => AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
+        case (vv1, vv2, None) => AdjacencyEdge(UndirectedEdge(None, vv1.attribute, vv2.attribute))
+      },
+      bothWays = !_.edgeType.oneWay,
+      build = UndirectedGraph(_)
+    )(triples)
 }

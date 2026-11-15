@@ -88,7 +88,7 @@ object GraphBuilder:
    */
   def undirected[V: Parseable, E: Parseable]: GraphBuilder[V, E, UndirectedGraph[V, E]] =
     new GraphBuilder(
-      UndirectedGraph.triplesToTryGraph[V, E](Vertex.createWithSet)(_).map(_.asInstanceOf[UndirectedGraph[V, E]])
+      UndirectedGraph.triplesToTryGraph[V, E](Vertex.createWithSet)
     )
 
   /**
@@ -99,5 +99,5 @@ object GraphBuilder:
    */
   def directed[V: Parseable, E: Parseable]: GraphBuilder[V, E, DirectedGraph[V, E]] =
     new GraphBuilder(
-      DirectedGraph.triplesToTryGraph[V, E](Vertex.createWithSet)(_).map(_.asInstanceOf[DirectedGraph[V, E]])
+      DirectedGraph.triplesToTryGraph[V, E](Vertex.createWithSet)
     )

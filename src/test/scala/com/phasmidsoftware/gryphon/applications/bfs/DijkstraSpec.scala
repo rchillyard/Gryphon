@@ -43,7 +43,6 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val result = graph.bfs(visitor)(0)
             result.result.map(_._1).toSet.size shouldBe 8
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -61,7 +60,6 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val result = graph.dfsAll(visitor)
             result.result.map(_._1).toSet.size shouldBe 8
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -88,7 +86,6 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val firstHop2 = hop2.map(order.indexOf).min
             lastHop1 should be < firstHop2
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -114,7 +111,6 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val lastHop1and2 = hop1and2.map(order.indexOf).max
             order.indexOf(6) should be > lastHop1and2
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -137,7 +133,6 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             // All are reachable from 0 in this graph
             visited shouldBe Set(0, 1, 2, 3, 4, 5, 6, 7)
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
   }
 
@@ -155,6 +150,5 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val result = graph.bfs(visitor)(0)
             result.result.headOption.map(_._1) shouldBe Some(0)
           case Failure(x) => fail("parse failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
   }

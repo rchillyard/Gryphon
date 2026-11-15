@@ -33,7 +33,6 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         directedTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
 
   private def withDirectedGraph[A](f: DirectedGraph[Int, Double] => A): A =
@@ -46,7 +45,6 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         directedTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-          case _ => fail("not a DirectedGraph")
       case Failure(x) => fail("parse failed", x)
 
   private def withPrimGraph[A](f: UndirectedGraph[Int, Double] => A): A =
@@ -59,7 +57,6 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         undirectedTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: UndirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-          case _ => fail("not an UndirectedGraph")
       case Failure(x) => fail("parse failed", x)
 
   // -------------------------------------------------------------------------

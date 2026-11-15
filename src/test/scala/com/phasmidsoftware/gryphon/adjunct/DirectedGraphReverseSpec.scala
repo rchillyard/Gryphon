@@ -47,7 +47,6 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
     }.get
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets).get match
       case g: DirectedGraph[Int, Double] @unchecked => (g, g.reverse)
-      case other => fail(s"unexpected graph type: $other")
 
   // -------------------------------------------------------------------------
   // Structure tests

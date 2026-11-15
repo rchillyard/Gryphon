@@ -30,7 +30,6 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: UndirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-          case _ => fail("not an UndirectedGraph")
       case Failure(x) => fail("parse failed", x)
 
   private def withDfsuGraph[A](f: UndirectedGraph[Int, Unit] => A): A =
@@ -43,7 +42,6 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(g: UndirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-          case _ => fail("not an UndirectedGraph")
       case Failure(x) => fail("parse failed", x)
 
   // -------------------------------------------------------------------------

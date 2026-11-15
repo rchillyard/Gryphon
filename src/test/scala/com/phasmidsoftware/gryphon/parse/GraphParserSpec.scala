@@ -57,7 +57,6 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
             graph.edges.size shouldBe 16
           case Failure(x) =>
             fail("parse failed: ", x)
-          case _ => fail("parse failed: Graph is not an EdgeGraph")
         }
 
       case Failure(x) =>

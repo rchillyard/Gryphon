@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, MissingClassProblem, ProblemFilters}
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleMethTypeProblem, MissingClassProblem, ProblemFilters}
 
 ThisBuild / version := "1.9.0"
 
@@ -61,7 +61,14 @@ mimaBinaryIssueFilters ++= Seq(
   // mutable state in the permanent structure of a graph; VertexMap.edgeCount is the other.
   ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex"),
   ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.RelaxableVertex$"),
-  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Vertex.createRelaxableWithSet(java.lang.Object,cats.kernel.Monoid,scala.math.Ordering)com.phasmidsoftware.gryphon.core.RelaxableVertex")
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Vertex.createRelaxableWithSet(java.lang.Object,cats.kernel.Monoid,scala.math.Ordering)com.phasmidsoftware.gryphon.core.RelaxableVertex"),
+  // addEdge moved to the new AbstractAdjunctGraph base, where it is written once as
+  // `unit(vertexMap + edge)` instead of twice as `copy(vertexMap + edge)`. Source compatibility is
+  // unaffected — each subclass still fixes `EdgeT` to its own edge kind and `G` to itself, so
+  // `directedGraph.addEdge(e)` still takes a DirectedEdge and still returns a DirectedGraph — but
+  // the *erased* signature is now (Edge)AbstractAdjunctGraph, declared on the base.
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.addEdge"),
+  ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.addEdge")
 )
 
 // ============================================================================

@@ -282,7 +282,7 @@ case class Unordered_Set[T](elements: Set[T]) extends AbstractUnordered[T](eleme
    * @return `true` if the element exists within the set, otherwise `false`.
    */
   def contains[U >: T](u: U): Boolean =
-    // DELIBERATE cast, kept: Set is invariant, so a Set[T] is not a Set[U] even where U >: T, and
+    // NOTE this cast is kept on purpose, and is sound. Set is invariant, so a Set[T] is not a Set[U] even where U >: T, and
     // there is no variance-respecting `contains` to call. The alternative, `elements.exists(_ == u)`,
     // is correct but turns an O(1) hash lookup into an O(n) scan. The cast is sound — reading a
     // Set[T] as a Set[U] can only ever hand out Ts, which are Us.

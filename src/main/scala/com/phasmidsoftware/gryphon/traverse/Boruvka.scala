@@ -22,7 +22,9 @@ import scala.annotation.nowarn
  *
  * NOTE: this is a direct iterative algorithm and does not use the Visitor traversal engine.
  * The per-component minimum-edge scan in each round is embarrassingly parallel
- * and could be parallelised using parallel collections or futures (TODO).
+ * and could be parallelised using parallel collections or futures.
+ * CONSIDER doing so — but see the note on `minimumEdges`, which weighs it up and concludes it
+ * would likely not pay for itself, because the parallel version cannot use ConnectivityOptimized.
  *
  * NOTE: intended for undirected weighted graphs only.
  */

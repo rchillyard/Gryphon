@@ -94,9 +94,9 @@ object AbstractAdjunctGraph:
       case triplets: Triplets[V, E, EdgeType] =>
         val vertexMap: VertexMap[V] =
           triplets.triplets.foldLeft(VertexMap[V]) { (z, t) =>
-            // TODO find another way to handle this anomaly: a triplet whose EdgeType disagrees
-            //  with the graph being built is reported to stderr and then used anyway. It should
-            //  be a Failure, but doing that needs the parser to stop producing them.
+            // TODO see issue #57: a triplet whose EdgeType disagrees with the graph being built
+            //  is reported to stderr and then used anyway. It should be a Failure, but doing that
+            //  needs the parser to stop producing them.
             warn(t).foreach(System.err.println)
             z.createVerticesFromTriplet[E, EdgeType](f)(adjacency)(bothWays(t))(t)
           }
@@ -110,8 +110,8 @@ object AbstractAdjunctGraph:
    * Reports a graph whose adjacency count does not match its triplets: one adjacency per
    * one-way triplet, two for each of the others.
    *
-   * TODO find another way to handle this anomaly — like the warning above, this notices a real
-   *  inconsistency and then carries on regardless.
+   * TODO see issue #57 — like the warning above, this notices a real inconsistency and then
+   *  carries on regardless.
    */
   private def checkAdjacencies[V, E](graph: AbstractGraph[V], triplets: Triplets[V, E, EdgeType]): Unit =
     val expected = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum

@@ -192,11 +192,11 @@ object DirectedGraph {
     case AdjacencyEdge(e: DirectedEdge[V, E] @unchecked, false) =>
       e
     case AdjacencyEdge(e: VertexPair[V], false) =>
-      // KNOWN UNSOUNDNESS, not an oversight: an OrderedEdge carries no attribute, so this is a
-      // DirectedEdge[V, Unit] being read as a DirectedEdge[V, E]. It holds only where E is Unit.
-      // A VertexPair reaches here when a triplet had no attribute, which is the same anomaly the
-      // construction warnings in AbstractAdjunctGraph report; fixing it properly means not
-      // admitting attributeless edges into an attributed graph in the first place.
+      // TODO this cast is unsound and should go — see issue #56. An OrderedEdge carries no
+      //  attribute, so this is a DirectedEdge[V, Unit] being read as a DirectedEdge[V, E], which
+      //  holds only where E is Unit. A VertexPair reaches here when a triplet had no attribute,
+      //  the same anomaly the construction warnings in AbstractAdjunctGraph report. Fixing it
+      //  means not admitting attributeless edges into an attributed graph in the first place.
       OrderedEdge(e.white, e.black).asInstanceOf[DirectedEdge[V, E]]
     case x =>
       throw GraphException(s"unexpected edge type: $x")

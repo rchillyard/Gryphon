@@ -178,6 +178,32 @@ BellmanFord.shortestPaths(graph, 0) match
   case None         => println("Negative cycle detected")
 ```
 
+#### Choosing between them
+
+On a DAG both work, and which is faster depends on the graph rather than on the
+algorithm's complexity class.
+
+`AcyclicShortestPaths` is O(V+E) whatever the shape: a topological sort, then one
+pass relaxing each edge once. `BellmanFord` is queue-based, so its cost depends
+on how often a vertex has to be re-relaxed — which depends entirely on how lucky
+the queue order is. Measured on 1500-vertex DAGs:
+
+| | `BellmanFord` | `AcyclicShortestPaths` |
+|---|---|---|
+| random DAG, 6000 edges, edges running low index → high | **1.7 ms** | 4.5 ms |
+| a zero-cost chain plus an expensive direct edge to every vertex | 356.4 ms | **4.5 ms** |
+
+In the first, the queue order is already topological, so Bellman–Ford makes a
+single pass and wins. In the second, every vertex is settled by its expensive
+direct edge and then re-relaxed as the cheap chain creeps forward, so it is
+re-queued many times.
+
+Note the second column: `AcyclicShortestPaths` costs the same on both, because it
+cannot not. So reach for it when you want a bound you can rely on; Bellman–Ford
+may well be quicker on a graph that suits it, and is the only choice if the graph
+might have a cycle.
+
+
 ### Minimum spanning tree (Kruskal)
 
 ```scala
@@ -424,9 +450,10 @@ An Option 3 overload takes `combine`, `zero` and a `Comparator`, as Dijkstra's d
 ### Shortest paths in a DAG
 
 If the graph is acyclic, `ShortestPaths.acyclic` relaxes edges in topological
-order, visiting each edge once. That is linear in the size of the graph — faster
-than both Dijkstra and Bellman–Ford — and negative weights are safe, because a
-DAG has no cycle for them to make cheaper.
+order, visiting each edge once. That is linear in the size of the graph whatever
+its shape, and negative weights are safe, because a DAG has no cycle for them to
+make cheaper. See "Choosing between them" below — linear is a guarantee, not
+always a win.
 
 ```java
 Map<Integer, WeightedEdge<Integer, Double>> spt = ShortestPaths.acyclic(dag, 0);

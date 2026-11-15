@@ -20,9 +20,9 @@ algorithms from Sedgewick & Wayne, *Algorithms* (4th ed.), Chapter 4.
 All algorithms are implemented using Scala 3 idioms — typeclasses, `given`/`using`,
 and clean architectural separation between graph structure and traversal logic.
 
-Gryphon is intended as an artefact of the [DSAIPG](https://github.com/rchillyard/DSAIPG) (Java) repository
+Gryphon is also intended as an artefact of the [DSAIPG](https://github.com/rchillyard/DSAIPG) (Java) repository
 that supports the author's own textbook: _Data Structures, Algorithms, and Invariants - a Practical Guide_
-(published by Cognella, 2025).
+(published by Cognella, 2025), hereinafter referred to as DSAIPG.
 
 ---
 
@@ -245,7 +245,7 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 </dependency>
 ````
 
-The Java API is the primary interface for students in INFO6205 at Northeastern University.
+The Java API is the primary interface for readers of DSAIPG and/or INFO6205 students at Northeastern University.
 
 ### Core types
 
@@ -584,7 +584,7 @@ Java-idiomatic API. Two implementations are available:
 
 ```java
 // Weighted Quick Union — O(log n) per operation
-Connectivity<String> c = Connectivity.create("A", "B", "C", "D");
+Connectivity<String> c = Connectivity.createLazy("A", "B", "C", "D");
 
 // Weighted Quick Union with path compression — amortised near-O(1)
 Connectivity<String> optimized = Connectivity.createOptimized("A", "B", "C", "D");
@@ -757,6 +757,7 @@ behaviour, so the compiler will find each site for you.
 | `ShortestPaths.dijkstra(traversable, start)` | `ShortestPaths.dijkstra(directedGraph, start)` | As above, for a directed graph. |
 | `directedGraph.isConnected` / `.isBipartite` | `ConnectedComponents` (weak) or `Kosaraju` (strong) | They used to throw `UnsupportedOperationException`; now they are not declared for a digraph, so the compiler says so. From Java, they throw `GraphException`. |
 | `visitor.core.Monoid` / `visitor.core.Zero` bounds | `cats.kernel.Monoid` | Same abstraction, with laws and standard instances. `identity` is called `empty`. A `Zero` bound becomes a `Monoid` bound. |
+| Java: `Connectivity.create(…)` | `Connectivity.createLazy(…)` | The old name read as "the default one" when it is the *unoptimised* one. It now matches the Scala layer it delegates to, where the pair has always been `createLazy` and `createOptimized`. "Lazy" means without path compression, not lazily evaluated. |
 | `import com.phasmidsoftware.visitor.core.given` for `Monoid[Double]` | delete the import | `cats-kernel` supplies it through the implicit scope. |
 
 Unchanged, in case you expect otherwise: `Ordering` is still `scala.math.Ordering` rather than

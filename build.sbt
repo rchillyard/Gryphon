@@ -112,7 +112,12 @@ mimaBinaryIssueFilters ++= Seq(
   ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroInt"),
   ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroInt$"),
   ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble"),
-  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble$")
+  ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.HasZero$HasZeroDouble$"),
+  // The Java façade's Connectivity.create is renamed createLazy, matching the Scala layer it
+  // delegates to. "create" read as the default choice when it is the one *without* path
+  // compression; "lazy" is the Scala layer's long-standing name for that, and means unoptimised
+  // rather than lazily evaluated. createOptimized is unchanged.
+  ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.java.Connectivity.create")
 )
 
 // ============================================================================

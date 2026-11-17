@@ -67,14 +67,14 @@ object TopologicalSort:
     val allVertices = graph.vertexMap.keySet.toList
 
     @tailrec
-    def loop(vis: Visitor[V, V, J], visited: Set[V], vs: VisitedSet[V], candidates: List[V]): Visitor[V, V, J] =
+    def loop(vis: Visitor[V, Mapped[V, V], J], visited: Set[V], vs: VisitedSet[V], candidates: List[V]): Visitor[V, Mapped[V, V], J] =
       candidates match
         case Nil =>
           vis
         case next :: rest if visited.contains(next) =>
           loop(vis, visited, vs, rest) // already reached by an earlier component
         case next :: rest =>
-          val result = Traversal.dfs(next, vis, DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs, summon[Tracer[V]])
+          val result = Traversal.dfs(next, vis, DfsOrder.Post)(using summon[GraphNeighbours[V]], vs, summon[Tracer[V]])
           // ListJournal prepends, so this DFS's vertices are exactly the prefix of the journal that
           // is not yet in `visited`. Taking them costs the size of the component, not of the graph.
           // `.iterator` matters: `result.result.map(...)` is strict, so mapping before taking

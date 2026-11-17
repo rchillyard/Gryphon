@@ -13,7 +13,7 @@ val jupiterVersion      = "6.0.3"
 // Gryphon needs none of cats-core, so the dependency list grows by exactly one small jar.
 val catsKernelVersion   = "2.13.0"
 val jupiterInterfaceVersion = "0.19.0"
-val visitorVersion      = "1.7.0"
+val visitorVersion      = "1.8.0"
 val flogVersion         = "1.1.0"
 val logbackVersion      = "1.5.32"
 val slf4jVersion        = "2.0.17"

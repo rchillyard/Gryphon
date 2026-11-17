@@ -18,7 +18,7 @@ import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, 
 // Visitor's own Monoid and Zero are hidden: Gryphon's algorithms take cats.kernel.Monoid now,
 // and the wildcard would otherwise make the two ambiguous.
 import cats.kernel.Monoid
-import com.phasmidsoftware.visitor.core.{Monoid as _, *, given}
+import com.phasmidsoftware.visitor.core.{*, given}
 import java.lang.{Integer as JavaInteger, Iterable as JavaIterable}
 import java.util.function.{BinaryOperator as JavaBinaryOperator, Function as JavaFunction}
 // Exactly six selectors, in one clause, because Codacy enforces two rules that leave no other
@@ -62,7 +62,7 @@ private[java] object JavaFacadeBridge:
       def traversal: JavaMap[V, V] =
         val visitor = JournaledVisitor.withQueueJournalAndCameFrom[V, V]
         // The seven casts to JournaledVisitor in this file are all the same thing, and none is
-        // removable here: Visitor's `Traversal.bfs`/`dfs` are declared to return `Visitor[V, R, J]`,
+        // removable here: Visitor's `Traversal.bfs`/`dfs` are declared to return `Visitor[V, Mapped[V, R], J]`,
         // the supertype, while the journal — the whole point of the call — is only reachable on the
         // JournaledVisitor subtype. The fix belongs in Visitor's signatures, not in this file.
         val result = Traversal.bfs(start, visitor).asInstanceOf[JournaledVisitor[V, V, ?]]

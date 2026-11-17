@@ -27,7 +27,7 @@ trait Graph[V] extends Traversable[V]:
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
+  def dfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
     vertexMap.dfs(visitor, order)(v)
 
   /**
@@ -39,7 +39,7 @@ trait Graph[V] extends Traversable[V]:
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
    */
-  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
+  def dfsAll[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
     vertexMap.dfsAll(visitor)
 
   /**
@@ -52,7 +52,7 @@ trait Graph[V] extends Traversable[V]:
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
-  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
+  def bfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
     vertexMap.bfs(visitor)(v, goal)
 
 

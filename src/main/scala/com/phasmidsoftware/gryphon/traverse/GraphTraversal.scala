@@ -4,7 +4,7 @@ import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core.{Edge, EvaluableGraphNeighboursTraversal, Traversable}
 // Visitor's own Monoid is hidden so that the wildcard does not make it ambiguous with Cats'.
-import com.phasmidsoftware.visitor.core.{Monoid as _, *, given}
+import com.phasmidsoftware.visitor.core.{*, given}
 import scala.collection.mutable
 import scala.util.Random
 
@@ -199,7 +199,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
 
     given IndexedPrioQueue[(E, V)] = IndexedPrioQueue.empty[(E, V)]
 
-    val visitor: Visitor[(E, V), R, QueueJournal[((E, V), Option[R])]] =
+    val visitor: Visitor[(E, V), Mapped[(E, V), R], QueueJournal[((E, V), Option[R])]] =
       JournaledVisitor.withQueueJournal[(E, V), R]
     val result = Traversal.bestFirstWeighted((zero.empty, start), visitor)
 

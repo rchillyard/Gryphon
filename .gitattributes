@@ -1,0 +1,38 @@
+# Structured merging via Mergiraf (https://mergiraf.org).
+#
+# Git merges by line, which means a change that MOVES a line — a reindent, a
+# reformat, a method shifted up or down — conflicts with any concurrent edit to
+# that line, even when the two changes are unrelated. Mergiraf parses the file
+# and merges by syntax tree instead, so it can see that the moved line and the
+# edited line are the same line.
+#
+# It is a hybrid, not a replacement: git's own line merge runs FIRST and
+# Mergiraf is invoked only on the hunks that conflict. It therefore cannot turn
+# a clean merge into a wrong one — it only ever converts a conflict into a
+# resolution, and falls back to git's conflict markers when the merge is
+# genuinely ambiguous (both sides inserting a sibling at the same position, for
+# instance, where the resulting order would be arbitrary).
+#
+# Inspect any resolution it made with:  mergiraf review <id>
+#
+# To enable it, install mergiraf and configure the driver once per clone:
+#
+#     git config merge.mergiraf.driver \
+#         'mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P'
+#
+# A clone WITHOUT any mergiraf config is unaffected: git does not recognise the
+# driver name and silently uses its ordinary three-way merge (verified — it
+# conflicts exactly as it would with no .gitattributes at all). Nothing here is
+# required in order to build or contribute.
+#
+# Only the extensions Gryphon actually tracks and Mergiraf actually supports are
+# listed. Run `mergiraf languages --gitattributes` for the full set.
+
+*.scala      merge=mergiraf
+*.sbt        merge=mergiraf
+*.java       merge=mergiraf
+*.md         merge=mergiraf
+*.yml        merge=mergiraf
+*.yaml       merge=mergiraf
+*.html       merge=mergiraf
+*.properties merge=mergiraf

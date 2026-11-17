@@ -16,7 +16,7 @@
 <div class="cover">
  <div class="doc">
   <p>A trait representing an abstract graph structure composed of vertices.</p>
-  <p>All traversal methods delegate to the <code>VertexMap</code> which in turn uses the Visitor V1.2.0 typeclass engine (<code>Traversal.dfs</code> / <code>Traversal.bfs</code>). The mutable <code>discovered</code> flag pattern has been removed throughout; visited-node tracking is handled by the immutable <code>VisitedSet[V]</code> inside the engine.</p>
+  <p>All traversal methods delegate to the <code>VertexMap</code> which in turn uses the Visitor 1.8.0 typeclass engine (<code>Traversal.dfs</code> / <code>Traversal.bfs</code>). The mutable <code>discovered</code> flag pattern has been removed throughout; visited-node tracking is handled by the immutable <code>VisitedSet[V]</code> inside the engine.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -306,13 +306,13 @@ node6 -> node9;
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
               <dt class="body-small">J</dt>
               <dd class="body-medium">
                <p>the journal type.</p>
-              </dd>
-              <dt class="body-small">R</dt>
-              <dd class="body-medium">
-               <p>the result type.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>
@@ -374,13 +374,13 @@ node6 -> node9;
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
               <dt class="body-small">J</dt>
               <dd class="body-medium">
                <p>the journal type.</p>
-              </dd>
-              <dt class="body-small">R</dt>
-              <dd class="body-medium">
-               <p>the result type extracted from each node by <code>Evaluable</code>.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>
@@ -429,13 +429,13 @@ node6 -> node9;
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
               <dt class="body-small">J</dt>
               <dd class="body-medium">
                <p>the journal type.</p>
-              </dd>
-              <dt class="body-small">R</dt>
-              <dd class="body-medium">
-               <p>the result type.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>

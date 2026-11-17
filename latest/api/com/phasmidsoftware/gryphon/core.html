@@ -362,7 +362,7 @@
              <div class="doc">
               <p>Hierarchical trait defining the behavior of an "adjacency." An adjacency is a relationship between two adjacent vertices in a graph structure.</p>
               <p>Adjacencies are the fundamental building blocks of a graph structure because from any given vertex, it is only possible to traverse to the vertices that are adjacent to it.</p>
-              <p>The <code>discovered</code> flag has been removed from <code>Adjacency</code> and its implementations. Visited-node tracking is now handled by the immutable <code>VisitedSet[V]</code> typeclass inside the Visitor V1.2.0 traversal engine.</p>
+              <p>The <code>discovered</code> flag has been removed from <code>Adjacency</code> and its implementations. Visited-node tracking is now handled by the immutable <code>VisitedSet[V]</code> typeclass inside the Visitor 1.8.0 traversal engine.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1768,7 +1768,7 @@
             <div class="cover">
              <div class="doc">
               <p>A trait representing an abstract graph structure composed of vertices.</p>
-              <p>All traversal methods delegate to the <code>VertexMap</code> which in turn uses the Visitor V1.2.0 typeclass engine (<code>Traversal.dfs</code> / <code>Traversal.bfs</code>). The mutable <code>discovered</code> flag pattern has been removed throughout; visited-node tracking is handled by the immutable <code>VisitedSet[V]</code> inside the engine.</p>
+              <p>All traversal methods delegate to the <code>VertexMap</code> which in turn uses the Visitor 1.8.0 typeclass engine (<code>Traversal.dfs</code> / <code>Traversal.bfs</code>). The mutable <code>discovered</code> flag pattern has been removed throughout; visited-node tracking is handled by the immutable <code>VisitedSet[V]</code> inside the engine.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -2631,7 +2631,7 @@
             <div class="cover">
              <div class="doc">
               <p>Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfs.</p>
-              <p>The traversal engine is provided by Visitor V1.2.0. The mutable <code>discovered</code> flag pattern has been replaced by the immutable <code>VisitedSet[V]</code> typeclass. Callers continue to pass a <code>Visitor</code> in and receive an updated <code>Visitor</code> back; the new typeclass machinery is an implementation detail.</p>
+              <p>The traversal engine is provided by Visitor 1.8.0. The mutable <code>discovered</code> flag pattern has been replaced by the immutable <code>VisitedSet[V]</code> typeclass. Callers continue to pass a <code>Visitor</code> in and receive an updated <code>Visitor</code> back; the new typeclass machinery is an implementation detail.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -3397,7 +3397,7 @@
             <div class="cover">
              <div class="doc">
               <p>Represents a vertex in a graph, containing an attribute of type <code>V</code> and a collection of adjacencies denoting its connections to other vertices.</p>
-              <p><code>Vertex</code> is immutable. The mutable <code>discovered</code> flag has been removed from all implementations; visited-node tracking is now handled by the immutable <code>VisitedSet[V]</code> typeclass inside the Visitor V1.2.0 traversal engine.</p>
+              <p><code>Vertex</code> is immutable. The mutable <code>discovered</code> flag has been removed from all implementations; visited-node tracking is now handled by the immutable <code>VisitedSet[V]</code> typeclass inside the Visitor 1.8.0 traversal engine.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -3463,11 +3463,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Represents a mapping of vertex attributes to their corresponding vertices within a graph. Provides functionality to manage and traverse vertices via DFS and BFS using the Visitor V1.2.0 typeclass engine.</p>
+             <p>Represents a mapping of vertex attributes to their corresponding vertices within a graph. Provides functionality to manage and traverse vertices via DFS and BFS using the Visitor 1.8.0 typeclass engine.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Represents a mapping of vertex attributes to their corresponding vertices within a graph. Provides functionality to manage and traverse vertices via DFS and BFS using the Visitor V1.2.0 typeclass engine.</p>
+              <p>Represents a mapping of vertex attributes to their corresponding vertices within a graph. Provides functionality to manage and traverse vertices via DFS and BFS using the Visitor 1.8.0 typeclass engine.</p>
               <p>The mutable <code>discovered</code> flag pattern has been removed; visited-node tracking is now handled entirely by the immutable <code>VisitedSet[V]</code> inside the traversal engine.</p>
              </div>
              <h2 class="h200">Type parameters</h2>

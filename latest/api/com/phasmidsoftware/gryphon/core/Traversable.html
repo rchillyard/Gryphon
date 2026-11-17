@@ -13,7 +13,7 @@
 <div class="cover">
  <div class="doc">
   <p>Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfs.</p>
-  <p>The traversal engine is provided by Visitor V1.2.0. The mutable <code>discovered</code> flag pattern has been replaced by the immutable <code>VisitedSet[V]</code> typeclass. Callers continue to pass a <code>Visitor</code> in and receive an updated <code>Visitor</code> back; the new typeclass machinery is an implementation detail.</p>
+  <p>The traversal engine is provided by Visitor 1.8.0. The mutable <code>discovered</code> flag pattern has been replaced by the immutable <code>VisitedSet[V]</code> typeclass. Callers continue to pass a <code>Visitor</code> in and receive an updated <code>Visitor</code> back; the new typeclass machinery is an implementation detail.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -195,13 +195,13 @@ node11 -> node0;
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
               <dt class="body-small">J</dt>
               <dd class="body-medium">
                <p>the journal type.</p>
-              </dd>
-              <dt class="body-small">R</dt>
-              <dd class="body-medium">
-               <p>the result type extracted from each node.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>
@@ -251,17 +251,17 @@ node11 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Performs a depth-first search (DFS) traversal starting from the specified vertex.</p>
-              <p>Internally uses <code>Traversal.dfs</code> from Visitor V1.2.0. A <code>given GraphNeighbours[V]</code> is derived from <code>adjacentVertices</code> and a <code>given Evaluable[V, R]</code> must be in scope at the call site (or provided implicitly by the implementation).</p>
+              <p>Internally uses <code>Traversal.dfs</code> from Visitor 1.8.0. A <code>given GraphNeighbours[V]</code> is derived from <code>adjacentVertices</code>. No <code>Evaluable</code> is needed: since Visitor 1.8.0 a visitor carries whatever it needs to turn a node into a journal entry.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
               <dt class="body-small">J</dt>
               <dd class="body-medium">
                <p>the journal type.</p>
-              </dd>
-              <dt class="body-small">R</dt>
-              <dd class="body-medium">
-               <p>the result type extracted from each node by <code>Evaluable</code>.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>
@@ -310,13 +310,13 @@ node11 -> node0;
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
               <dt class="body-small">J</dt>
               <dd class="body-medium">
                <p>the journal type.</p>
-              </dd>
-              <dt class="body-small">R</dt>
-              <dd class="body-medium">
-               <p>the result type extracted from each node.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>

@@ -8,7 +8,7 @@ import com.phasmidsoftware.gryphon.util.FP.mkStringLimitIterator
  *
  * `Vertex` is immutable. The mutable `discovered` flag has been removed from all
  * implementations; visited-node tracking is now handled by the immutable `VisitedSet[V]`
- * typeclass inside the Visitor V1.2.0 traversal engine.
+ * typeclass inside the Visitor 1.8.0 traversal engine.
  *
  * @tparam V the type of the attribute associated with the vertex.
  */

@@ -9,7 +9,7 @@ package com.phasmidsoftware.gryphon.core
  *
  * The `discovered` flag has been removed from `Adjacency` and its implementations.
  * Visited-node tracking is now handled by the immutable `VisitedSet[V]` typeclass
- * inside the Visitor V1.2.0 traversal engine.
+ * inside the Visitor 1.8.0 traversal engine.
  *
  * @tparam V the underlying vertex attribute type.
  */

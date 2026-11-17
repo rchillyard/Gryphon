@@ -11,7 +11,7 @@ import scala.util.Random
 /**
  * Represents a mapping of vertex attributes to their corresponding vertices within a graph.
  * Provides functionality to manage and traverse vertices via DFS and BFS using the
- * Visitor V1.2.0 typeclass engine.
+ * Visitor 1.8.0 typeclass engine.
  *
  * The mutable `discovered` flag pattern has been removed; visited-node tracking is now
  * handled entirely by the immutable `VisitedSet[V]` inside the traversal engine.

@@ -78,9 +78,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param visitor the visitor to accumulate results.
    * @param v       the starting vertex.
    */
-  def dfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
-    new GraphNeighboursTraversal[V, Visitor[V, Mapped[V, R], J]](this) {
-      def traversal: Visitor[V, Mapped[V, R], J] = Traversal.dfs(v, visitor, order)
+  def dfs[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using random: Random): Visitor[V, E, J] =
+    new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {
+      def traversal: Visitor[V, E, J] = Traversal.dfs(v, visitor, order)
     }.traversal
 
   /**
@@ -89,11 +89,11 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    *
    * @param visitor the visitor to accumulate results.
    */
-  def dfsAll[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
-    new GraphNeighboursTraversal[V, Visitor[V, Mapped[V, R], J]](this) {
-      def traversal: Visitor[V, Mapped[V, R], J] =
+  def dfsAll[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(using random: Random): Visitor[V, E, J] =
+    new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {
+      def traversal: Visitor[V, E, J] =
         @tailrec
-        def loop(vis: Visitor[V, Mapped[V, R], J], visited: Set[V]): Visitor[V, Mapped[V, R], J] =
+        def loop(vis: Visitor[V, E, J], visited: Set[V]): Visitor[V, E, J] =
           val unvisited = map.keySet.diff(visited)
           if unvisited.isEmpty then vis
           else
@@ -138,9 +138,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param v       the starting vertex.
    * @param goal    early-termination predicate (default: never stop early).
    */
-  def bfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
-    new GraphNeighboursTraversal[V, Visitor[V, Mapped[V, R], J]](this) {
-      def traversal: Visitor[V, Mapped[V, R], J] = Traversal.bfs(v, visitor, goal)
+  def bfs[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(v: V, goal: V => Boolean = _ => false)(using random: Random): Visitor[V, E, J] =
+    new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {
+      def traversal: Visitor[V, E, J] = Traversal.bfs(v, visitor, goal)
     }.traversal
 
 

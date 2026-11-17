@@ -87,7 +87,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
+  def dfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, Mapped[V, R], J]
 
   /**
    * Performs a DFS traversal for all vertices in the graph using the supplied visitor.
@@ -98,7 +98,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
    */
-  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
+  def dfsAll[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, Mapped[V, R], J]
 
   /**
    * Performs a breadth-first search (BFS) traversal starting from the specified vertex.
@@ -111,7 +111,7 @@ trait Traversable[V] {
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
-  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, R, J]
+  def bfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random = Random()): Visitor[V, Mapped[V, R], J]
 
 
   /**
@@ -217,7 +217,7 @@ trait Traversable[V] {
    * @return A `VertexTraversalResult` mapping vertices to their respective results
    *         as processed from the input `result`.
    */
-  private def traversalResult[T](visitor: Visitor[V, T, QueueJournal[(V, Option[T])]]) =
+  private def traversalResult[T](visitor: Visitor[V, Mapped[V, T], QueueJournal[(V, Option[T])]]) =
     visitor.result.foldLeft(VertexTraversalResult.empty[V, T]) {
       case (acc, (v, Some(r))) =>
         acc + (v, r)

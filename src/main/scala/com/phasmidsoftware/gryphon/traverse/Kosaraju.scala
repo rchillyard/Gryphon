@@ -74,7 +74,7 @@ object Kosaraju {
           acc
         else
           tracer.trace(1, s"pass 1: seeding from ${unvisited.head}, ${unvisited.size} unvisited")
-          val result = Traversal.dfs(start = unvisited.head, visitor = JournaledVisitor.withListJournal[V, V], order = DfsOrder.Post)(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], vs, Tracer.silent)
+          val result = Traversal.dfs(start = unvisited.head, visitor = JournaledVisitor.withListJournal[V, V], order = DfsOrder.Post)(using summon[GraphNeighbours[V]], vs, Tracer.silent)
           // ListJournal prepends: head = last-finished within this component.
           // visited ++ acc keeps the most-recently-finished component at the front.
           val visited: List[V] = result.result.map(_._1).toList
@@ -122,7 +122,7 @@ object Kosaraju {
               given VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
 
               val sccVertices: Set[V] =
-                Traversal.dfs(v, JournaledVisitor.withListJournal[V, V])(using summon[GraphNeighbours[V]], summon[Evaluable[V, V]], summon[VisitedSet[V]], Tracer.silent).result.map(_._1).toSet
+                Traversal.dfs(v, JournaledVisitor.withListJournal[V, V])(using summon[GraphNeighbours[V]], summon[VisitedSet[V]], Tracer.silent).result.map(_._1).toSet
               val (mb, md) = Tracer.collectionMsg(sccVertices)
               tracer.trace(2, s"pass 2: SCC $sccId — members: $mb", s"pass 2: SCC $sccId — members: $md")
               pass2Loop(

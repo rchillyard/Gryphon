@@ -78,9 +78,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param visitor the visitor to accumulate results.
    * @param v       the starting vertex.
    */
-  def dfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
-    new GraphNeighboursTraversal[V, Visitor[V, R, J]](this) {
-      def traversal: Visitor[V, R, J] = Traversal.dfs(v, visitor, order)
+  def dfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J], order: DfsOrder = DfsOrder.Pre)(v: V)(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
+    new GraphNeighboursTraversal[V, Visitor[V, Mapped[V, R], J]](this) {
+      def traversal: Visitor[V, Mapped[V, R], J] = Traversal.dfs(v, visitor, order)
     }.traversal
 
   /**
@@ -89,18 +89,18 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    *
    * @param visitor the visitor to accumulate results.
    */
-  def dfsAll[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
-    new GraphNeighboursTraversal[V, Visitor[V, R, J]](this) {
-      def traversal: Visitor[V, R, J] =
+  def dfsAll[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
+    new GraphNeighboursTraversal[V, Visitor[V, Mapped[V, R], J]](this) {
+      def traversal: Visitor[V, Mapped[V, R], J] =
         @tailrec
-        def loop(vis: Visitor[V, R, J], visited: Set[V]): Visitor[V, R, J] =
+        def loop(vis: Visitor[V, Mapped[V, R], J], visited: Set[V]): Visitor[V, Mapped[V, R], J] =
           val unvisited = map.keySet.diff(visited)
           if unvisited.isEmpty then vis
           else
             val next = unvisited.head
             // Pre-mark all already-visited vertices so the engine skips them
             val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
-            val result = Traversal.dfs(next, vis)(using nbrs, ev, vs, summon[Tracer[V]])
+            val result = Traversal.dfs(next, vis)(using nbrs, vs, summon[Tracer[V]])
             // `visited` must grow by every vertex this DFS reached, not just by its root.
             // Adding only `next` left the rest of the component unvisited as far as the loop
             // was concerned, so each of them started another DFS over ground already covered,
@@ -138,9 +138,9 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param v       the starting vertex.
    * @param goal    early-termination predicate (default: never stop early).
    */
-  def bfs[R, J <: Appendable[(V, Option[R])]](visitor: Visitor[V, R, J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, R, J] =
-    new GraphNeighboursTraversal[V, Visitor[V, R, J]](this) {
-      def traversal: Visitor[V, R, J] = Traversal.bfs(v, visitor, goal)
+  def bfs[R, J <: Appendable[(V, Option[R]), J]](visitor: Visitor[V, Mapped[V, R], J])(v: V, goal: V => Boolean = _ => false)(using ev: Evaluable[V, R], random: Random): Visitor[V, Mapped[V, R], J] =
+    new GraphNeighboursTraversal[V, Visitor[V, Mapped[V, R], J]](this) {
+      def traversal: Visitor[V, Mapped[V, R], J] = Traversal.bfs(v, visitor, goal)
     }.traversal
 
 

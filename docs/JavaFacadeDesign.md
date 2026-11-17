@@ -305,7 +305,12 @@ Returns a new directed `Graph<V>` with all edges flipped. Throws
 
 ### Low Priority / Aspirational
 
-- **Visitor Java façade.** Functional interfaces map to typeclasses as follows:
+- **Visitor Java façade.** ~~Proposed here~~ — **Visitor 1.8.0 ships its own**
+  (`com.phasmidsoftware.visitor.java`: `Traversals`, `NeighbourFunction`, `Evaluator`,
+  `Order`, `TraversalResult`), so this no longer needs building in Gryphon. The mapping it
+  arrived at is close to the sketch below, differing mainly in that `Evaluator` returns
+  `Optional<R>` rather than `R`, so that it filters as well as transforms. Retained for the
+  record:
 
   | Typeclass          | Java equivalent            |
   |--------------------|----------------------------|

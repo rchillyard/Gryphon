@@ -10,7 +10,7 @@ import scala.util.Random
  * A trait representing an abstract graph structure composed of vertices.
  *
  * All traversal methods delegate to the `VertexMap` which in turn uses the
- * Visitor V1.2.0 typeclass engine (`Traversal.dfs` / `Traversal.bfs`).
+ * Visitor 1.8.0 typeclass engine (`Traversal.dfs` / `Traversal.bfs`).
  * The mutable `discovered` flag pattern has been removed throughout; visited-node
  * tracking is handled by the immutable `VisitedSet[V]` inside the engine.
  *
@@ -23,7 +23,7 @@ trait Graph[V] extends Traversable[V]:
    *
    * @param visitor the visitor accumulating results.
    * @param v       the starting vertex.
-   * @tparam R the result type extracted from each node by `Evaluable`.
+   * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
@@ -35,7 +35,7 @@ trait Graph[V] extends Traversable[V]:
    * single start vertex.
    *
    * @param visitor the visitor accumulating results.
-   * @tparam R the result type.
+   * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
    */
@@ -48,7 +48,7 @@ trait Graph[V] extends Traversable[V]:
    * @param visitor the visitor accumulating results.
    * @param v       the starting vertex.
    * @param goal    early-termination predicate (default: never stop early).
-   * @tparam R the result type.
+   * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */

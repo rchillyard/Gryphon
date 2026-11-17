@@ -11,7 +11,7 @@ import scala.util.{Random, Try}
 /**
  * Trait to define the behavior of a graph-like structure which can be traversed by dfs, dfsAll, and bfs.
  *
- * The traversal engine is provided by Visitor V1.2.0. The mutable `discovered` flag pattern
+ * The traversal engine is provided by Visitor 1.8.0. The mutable `discovered` flag pattern
  * has been replaced by the immutable `VisitedSet[V]` typeclass. Callers continue to pass a
  * `Visitor` in and receive an updated `Visitor` back; the new typeclass machinery is an
  * implementation detail.
@@ -77,13 +77,13 @@ trait Traversable[V] {
   /**
    * Performs a depth-first search (DFS) traversal starting from the specified vertex.
    *
-   * Internally uses `Traversal.dfs` from Visitor V1.2.0.  A `given GraphNeighbours[V]`
-   * is derived from `adjacentVertices` and a `given Evaluable[V, R]` must be in scope
-   * at the call site (or provided implicitly by the implementation).
+   * Internally uses `Traversal.dfs` from Visitor 1.8.0.  A `given GraphNeighbours[V]`
+   * is derived from `adjacentVertices`. No `Evaluable` is needed: since Visitor 1.8.0 a
+   * visitor carries whatever it needs to turn a node into a journal entry.
    *
    * @param visitor the visitor, accumulating results into its journal.
    * @param v       the starting vertex.
-   * @tparam R the result type extracted from each node by `Evaluable`.
+   * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
@@ -94,7 +94,7 @@ trait Traversable[V] {
    * Vertices not reachable from the first traversal are visited in subsequent passes.
    *
    * @param visitor the visitor, accumulating results into its journal.
-   * @tparam R the result type extracted from each node.
+   * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
    */
@@ -107,7 +107,7 @@ trait Traversable[V] {
    * @param v       the starting vertex.
    * @param goal    an optional early-termination predicate; traversal halts after recording
    *                the first node for which `goal` returns true.
-   * @tparam R the result type extracted from each node.
+   * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
    */
@@ -156,9 +156,11 @@ trait Traversable[V] {
    * @return a `Connexions[V, E]` object representing the discovered connexions.
    */
   def getConnexions[E](start: V): Connexions[V, E] = {
-    // The V1.2.0 engine does not expose parent information through Evaluable,
-    // so we run a manual DFS that explicitly tracks the incoming adjacency for
-    // each discovered vertex (i.e. the edge used to reach it from its DFS parent).
+    // Visitor 1.8.0's ParentedVisitor does expose the predecessor *vertex*, but what this
+    // method needs is the incoming *edge*, and Visitor has no notion of an edge — Neighbours
+    // yields nodes. So we still run a manual DFS that tracks the incoming adjacency for each
+    // discovered vertex (i.e. the edge used to reach it from its DFS parent). Lifting this into
+    // the engine would require V to carry the edge; see Gryphon #53 and Visitor #20.
     import scala.annotation.tailrec
 
     // Stack holds (child, incomingAdjacency) pairs; `start` has no incoming adjacency, being the

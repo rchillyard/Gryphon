@@ -26,7 +26,7 @@ case class TopologicalSort[V](map: Map[V, Int]) extends AbstractVertexTraversalR
 
 /**
  * Provides functionality for topological sorting of directed graphs using the
- * Visitor V1.2.0 typeclass engine.
+ * Visitor 1.8.0 typeclass engine.
  *
  * Post-order DFS is used: a vertex is recorded only after all its descendants
  * have been recorded, naturally yielding reverse topological order.

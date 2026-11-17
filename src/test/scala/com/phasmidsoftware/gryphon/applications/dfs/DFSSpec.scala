@@ -70,6 +70,12 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
       result.result.map(_._1).toSet.size shouldBe 13
     }
 
+  it should "accept a SimpleVisitor, which the pre-1.8.0 signature could not express" in :
+    withDfsuGraph { graph =>
+      val result = graph.bfs(SimpleVisitor.withQueueJournal[Int])(0)
+      result.result.toSet should not be empty
+    }
+
   it should "bfs on dfsu.graph from vertex 0 visits connected component" in :
     withDfsuGraph { graph =>
       val visitor = JournaledVisitor.withQueueJournal[Int, Int]

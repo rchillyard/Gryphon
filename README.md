@@ -709,7 +709,9 @@ The traversal engine lives in the separate
 [Visitor](https://github.com/rchillyard/Visitor) library, which provides
 the five orthogonal typeclasses that drive all traversals:
 `Evaluable[V, R]`, `Neighbours[H, V]`, `VisitedSet[V]`,
-`Frontier[F[_]]`, and `Visitor[V, R, J]`.
+`Frontier[F[_]]`, and `Visitor[V, E, J]` — the last generic in its journal's
+element type `E`, so a visitor recording bare nodes is as much a `Visitor` as one
+recording `(node, result)` pairs.
 
 ---
 

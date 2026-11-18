@@ -62,10 +62,22 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     result.values.toSet.size shouldBe 4
   }
 
-  it should "find exactly 5 SCCs in directedSCC.graph" in {
+  // Sedgewick & Wayne, Algorithms 4th ed., figure for Algorithm 4.6 (p587).
+  //
+  // Asserted as a partition — a set of sets — rather than as a Map from component id to members.
+  // The ids are assigned in the order pass 2 discovers components, which is an implementation
+  // detail: a correct reordering of either pass would renumber them and break the test while
+  // nothing was actually wrong. The partition is the thing the textbook states, and the thing
+  // the algorithm is obliged to produce.
+  //
+  // (Empirically the ids are stable even though neighbour iteration is shuffled — 100 runs over
+  // several graphs, including ones where components could tie, give one labelling. But nothing
+  // documents that, so it is not worth depending on.)
+  it should "find the five strong components of directedSCC.graph" in {
     val result: SCCResult[Int] = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directedSCC.graph"))
     result.values.toSet.size shouldBe 5
-    result.groupBy(_._2).map((k,xs) => k -> xs.keys) shouldBe Map(0 -> Set(1), 1 -> Set(0, 5, 2, 3, 4), 2 -> Set(10, 9, 12, 11), 3 -> Set(6, 8), 4 -> Set(7))
+    result.groupBy(_._2).values.map(_.keySet).toSet shouldBe
+            Set(Set(1), Set(0, 2, 3, 4, 5), Set(9, 10, 11, 12), Set(6, 8), Set(7))
   }
 
   // -------------------------------------------------------------------------

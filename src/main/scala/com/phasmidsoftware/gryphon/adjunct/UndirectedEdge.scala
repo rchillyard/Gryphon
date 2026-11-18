@@ -26,7 +26,8 @@ case class UndirectedEdge[V, E](attribute: E, white: V, black: V) extends Edge[V
    *
    * @return the vertex `white`, one of the two vertices connected by this undirected edge.
    */
-  def either: V = white // CONSIDER using a random Boolean to determine which vertex to return.
+  // CONSIDER using a random Boolean to determine which vertex to return. See issue #67.
+  def either: V = white
 
   /**
    * Retrieves the vertex at the opposite end of the edge relative to the given vertex.

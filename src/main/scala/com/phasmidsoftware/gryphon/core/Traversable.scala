@@ -201,6 +201,8 @@ trait Traversable[V] {
    * `vertexMappedTraversalBfs`, and `getConnexions`.
    *
    * CONSIDER making this protected again but that requires multiple instances in each type of Traversal.
+   * Blocked on issue #67: the NOTE below is that issue, and the trade-off only looks bad while
+   * multiple Random-derived instances are dangerous.
    *
    * NOTE: do not be tempted to add a default Random implementation for this context.
    * We need to enforce consistency of Random instances.

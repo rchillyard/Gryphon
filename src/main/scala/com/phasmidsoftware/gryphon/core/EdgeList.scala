@@ -6,7 +6,7 @@ package com.phasmidsoftware.gryphon.core
  * The `EdgeList` class allows for operations on the edges of the graph, such as transforming
  * them into a sequence of triplets.
  *
- * CONSIDER eliminate this type.
+ * CONSIDER eliminate this type. See issue #69, which also covers the Edges trait.
  *
  * The graph is also associated with a type parameter `Z`, which can be used to define
  * additional properties or characteristics of the graph or edges, such as edge types.

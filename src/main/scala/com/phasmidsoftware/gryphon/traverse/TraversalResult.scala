@@ -189,8 +189,6 @@ case class EdgeTraversalResult[V, E, T](ts: List[T]) extends AbstractEdgeTravers
  * A concrete implementation of the `TraversalResult` trait that uses a map to represent
  * vertex traversals. Each vertex in the graph is associated with a traversal result.
  *
- * CONSIDER this class and its companion object are only used for unit testing. They could be eliminated.
- *
  * @constructor Creates a `VertexTraversalResult` with the given map of vertices and their associated traversal outputs.
  * @param map A map where each key is a vertex of type `V`, and the value is the corresponding traversal result of type `T`.
  * @tparam V The type representing a vertex in the graph.

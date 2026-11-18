@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.core
 /**
  * A case class representing a list of vertex pairs in a graph.
  *
- * CONSIDER eliminate this class.
+ * CONSIDER eliminate this class, or move it to src/test. See issue #70.
  *
  * This class provides a concrete implementation of `SerializableGraph` and `Pairs`, enabling functionalities
  * such as accessing the pairs of vertices and transforming these pairs into triplets. Each triplet includes

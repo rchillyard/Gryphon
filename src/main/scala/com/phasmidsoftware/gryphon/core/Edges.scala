@@ -7,7 +7,8 @@ package com.phasmidsoftware.gryphon.core
  * the underlying graph implementation.
  *
  * NOTE: this is not polymorphic in Z like EdgeList
- * CONSIDER making them similar.
+ * CONSIDER making them similar. See issue #69: EdgeList is this trait's only implementor,
+ * so the two must be decided together.
  *
  * @tparam V the type of attributes associated with the vertices in the graph.
  * @tparam E the type of attributes associated with the edges in the graph.

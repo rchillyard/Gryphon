@@ -23,7 +23,7 @@ import scala.annotation.nowarn
  * NOTE: this is a direct iterative algorithm and does not use the Visitor traversal engine.
  * The per-component minimum-edge scan in each round is embarrassingly parallel
  * and could be parallelised using parallel collections or futures.
- * CONSIDER doing so — but see the note on `minimumEdges`, which weighs it up and concludes it
+ * CONSIDER doing so (issue #75) — but see the note on `minimumEdges`, which weighs it up and concludes it
  * would likely not pay for itself, because the parallel version cannot use ConnectivityOptimized.
  *
  * NOTE: intended for undirected weighted graphs only.
@@ -122,6 +122,7 @@ object Boruvka:
    * inspects its crossing edges with no inter-vertex dependencies.
    *
    * CONSIDER Replacing the sequential `foldLeft` with a parallel fold over `vertices.par` to exploit it.
+   * Tracked as issue #75, together with the note on the Boruvka object; unmeasured as yet.
    * However, note that we would not then be able to use `ConnectivityOptimized` and the trade-off
    * versus running `ConnectivityLazy` with parallelism would likely not be worth it.
    *

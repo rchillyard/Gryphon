@@ -249,7 +249,8 @@ object VertexTraversalResult {
  * vertex will be the same as the key vertex.
  * NOTE that not all edges will be followed and different random seeds will result in different results.
  *
- * CONSIDER returning a directed, rooted tree of DirectedEdge.
+ * CONSIDER returning a directed, rooted tree of DirectedEdge. See issue #76, which is
+ * sequenced after #53 (how this is computed) and #67 (which tree you get).
  *
  * @param connexions a map where each key is a vertex of type `V` and its value is a tuple `(V, V)`
  *                   representing the result associated with traversal from this vertex.

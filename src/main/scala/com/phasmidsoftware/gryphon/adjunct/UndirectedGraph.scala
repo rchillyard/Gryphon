@@ -126,6 +126,10 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
             case None => dfs(w, !c, acc)
       }
 
+    // The starting colour is arbitrary: a two-colouring is symmetric, so seeding a component
+    // with `false` instead of `true` yields the mirror colouring and leaves `isDefined`
+    // unchanged. Mutating this literal therefore survives mutation testing permanently and
+    // by design — there is no test that could kill it, and none should be written. See #83.
     vertexMap.keySet.foldLeft(Option(Map.empty[V, Boolean])) {
       case (None, _) => None
       case (Some(acc), v) => if acc.contains(v) then Some(acc) else dfs(v, true, acc)

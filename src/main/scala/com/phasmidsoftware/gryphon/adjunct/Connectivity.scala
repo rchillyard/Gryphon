@@ -123,6 +123,11 @@ object WeightedUnion:
    * smaller tree under the larger, updating the root's size accordingly.
    * Both `v1` and `v2` must be distinct roots present in `map`.
    *
+   * The `v1 == v2` test asserts that precondition. It cannot fire through `connect`, which
+   * reaches `union` only via `doMerge`, and `doMerge` has already short-circuited on equal
+   * roots — but `WeightedUnion` is public, so the assertion still earns its place for a
+   * direct caller, and `ConnectivitySpec` exercises it that way (see issue #83).
+   *
    * @param label a class name used in exception messages.
    */
   def apply[V](map: Map[V, ParentSize[V]], v1: V, v2: V, label: String): Map[V, ParentSize[V]] =
@@ -267,6 +272,13 @@ case class ConnectivityASP[V](map: Map[V, Option[V]])
 
   def put(key: V): ConnectivityASP[V] = unit(map + (key -> None))
 
+  // The `v1 != v2` test asserts the precondition documented on `AbstractDisjointSet.union`.
+  // Unlike `WeightedUnion`'s equivalent, this one is unreachable from anywhere: `union` is
+  // protected, and the only caller inside the library is `doMerge`, which has already
+  // short-circuited on equal roots. It therefore survives mutation permanently and by
+  // design — mutating the test to `true` cannot be killed by any test, because no test can
+  // call this method with equal arguments. Kept as a guard against a future caller rather
+  // than removed. See issue #83.
   protected def union(v1: V, v2: V): Map[V, Option[V]] =
     if v1 != v2 then updated(v1, Some(v2)) // ASP violation: no justification for v1 under v2 vs. v2 under v1.
     else throw GraphException(s"ConnectivityASP: union: objects are the same: $v1")

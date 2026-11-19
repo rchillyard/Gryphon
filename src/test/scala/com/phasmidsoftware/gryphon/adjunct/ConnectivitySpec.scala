@@ -537,3 +537,50 @@ class ConnectivitySpec extends AnyFlatSpec with should.Matchers:
 
     co.maxDepth should be <= wuf.maxDepth
   }
+
+  // -------------------------------------------------------------------------
+  // Self-merge guards (issue #83)
+  //
+  // Found by the Stryker4s trial: three guards against `v1 == v2` survived mutation
+  // because nothing asserted what they do. Each of the three tests below kills one of
+  // them. Two further guards of the same family survive permanently and by design —
+  // `ConnectivityASP.union` (unreachable: protected, and `doMerge` already short-circuits)
+  // and `AbstractDisjointSetWithCompression`'s counterpart in the superclass — and both
+  // are documented as such in the source rather than tested here.
+  // -------------------------------------------------------------------------
+
+  behavior of "self-merge guards"
+
+  // AbstractDisjointSet.connect. For a key that is present the guard is redundant, since
+  // doMerge short-circuits on equal roots anyway. Its one observable effect is on an
+  // unknown key, where getDisjointSet would otherwise throw.
+  it should "return an unchanged structure when connecting an unknown key to itself" in {
+    val uf = ConnectivityLazy.create(0, 1, 2)
+    uf.connect(99, 99) shouldBe uf
+  }
+
+  // ... and for contrast, the asymmetry that guard creates: an unknown key paired with a
+  // known one is still rejected. Pinned so that the difference is deliberate, not accidental.
+  it should "still reject an unknown key paired with a known one" in {
+    val uf = ConnectivityLazy.create(0, 1, 2)
+    a[com.phasmidsoftware.gryphon.core.GraphException] should be thrownBy uf.connect(99, 0)
+  }
+
+  // AbstractDisjointSetWithCompression.connect. Here the guard is load-bearing: without it
+  // findAndCompress would run and rewrite the map, even though nothing merges. The fixture
+  // has to be deep enough for compression to bite, hence the maxDepth precondition.
+  it should "not compress the tree when connecting a non-root to itself" in {
+    val co = ConnectivityOptimized.create(0, 1, 2, 3).connect(0, 1).connect(2, 3).connect(1, 3)
+    co.maxDepth shouldBe 3.0 // precondition: vertex 3 sits two levels below the root
+    co.depth(3) shouldBe 3
+    co.connect(3, 3) shouldBe co
+    co.connect(3, 3).maxDepth shouldBe 3.0
+  }
+
+  // WeightedUnion.apply. Unreachable through connect, but WeightedUnion is public, so the
+  // precondition it asserts is worth exercising directly.
+  it should "reject a union of a root with itself" in {
+    val map = Map(0 -> ParentSize[Int], 1 -> ParentSize[Int])
+    a[com.phasmidsoftware.gryphon.core.GraphException] should be thrownBy
+            WeightedUnion(map, 0, 0, "test")
+  }

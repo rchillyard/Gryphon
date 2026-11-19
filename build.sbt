@@ -131,6 +131,16 @@ javaApiDocSubdir := "latest/javadoc"
 addMappingsToSiteDir(Def.task(Path.allSubpaths(javaApiDoc.value).toSeq), javaApiDocSubdir)
 
 // ============================================================================
+// MUTATION TESTING (Stryker4s)
+// ============================================================================
+
+// Stryker4s parses the sources with scalameta before instrumenting them. The default
+// dialect is Scala 2.13, which cannot parse `given`/`using`, `enum`, or indentation
+// syntax, so Scala 3 must be stated explicitly or every file fails to parse.
+// Scope and thresholds live in stryker4s.conf. Run with `sbt stryker`.
+strykerScalaDialect := scala.meta.dialects.Scala3
+
+// ============================================================================
 // GLOBAL SETTINGS
 // ============================================================================
 

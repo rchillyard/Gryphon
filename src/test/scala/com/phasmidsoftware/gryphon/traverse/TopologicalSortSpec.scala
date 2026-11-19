@@ -208,4 +208,33 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
       case Failure(x) => fail("graph construction failed", x)
     }
   }
+
+  // A self-loop is a cycle of length one. Gryphon does not intend to admit one at all
+  // (issue #86), but until the graph types forbid it, `sort` must not hand back an order
+  // for a graph that has none. See issue #78: `acyclic` used `<=`, which a self-loop
+  // satisfies trivially, so this returned Some(List(0, 1)).
+
+  it should "detect a self-loop as a cycle" in {
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.0), Directed),
+      Triplet(1, 1, Some(1.0), Directed)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+      case Success(graph: DirectedGraph[_, _]) =>
+        TopologicalSort.sort(graph) shouldBe None
+        TopologicalSort.traversal(graph) shouldBe None
+      case Failure(x) => fail("graph construction failed", x)
+    }
+  }
+
+  it should "detect a lone self-loop as a cycle" in {
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 0, Some(1.0), Directed)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+      case Success(graph: DirectedGraph[_, _]) =>
+        TopologicalSort.sort(graph) shouldBe None
+      case Failure(x) => fail("graph construction failed", x)
+    }
+  }
 }

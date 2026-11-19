@@ -107,8 +107,20 @@ object TopologicalSort:
   /**
    * Determines whether a directed graph is acyclic given a proposed topological order.
    *
-   * For every directed edge (white → black), white must appear no later than black
+   * For every directed edge (white → black), white must appear *strictly before* black
    * in the topological order. If this holds for all edges the graph is acyclic.
+   *
+   * The comparison has to be strict. `topologicalSort` is a DFS journal filtered by a
+   * visited set, so no vertex appears twice and distinct vertices always have distinct
+   * positions: for an edge between two different vertices `<` and `<=` agree. They differ
+   * on exactly one input, a self-loop `v -> v`, where `<=` is trivially satisfied and the
+   * graph is wrongly reported acyclic. A self-loop is a cycle, so `sort` must return `None`.
+   *
+   * Gryphon does not intend to admit self-loops at all, and the right place to forbid one
+   * is at construction — see issue #86, which proposes a constraint-based graph hierarchy
+   * with exactly that constraint, tested through `addEdge`. Until that lands this check is
+   * the only thing standing between a self-loop and a "topological order" for a graph that
+   * has none, so it is kept strict as defence in depth rather than left to the caller.
    *
    * @param graph           the directed graph to check.
    * @param topologicalSort the proposed vertex ordering.
@@ -120,4 +132,4 @@ object TopologicalSort:
     // was some 18 million list steps, and it dwarfed the traversal it was checking. The companion
     // `traversal` method already built exactly this map; only `acyclic` did it the slow way.
     val position: Map[V, Int] = topologicalSort.iterator.zipWithIndex.toMap
-    graph.edges.forall(edge => position(edge.white) <= position(edge.black))
+    graph.edges.forall(edge => position(edge.white) < position(edge.black))

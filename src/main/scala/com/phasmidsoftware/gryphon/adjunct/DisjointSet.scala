@@ -109,6 +109,16 @@ abstract class AbstractDisjointSet[V, W, This <: AbstractDisjointSet[V, W, This]
    * Merges the components containing `v1` and `v2`.
    * Short-circuits (returning `this`) if they are already in the same component
    * or if `v1 == v2`. The `asInstanceOf` here is safe: `this` is always a `This`.
+   *
+   * For keys that are present the `v1 == v2` test is redundant — `getDisjointSet` would
+   * return the same root twice and `doMerge` short-circuits on equal roots anyway. What it
+   * does change is the behaviour for a key that is *not* present: `getDisjointSet` throws
+   * for an unknown key, so without this test `connect(x, x)` would throw rather than return
+   * `this`. That is the only difference, and `ConnectivitySpec` pins it (see issue #83).
+   *
+   * Note the asymmetry it creates: `connect(x, y)` throws for an unknown `x` while
+   * `connect(x, x)` does not. Whether an unknown key should be rejected uniformly belongs
+   * with the constraint work in issue #86; it is left alone here deliberately.
    */
   def connect(v1: V, v2: V): This =
     if v1 == v2 then this.asInstanceOf[This]
@@ -252,6 +262,14 @@ abstract class AbstractDisjointSetWithCompression[V, W, This <: AbstractDisjoint
    * Delegates to `findAndCompress` for both arguments so that subclasses
    * which override it get compression applied during every merge automatically.
    * The `asInstanceOf` here is safe: `this` is always a `This`.
+   *
+   * Here the `v1 == v2` test is load-bearing in a way its counterpart in the superclass is
+   * not. Without it `connect(v, v)` would still merge nothing, but it would run
+   * `findAndCompress(v)` on the way to finding that out, and compression rewrites the map:
+   * every node between `v` and its root is reparented straight to the root. `depth`,
+   * `meanDepth` and `maxDepth` are public, so that is an observable change to a call that
+   * is supposed to be a no-op. `ConnectivitySpec` pins it on a tree deep enough for
+   * compression to bite (see issue #83).
    */
   override def connect(v1: V, v2: V): This =
     if v1 == v2

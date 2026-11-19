@@ -79,6 +79,11 @@ object BellmanFord:
         if relaxed.onQueue.contains(w) then Some(relaxed)
         else
           val count = relaxed.enqueued.getOrElse(w, 0) + 1
+          // `<` is the tight bound: a vertex on a simple path can be enqueued at most
+          // `vertexCount - 1` times, so the `vertexCount`-th enqueue proves a negative cycle.
+          // Loosening it to `<=` would still prove the cycle, one round later, and return the
+          // same `None` — so that mutation survives permanently and by design. It costs a
+          // round of work, not correctness. See issue #83.
           Option.when(count < vertexCount)(relaxed.copy(
             queue = relaxed.queue.enqueue(w),
             onQueue = relaxed.onQueue + w,

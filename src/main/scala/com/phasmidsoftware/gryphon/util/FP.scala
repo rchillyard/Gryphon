@@ -143,7 +143,7 @@ object FP {
   /**
    * Method to partition a method to combine elements of Try.
    *
-   * TEST
+   * TESTME (#95)
    *
    * @param xys a Seq of Try[X]
    * @tparam X the underlying type
@@ -295,7 +295,7 @@ object TryUsing {
    * This method is similar to `apply(r)`, but it takes a `Try[R]` as its parameter.
    * The definition of `f` is the same as in the other `apply`, however.
    *
-   * TEST
+   * TESTME (#95)
    *
    * @param ry a Try[R] which is passed into f and will be managed via `Using.apply`.
    * @param f  a function of R => Try[A].

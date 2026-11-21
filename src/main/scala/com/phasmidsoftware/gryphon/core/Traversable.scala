@@ -200,7 +200,7 @@ trait Traversable[V] {
    * Used internally by the default implementations of `vertexMappedTraversalDfs`,
    * `vertexMappedTraversalBfs`, and `getConnexions`.
    *
-   * CONSIDER making this protected again but that requires multiple instances in each type of Traversal.
+   * CONSIDER making this protected again but that requires multiple instances in each type of Traversal. (#93)
    * Blocked on issue #67: the NOTE below is that issue, and the trade-off only looks bad while
    * multiple Random-derived instances are dangerous.
    *

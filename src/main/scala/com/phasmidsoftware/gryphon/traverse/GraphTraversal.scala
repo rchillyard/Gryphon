@@ -34,6 +34,62 @@ trait GraphTraversal[V, E, R]:
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R]
 
 // ============================================================
+// UnweightedTraversal — shared base for DFS and BFS
+// ============================================================
+
+/**
+ * The visitor used by the unweighted traversals: each visited vertex is journaled
+ * together with the value it evaluates to. Named because it appears in the signature
+ * of `UnweightedTraversal.search`, which subclasses implement.
+ *
+ * @tparam V the vertex type.
+ */
+type UnweightedVisitor[V] = Visitor[V, Mapped[V, V], QueueJournal[(V, Option[V])]]
+
+/**
+ * Abstract base class for the unweighted traversals, DFS and BFS.
+ *
+ * Mirrors [[WeightedTraversal]] for the `E = Unit`, `R = V` half of the family: the
+ * `EvaluableGraphNeighboursTraversal` wiring, the journaled visitor and the unwrapping
+ * of the result all live here, and a subclass supplies only the engine entry point.
+ * DFS and BFS then differ in exactly one expression.
+ *
+ * NOTE that the frontier is not named here, unlike in `WeightedTraversal` where the
+ * `IndexedPrioQueue` is a `given`. The stack and the queue live inside Visitor's
+ * `Traversal.dfs` and `Traversal.bfs`, so for these two the frontier is a consequence
+ * of which engine the subclass names rather than something this class can vary.
+ *
+ * @tparam V the vertex type.
+ */
+abstract class UnweightedTraversal[V] extends GraphTraversal[V, Unit, V]:
+
+  /**
+   * Runs Visitor's traversal engine from `start`, with the frontier that engine implies.
+   *
+   * DFS: `Traversal.dfs` — a stack, so the deepest frontier element is expanded next.
+   * BFS: `Traversal.bfs` — a queue, so the earliest-discovered element is expanded next.
+   *
+   * `GraphNeighbours` is supplied by the enclosing `GraphNeighboursTraversal`, which is
+   * what carries the caller's `Random` into adjacency ordering; taking it as a context
+   * parameter here is what keeps that single source of neighbours for both subclasses.
+   *
+   * @param start   the starting vertex.
+   * @param visitor the journaled visitor to record into.
+   * @return the visitor, after the traversal has run.
+   */
+  protected def search(start: V, visitor: UnweightedVisitor[V])(using GraphNeighbours[V]): UnweightedVisitor[V]
+
+  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, V] =
+    new EvaluableGraphNeighboursTraversal[V, V, TraversalResult[V, V]](identity)(graph) {
+      def traversal: TraversalResult[V, V] =
+        val visitor = JournaledVisitor.withQueueJournal[V, V]
+        val result = search(start, visitor)
+        VertexTraversalResult(
+          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
+        )
+    }.traversal
+
+// ============================================================
 // DFS
 // ============================================================
 
@@ -43,18 +99,10 @@ trait GraphTraversal[V, E, R]:
  *
  * @tparam V the vertex type.
  */
-case class DFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
+case class DFSTraversal[V]() extends UnweightedTraversal[V]:
 
-  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, V] =
-    new EvaluableGraphNeighboursTraversal[V, V, TraversalResult[V, V]](identity)(graph) {
-      def traversal: TraversalResult[V, V] =
-        val visitor = JournaledVisitor.withQueueJournal[V, V]
-        val result = Traversal.dfs(start, visitor)
-        VertexTraversalResult(
-          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
-        )
-    }.traversal
-
+  protected def search(start: V, visitor: UnweightedVisitor[V])(using GraphNeighbours[V]): UnweightedVisitor[V] =
+    Traversal.dfs(start, visitor)
 
 // ============================================================
 // BFS
@@ -66,17 +114,10 @@ case class DFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
  *
  * @tparam V the vertex type.
  */
-case class BFSTraversal[V]() extends GraphTraversal[V, Unit, V]:
+case class BFSTraversal[V]() extends UnweightedTraversal[V]:
 
-  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, V] =
-    new EvaluableGraphNeighboursTraversal[V, V, TraversalResult[V, V]](identity)(graph) {
-      def traversal: TraversalResult[V, V] =
-        val visitor = JournaledVisitor.withQueueJournal[V, V]
-        val result = Traversal.bfs(start, visitor)
-        VertexTraversalResult(
-          result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
-        )
-    }.traversal
+  protected def search(start: V, visitor: UnweightedVisitor[V])(using GraphNeighbours[V]): UnweightedVisitor[V] =
+    Traversal.bfs(start, visitor)
 
 // ============================================================
 // WeightedTraversal — shared base for Dijkstra and Prim

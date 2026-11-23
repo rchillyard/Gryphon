@@ -8,9 +8,18 @@ import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Random, Try}
 
 class TraversableSpec extends AnyFlatSpec with should.Matchers:
+
+  // dfsu.graph is UNDIRECTED, so a vertex has several possible predecessors and which one a
+  // traversal records depends on adjacency order. "ProtoConnexions.create" asserts a specific
+  // predecessor edge, so it needs that order pinned. Before 1.11.0 this given could not have
+  // helped: the bag path read an ambient, process-global generator and ignored anything in
+  // scope, which is exactly what #67 was about. Now it is consulted, so the test is
+  // deterministic instead of passing most of the time. Seed 2 is simply one that reproduces the
+  // predecessors this spec already asserted; several do, and the value carries no other meaning.
+  private given Random = Random(2)
 
   behavior of "Traversable"
 
@@ -20,7 +29,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
       com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("B", 2, 3)
     )
   )
-  private val target: VertexMap[Int] = VertexMap[Int].addEdges(edgeList)
+  private val target: VertexMap[Int] = VertexMap[Int].addEdges(edgeList.edges)
 
   private given Evaluable[Int, Int] with
     def evaluate(v: Int): Option[Int] = Some(v)

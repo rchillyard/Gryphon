@@ -47,6 +47,19 @@ trait Bag[+X] extends IterableOnce[X] {
    *         the added element `y`.
    */
   def +[Y >: X](y: Y): Bag[Y]
+
+  /**
+   * Returns an iterator over the elements of this bag in an order drawn from `random`.
+   *
+   * Gryphon shuffles iteration deliberately, so that algorithms are not accidentally sensitive
+   * to insertion order. Taking the generator as a context parameter, rather than reading an
+   * ambient one, is what makes that shuffling reproducible: pinning a seed at the call site
+   * pins the order (#67).
+   *
+   * @param random the generator determining the order.
+   * @return an `Iterator[X]` over the elements of the bag, randomly ordered.
+   */
+  def randomIterator(using random: Random): Iterator[X]
 }
 
 /**
@@ -63,15 +76,30 @@ trait Bag[+X] extends IterableOnce[X] {
 abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
 
   /**
-   * Returns an iterator over the elements contained in this `ListBag`.
-   * The elements are iterated in a randomized order.
+   * Returns an iterator over the elements contained in this bag, in the order they were added.
    *
+   * This is the `IterableOnce` iterator, so it cannot take a `Random`; up to 1.10.0 it shuffled
+   * using an ambient, process-global generator, which made the order unreproducible by
+   * construction (#67). Shuffled iteration is now [[randomIterator]], which takes the caller's
+   * generator. A deterministic iterator also keeps `size`, `isEmpty` and `contains` off any PRNG.
+   *
+   * @return an `Iterator[X]` over the elements of the bag, in insertion order.
+   */
+  def iterator: Iterator[X] =
+    xs.iterator
+
+  /**
+   * Returns an iterator over the elements contained in this bag, in a random order drawn from
+   * `random`.
+   *
+   * This is the only randomised iteration over a bag, and it always uses the caller's generator,
+   * so pinning a seed makes the order reproducible.
+   *
+   * @param random the generator determining the order.
    * @return an `Iterator[X]` that provides a randomized traversal of the elements in the bag.
    */
-  def iterator: Iterator[X] = {
-    import Bag.*
+  def randomIterator(using random: Random): Iterator[X] =
     RandomIterator(xs)
-  }
 
   /**
    * Filters the elements of the Bag using the provided predicate function.
@@ -164,6 +192,4 @@ object Bag {
    */
   def create[X](xs: X*): Bag[X] =
     ListBag(xs)
-
-  implicit val random: Random = new scala.util.Random
 }

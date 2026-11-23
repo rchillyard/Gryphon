@@ -6,9 +6,11 @@ package com.phasmidsoftware.gryphon.core
  * sequence of graph edges without requiring direct knowledge of
  * the underlying graph implementation.
  *
- * NOTE: this is not polymorphic in Z like EdgeList
- * CONSIDER making them similar. See issue #69: EdgeList is this trait's only implementor,
- * so the two must be decided together.
+ * NOTE that this is not polymorphic in Z like `EdgeList`, and from 1.11.0 that no longer
+ * matters: #69 moved `EdgeList`, this trait's only implementor, to the test tree, so the two
+ * are no longer a published pair that ought to match. The trait stays here as published API,
+ * but nothing in main implements it — if that is still true at the next breaking release, it
+ * is a candidate to follow `EdgeList` out.
  *
  * @tparam V the type of attributes associated with the vertices in the graph.
  * @tparam E the type of attributes associated with the edges in the graph.

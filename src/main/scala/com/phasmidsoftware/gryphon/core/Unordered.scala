@@ -1,5 +1,8 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.util.RandomIterator
+import scala.util.Random
+
 /**
  * A trait representing an abstract data type for unordered collections of elements.
  *
@@ -52,12 +55,23 @@ trait Unordered[+T] {
 
   /**
    * Returns an iterator over the elements contained in the collection.
-   * NOTE that the order of the elements in the iterator is unpredictable.
+   *
+   * NOTE that the order is the underlying collection's own and is not shuffled. Callers that
+   * want a randomised order ask for [[randomIterator]], which takes the generator to use;
+   * this one cannot, because it is also the `IterableOnce` iterator of the bags behind it.
    *
    * @return an iterator that provides sequential access to each element of type `T`
    *         in the collection.
    */
   def iterator: Iterator[T]
+
+  /**
+   * Returns an iterator over the elements of this collection in an order drawn from `random`.
+   *
+   * @param random the generator determining the order.
+   * @return an iterator over each element of type `T`, randomly ordered.
+   */
+  def randomIterator(using random: Random): Iterator[T]
 
   /**
    * Filters the elements of the collection using the provided predicate function.
@@ -123,13 +137,25 @@ abstract class AbstractUnordered[+T](elements: IterableOnce[T]) extends Unordere
     iterator.size
 
   /**
-   * Returns an iterator over the elements in the adjacency set.
-   * NOTE that the order of the elements in the iterator is unpredictable.
+   * Returns an iterator over the elements in the adjacency set, in the underlying
+   * collection's own order.
    *
    * @return an `Iterator[T]` over the elements of type `T` contained in the set.
    */
   def iterator: Iterator[T] =
     elements.iterator
+
+  /**
+   * Returns an iterator over the elements in the adjacency set, in an order drawn from `random`.
+   *
+   * Shuffling the deterministic `iterator` here, rather than delegating to the underlying bag,
+   * means every `Unordered` randomises the same way whatever it is built from.
+   *
+   * @param random the generator determining the order.
+   * @return an `Iterator[T]` over the elements of type `T`, randomly ordered.
+   */
+  def randomIterator(using random: Random): Iterator[T] =
+    RandomIterator(iterator)
 
   /**
    * Filters the elements of the collection using the provided predicate function.

@@ -3,7 +3,6 @@ package com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.visitor.core.*
-import scala.annotation.unused
 import scala.util.Random
 
 /**
@@ -99,7 +98,7 @@ trait Graph[V] extends Traversable[V]:
   /**
    * Returns the directed edges reachable from v.
    */
-  def undiscoveredEdges[E](v: V)(using @unused random: Random = Random()): Seq[Edge[V, E]] =
+  def undiscoveredEdges[E](v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
     filteredAdjacencies(_ => true)(v)
             .flatMap(_.maybeEdge[E])
             .toSeq
@@ -109,7 +108,7 @@ trait Graph[V] extends Traversable[V]:
    * Useful for testing and inspection; the traversal engine manages visited
    * state internally via VisitedSet.
    */
-  def undiscoveredVertices[E](v: V)(using @unused random: Random = Random()): Seq[V] =
+  def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
     undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[V, E] @unchecked => e.black }
 
   def debug: String = vertexMap.debug
@@ -157,9 +156,10 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
    * @param v         the vertex whose adjacencies are to be filtered.
+   * @param random    the generator determining the order of the adjacencies (#67).
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]] =
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random = Random()): Iterator[Adjacency[V]] =
     vertexMap.filteredAdjacencies(predicate)(v)
 
   /**

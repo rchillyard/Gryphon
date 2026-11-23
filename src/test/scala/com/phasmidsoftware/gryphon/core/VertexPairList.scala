@@ -3,11 +3,14 @@ package com.phasmidsoftware.gryphon.core
 /**
  * A case class representing a list of vertex pairs in a graph.
  *
- * CONSIDER eliminate this class, or move it to src/test. See issue #70.
+ * MOVED HERE FROM `src/main` IN 1.11.0 (#70). In the published library this type was reachable
+ * but inert, exactly as `EdgeList` was: its one consumer, `VertexMap.createFromVertexPairList`,
+ * did nothing but read `.pairs` and hand them to `addVertexPairs`, which already took the raw
+ * sequence; and `triplets`, its only behaviour, was called nowhere but the spec that tests it.
+ * That consumer is gone, since `VertexMap[V].addVertexPairs(pairs)` says the same thing.
  *
- * This class provides a concrete implementation of `SerializableGraph` and `Pairs`, enabling functionalities
- * such as accessing the pairs of vertices and transforming these pairs into triplets. Each triplet includes
- * the source vertex, target vertex, and a unit value indicating the absence of an explicit edge attribute.
+ * It is kept here rather than deleted because it is a useful test implementor of
+ * `SerializableGraph` and `Pairs`, which `SerializableGraphSpec` exercises through it.
  *
  * @tparam V the type of attributes associated with the vertices in the graph.
  * @param pairs a sequence of tuples, where each tuple contains two vertices representing
@@ -16,8 +19,6 @@ package com.phasmidsoftware.gryphon.core
 case class VertexPairList[V](pairs: Seq[(V, V, EdgeType)]) extends SerializableGraph[V, Unit, EdgeType] with Pairs[V, EdgeType]:
   /**
    * Transforms the pairs of vertices into a sequence of triplets.
-   * Each triplet includes a source vertex, a target vertex, an optional attribute
-   * (set to None), and the corresponding edge type.
    *
    * @return a sequence of triplets, where each triplet contains a source vertex,
    *         a target vertex, None as the optional attribute, and the edge type.

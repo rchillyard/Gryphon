@@ -154,11 +154,14 @@ trait Traversable[V] {
   /**
    * Retrieves the connexions (edges) reachable from `start` via DFS.
    *
-   * @param start the starting vertex.
+   * @param start  the starting vertex.
+   * @param random the generator determining adjacency order. Which predecessor each vertex
+   *               records depends on that order, so a caller wanting a reproducible parent
+   *               map must have a `given Random` in scope here (#67).
    * @tparam E the type of the edges in the graph.
    * @return a `Connexions[V, E]` object representing the discovered connexions.
    */
-  def getConnexions[E](start: V): Connexions[V, E] = {
+  def getConnexions[E](start: V)(using random: Random = Random()): Connexions[V, E] = {
     // Visitor 1.8.0's ParentedVisitor does expose the predecessor *vertex*, but what this
     // method needs is the incoming *edge*, and Visitor has no notion of an edge — Neighbours
     // yields nodes. So we still run a manual DFS that tracks the incoming adjacency for each

@@ -241,10 +241,15 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   def iterator: Iterator[V] = map.keysIterator
 
   /**
-   * Adds the edges from the provided EdgeList to this VertexMap.
+   * Adds the given edges to this VertexMap.
+   *
+   * This took an `EdgeList[V, E, Z]` up to 1.10.0, and did nothing with it but read `.edges`,
+   * so a caller holding a sequence had to box it purely to have it unboxed again. Taking the
+   * sequence directly also retires the `Z` parameter, which existed only to type `EdgeList`'s
+   * `triplets` and never appeared in this method's body (#69).
    */
-  def addEdges[E, Z >: EdgeType](edgeList: EdgeList[V, E, Z]): VertexMap[V] =
-    edgeList.edges.foldLeft[VertexMap[V]](this)((vm, e) => vm + e)
+  def addEdges[E](edges: Seq[Edge[V, E]]): VertexMap[V] =
+    edges.foldLeft[VertexMap[V]](this)((vm, e) => vm + e)
 
   /**
    * Adds a sequence of vertex pairs with their EdgeTypes to this VertexMap.
@@ -344,8 +349,9 @@ object VertexMap:
   def createFromTriplets[V, E, Z](f: Triplet[V, E, Z] => (Vertex[V], Vertex[V]))(triplets: Triplets[V, E, Z]): VertexMap[V] =
     VertexMap(addTripletsToMap(f)(Map.empty[V, Vertex[V]])(triplets))
 
-  def createFromVertexPairList[V](vertexPairList: VertexPairList[V]): VertexMap[V] =
-    VertexMap[V].addVertexPairs(vertexPairList.pairs)
+  // createFromVertexPairList is gone with VertexPairList itself (#70): it unwrapped the
+  // wrapper and called addVertexPairs, so `VertexMap[V].addVertexPairs(pairs)` says the same
+  // thing without the box.
 
   private def addTripletsToMap[V, E, Z](f: Triplet[V, E, Z] => (Vertex[V], Vertex[V]))(map: Map[V, Vertex[V]])(triplets: Triplets[V, E, Z]): Map[V, Vertex[V]] =
     triplets.triplets.foldLeft[Map[V, Vertex[V]]](map) { (vm, t) =>

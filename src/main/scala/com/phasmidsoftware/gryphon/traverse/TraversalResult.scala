@@ -3,6 +3,7 @@ package com.phasmidsoftware.gryphon.traverse
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge, GraphException}
+import scala.util.Random
 
 /**
  * A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.
@@ -32,14 +33,6 @@ trait TraversalResult[V, T] {
    * @return the result of the traversal for the provided vertex.
    */
   def vertexTraverse(v: V): Option[T]
-
-  /**
-   * Traverses an indexed edge within a graph-like structure and produces a result of type T.
-   *
-   * @param x the index of the edge traversed
-   * @return the corresponding value of T
-   */
-  def edgeTraverse(x: Int): T
 }
 
 /**
@@ -55,18 +48,20 @@ object TraversalResult {
    * @tparam V the type of vertices connected by the edges in the graph
    * @tparam E the type of the attributes associated with the edges in the graph
    * @tparam T the resulting type after applying the function `f` to each edge
-   * @return a `TraversalResult[V, T]` containing the results of applying the function `f` to each edge of the graph
-   * @throws com.phasmidsoftware.gryphon.core.GraphException if the provided `traversable` does not represent an edge graph
+   * @return an `AbstractEdgeTraversalResult[T]` containing the results of applying `f` to each edge of the graph.
+   *         NOTE that the static type is the edge-keyed one, not `TraversalResult`: `edgeTraverse` lives only on
+   *         that branch, so returning the general type would hide the one method callers want (#71).
    */
-  def edgeTraversal[V, E, T](f: Edge[V, E] => T)(traversable: core.EdgeTraversable[V, E]): TraversalResult[Int, T] =
+  def edgeTraversal[V, E, T](f: Edge[V, E] => T)(traversable: core.EdgeTraversable[V, E]): AbstractEdgeTraversalResult[T] =
     EdgeTraversalResult(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
 }
 
 /**
  * Abstract base class for edge traversal within a graph.
- * This class supports traversing edges in a graph-like structure by providing
- * a specific implementation for edge traversal while delegating the vertex traversal
- * to throw an exception, as it is not applicable for edge-based traversal.
+ *
+ * This is the edge-keyed branch of the result type, and the only one carrying `edgeTraverse`.
+ * `vertexTraverse` returns `None` here, since a vertex key means nothing to an edge-keyed
+ * result; it does not throw.
  *
  * @tparam T the type representing the result of the edge traversal
  * @param ts a list of elements of type T representing traversal data, typically associated with edges
@@ -105,9 +100,10 @@ abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResu
 
 /**
  * Abstract base class for edge traversal within a graph.
- * This class supports traversing edges in a graph-like structure by providing
- * a specific implementation for edge traversal while delegating the vertex traversal
- * to throw an exception, as it is not applicable for edge-based traversal.
+ *
+ * This is the edge-keyed branch of the result type, and the only one carrying `edgeTraverse`.
+ * `vertexTraverse` returns `None` here, since a vertex key means nothing to an edge-keyed
+ * result; it does not throw.
  *
  * @tparam V the type representing a vertex in the graph
  * @tparam T the type representing the result of the edge traversal
@@ -140,15 +136,6 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
     map.get(v)
 
   /**
-   * Traverses a specified edge within a graph-like structure and produces a result of type T.
-   *
-   * @param x the index of the edge to be traversed
-   * @return the result of the traversal
-   */
-  def edgeTraverse(x: Int): T =
-    throw GraphException(s"edgeTraverse called on AbstractVertexTraversalResult: $x")
-
-  /**
    * Constructs a traversal instance using the provided map of vertices and their associated traversal results.
    *
    * @param map a mapping where keys represent vertices of type `V`, and values represent traversal results of type `T`.
@@ -175,7 +162,7 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
  * associated with each edge.
  *
  * Edge traversal uses the defined behavior from the `AbstractEdgeTraversalResult` base class,
- * where `vertexTraverse` throws an exception, and `edgeTraverse` retrieves the traversal result
+ * where `vertexTraverse` returns `None`, and `edgeTraverse` retrieves the traversal result
  * from the precomputed list based on the edge index.
  *
  * @tparam V the type representing a vertex in the graph.
@@ -310,14 +297,17 @@ object Connexions {
    * The traversal starts from the specified vertex, processes each vertex using the provided function,
    * and returns the resulting connexions.
    *
-   * @param graph the graph-like structure to be traversed, of type `core.Traversable[V]`.
-   * @param start the starting vertex for the DFS traversal, of type `V`.
+   * @param graph  the graph-like structure to be traversed, of type `core.Traversable[V]`.
+   * @param start  the starting vertex for the DFS traversal, of type `V`.
+   * @param random the generator determining adjacency order, forwarded to `getConnexions`.
+   *               Without it this method could not be seeded at all: a `given Random` at the
+   *               call site stopped here, and the traversal inside used a fresh one (#67).
    * @tparam V the type representing a vertex in the graph.
    * @tparam E the type representing the edge attribute in the traversal.
    * @return a `ProtoConnexions` object that encapsulates the result of the traversal,
    *         mapping vertices to their respective directed edges.
    */
-  def create[V, E](graph: core.Traversable[V])(start: V): Connexions[V, E] = {
+  def create[V, E](graph: core.Traversable[V])(start: V)(using random: Random = Random()): Connexions[V, E] = {
     graph.getConnexions(start)
   }
 

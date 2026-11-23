@@ -51,8 +51,8 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     v2.adjacencies.iterator.size shouldBe 1
   }
 
-  it should "implement createFromVertexPairList, contains, apply, and vertices 1" in {
-    val target = VertexMap.createFromVertexPairList(vertexPairListDirected) // 1 -> 2, 2 -> 3
+  it should "implement addVertexPairs, contains, apply, and vertices 1" in {
+    val target = VertexMap[Int].addVertexPairs(vertexPairListDirected.pairs) // 1 -> 2, 2 -> 3
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
@@ -66,8 +66,8 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     v2.adjacencies.iterator.size shouldBe 1
   }
 
-  it should "implement createFromVertexPairList, contains, apply, and vertices 2" in {
-    val target = VertexMap.createFromVertexPairList(vertexPairListUndirected) // 1 -> 2, 2 -> 3
+  it should "implement addVertexPairs, contains, apply, and vertices 2" in {
+    val target = VertexMap[Int].addVertexPairs(vertexPairListUndirected.pairs) // 1 -> 2, 2 -> 3
     target.vertices.size shouldBe 3
     target.contains(1) shouldBe true
     target.contains(2) shouldBe true
@@ -89,7 +89,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "$plus Vertex" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     val updated = target + Vertex.createWithBag(4)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
@@ -117,14 +117,14 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "$plus Edge" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     val updated = target + Vertex.createWithBag(4)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
   }
 
   it should "applyOrElse" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     val vertex1: Vertex[Int] = target.applyOrElse(1, _ => defaultVertex)
     vertex1.attribute shouldBe 1
     val vertex0: Vertex[Int] = target.applyOrElse(4, _ => defaultVertex)
@@ -132,23 +132,23 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "get" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     target.get(1) should matchPattern { case Some(SimpleVertex(1, _)) => }
   }
 
   it should "getOrElse" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     target.getOrElse(1, defaultVertex) should matchPattern { case SimpleVertex(1, _) => }
     target.getOrElse(4, defaultVertex) shouldBe defaultVertex
   }
 
   it should "keySet" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     target.keySet shouldBe Set(1, 2, 3)
   }
 
   it should "dfs" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     val visitor = JournaledVisitor.withQueueJournal[Int, Int]
     val result = target.dfs(visitor)(1)
     // QueueJournal preserves visit order; directed 1->2->3 so expect all 3 vertices
@@ -159,7 +159,7 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "simple bfs" in {
-    val target = VertexMap[Int].addEdges(edgeList)
+    val target = VertexMap[Int].addEdges(edgeList.edges)
     val goal: Int => Boolean = _ == 3
     val visitor = JournaledVisitor.withQueueJournal[Int, Int]
     val result = target.bfs(visitor)(1, goal)

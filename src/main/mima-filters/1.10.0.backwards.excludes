@@ -54,3 +54,65 @@ ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.grypho
 ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Unordered.randomIterator(scala.util.Random)scala.collection.Iterator")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.filteredAdjacencies(scala.Function1,java.lang.Object)scala.collection.Iterator")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.neighboursGiven()com.phasmidsoftware.visitor.core.Neighbours")
+
+# ----------------------------------------------------------------------------------------
+# #67, second round: getConnexions could not be seeded either.
+#
+# Found by a test rather than by reading: pinning a seed in TraversableSpec did not make
+# "ProtoConnexions.create" deterministic, because `Traversable.getConnexions` and
+# `Connexions.create` take no Random and so could not forward one. The caller's given stopped
+# at their signatures and the traversal inside used a fresh generator. Both now take
+# `using Random = Random()`. Without this the first round of the fix was incomplete: it made
+# the bag path seedable and left an entry point that still was not.
+# => DirectMissingMethodProblem on getConnexions in Traversable, AbstractGraph and VertexMap,
+#    and on Connexions.create.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.getConnexions(java.lang.Object)com.phasmidsoftware.gryphon.traverse.Connexions")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.getConnexions(java.lang.Object)com.phasmidsoftware.gryphon.traverse.Connexions")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.getConnexions(java.lang.Object)com.phasmidsoftware.gryphon.traverse.Connexions")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.Connexions.create(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)com.phasmidsoftware.gryphon.traverse.Connexions")
+
+# ----------------------------------------------------------------------------------------
+# #71: TraversalResult's vertex/edge duality, where only one half was ever populated.
+#
+# `edgeTraverse` was on the common trait, so the vertex-keyed branch had to implement it and
+# did so by throwing — a method on a public type whose only behaviour was to throw, which the
+# type system nonetheless advertised. The edge-keyed branch is NOT dead, contrary to what the
+# issue supposed: `TraversalResult.edgeTraversal` populates it and `TopologicalSortSpec` reads
+# it. So the fix is the issue's second option, splitting rather than deleting: `edgeTraverse`
+# now lives only on `AbstractEdgeTraversalResult`, and `edgeTraversal` returns that type rather
+# than the general one, so the method is still reachable where it means something.
+# => DirectMissingMethodProblem on edgeTraverse in the trait and the vertex branch, and
+#    IncompatibleResultTypeProblem on edgeTraversal.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.TraversalResult.edgeTraverse(Int)java.lang.Object")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.AbstractVertexTraversalResult.edgeTraverse(Int)java.lang.Object")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.TraversalResult.edgeTraversal(scala.Function1,com.phasmidsoftware.gryphon.core.EdgeTraversable)com.phasmidsoftware.gryphon.traverse.TraversalResult")
+
+# ----------------------------------------------------------------------------------------
+# #69 and #70: two public case classes that were reachable but inert.
+#
+# `EdgeList` and `VertexPairList` each had exactly one consumer in main, and each consumer did
+# nothing but unwrap the wrapper: `VertexMap.addEdges` read `.edges` and folded, and
+# `VertexMap.createFromVertexPairList` read `.pairs` and called `addVertexPairs`, which already
+# took the raw sequence. Their one real method, `triplets`, was called nowhere but the spec
+# that exists to test it. So a caller holding a sequence had to box it purely to have it
+# unboxed again.
+#
+# Both move to the test tree rather than being deleted, which keeps them as test implementors
+# of `SerializableGraph`, `Edges` and `Pairs` — coverage that would otherwise go with them.
+# `addEdges` now takes `Seq[Edge[V, E]]`, which also retires its `Z` parameter: `Z` existed
+# only to type `EdgeList.triplets` and never appeared in the method's body.
+# `createFromVertexPairList` goes entirely, being `addVertexPairs` on an empty map.
+#
+# `Triplets` stays in main, moving from `EdgeList.scala` to its own file: it is the
+# `SerializableGraph` implementor that main actually uses, via `VertexMap.createFromTriplets`.
+# => MissingClassProblem on both case classes and their companions, IncompatibleMethTypeProblem
+#    on addEdges, DirectMissingMethodProblem on createFromVertexPairList.
+
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.EdgeList")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.EdgeList$")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.VertexPairList")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.VertexPairList$")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.core.VertexMap.addEdges(com.phasmidsoftware.gryphon.core.EdgeList)com.phasmidsoftware.gryphon.core.VertexMap")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.createFromVertexPairList(com.phasmidsoftware.gryphon.core.VertexPairList)com.phasmidsoftware.gryphon.core.VertexMap")

@@ -8,7 +8,7 @@ import com.phasmidsoftware.gryphon.util.TryUsing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 class TraversalResultSpec extends AnyFlatSpec with Matchers:
 
@@ -25,6 +25,40 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
           case Success(graph: Graph[Int]) => f(graph)
           case Failure(x) => fail(x)
       case Failure(x) => fail(x)
+
+  behavior of "the collapsed unweighted traversals"
+
+  // Until 1.11.0 these were two implementations of one operation: vertexMappedTraversalDfs
+  // carried a copy of what is now UnweightedTraversal.run. These pin that they agree, which is
+  // the property the collapse has to preserve. The seed makes the comparison meaningful on an
+  // undirected graph, where adjacency order decides what a traversal reaches first.
+  it should "give the same result through Traversable as through DFSTraversal" in :
+    given Random = Random(2)
+
+    withDfsuGraph { graph =>
+      val viaTraversable = graph.vertexMappedTraversalDfs(v => v * 10)(0)
+      val viaTraversal = DFSTraversal[Int, Int](v => v * 10).run(graph)(0)
+      viaTraversable shouldBe Success(viaTraversal)
+    }
+
+  it should "give the same result through Traversable as through BFSTraversal" in :
+    given Random = Random(2)
+
+    withDfsuGraph { graph =>
+      val viaTraversable = graph.vertexMappedTraversalBfs(v => v * 10)(0)
+      val viaTraversal = BFSTraversal[Int, Int](v => v * 10).run(graph)(0)
+      viaTraversable shouldBe Success(viaTraversal)
+    }
+
+  // The no-argument factories are the identity case, which is what DFSTraversal[V]() meant
+  // before fulfill existed.
+  it should "treat the no-argument factory as the identity traversal" in :
+    given Random = Random(2)
+
+    withDfsuGraph { graph =>
+      DFSTraversal[Int]().run(graph)(0) shouldBe DFSTraversal[Int, Int](identity).run(graph)(0)
+      BFSTraversal[Int]().run(graph)(0) shouldBe BFSTraversal[Int, Int](identity).run(graph)(0)
+    }
 
   it should "vertexMappedTraversalDfs on small undirected graph" in {
     val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] =

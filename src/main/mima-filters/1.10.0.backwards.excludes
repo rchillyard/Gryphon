@@ -116,3 +116,32 @@ ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.Ve
 ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.VertexPairList$")
 ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.gryphon.core.VertexMap.addEdges(com.phasmidsoftware.gryphon.core.EdgeList)com.phasmidsoftware.gryphon.core.VertexMap")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.createFromVertexPairList(com.phasmidsoftware.gryphon.core.VertexPairList)com.phasmidsoftware.gryphon.core.VertexMap")
+
+# ----------------------------------------------------------------------------------------
+# Collapsing the two unweighted traversal APIs into one.
+#
+# Gryphon had two implementations of one operation — run a DFS or BFS, map each visited vertex,
+# return a TraversalResult. `Traversable.vertexMappedTraversalDfs`/`Bfs` carried one copy and
+# had callers only in tests; `DFSTraversal`/`BFSTraversal` carried the other and had no callers
+# at all, in main, in the specs, or in the Java façade. Giving DFS and BFS a shared base in the
+# first 1.11.0 PR deduplicated the pair that nothing called without touching the overlap, which
+# is the duplication that actually mattered.
+#
+# The difference between the two was `fulfill`, so that moves into `UnweightedTraversal`, which
+# becomes `UnweightedTraversal[V, T](fulfill: V => T)`. `DFSTraversal` and `BFSTraversal` take
+# it too, with `DFSTraversal[V]()` kept as the identity case through a companion `apply`. The
+# `Traversable` methods now delegate, which also gives those two classes their first real
+# caller. `Traversable.traversalResult` goes with the bodies that used it: the unwrapping of a
+# journal into a `VertexTraversalResult` now happens once, in `UnweightedTraversal.run`.
+#
+# The case classes gained a parameter, so their synthetic members change shape.
+# => DirectMissingMethodProblem on the no-arg constructors and copy, IncompatibleResultTypeProblem
+#    on unapply. The `Traversable` methods keep their signatures, so callers of those are
+#    unaffected.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.DFSTraversal.this()Unit")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.DFSTraversal.copy()com.phasmidsoftware.gryphon.traverse.DFSTraversal")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.DFSTraversal.unapply(com.phasmidsoftware.gryphon.traverse.DFSTraversal)Boolean")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.BFSTraversal.this()Unit")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.BFSTraversal.copy()com.phasmidsoftware.gryphon.traverse.BFSTraversal")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.BFSTraversal.unapply(com.phasmidsoftware.gryphon.traverse.BFSTraversal)Boolean")

@@ -1,6 +1,5 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.core.Bag.random
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
 import com.phasmidsoftware.gryphon.util.RandomIterator
 import com.phasmidsoftware.visitor.core.{*, given}
@@ -58,17 +57,22 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param v         the vertex whose adjacencies are to be filtered.
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]] =
-    map(v).adjacencies.filter(predicate).iterator
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random): Iterator[Adjacency[V]] =
+    map(v).adjacencies.filter(predicate).randomIterator
 
   /**
    * Provides a `GraphNeighbours[V]` instance derived from the `graphNeighbours` method.
    * The `GraphNeighbours[V]` instance facilitates efficient access to the neighbors of a vertex
    * within the graph, enabling traversal algorithms to query adjacent vertices.
    *
+   * Up to 1.10.0 this took its randomness from the ambient `Bag.random`, picked up through an
+   * import, so a caller's seed could not reach it. It now takes the generator explicitly, which
+   * is what `Traversable.graphNeighbours` has always required (#67).
+   *
+   * @param random the generator determining adjacency order.
    * @return a `GraphNeighbours[V]` instance for querying vertex neighbors.
    */
-  def neighboursGiven: GraphNeighbours[V] = graphNeighbours
+  def neighboursGiven(using random: Random): GraphNeighbours[V] = graphNeighbours
 
   /**
    * Performs DFS from `v`, accumulating results into `visitor`.

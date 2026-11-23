@@ -70,9 +70,12 @@ trait Traversable[V] {
    *                  and returns true if the adjacency satisfies the specified condition.
    *
    * @param v         the vertex whose adjacencies are to be filtered.
+   * @param random    the generator determining the order of the adjacencies. A caller with a
+   *                  `given Random` in scope supplies it and gets a reproducible order; the
+   *                  default is only reached when nobody has one (#67).
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
-  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V): Iterator[Adjacency[V]]
+  def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random = Random()): Iterator[Adjacency[V]]
 
   /**
    * Performs a depth-first search (DFS) traversal starting from the specified vertex.

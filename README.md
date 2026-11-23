@@ -773,6 +773,30 @@ sbt test
 | 1.8.1 | Bug fix: `UndirectedGraph.unit` built a `DirectedGraph`, so `undirectedGraph.addVertex(v)` returned a directed graph. Present in every earlier version. Binary compatible with 1.8.0 |
 | 1.9.0 | `N` and `M` become `order` and `size` — the standard graph-theory terms, and the names the Java façade already used; the old names remain as deprecated aliases, so calling code still compiles. `size` moves to `EdgeTraversable`, where edges are known, and `VertexMap`'s mutable `edgeCount` is deleted. The traversals carry their working state immutably: with those two, no mutable state remains in the permanent structure of a graph. `DirectedGraph` and `UndirectedGraph` share a new `AbstractAdjunctGraph` base, and `unit` and `triplesToTryGraph` return the concrete graph type rather than `Graph[V]`. Removed: `RelaxableVertex` with its factory and alias, superseded in 0.2.5; `Traversable.bfse`, a stub that returned its own argument; and the unreferenced package-private `java.GraphTraversal`. `TopologicalSort.sort` was quadratic and is now linear — 127ms to 5.6ms on a 1500-vertex DAG — which also makes `AcyclicShortestPaths` some 48 times faster, since the sort was all of its cost. **Breaking** — see "Migrating from 1.8" below |
 | 1.10.0 | Moves to [Visitor 1.8.0](https://github.com/rchillyard/Visitor/releases/tag/V1.8.0) and **generalises the traversal entry points over the journal's element type**: `dfs`, `bfs` and `dfsAll` on `Traversable`, `Graph`, `AbstractGraph` and `VertexMap` now take `Visitor[V, E, J]` for any element type `E`, in place of a form that fixed the journal to `(V, Option[R])`. They also drop their `using Evaluable[V, R]`, which had become dead — Visitor's engine no longer asks for one, since a visitor carries its own. The practical gain is that Visitor's `SimpleVisitor` (bare nodes, no `Evaluable`, no pair allocated per visit) and `ParentedVisitor` (which can see the node a vertex was reached from) now work through every Gryphon traversal entry point; previously the signature rejected them. Both `Monoid as _` import exclusions are gone, Visitor 1.8.0 having removed `core.Monoid`. **Breaking**: dropping the `Evaluable` parameter changes the erased signature of 27 methods — callers passing it explicitly should remove it; callers relying on the implicit need no change beyond recompiling |
+| 1.11.0 | **Randomised iteration is now reproducible.** Gryphon shuffles iteration deliberately, so that algorithms are not accidentally sensitive to insertion order, but there were two sources of randomness and they disagreed about where the generator came from: `VertexMap.randomAdjacencies` took the caller's, while `Bag.iterator` picked up an ambient, process-global, unseeded `Bag.random`, ignoring any `Random` in scope. A seed pinned at a call site therefore did real work on one path and nothing at all on the other. `Bag.iterator` now returns insertion order — it is also the `IterableOnce` iterator, so it cannot take a generator — and shuffling moves to the new `Bag.randomIterator(using Random)`, mirrored on `Unordered`. `filteredAdjacencies` takes `using Random` and uses it, so both adjacency paths draw from the same place, and `Bag.random` is deleted. A caller's `given Random` always wins over the parameter default, which is the whole difference from the ambient value. Also: DFS and BFS gain a shared `UnweightedTraversal` base, mirroring `WeightedTraversal`, so the four frontier algorithms are one family in code as well as in intent. **Breaking** — see "Migrating from 1.10 to 1.11.0" below |
+
+### Migrating from 1.10 to 1.11.0
+
+Most code needs no change beyond recompiling. The generator parameters added in this release all
+carry defaults, so existing call sites still compile.
+
+Two cases do need attention:
+
+- **If you called `bag.iterator` expecting a shuffled order**, you now get insertion order. Use
+  `bag.randomIterator`, with a `given Random` in scope, to get the old behaviour — this time
+  reproducibly.
+- **If you implemented `Bag` or `Unordered` yourself**, you must now also implement
+  `randomIterator(using Random)`.
+
+If you want reproducible traversals, put a seeded generator in scope:
+
+```scala
+given Random = Random(42)
+```
+
+Every randomised path now consults it, which was the point: before this release, that `given`
+reached the `randomAdjacencies` path and not the bag path, and the compiler reported it as an
+unused definition — which, under `-Werror`, made correct-looking code fail to build.
 
 ### Migrating from 1.8 to 1.9.0
 

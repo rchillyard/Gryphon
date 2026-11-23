@@ -1,0 +1,56 @@
+# Deliberate binary breaks in 1.11.0, relative to 1.10.0. See the release note in README.md.
+#
+# Issue #67: randomised iteration was not reproducible, because there were two sources of
+# randomness and they disagreed about where the Random came from. VertexMap.randomAdjacencies
+# took the caller's; AbstractBag.iterator picked up an ambient, process-global, unseeded
+# Bag.random through an import, ignoring any Random the caller had in scope. So a seed pinned
+# at a call site did real work on one path and nothing at all on the other, with no way to
+# tell which you were getting. Nothing was flaky, but the bag path was unreproducible BY
+# CONSTRUCTION: an order-dependent failure there could not have been reproduced by pinning a
+# seed, because the seed that mattered was private, global, and set from the clock.
+#
+# The fix, and why each break follows from it:
+#
+#   - Bag.iterator now returns insertion order. It is also the IterableOnce iterator, so it
+#     cannot take a Random; shuffling moves to the new Bag.randomIterator(using Random), which
+#     always uses the caller's generator. This also keeps size, isEmpty and contains off any
+#     PRNG. Unordered gains the same pair, so everything built on a bag randomises alike.
+#     => ReversedMissingMethodProblem on Bag.randomIterator and Unordered.randomIterator
+#        (new abstract members on published traits).
+#
+#   - The ambient Bag.random is deleted outright, so there is no longer an unreachable
+#     generator anyone can pick up by accident.
+#     => DirectMissingMethodProblem on Bag.random.
+#
+#   - filteredAdjacencies now takes (using random: Random = Random()) and calls randomIterator,
+#     so both adjacency paths draw from the same place. The default is only consulted when the
+#     caller has no given in scope, so a caller's seed always wins — which is the difference
+#     from the old ambient value, and the whole point.
+#     => DirectMissingMethodProblem on the old arity in Traversable, AbstractGraph and
+#        VertexMap, plus ReversedMissingMethodProblem on the new one in Traversable.
+#
+#   - VertexMap.neighboursGiven took its randomness from the same deleted import, so it now
+#     takes the generator explicitly — which is what Traversable.graphNeighbours had always
+#     required.
+#     => DirectMissingMethodProblem on VertexMap.neighboursGiven.
+#
+# Worth recording, because it contradicts the issue: #67 also asked for the removal of a dead
+# `using @unused random: Random` on Kosaraju.stronglyConnectedComponents. After this change
+# that parameter is no longer dead — it reaches filteredAdjacencies down the chain — and the
+# same proved true of the five other @unused random parameters, in ShortestPaths and Graph.
+# All six annotations are removed and every parameter kept. The dead parameter was a symptom
+# of the defect, not a separate one, so no further break was needed for it.
+#
+# Under PVP, 1.10.x -> 1.11.0 is a major bump, so these breaks are permitted. This file retires
+# itself: once previousRelease moves past 1.10.0, MiMa stops consulting it.
+#
+# The lines below are MiMa's own suggestions from the failing run, not hand-written.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.filteredAdjacencies(scala.Function1,java.lang.Object)scala.collection.Iterator")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Bag.randomIterator(scala.util.Random)scala.collection.Iterator")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Bag.random()scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.filteredAdjacencies(scala.Function1,java.lang.Object)scala.collection.Iterator")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.filteredAdjacencies(scala.Function1,java.lang.Object,scala.util.Random)scala.collection.Iterator")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Unordered.randomIterator(scala.util.Random)scala.collection.Iterator")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.filteredAdjacencies(scala.Function1,java.lang.Object)scala.collection.Iterator")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.neighboursGiven()com.phasmidsoftware.visitor.core.Neighbours")

@@ -58,6 +58,7 @@ trait Traversable[V] {
    *
    * @param predicate a function that evaluates each adjacent vertex and returns true
    *                  if the vertex satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacent vertices are to be filtered.
    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
    */
@@ -69,11 +70,11 @@ trait Traversable[V] {
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
-   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @param random    the generator determining the order of the adjacencies. A caller with a
    *                  `given Random` in scope supplies it and gets a reproducible order; the
    *                  default is only reached when nobody has one (#67).
+   *
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
   def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random = Random()): Iterator[Adjacency[V]]
@@ -114,6 +115,7 @@ trait Traversable[V] {
    * @param v       the starting vertex.
    * @param goal    an optional early-termination predicate; traversal halts after recording
    *                the first node for which `goal` returns true.
+   *
    * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam E the journal's element type.
    * @tparam J the journal type.
@@ -155,6 +157,7 @@ trait Traversable[V] {
    * @param random the generator determining adjacency order. Which predecessor each vertex
    *               records depends on that order, so a caller wanting a reproducible parent
    *               map must have a `given Random` in scope here (#67).
+   *
    * @tparam E the type of the edges in the graph.
    * @return a `Connexions[V, E]` object representing the discovered connexions.
    */

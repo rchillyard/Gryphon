@@ -55,6 +55,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    *
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
+   *
    * @param v         the vertex whose adjacencies are to be filtered.
    * @param random    the generator determining adjacency order (implicit).
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
@@ -138,7 +139,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   private def reachableFrom(start: V, excluded: Set[V])(using Random): Set[V] =
     @tailrec
     def loop(stack: List[V], acc: Set[V]): Set[V] = stack match
-      case Nil => acc
+      case Nil =>
+        acc
       case v :: rest =>
         if acc.contains(v) || excluded.contains(v) then loop(rest, acc)
         else loop(adjacentVertices(v).toList ::: rest, acc + v)

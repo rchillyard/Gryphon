@@ -38,7 +38,7 @@ public class ConnectedComponentsTest {
     void count_two_components() {
         assertEquals(2, ConnectedComponents.count(buildTwoComponentGraph()));
     }
-    
+
     @Test
     void count_three_separate_components() {
         Graph<Integer> g = Graph.undirected();

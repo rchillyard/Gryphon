@@ -119,7 +119,8 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 0
           e.black shouldBe 1
-        case other => fail(s"unexpected: $other")
+        case other =>
+          fail(s"unexpected: $other")
     }
 
   it should "give vertex 2 predecessor edge from 1 (not from 0)" in :
@@ -129,7 +130,8 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 1
           e.black shouldBe 2
-        case other => fail(s"unexpected: $other")
+        case other =>
+          fail(s"unexpected: $other")
     }
 
   it should "give vertex 3 predecessor edge from 1 (not from 2)" in :
@@ -139,7 +141,8 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 1
           e.black shouldBe 3
-        case other => fail(s"unexpected: $other")
+        case other =>
+          fail(s"unexpected: $other")
     }
 
   // -------------------------------------------------------------------------
@@ -158,7 +161,8 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
         val result = AcyclicShortestPaths.shortestPaths(g, 0)
         result.vertexTraverse(1).map(_.attribute) shouldBe Some(1.0)
         result.vertexTraverse(2).map(_.attribute) shouldBe Some(-2.0)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // Unreachable vertices
@@ -179,7 +183,8 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
         result.map.keySet shouldBe Set(1, 2)
         result.vertexTraverse(3) shouldBe None
         result.vertexTraverse(4) shouldBe None
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // Error case — cyclic graph
@@ -196,4 +201,5 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
         an[IllegalArgumentException] should be thrownBy AcyclicShortestPaths.shortestPaths(g, 0)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")

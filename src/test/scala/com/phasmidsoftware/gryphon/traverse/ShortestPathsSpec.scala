@@ -40,8 +40,10 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             sp.vertexTraverse(5) shouldBe Some(AttributedDirectedEdge(4.0, 4, 5))
             sp.vertexTraverse(6) shouldBe Some(AttributedDirectedEdge(11.0, 2, 6))
             sp.vertexTraverse(7) shouldBe Some(AttributedDirectedEdge(8.0, 0, 7))
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "undiscoveredVertices" in {
@@ -56,8 +58,10 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
             val neighbours = graph.undiscoveredVertices(0)
             neighbours should not be empty
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   // --- New tests ---
@@ -76,8 +80,10 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             val neighbours = graph.undiscoveredVertices(0)
             neighbours.size shouldBe 3
             neighbours.toSet shouldBe Set(1, 4, 7)
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "undiscoveredVertices from vertex 2 returns correct neighbours with weights" in {
@@ -128,8 +134,10 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             }
             // The source has no predecessor
             sp.vertexTraverse(0) shouldBe None
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "Dijkstra SPT edge weights match known direct edges" in {
@@ -156,6 +164,8 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
             // vertex 2 is reached via 5->2 (weight 1.0), not directly
             sp.vertexTraverse(2).map(_.white) shouldBe Some(5)
             sp.vertexTraverse(2).map(_.attribute) shouldBe Some(1.0)
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }

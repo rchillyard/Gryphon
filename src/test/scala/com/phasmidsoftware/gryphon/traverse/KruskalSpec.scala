@@ -45,7 +45,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   // -------------------------------------------------------------------------
   // Result structure
@@ -164,7 +165,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
         val mst = Kruskal.mst(graph)
         mst.size shouldBe 1
         mst.head.attribute shouldBe 1.0
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "find both edges in a three-vertex path (no cycle possible)" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
@@ -176,7 +178,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
         val mst = Kruskal.mst(graph)
         mst.size shouldBe 2
         mst.map(_.attribute) should contain allOf(1.0, 2.0)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "skip the heavy edge in a triangle" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
@@ -191,4 +194,5 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
         mst.map(_.attribute) should contain(1.0)
         mst.map(_.attribute) should contain(2.0)
         mst.map(_.attribute) should not contain 3.0
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")

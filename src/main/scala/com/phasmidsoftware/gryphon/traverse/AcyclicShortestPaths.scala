@@ -37,6 +37,7 @@ object AcyclicShortestPaths:
    * @tparam E the edge-weight type; must have `Monoid` (zero + combine) and `Ordering`.
    * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
    *         vertex (except `start`) to its shortest-path incoming edge.
+   *
    * @throws IllegalArgumentException if the graph contains a cycle.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
@@ -57,11 +58,13 @@ object AcyclicShortestPaths:
       case (state, v) =>
         graph.filteredAdjacencies(_ => true)(v)
                 .flatMap(_.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e })
-                .foldLeft(state) { case ((dist, pred), edge) =>
-                  val newDist = mn.combine(dist(v), edge.attribute)
-                  if dist.get(edge.black).forall(ord.lt(newDist, _)) then
-                    (dist + (edge.black -> newDist)) -> (pred + (edge.black -> edge))
-                  else dist -> pred
+                .foldLeft(state) {
+                  case ((dist, pred), edge) =>
+                    val newDist = mn.combine(dist(v), edge.attribute)
+                    if dist.get(edge.black).forall(ord.lt(newDist, _)) then
+                      (dist + (edge.black -> newDist)) -> (pred + (edge.black -> edge))
+                    else
+                      dist -> pred
                 }
     }
 

@@ -88,6 +88,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
+   *
    * @return a new directed graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): DirectedGraph[V, E] =
@@ -106,6 +107,7 @@ object DirectedGraph {
    *
    * @param vertexMap a map containing the vertices of type `V` as keys and their associated
    *                  adjacency lists or other vertex-specific data.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return an instance of `DirectedGraph[V, E]` initialized with the given vertex map.
@@ -145,6 +147,7 @@ object DirectedGraph {
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return a `Try[DirectedGraph[V, E]]`, where:

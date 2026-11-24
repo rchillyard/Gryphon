@@ -45,7 +45,8 @@ case class UndirectedEdge[V, E](attribute: E, white: V, black: V) extends Edge[V
   override def equals(obj: Any): Boolean = obj match
     case that: UndirectedEdge[?, ?] =>
       attribute == that.attribute && Set(white, black) == Set(that.white, that.black)
-    case _ => false
+    case _ =>
+      false
 
   /**
    * hashCode consistent with symmetric equals — must be order-independent.

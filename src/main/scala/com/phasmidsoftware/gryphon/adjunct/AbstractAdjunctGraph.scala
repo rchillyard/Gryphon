@@ -89,6 +89,7 @@ object AbstractAdjunctGraph:
    *                  it is where `E` has a value meaning "no attribute", which is `Unit` and
    *                  nothing else. Otherwise such a triplet yields a `Failure` naming it, rather
    *                  than the mistyped edge both flavours used to build. See #56.
+   *
    * @tparam V the vertex attribute type.
    * @tparam E the edge attribute type.
    * @tparam G the concrete graph kind being built.
@@ -157,7 +158,7 @@ object AbstractAdjunctGraph:
       s"fromTriplets: the graph holds $actual adjacencies where ${triplets.triplets.size} triplet(s) " +
               s"describe $expected. This is an internal inconsistency in Gryphon, not a problem with " +
               s"the input; please report it with the graph which produced it (#57)."))
-  
+
   /**
    * Where this object's diagnostics go. Until 1.11.1 they went to `System.err` directly, which an
    * application could neither route nor silence — and which, being nobody's job to read, is how

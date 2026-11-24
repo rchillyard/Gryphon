@@ -16,7 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class DfsAllAndBfsUntilTest {
 
-    /** Two disjoint edges: components {0,1} and {2,3}. */
+    /**
+     * Two disjoint edges: components {0,1} and {2,3}.
+     */
     private static Graph<Integer> twoComponents() {
         Graph<Integer> g = Graph.undirected();
         g.addEdge(0, 1);
@@ -24,7 +26,9 @@ public class DfsAllAndBfsUntilTest {
         return g;
     }
 
-    /** The path 0—1—2—3. */
+    /**
+     * The path 0—1—2—3.
+     */
     private static Graph<Integer> path() {
         Graph<Integer> g = Graph.undirected();
         g.addEdge(0, 1);

@@ -8,7 +8,7 @@ import com.phasmidsoftware.visitor.core.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.io.Source
-import scala.util.{Failure, Success, Random, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 class TraversableSpec extends AnyFlatSpec with should.Matchers:
 
@@ -44,7 +44,8 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
         UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) => f(graph)
           case Failure(x) => fail(x)
-      case Failure(x) => fail(x)
+      case Failure(x) =>
+        fail(x)
 
   it should "adjacentVertices" in {
     target.adjacentVertices(1).toSet shouldBe Set(2)
@@ -107,8 +108,10 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
           map.size shouldBe 7
           map(0) shouldBe "0"
           map(6) shouldBe "6"
-        case Success(x) => fail(s"unexpected result: $x")
-        case Failure(exception) => fail(exception)
+        case Success(x) =>
+          fail(s"unexpected result: $x")
+        case Failure(exception) =>
+          fail(exception)
     }
 
   it should "ProtoConnexions.create" in :

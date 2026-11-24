@@ -199,7 +199,8 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
         r.order shouldBe 2
         r.size shouldBe 1
         r.edges.map(e => (e.white, e.black)).toSet shouldBe Set((1, 0))
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "reverse a two-vertex cycle and recover the original" in {
@@ -212,7 +213,8 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
         val original = g.edges.map(e => (e.white, e.black)).toSet
         val doubleReversed = g.reverse.reverse.edges.map(e => (e.white, e.black)).toSet
         doubleReversed shouldBe original
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "reverse a three-vertex chain 0->1->2 to 2->1->0" in {
@@ -224,7 +226,8 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val r = g.reverse
         r.edges.map(e => (e.white, e.black)).toSet shouldBe Set((1, 0), (2, 1))
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "preserve isolated vertices (no edges) through reversal" in {
@@ -243,5 +246,6 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
         given Random = Random(42)
 
         r.adjacentVertices(99).toSet shouldBe Set.empty[Int]
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }

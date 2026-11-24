@@ -42,8 +42,10 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.bfs(visitor)(0)
             result.result.map(_._1).toSet.size shouldBe 8
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "visit all vertices via dfs on dijkstra graph" in {
@@ -59,8 +61,10 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfsAll(visitor)
             result.result.map(_._1).toSet.size shouldBe 8
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   // --- New tests ---
@@ -85,8 +89,10 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val lastHop1 = hop1.map(order.indexOf).max
             val firstHop2 = hop2.map(order.indexOf).min
             lastHop1 should be < firstHop2
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "bfs from 0 discovers vertex 6 last (deepest hop)" in {
@@ -110,8 +116,10 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val hop1and2 = Set(1, 4, 7, 2, 3, 5)
             val lastHop1and2 = hop1and2.map(order.indexOf).max
             order.indexOf(6) should be > lastHop1and2
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "dfs from vertex 0 does not visit unreachable vertices in a partial graph" in {
@@ -132,8 +140,10 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val visited = result.result.map(_._1).toSet
             // All are reachable from 0 in this graph
             visited shouldBe Set(0, 1, 2, 3, 4, 5, 6, 7)
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }
 
   it should "bfs result contains vertex 0 as first element" in {
@@ -149,6 +159,8 @@ class DijkstraSpec extends AnyFlatSpec with should.Matchers:
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.bfs(visitor)(0)
             result.result.headOption.map(_._1) shouldBe Some(0)
-          case Failure(x) => fail("parse failed", x)
-      case Failure(x) => fail("parse failed", x)
+          case Failure(x) =>
+            fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
   }

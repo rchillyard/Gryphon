@@ -34,7 +34,6 @@ trait Edge[V, E] extends Attribute[E] with Connexion[V] {
  *
  * @tparam E the type of the attribute associated with the edge. This attribute is used for
  *           determining the order of the edges.
- *
  * @tparam V the type of the vertices connected by the edge.
  */
 trait OrderableEdge[V, E] extends Edge[V, E] with Ordered[Edge[V, E]] {

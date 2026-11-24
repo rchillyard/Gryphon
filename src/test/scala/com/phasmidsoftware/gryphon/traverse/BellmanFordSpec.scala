@@ -73,7 +73,8 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   // -------------------------------------------------------------------------
   // Result structure
@@ -141,7 +142,8 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 0
           e.black shouldBe 1
-        case other => fail(s"unexpected: $other")
+        case other =>
+          fail(s"unexpected: $other")
     }
 
   it should "give vertex 2 predecessor edge from 1 (not from 0)" in :
@@ -151,7 +153,8 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 1
           e.black shouldBe 2
-        case other => fail(s"unexpected: $other")
+        case other =>
+          fail(s"unexpected: $other")
     }
 
   it should "give vertex 3 predecessor edge from 2" in :
@@ -161,7 +164,8 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 2
           e.black shouldBe 3
-        case other => fail(s"unexpected: $other")
+        case other =>
+          fail(s"unexpected: $other")
     }
 
   // -------------------------------------------------------------------------
@@ -227,4 +231,5 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
         result.map.keySet shouldBe Set(1)
         result.vertexTraverse(2) shouldBe None
         result.vertexTraverse(3) shouldBe None
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")

@@ -95,12 +95,10 @@ class GraphParser[V: Parseable, E: Parseable, Z: Parseable] extends BaseParser[V
    * @return A `Parser` that produces an `Option` containing a tuple `Triplet[V, E]` if all parts are successfully parsed, or `None` if any part fails.
    */
   def triplet: Parser[Triplet[V, E, Z]] =
-    vertex ~ maybeZ ~ vertex ~ maybeEdge ^^ { case x ~ zo ~ y ~ eo => zo match {
-      case Some(z) =>
-        Triplet(x, y, eo, z)
-      case None =>
-        Triplet(x, y, eo, implicitly[Parseable[Z]].none)
-    }
+    vertex ~ maybeZ ~ vertex ~ maybeEdge ^^ {
+      case x ~ zo ~ y ~ eo => zo match
+        case Some(z) => Triplet(x, y, eo, z)
+        case None => Triplet(x, y, eo, implicitly[Parseable[Z]].none)
     }
 }
 

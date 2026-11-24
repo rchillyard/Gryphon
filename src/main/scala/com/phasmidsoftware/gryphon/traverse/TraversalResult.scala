@@ -149,6 +149,7 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
+   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   def +(t: (V, T)): TraversalResult[V, T] =
@@ -188,6 +189,7 @@ case class VertexTraversalResult[V, T](map: Map[V, T]) extends AbstractVertexTra
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
+   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   override def +(t: (V, T)): VertexTraversalResult[V, T] =
@@ -241,7 +243,8 @@ object VertexTraversalResult {
  *
  * @param connexions a map where each key is a vertex of type `V` and its value is a tuple `(V, V)`
  *                   representing the result associated with traversal from this vertex.
- * @tparam V the type representing a vertex in the graph.
+ *
+ * @tparam V         the type representing a vertex in the graph.
  */
 case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends AbstractVertexTraversalResult[V, DirectedEdge[V, E]](connexions) {
   /**
@@ -249,6 +252,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    *
    * @param map a map where each key is a vertex of type `V` and its value is the `DirectedEdge[V, E]`
    *            by which that vertex was reached.
+   *
    * @return a new `Connexions[V, E]` initialized with the provided map.
    */
   // As in VertexTraversalResult: the concrete type, so `+` need not cast.
@@ -280,6 +284,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    *
    * @param t a tuple where the first element is a vertex of type `V`, and the second element is its associated
    *          traversal result of type `T`.
+   *
    * @return a new `VertexTraversalResult` instance of type `VertexTraversalResult[V, E, T]` containing the updated map.
    */
   override def +(t: (V, DirectedEdge[V, E])): Connexions[V, E] =
@@ -302,6 +307,7 @@ object Connexions {
    * @param random the generator determining adjacency order, forwarded to `getConnexions`.
    *               Without it this method could not be seeded at all: a `given Random` at the
    *               call site stopped here, and the traversal inside used a fresh one (#67).
+   *
    * @tparam V the type representing a vertex in the graph.
    * @tparam E the type representing the edge attribute in the traversal.
    * @return a `ProtoConnexions` object that encapsulates the result of the traversal,

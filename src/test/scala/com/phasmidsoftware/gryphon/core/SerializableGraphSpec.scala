@@ -70,7 +70,8 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
         val result: Seq[String] = source.getLines().toSeq
         source.close()
         Success(result)
-      case Failure(e) => Failure(e)
+      case Failure(e) =>
+        Failure(e)
     triedStrings.isSuccess shouldBe true
     triedStrings.get.size shouldBe 17
   }

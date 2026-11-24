@@ -56,7 +56,7 @@ class BagSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Bag randomisation (#67)"
 
-  private val tenValues: Bag[Int] = Bag.create((0 to 9)*)
+  private val tenValues: Bag[Int] = Bag.create((0 to 9) *)
 
   // Up to 1.10.0 iterator shuffled, using a process-global generator nobody could reach.
   it should "iterate in insertion order" in {

@@ -655,7 +655,7 @@ private[java] object JavaFacadeBridge:
           dg
         case _ =>
           materialise(edges, JavaCollections.emptySet[V](), directed = true)
-                .asInstanceOf[DirectedGraph[V, Unit]]
+                  .asInstanceOf[DirectedGraph[V, Unit]]
     val result = com.phasmidsoftware.gryphon.traverse.Kosaraju
             .stronglyConnectedComponents(directedGraph)
     val javaMap = new JavaLinkedHashMap[V, JavaInteger]()

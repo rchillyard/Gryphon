@@ -41,7 +41,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   // -------------------------------------------------------------------------
   // degree
@@ -87,7 +88,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.maxDegree shouldBe 1
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // meanDegree
@@ -113,7 +115,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.meanDegree shouldBe 1.0 +- 0.001
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // numberOfSelfLoops
@@ -134,7 +137,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.numberOfSelfLoops shouldBe 0
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return 1 for a graph with one self-loop" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
@@ -144,7 +148,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.numberOfSelfLoops shouldBe 1
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "count multiple self-loops correctly" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
@@ -155,7 +160,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.numberOfSelfLoops shouldBe 2
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // Issue #57. A self-loop gets one adjacency on one vertex, by the explicit branch in
   // createVerticesFromTriplet — not the two an ordinary undirected triplet gets. fromTriplets
@@ -172,7 +178,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
         graph.adjacencies.size shouldBe 3
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "give a directed self-loop one adjacency" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
@@ -183,7 +190,9 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
         graph.adjacencies.size shouldBe 2
         graph.numberOfSelfLoops shouldBe 1
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
+
   behavior of "inDegree and outDegree"
 
   // 0→1, 0→2, 1→2, 3→0. Built directly, since the parser's triples are undirected here.
@@ -241,7 +250,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
         graph.size shouldBe 1
         graph.degree(0) shouldBe 1
         graph.degree(1) shouldBe 1
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // The attribute is the Unit value, not `None` masquerading as one. Up to 1.11.0 this read
   // back as None typed as E, which threw ClassCastException wherever E was not Unit (#56).
@@ -251,8 +261,9 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Unit] @unchecked) =>
-        graph.edges.next().attribute shouldBe ()
-      case other => fail(s"unexpected: $other")
+        graph.edges.next().attribute shouldBe()
+      case other =>
+        fail(s"unexpected: $other")
 
   // This used to be "mix with attributed edges without being lost", and it passed: a Double
   // graph would accept the attributeless triplet and give it an attribute of the wrong type.
@@ -267,7 +278,8 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
       case Failure(x: GraphException) =>
         x.getMessage should include("1 triplet(s) have no attribute")
         x.getMessage should include("Triplet(1,2,None,Undirected)")
-      case other => fail(s"expected a Failure naming the offending triplet, got: $other")
+      case other =>
+        fail(s"expected a Failure naming the offending triplet, got: $other")
 
   it should "be refused even when every triplet lacks an attribute" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(

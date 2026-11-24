@@ -154,7 +154,6 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * {@code WeightedGraph} façade. The Scala graph is injected into the cache
      * and the edge list is stored so algorithm bridge methods work correctly.
      */
-    @SuppressWarnings("unchecked")
     private static <V, E> WeightedGraph<V, E> fromScalaGraph(
             Object scalaGraph, List<WeightedEdge<V, E>> edges, boolean directed) {
         return new WeightedGraph<V, E>(directed, scalaGraph, edges);

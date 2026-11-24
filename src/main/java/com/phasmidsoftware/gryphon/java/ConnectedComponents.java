@@ -58,7 +58,6 @@ public class ConnectedComponents {
      * @return an unmodifiable {@code Map<V, Integer>} mapping vertex to component id.
      * @throws IllegalStateException if {@code graph} is directed.
      */
-    @SuppressWarnings("unchecked")
     public static <V> Map<V, Integer> componentIds(Graph<V> graph) {
         if (graph.isDirected())
             throw new IllegalStateException(

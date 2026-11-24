@@ -128,7 +128,6 @@ public class Connectivity<V> {
      * @param v1 the first vertex.
      * @param v2 the second vertex.
      */
-    @SuppressWarnings("unchecked")
     public void connect(V v1, V v2) {
         delegate = delegate.connect(v1, v2);
     }
@@ -140,7 +139,6 @@ public class Connectivity<V> {
      *
      * @param key the vertex to add.
      */
-    @SuppressWarnings("unchecked")
     public void put(V key) {
         delegate = delegate.put(key);
     }

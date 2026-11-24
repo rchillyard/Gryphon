@@ -2,8 +2,6 @@ package com.phasmidsoftware.gryphon.traverse
 
 import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph}
-import com.phasmidsoftware.gryphon.core
-import com.phasmidsoftware.gryphon.core.{Edge, Traversable}
 import scala.util.Random
 
 /**
@@ -26,31 +24,13 @@ object ShortestPaths:
   def dijkstra[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[V, E]] =
     DijkstraTraversal[V, E]().run(graph)(start)
 
-  /**
-   * Returns all outgoing edges discoverable from the specified vertex.
-   *
-   * @param traversable the graph traversal source used to obtain adjacencies.
-   * @param v           the vertex whose adjacent edges are returned.
-   * @param random      controls adjacency ordering when the traversal source uses randomized ordering.
-   * @tparam V the vertex type.
-   * @tparam E the edge attribute or weight type.
-   * @return a sequence of edges associated with the adjacencies of the specified vertex.
-   */
-  def undiscoveredEdges[V, E](traversable: core.Traversable[V])(v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
-    traversable.filteredAdjacencies(_ => true)(v)
-            .flatMap(_.maybeEdge[E])
-            .toSeq
-
-  /**
-   * Returns the vertices reachable by outgoing attributed directed edges from the specified vertex.
-   *
-   * @param traversable the graph traversal source used to obtain adjacencies.
-   * @param v           the vertex whose outgoing adjacent vertices are returned.
-   * @param random      controls adjacency ordering when the traversal source uses randomized ordering.
-   * @tparam V the vertex type.
-   * @tparam E the edge attribute or weight type.
-   * @return a sequence containing the target vertices of undiscovered attributed directed edges from the specified vertex.
-   */
-  def undiscoveredVertices[V, E](traversable: core.Traversable[V])(v: V)(using random: Random = Random()): Seq[V] =
-    undiscoveredEdges(traversable)(v)
-            .collect { case e: AttributedDirectedEdge[V, E] @unchecked => e.black }
+  // undiscoveredEdges and undiscoveredVertices were here, duplicating the methods of the same
+  // names on Graph with the receiver moved into a parameter. Nothing called them: not src/main,
+  // not the specs — ShortestPathsSpec exercises Graph's pair — and not the Java façade.
+  //
+  // They were published in 1.10.0 and are in the 1.11.0 jars, so removing them is a binary break
+  // against both: the release carrying this must be 1.12.0, not 1.11.1. The four filters are in
+  // src/main/mima-filters/1.10.0.backwards.excludes, in a section marked as not belonging to
+  // 1.11.0. See #106, which also asks whether Graph's surviving pair should be renamed, since
+  // neither has anything to do with what has been discovered: `filteredAdjacencies(_ => true)`
+  // filters nothing.

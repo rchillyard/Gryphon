@@ -60,7 +60,6 @@ public class StronglyConnectedComponents {
      * vertices with the same id are in the same SCC.
      * @throws IllegalStateException if {@code graph} is undirected.
      */
-    @SuppressWarnings("unchecked")
     public static <V> Map<V, Integer> kosaraju(Graph<V> graph) {
         if (!graph.isDirected())
             throw new IllegalStateException(

@@ -50,7 +50,6 @@ public class TopologicalSort {
      * or {@code Optional.empty()} if the graph contains a cycle.
      * @throws IllegalStateException if {@code graph} is undirected.
      */
-    @SuppressWarnings("unchecked")
     public static <V> Optional<List<V>> sort(Graph<V> graph) {
         if (!graph.isDirected())
             throw new IllegalStateException(

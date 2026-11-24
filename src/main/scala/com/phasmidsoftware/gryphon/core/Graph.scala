@@ -113,7 +113,7 @@ trait Graph[V] extends Traversable[V]:
    * state internally via VisitedSet.
    */
   def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
-    undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[V, E] @unchecked => e.black }
+    undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[V, ?] @unchecked => e.black }
 
   def debug: String = vertexMap.debug
 

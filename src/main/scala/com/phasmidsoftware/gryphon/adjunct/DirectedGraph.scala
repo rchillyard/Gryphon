@@ -27,9 +27,12 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
   def reverse: DirectedGraph[V, E] =
     edges.foldLeft(DirectedGraph[V, E](vertexMap.keysOnly)) { (g, e) =>
       val rev: DirectedEdge[V, E] = e match
-        case AttributedDirectedEdge(attr, from, to) => AttributedDirectedEdge(attr, to, from)
-        case OrderedEdge(from, to) => OrderedEdge(to, from)
-        case other => throw GraphException(s"unexpected edge type in reverse: $other")
+        case AttributedDirectedEdge(attr, from, to) =>
+          AttributedDirectedEdge(attr, to, from)
+        case OrderedEdge(from, to) =>
+          OrderedEdge(to, from)
+        case other =>
+          throw GraphException(s"unexpected edge type in reverse: $other")
       g.addEdge(rev)
     }
 
@@ -153,7 +156,8 @@ object DirectedGraph {
       f = f,
       warn = t => Option.when(!t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is not directed."),
       adjacency = {
-        case (vv1, vv2, Some(e)) => AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
+        case (vv1, vv2, Some(e)) =>
+          AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
         case (vv1, vv2, None) =>
           // Reachable only when E can represent an absent attribute, i.e. E is Unit: fromTriplets
           // refuses the triplet otherwise, before any adjacency is built. So OrderedEdge, which

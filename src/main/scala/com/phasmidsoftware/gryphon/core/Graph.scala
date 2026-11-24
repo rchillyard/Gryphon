@@ -21,7 +21,9 @@ trait Graph[V] extends Traversable[V]:
    * Performs DFS from `v`, accumulating results into `visitor`.
    *
    * @param visitor the visitor accumulating results.
+   * @param order   whether a vertex is recorded before or after its descendants; pre-order by default.
    * @param v       the starting vertex.
+   * @param random  controls adjacency ordering (implicit).
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
@@ -34,6 +36,7 @@ trait Graph[V] extends Traversable[V]:
    * single start vertex.
    *
    * @param visitor the visitor accumulating results.
+   * @param random  controls adjacency ordering (implicit).
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
@@ -47,6 +50,7 @@ trait Graph[V] extends Traversable[V]:
    * @param visitor the visitor accumulating results.
    * @param v       the starting vertex.
    * @param goal    early-termination predicate (default: never stop early).
+   * @param random  controls adjacency ordering (implicit).
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
@@ -173,7 +177,8 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
   /**
    * Returns an iterator over the vertices adjacent to `v`.
    *
-   * @param v the vertex to query.
+   * @param v      the vertex to query.
+   * @param random controls adjacency ordering (implicit).
    * @return an iterator of adjacent vertex attributes.
    */
   def adjacentVertices(v: V)(using random: Random): Iterator[V] = vertexMap.adjacentVertices(v)
@@ -186,12 +191,6 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
  */
 trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
 
-  /**
-   * Adds an edge to the graph.
-   *
-   * @param edge the edge to add.
-   * @return a new `EdgeGraph[V, E]` containing the added edge.
-   */
   /**
    * The kind of edge this graph admits.
    *

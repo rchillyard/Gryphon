@@ -47,7 +47,8 @@ trait Traversable[V] {
   /**
    * Retrieves the adjacent vertices connected to the specified vertex.
    *
-   * @param v the vertex whose adjacent vertices are to be returned.
+   * @param v      the vertex whose adjacent vertices are to be returned.
+   * @param random controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @return an iterator over the vertices adjacent to the specified vertex.
    */
   def adjacentVertices(v: V)(using random: Random = Random()): Iterator[V]
@@ -85,7 +86,9 @@ trait Traversable[V] {
    * visitor carries whatever it needs to turn a node into a journal entry.
    *
    * @param visitor the visitor, accumulating results into its journal.
+   * @param order   whether a vertex is recorded before or after its descendants; pre-order by default.
    * @param v       the starting vertex.
+   * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
@@ -97,6 +100,7 @@ trait Traversable[V] {
    * Vertices not reachable from the first traversal are visited in subsequent passes.
    *
    * @param visitor the visitor, accumulating results into its journal.
+   * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
@@ -110,6 +114,7 @@ trait Traversable[V] {
    * @param v       the starting vertex.
    * @param goal    an optional early-termination predicate; traversal halts after recording
    *                the first node for which `goal` returns true.
+   * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
@@ -123,6 +128,7 @@ trait Traversable[V] {
    *
    * @param fulfill transformation function applied to each vertex.
    * @param start   the starting vertex.
+   * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
@@ -135,6 +141,7 @@ trait Traversable[V] {
    *
    * @param fulfill transformation function applied to each vertex.
    * @param start   the starting vertex.
+   * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */

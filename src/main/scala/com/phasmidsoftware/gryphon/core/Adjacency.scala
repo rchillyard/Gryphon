@@ -69,7 +69,7 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
    * Returns the edge if the connexion is an Edge instance.
    */
   def maybeEdge[E2]: Option[Edge[V, E2]] = connexion match
-    case e: Edge[V, E2] @unchecked =>
+    case e: Edge[_, E2] @unchecked =>
       Some(e)
     case _ =>
       None
@@ -80,7 +80,7 @@ case class AdjacencyEdge[V, E](connexion: Connexion[V], flipped: Boolean = false
  * NOTE: when `AdjacencyEdge` is used, an `Unordered_Set` is appropriate (no duplicate edges).
  * When `AdjacencyVertex` is used, use `Unordered_Bag` (duplicate vertices are possible).
  *
- * //@tparam V the type of the vertex attribute.
+ * @tparam V the type of the vertex attribute.
  */
 type Adjacencies[V] = Unordered[Adjacency[V]]
 

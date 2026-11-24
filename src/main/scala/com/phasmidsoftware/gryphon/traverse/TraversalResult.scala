@@ -247,9 +247,9 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
   /**
    * Creates a new `TraversalResult` instance with the specified map of vertices and their associated traversal results.
    *
-   * @param map a map where each key is a vertex of type `V` and its value is a tuple `(V, V)` representing
-   *            the result associated with traversal from this vertex.
-   * @return a new `TraversalResult` instance of type `TraversalResult[V, (V, V)]` initialized with the provided map.
+   * @param map a map where each key is a vertex of type `V` and its value is the `DirectedEdge[V, E]`
+   *            by which that vertex was reached.
+   * @return a new `Connexions[V, E]` initialized with the provided map.
    */
   // As in VertexTraversalResult: the concrete type, so `+` need not cast.
   override def unit(map: Map[V, DirectedEdge[V, E]]): Connexions[V, E] =

@@ -128,7 +128,13 @@ object WeightedUnion:
    * roots — but `WeightedUnion` is public, so the assertion still earns its place for a
    * direct caller, and `ConnectivitySpec` exercises it that way (see issue #83).
    *
+   * @param map   the component map, each vertex to its parent and subtree size.
+   * @param v1    one root to merge; must be distinct from `v2` and present in `map`.
+   * @param v2    the other root to merge.
    * @param label a class name used in exception messages.
+   * @tparam V the vertex type.
+   * @return `map` with the smaller tree attached under the larger and the root's size updated.
+   * @throws com.phasmidsoftware.gryphon.core.GraphException if `v1` and `v2` are the same.
    */
   def apply[V](map: Map[V, ParentSize[V]], v1: V, v2: V, label: String): Map[V, ParentSize[V]] =
     if v1 == v2 then throw GraphException(s"$label: union: objects are the same: $v1")

@@ -40,7 +40,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
   /**
    * Returns an iterator over the vertices adjacent to the given vertex.
    *
-   * @param v the vertex for which adjacent vertices are to be retrieved.
+   * @param v      the vertex for which adjacent vertices are to be retrieved.
+   * @param random the generator determining adjacency order (implicit).
    * @return an iterator over the adjacent vertex attributes.
    * @throws GraphException if the specified vertex is not found in the graph.
    */
@@ -55,6 +56,7 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param predicate a function that evaluates each `Adjacency[V]`
    *                  and returns true if the adjacency satisfies the specified condition.
    * @param v         the vertex whose adjacencies are to be filtered.
+   * @param random    the generator determining adjacency order (implicit).
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
    */
   def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random): Iterator[Adjacency[V]] =
@@ -80,7 +82,12 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * A local `GraphNeighbours[V]` derived from `adjacentVertices` is provided to the engine.
    *
    * @param visitor the visitor to accumulate results.
+   * @param order   whether a vertex is recorded before or after its descendants; pre-order by default.
    * @param v       the starting vertex.
+   * @param random  the generator determining adjacency order (implicit).
+   * @tparam E the journal's element type.
+   * @tparam J the journal type.
+   * @return the updated visitor after traversal.
    */
   def dfs[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using random: Random): Visitor[V, E, J] =
     new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {
@@ -92,6 +99,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * single start vertex.
    *
    * @param visitor the visitor to accumulate results.
+   * @param random  the generator determining adjacency order (implicit).
+   * @tparam E the journal's element type.
+   * @tparam J the journal type.
+   * @return the updated visitor after traversing all vertices.
    */
   def dfsAll[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(using random: Random): Visitor[V, E, J] =
     new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {
@@ -141,6 +152,10 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @param visitor the visitor to accumulate results.
    * @param v       the starting vertex.
    * @param goal    early-termination predicate (default: never stop early).
+   * @param random  the generator determining adjacency order (implicit).
+   * @tparam E the journal's element type.
+   * @tparam J the journal type.
+   * @return the updated visitor after traversal.
    */
   def bfs[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(v: V, goal: V => Boolean = _ => false)(using random: Random): Visitor[V, E, J] =
     new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {

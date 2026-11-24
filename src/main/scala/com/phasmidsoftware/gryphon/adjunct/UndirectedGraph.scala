@@ -36,10 +36,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
     vertexMap(v).adjacencies.size
 
   /**
-   * Returns the maximum degree of any vertex in the graph.
-   */
-
-  /**
    * Returns the in-degree of `v`, which for an undirected graph is simply its degree:
    * every edge can be traversed in both directions.
    */
@@ -50,6 +46,9 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    */
   def outDegree(v: V): Int = degree(v)
 
+  /**
+   * Returns the maximum degree of any vertex in the graph.
+   */
   def maxDegree: Int =
     vertexMap.keySet.toSeq.map(degree).max
 
@@ -170,30 +169,33 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
 }
 
 /**
- * Factory object for creating instances of `DirectedGraph`.
- * This object provides utility methods to construct a directed graph
+ * Factory object for creating instances of `UndirectedGraph`.
+ * This object provides utility methods to construct an undirected graph
  * from an edge list representation.
  */
 object UndirectedGraph {
 
   /**
-   * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.
+   * Converts a sequence of triplets representing graph edges into a `Try` of `UndirectedGraph[V, E]`.
    *
    * Each triplet in the input sequence consists of two vertices (source and target)
    * and an attribute associated with the edge connecting the vertices.
-   * This method attempts to construct a directed graph from the provided triplets, returning
+   * This method attempts to construct an undirected graph from the provided triplets, returning
    * a `Success` with the graph instance if the operation is successful, or a `Failure`
    * if the construction process encounters an error.
    *
+   * @param f       builds a vertex from its attribute.
    * @param triples a sequence of triplets `Triplet[V, E]` where:
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
-   *
+   * @param absent  decides whether a triplet carrying no attribute is admissible (implicit):
+   *                it is for `E = Unit`, and for nothing else, in which case the result is a
+   *                `Failure` naming the offending triplet. See `AbsentAttribute` and #56.
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
-   * @return a `Try[Graph[V]]`, where:
-   *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
+   * @return a `Try[UndirectedGraph[V, E]]`, where:
+   *         - `Success` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
   def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]])(using absent: AbsentAttribute[E]): Try[UndirectedGraph[V, E]] =

@@ -44,6 +44,9 @@ abstract class AbstractAdjunctGraph[V, E, G <: AbstractAdjunctGraph[V, E, G]](ve
    * Identical in both subclasses: the only difference between them is `EdgeT`, which each
    * fixes to its own edge kind, so that a graph cannot absorb an edge of the other kind.
    *
+   * `VertexMap.+[E]` calls `ensure` for both endpoints, so the destination vertex is present in
+   * the map even when it has no outgoing edges of its own — Issue #16.
+   *
    * @param edge the edge to add.
    * @return a graph of the same kind, including `edge`.
    */
@@ -81,7 +84,15 @@ object AbstractAdjunctGraph:
    * @param bothWays  whether the triplet's adjacency should also be added in the reverse direction.
    * @param build     wraps the finished `VertexMap` as a graph of kind `G`.
    * @param triples   the triplets to build from.
-   * @return `Success(G)`, or `Failure(GraphException)` if the triplets could not be parsed.
+   * @param absent    decides whether a triplet carrying no attribute is admissible (implicit):
+   *                  it is where `E` has a value meaning "no attribute", which is `Unit` and
+   *                  nothing else. Otherwise such a triplet yields a `Failure` naming it, rather
+   *                  than the mistyped edge both flavours used to build. See #56.
+   * @tparam V the vertex attribute type.
+   * @tparam E the edge attribute type.
+   * @tparam G the concrete graph kind being built.
+   * @return `Success(G)`, or `Failure(GraphException)` if the triplets could not be parsed, or if
+   *         one carries no attribute where `E` cannot represent that.
    */
   def fromTriplets[V, E, G <: AbstractGraph[V]](
                                                        f: V => Vertex[V],
@@ -118,11 +129,17 @@ object AbstractAdjunctGraph:
         Failure(GraphException(s"parse failed: $z"))
 
   /**
-   * Reports a graph whose adjacency count does not match its triplets: one adjacency per
-   * one-way triplet, two for each of the others.
+   * Checks that the graph contains the expected number of adjacencies for the supplied triplets.
    *
-   * TODO see issue #57 — like the warning above, this notices a real inconsistency and then
-   * carries on regardless.
+   * A one-way triplet is expected to contribute one adjacency, while a non-one-way triplet is
+   * expected to contribute two adjacencies. If the graph's actual adjacency count differs from
+   * this expected count, a warning is written to standard error.
+   *
+   * @param graph    the graph whose adjacencies are counted.
+   * @param triplets the triplets used to determine the expected adjacency count.
+   * @tparam V the vertex attribute type.
+   * @tparam E the edge attribute type.
+   * @return `Unit`.
    */
   private def checkAdjacencies[V, E](graph: AbstractGraph[V], triplets: Triplets[V, E, EdgeType]): Unit =
     val expected = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum

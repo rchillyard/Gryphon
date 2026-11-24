@@ -84,7 +84,9 @@ object GraphBuilder:
    * Returns a `GraphBuilder` that produces `UndirectedGraph[V, E]` instances.
    *
    * @tparam V the vertex attribute type; must have a `Parseable` instance.
-   * @tparam E the edge attribute type; must have a `Parseable` instance.
+   * @tparam E the edge attribute type; must have a `Parseable` instance and an `AbsentAttribute`
+   *           one, the latter deciding whether a triplet carrying no attribute is admissible —
+   *           it is for `Unit`, and for nothing else. See `AbsentAttribute` and #56.
    */
   // AbsentAttribute must be a context bound here, not left to resolve inside this method: the
   // function value below captures whatever instance is in scope where it is BUILT, and E is
@@ -101,7 +103,9 @@ object GraphBuilder:
    * Returns a `GraphBuilder` that produces `DirectedGraph[V, E]` instances.
    *
    * @tparam V the vertex attribute type; must have a `Parseable` instance.
-   * @tparam E the edge attribute type; must have a `Parseable` instance.
+   * @tparam E the edge attribute type; must have a `Parseable` instance and an `AbsentAttribute`
+   *           one, the latter deciding whether a triplet carrying no attribute is admissible —
+   *           it is for `Unit`, and for nothing else. See `AbsentAttribute` and #56.
    */
   def directed[V: Parseable, E: {Parseable, AbsentAttribute}]: GraphBuilder[V, E, DirectedGraph[V, E]] =
     new GraphBuilder(

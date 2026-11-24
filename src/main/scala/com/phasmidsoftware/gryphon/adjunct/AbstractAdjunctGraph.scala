@@ -72,13 +72,6 @@ abstract class AbstractAdjunctGraph[V, E, G <: AbstractAdjunctGraph[V, E, G]](ve
 object AbstractAdjunctGraph:
 
   /**
-   * Where this object's diagnostics go. Until 1.11.1 they went to `System.err` directly, which an
-   * application could neither route nor silence — and which, being nobody's job to read, is how
-   * the adjacency-count mismatch of #57 went unnoticed for so long.
-   */
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  /**
    * The skeleton shared by `DirectedGraph.triplesToTryGraph` and
    * `UndirectedGraph.triplesToTryGraph`, which differed only in three places. Both previously
    * carried their own copy, one of them labelled `NOTE duplicated code in UndirectedGraph`.
@@ -164,3 +157,10 @@ object AbstractAdjunctGraph:
       s"fromTriplets: the graph holds $actual adjacencies where ${triplets.triplets.size} triplet(s) " +
               s"describe $expected. This is an internal inconsistency in Gryphon, not a problem with " +
               s"the input; please report it with the graph which produced it (#57)."))
+  
+  /**
+   * Where this object's diagnostics go. Until 1.11.1 they went to `System.err` directly, which an
+   * application could neither route nor silence — and which, being nobody's job to read, is how
+   * the adjacency-count mismatch of #57 went unnoticed for so long.
+   */
+  private val logger: Logger = LoggerFactory.getLogger(getClass)

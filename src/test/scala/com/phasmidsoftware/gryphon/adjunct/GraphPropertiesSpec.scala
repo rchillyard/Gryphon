@@ -201,27 +201,50 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
   behavior of "an undirected edge with no attribute"
 
   // The builder used to make these AttributedDirectedEdges, which UndirectedGraph.edges then
-  // discarded: the adjacency was there, so degree counted it, but edges and M did not.
+  // discarded: the adjacency was there, so degree counted it, but edges and M did not. That is
+  // fixed, and this is the graph where such an edge belongs — one whose edge type is Unit.
   it should "appear in edges and M, consistently with degree" in :
-    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
       Triplet(0, 1, None, Undirected)
     )
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(graph: UndirectedGraph[Int, Unit] @unchecked) =>
         graph.edges.size shouldBe 1
         graph.size shouldBe 1
         graph.degree(0) shouldBe 1
         graph.degree(1) shouldBe 1
       case other => fail(s"unexpected: $other")
 
-  it should "mix with attributed edges without being lost" in :
+  // The attribute is the Unit value, not `None` masquerading as one. Up to 1.11.0 this read
+  // back as None typed as E, which threw ClassCastException wherever E was not Unit (#56).
+  it should "carry the Unit value as its attribute" in :
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Undirected)
+    )
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(graph: UndirectedGraph[Int, Unit] @unchecked) =>
+        graph.edges.next().attribute shouldBe ()
+      case other => fail(s"unexpected: $other")
+
+  // This used to be "mix with attributed edges without being lost", and it passed: a Double
+  // graph would accept the attributeless triplet and give it an attribute of the wrong type.
+  // Mixing is now refused at construction, which is the point of #56 — the alternative was an
+  // edge whose `attribute` threw when anybody read it, far from the line that caused it.
+  it should "be refused in a graph whose edge type is not Unit" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
       Triplet(0, 1, Some(1.5), Undirected),
       Triplet(1, 2, None, Undirected)
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-      case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
-        graph.edges.size shouldBe 2
-        graph.size shouldBe 2
-        graph.degree(1) shouldBe 2
-      case other => fail(s"unexpected: $other")
+      case Failure(x: GraphException) =>
+        x.getMessage should include("1 triplet(s) have no attribute")
+        x.getMessage should include("Triplet(1,2,None,Undirected)")
+      case other => fail(s"expected a Failure naming the offending triplet, got: $other")
+
+  it should "be refused even when every triplet lacks an attribute" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, None, Undirected)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) should matchPattern {
+      case Failure(_: GraphException) =>
+    }

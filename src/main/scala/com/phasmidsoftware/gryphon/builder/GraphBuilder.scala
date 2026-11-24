@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.builder
 
 import com.phasmidsoftware.gryphon.adjunct.{DirectedGraph, UndirectedGraph}
-import com.phasmidsoftware.gryphon.core.{EdgeType, Graph, Triplet, Vertex}
+import com.phasmidsoftware.gryphon.core.{AbsentAttribute, EdgeType, Graph, Triplet, Vertex}
 import com.phasmidsoftware.gryphon.parse.{GraphParser, Parseable}
 import com.phasmidsoftware.gryphon.util.TryUsing
 import scala.io.Source
@@ -86,7 +86,13 @@ object GraphBuilder:
    * @tparam V the vertex attribute type; must have a `Parseable` instance.
    * @tparam E the edge attribute type; must have a `Parseable` instance.
    */
-  def undirected[V: Parseable, E: Parseable]: GraphBuilder[V, E, UndirectedGraph[V, E]] =
+  // AbsentAttribute must be a context bound here, not left to resolve inside this method: the
+  // function value below captures whatever instance is in scope where it is BUILT, and E is
+  // abstract here, so without the bound every builder would silently take the fallback and
+  // refuse attributeless triplets — including GraphBuilder.undirected[V, Unit], where they are
+  // perfectly legitimate. With the bound, the instance comes from the call site, where E is
+  // concrete. See AbsentAttribute and #56.
+  def undirected[V: Parseable, E: {Parseable, AbsentAttribute}]: GraphBuilder[V, E, UndirectedGraph[V, E]] =
     new GraphBuilder(
       UndirectedGraph.triplesToTryGraph[V, E](Vertex.createWithSet)
     )
@@ -97,7 +103,7 @@ object GraphBuilder:
    * @tparam V the vertex attribute type; must have a `Parseable` instance.
    * @tparam E the edge attribute type; must have a `Parseable` instance.
    */
-  def directed[V: Parseable, E: Parseable]: GraphBuilder[V, E, DirectedGraph[V, E]] =
+  def directed[V: Parseable, E: {Parseable, AbsentAttribute}]: GraphBuilder[V, E, DirectedGraph[V, E]] =
     new GraphBuilder(
       DirectedGraph.triplesToTryGraph[V, E](Vertex.createWithSet)
     )

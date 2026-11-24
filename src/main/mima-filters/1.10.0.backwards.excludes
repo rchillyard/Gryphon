@@ -145,3 +145,41 @@ ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryph
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.BFSTraversal.this()Unit")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.BFSTraversal.copy()com.phasmidsoftware.gryphon.traverse.BFSTraversal")
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.BFSTraversal.unapply(com.phasmidsoftware.gryphon.traverse.BFSTraversal)Boolean")
+
+# ----------------------------------------------------------------------------------------
+# #56: an attributeless connection is no longer admitted into an attributed graph.
+#
+# A VertexPair — a connection carrying nothing — is a perfectly good thing, and is all a graph
+# needs unless its edges have an attribute such as a weight. The defect was what happened when
+# one was admitted into a graph whose edges are supposed to carry an E: both flavours accepted
+# it and then lied about the type. DirectedGraph built a VertexPair and later cast
+# OrderedEdge(...), a DirectedEdge[V, Unit], to DirectedEdge[V, E]; UndirectedGraph built
+# UndirectedEdge(None, ...), putting None in a field typed E. Measured, not inferred: reading
+# `.attribute` on either, in a Double-weighted graph, throws ClassCastException at the use site.
+#
+# Note the issue says the undirected side was fixed in 1.8.0. What 1.8.0 fixed was a different
+# symptom — the adjacency counting in `degree` but not in `edges` or `M`. Both sides were still
+# unsound, the undirected one laundering its cast through an @unchecked pattern instead.
+#
+# The new AbsentAttribute type class answers the question the construction code could not: is E
+# a type for which "no attribute" is a legitimate value? For Unit it is, and the value is ().
+# For anything else it is not, and fromTriplets now returns a Failure naming the offending
+# triplet rather than building a graph that detonates later. triplesToTryGraph and
+# GraphBuilder's factories therefore require the evidence; GraphBuilder needs it as a context
+# bound rather than resolving it internally, because the function value it builds would
+# otherwise capture the fallback instance with E still abstract.
+#
+# This withdraws a capability: a graph can no longer MIX attributed and attributeless edges.
+# GraphPropertiesSpec had a test for that, added with the 1.8.0 fix, which passed only because
+# the attributeless edge was given an attribute of the wrong type. It is now a test that the
+# construction is refused. Robin took that decision deliberately (2026-11-23); the alternative
+# was to make attributes Option[E] throughout, which is a far larger change.
+# => DirectedGraph.triplesToTryGraph, UndirectedGraph.triplesToTryGraph,
+#    AbstractAdjunctGraph.fromTriplets, GraphBuilder.undirected and GraphBuilder.directed all
+#    gain a context parameter, so their erased signatures change.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.AbstractAdjunctGraph.fromTriplets(scala.Function1,scala.Function1,scala.Function3,scala.Function1,scala.Function1,scala.collection.immutable.Seq)scala.util.Try")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph(scala.Function1,scala.collection.immutable.Seq)scala.util.Try")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph(scala.Function1,scala.collection.immutable.Seq)scala.util.Try")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.builder.GraphBuilder.undirected(com.phasmidsoftware.gryphon.parse.Parseable,com.phasmidsoftware.gryphon.parse.Parseable)com.phasmidsoftware.gryphon.builder.GraphBuilder")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.builder.GraphBuilder.directed(com.phasmidsoftware.gryphon.parse.Parseable,com.phasmidsoftware.gryphon.parse.Parseable)com.phasmidsoftware.gryphon.builder.GraphBuilder")

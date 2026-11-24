@@ -23,27 +23,31 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
   // Shared fixtures
   // -------------------------------------------------------------------------
 
-  private def withDagGraph[A](f: DirectedGraph[Int, Double] => A): A =
-    val p = new GraphParser[Int, Double, EdgeType]
+  // dag.graph and directed.graph carry no attribute column — "0 > 5", not "0 > 5  9.0" — so
+  // their edge type is Unit. These fixtures said Double until 1.11.0, which built graphs whose
+  // edges reported an attribute of the wrong type; reading one threw ClassCastException, which
+  // no test did. See AbsentAttribute and #56. prim.graph below IS weighted and stays Double.
+  private def withDagGraph[A](f: DirectedGraph[Int, Unit] => A): A =
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     } match
       case Success(triplets) =>
-        directedTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
+        directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+          case Success(g: DirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
       case Failure(x) => fail("parse failed", x)
 
-  private def withDirectedGraph[A](f: DirectedGraph[Int, Double] => A): A =
-    val p = new GraphParser[Int, Double, EdgeType]
+  private def withDirectedGraph[A](f: DirectedGraph[Int, Unit] => A): A =
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("directed.graph"))
     TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     } match
       case Success(triplets) =>
-        directedTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
-          case Success(g: DirectedGraph[Int, Double] @unchecked) => f(g)
+        directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+          case Success(g: DirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
       case Failure(x) => fail("parse failed", x)
 

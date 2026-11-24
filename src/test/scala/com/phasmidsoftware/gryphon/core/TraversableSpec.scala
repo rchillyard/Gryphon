@@ -118,7 +118,11 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
         case Connexions(map) =>
           map.size shouldBe 6
           val values: Seq[DirectedEdge[Int, Unit]] = map.values.toSeq
-          values.contains(AttributedDirectedEdge(None, 0, 2)) shouldBe true
-          values.contains(AttributedDirectedEdge(None, 1, 0)) shouldBe false
-          values.contains(AttributedDirectedEdge(None, 0, 5)) shouldBe true
+          // The attribute is the Unit value. These expectations said `None` until 1.11.0, in a
+          // Seq declared as DirectedEdge[Int, Unit] — the test was comparing against a value of
+          // the wrong type and passing, because equality is on Any. That is the same confusion
+          // #56 is about, written into an assertion.
+          values.contains(AttributedDirectedEdge((), 0, 2)) shouldBe true
+          values.contains(AttributedDirectedEdge((), 1, 0)) shouldBe false
+          values.contains(AttributedDirectedEdge((), 0, 5)) shouldBe true
     }

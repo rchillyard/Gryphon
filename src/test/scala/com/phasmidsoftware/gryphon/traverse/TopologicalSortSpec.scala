@@ -21,20 +21,20 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   // --- Existing tests (kept as-is) ---
 
   it should "sort" in {
-    val p: GraphParser[Int, Double, EdgeType] = new GraphParser[Int, Double, EdgeType]
+    val p: GraphParser[Int, Unit, EdgeType] = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
-    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
-      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    val zsy: Try[Seq[Triplet[Int, Unit, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             graph.vertexMap.map.size shouldBe 7
             graph.edges.size shouldBe 11
             graph match {
-              case g: EdgeTraversable[Int, Double] @unchecked =>
-                val traversal = TraversalResult.edgeTraversal[Int, Double, String](edge => s"${edge.white} -> ${edge.black}")(g)
+              case g: EdgeTraversable[Int, Unit] @unchecked =>
+                val traversal = TraversalResult.edgeTraversal[Int, Unit, String](edge => s"${edge.white} -> ${edge.black}")(g)
                 traversal.keySet.size shouldBe 11
                 traversal.edgeTraverse(3) shouldBe "3 -> 6"
                 traversal.edgeTraverse(10) shouldBe "0 -> 5"
@@ -57,14 +57,14 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "topological sort successfully" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
-    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
-      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    val zsy: Try[Seq[Triplet[Int, Unit, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
               case Some(TopologicalSort(map)) =>
@@ -84,14 +84,14 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "topological sort failing" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("directed.graph"))
-    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
-      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    val zsy: Try[Seq[Triplet[Int, Unit, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
               case Some(TopologicalSort(map)) =>
@@ -112,14 +112,14 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   it should "topological sort result satisfies edge ordering constraints" in {
     // For every edge u -> v in the DAG, u must appear before v in the sort order.
     // dag.graph edges: 0->5, 0->2, 0->1, 3->6, 3->5, 3->4, 5->2, 6->4, 6->0, 3->2, 1->4
-    val p = new GraphParser[Int, Double, EdgeType]
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
-    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
-      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    val zsy: Try[Seq[Triplet[Int, Unit, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             val maybeOrder = TopologicalSort.sort(graph)
             maybeOrder shouldBe defined
@@ -141,14 +141,14 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   it should "traversal rank ordering: earlier in topological order means lower rank" in {
     // TopologicalSort.traversal returns a map of vertex -> rank.
     // For every edge u->v in the DAG, rank(u) < rank(v).
-    val p = new GraphParser[Int, Double, EdgeType]
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
-    val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
-      (source: Source) => p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+    val zsy: Try[Seq[Triplet[Int, Unit, EdgeType]]] = TryUsing.tryIt(triedSource) {
+      (source: Source) => p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }
     zsy match {
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
           case Success(graph: DirectedGraph[_, _]) =>
             TopologicalSort.traversal(graph) match {
               case Some(TopologicalSort(map)) =>
@@ -168,9 +168,9 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
 
   it should "topological sort on a two-vertex graph with one edge" in {
     // Simple: 10 -> 20
-    val triplets: Seq[Triplet[Int, Double, EdgeType]] =
-      Seq(Triplet(10, 20, Some(1.0), Directed))
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] =
+      Seq(Triplet(10, 20, None, Directed))
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         val maybeOrder = TopologicalSort.sort(graph)
         maybeOrder shouldBe defined
@@ -182,13 +182,13 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
 
   it should "topological sort on a linear chain respects full ordering" in {
     // 0 -> 1 -> 2 -> 3 -> 4
-    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
-      Triplet(0, 1, Some(1.0), Directed),
-      Triplet(1, 2, Some(1.0), Directed),
-      Triplet(2, 3, Some(1.0), Directed),
-      Triplet(3, 4, Some(1.0), Directed)
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 2, None, Directed),
+      Triplet(2, 3, None, Directed),
+      Triplet(3, 4, None, Directed)
     )
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         val maybeOrder = TopologicalSort.sort(graph)
         maybeOrder shouldBe defined
@@ -198,11 +198,11 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "detect cycle in two-vertex cyclic graph" in {
-    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
-      Triplet(0, 1, Some(1.0), Directed),
-      Triplet(1, 0, Some(1.0), Directed)
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 0, None, Directed)
     )
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         TopologicalSort.traversal(graph) shouldBe None
       case Failure(x) => fail("graph construction failed", x)
@@ -215,11 +215,11 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   // satisfies trivially, so this returned Some(List(0, 1)).
 
   it should "detect a self-loop as a cycle" in {
-    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
-      Triplet(0, 1, Some(1.0), Directed),
-      Triplet(1, 1, Some(1.0), Directed)
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Directed),
+      Triplet(1, 1, None, Directed)
     )
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         TopologicalSort.sort(graph) shouldBe None
         TopologicalSort.traversal(graph) shouldBe None
@@ -228,10 +228,10 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "detect a lone self-loop as a cycle" in {
-    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
-      Triplet(0, 0, Some(1.0), Directed)
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 0, None, Directed)
     )
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match {
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         TopologicalSort.sort(graph) shouldBe None
       case Failure(x) => fail("graph construction failed", x)

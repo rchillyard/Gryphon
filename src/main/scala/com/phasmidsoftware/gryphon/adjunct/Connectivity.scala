@@ -87,6 +87,7 @@ object ConnectivityLazy:
    *
    * @param entries a sequence of pairs where each pair consists of a value and a `ParentSize`
    *                object that defines the parent reference and the size of the component tree.
+   *
    * @return a new `ConnectivityLazy` instance initialized with the provided entries.
    */
   def apply[V](entries: Seq[(V, ParentSize[V])]): ConnectivityLazy[V] =
@@ -128,7 +129,13 @@ object WeightedUnion:
    * roots — but `WeightedUnion` is public, so the assertion still earns its place for a
    * direct caller, and `ConnectivitySpec` exercises it that way (see issue #83).
    *
+   * @param map   the component map, each vertex to its parent and subtree size.
+   * @param v1    one root to merge; must be distinct from `v2` and present in `map`.
+   * @param v2    the other root to merge.
    * @param label a class name used in exception messages.
+   * @tparam V the vertex type.
+   * @return `map` with the smaller tree attached under the larger and the root's size updated.
+   * @throws com.phasmidsoftware.gryphon.core.GraphException if `v1` and `v2` are the same.
    */
   def apply[V](map: Map[V, ParentSize[V]], v1: V, v2: V, label: String): Map[V, ParentSize[V]] =
     if v1 == v2 then throw GraphException(s"$label: union: objects are the same: $v1")
@@ -143,7 +150,8 @@ object WeightedUnion:
           join(v1, v2, s1 + s2)
         case (Some(ParentSize(_, s1)), Some(ParentSize(_, s2))) =>
           join(v2, v1, s1 + s2)
-        case _ => throw GraphException(s"$label: union: logic error for $v1, $v2")
+        case _ =>
+          throw GraphException(s"$label: union: logic error for $v1, $v2")
 
 /**
  * Concrete disjoint-set implementation using "Weighted Quick Union with Path Compression."
@@ -194,8 +202,10 @@ case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
     @scala.annotation.tailrec
     def collectPath(current: V, acc: List[V]): List[V] =
       parent(current) match
-        case None => current :: acc  // current is the root
-        case Some(p) => collectPath(p, current :: acc)
+        case None =>
+          current :: acc  // current is the root
+        case Some(p) =>
+          collectPath(p, current :: acc)
 
     // Path is built with root at head: List(root, ..., key)
     val path = collectPath(key, Nil)
@@ -221,7 +231,6 @@ object ConnectivityOptimized:
    * @param entries a sequence of key-value pairs where each key is associated with
    *                a `ParentSize` representing the parent reference and size
    *                of the component tree for that key.
-   *
    * @tparam V the type of elements managed by the disjoint set.
    * @return a new `ConnectivityOptimized` instance containing the provided entries.
    */
@@ -322,7 +331,8 @@ object ConnectivityASP:
  * @param size   the number of objects in this component tree (meaningful only at the root).
  *               With path compression active, this becomes an upper bound on depth
  *               (rank) rather than the precise tree size.
- * @tparam V the underlying object type.
+ *
+ * @tparam V     the underlying object type.
  */
 case class ParentSize[V](parent: Option[V], size: Int):
 
@@ -331,7 +341,6 @@ case class ParentSize[V](parent: Option[V], size: Int):
    *
    * @param vo The new parent reference to be set. Use `None` to indicate no parent
    *           (root node) or `Some(v)` to set a specific parent `v`.
-   *
    * @return A new `ParentSize[V]` instance with the updated parent reference.
    */
   def reparent(vo: Option[V]): ParentSize[V] = copy(parent = vo)
@@ -342,7 +351,6 @@ case class ParentSize[V](parent: Option[V], size: Int):
    * @param s The new size of the component tree. This value represents either the
    *          number of objects in the tree (if at the root) or an upper bound on
    *          the tree's depth (rank) when path compression is active.
-   *
    * @return A new `ParentSize[V]` instance with the updated size.
    */
   def resize(s: Int): ParentSize[V] = copy(size = s)

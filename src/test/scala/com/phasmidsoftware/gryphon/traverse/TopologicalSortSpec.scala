@@ -132,9 +132,11 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
                 pos(u) should be < pos(v)
               }
             }
-          case Failure(x) => fail("parse failed: ", x)
+          case Failure(x) =>
+            fail("parse failed: ", x)
         }
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
     }
   }
 
@@ -158,11 +160,14 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
                     map(u) should be < map(v)
                   }
                 }
-              case None => fail("TopologicalSort.traversal failed")
+              case None =>
+                fail("TopologicalSort.traversal failed")
             }
-          case Failure(x) => fail("parse failed: ", x)
+          case Failure(x) =>
+            fail("parse failed: ", x)
         }
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
     }
   }
 
@@ -176,7 +181,8 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
         maybeOrder shouldBe defined
         val order = maybeOrder.get
         order.indexOf(10) should be < order.indexOf(20)
-      case Failure(x) => fail("graph construction failed", x)
+      case Failure(x) =>
+        fail("graph construction failed", x)
     }
   }
 
@@ -193,7 +199,8 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
         val maybeOrder = TopologicalSort.sort(graph)
         maybeOrder shouldBe defined
         maybeOrder.get shouldBe List(0, 1, 2, 3, 4)
-      case Failure(x) => fail("graph construction failed", x)
+      case Failure(x) =>
+        fail("graph construction failed", x)
     }
   }
 
@@ -205,7 +212,8 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         TopologicalSort.traversal(graph) shouldBe None
-      case Failure(x) => fail("graph construction failed", x)
+      case Failure(x) =>
+        fail("graph construction failed", x)
     }
   }
 
@@ -223,7 +231,8 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
       case Success(graph: DirectedGraph[_, _]) =>
         TopologicalSort.sort(graph) shouldBe None
         TopologicalSort.traversal(graph) shouldBe None
-      case Failure(x) => fail("graph construction failed", x)
+      case Failure(x) =>
+        fail("graph construction failed", x)
     }
   }
 
@@ -234,7 +243,8 @@ class TopologicalSortSpec extends AnyFlatSpec with should.Matchers {
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match {
       case Success(graph: DirectedGraph[_, _]) =>
         TopologicalSort.sort(graph) shouldBe None
-      case Failure(x) => fail("graph construction failed", x)
+      case Failure(x) =>
+        fail("graph construction failed", x)
     }
   }
 }

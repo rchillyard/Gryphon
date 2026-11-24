@@ -651,9 +651,11 @@ private[java] object JavaFacadeBridge:
 
     val directedGraph: DirectedGraph[V, Unit] =
       scalaGraph match
-        case dg: DirectedGraph[V, Unit] @unchecked => dg
-        case _ => materialise(edges, JavaCollections.emptySet[V](), directed = true)
-                .asInstanceOf[DirectedGraph[V, Unit]]
+        case dg: DirectedGraph[V, Unit] @unchecked =>
+          dg
+        case _ =>
+          materialise(edges, JavaCollections.emptySet[V](), directed = true)
+                  .asInstanceOf[DirectedGraph[V, Unit]]
     val result = com.phasmidsoftware.gryphon.traverse.Kosaraju
             .stronglyConnectedComponents(directedGraph)
     val javaMap = new JavaLinkedHashMap[V, JavaInteger]()

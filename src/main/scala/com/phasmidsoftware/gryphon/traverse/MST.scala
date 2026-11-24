@@ -17,9 +17,9 @@ object MST:
    * Each entry `v → edge` in the result records the cheapest edge connecting
    * `v` to the growing MST. The start vertex is absent (it has no predecessor).
    *
-   * @param traversable the weighted undirected graph.
-   * @param start       the source vertex.
-   * @param random      controls adjacency ordering.
+   * @param graph  the weighted undirected graph.
+   * @param start  the source vertex.
+   * @param random controls adjacency ordering (implicit).
    * @tparam V the vertex type.
    * @tparam E the edge-weight type; must be Monoid and Ordering.
    * @return a `TraversalResult[V, Edge[V, E]]` mapping each MST vertex to its

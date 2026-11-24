@@ -263,7 +263,8 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
                       bestCost(w) = newCost
                       pred(w) = e
                       pq.decreaseKey((oldCost, w), (newCost, w))
-                    case _ => pq
+                    case _ =>
+                      pq
                 }
 
     given IndexedPrioQueue[(E, V)] = IndexedPrioQueue.empty[(E, V)]

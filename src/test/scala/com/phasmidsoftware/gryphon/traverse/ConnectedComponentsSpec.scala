@@ -32,7 +32,8 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
         UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) => f(graph)
           case Failure(x) => fail(x)
-      case Failure(x) => fail(x)
+      case Failure(x) =>
+        fail(x)
 
   behavior of "ConnectedComponents"
 

@@ -24,7 +24,8 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) => f(graph)
           case Failure(x) => fail(x)
-      case Failure(x) => fail(x)
+      case Failure(x) =>
+        fail(x)
 
   behavior of "the collapsed unweighted traversals"
 
@@ -33,6 +34,7 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
   // the property the collapse has to preserve. The seed makes the comparison meaningful on an
   // undirected graph, where adjacency order decides what a traversal reaches first.
   it should "give the same result through Traversable as through DFSTraversal" in :
+
     given Random = Random(2)
 
     withDfsuGraph { graph =>
@@ -42,6 +44,7 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
     }
 
   it should "give the same result through Traversable as through BFSTraversal" in :
+
     given Random = Random(2)
 
     withDfsuGraph { graph =>
@@ -53,6 +56,7 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
   // The no-argument factories are the identity case, which is what DFSTraversal[V]() meant
   // before fulfill existed.
   it should "treat the no-argument factory as the identity traversal" in :
+
     given Random = Random(2)
 
     withDfsuGraph { graph =>
@@ -71,8 +75,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         map(1) shouldBe 10
         map(2) shouldBe 20
         map(3) shouldBe 30
-      case Success(x) => fail(s"unexpected result: $x")
-      case Failure(exception) => fail(exception)
+      case Success(x) =>
+        fail(s"unexpected result: $x")
+      case Failure(exception) =>
+        fail(exception)
   }
 
   it should "vertexMappedTraversalDfs on dfsu.graph" in :
@@ -81,8 +87,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         case Success(VertexTraversalResult(map)) =>
           map.size shouldBe 7
           map(0) shouldBe "0"
-        case Success(x) => fail(s"unexpected result: $x")
-        case Failure(exception) => fail(exception)
+        case Success(x) =>
+          fail(s"unexpected result: $x")
+        case Failure(exception) =>
+          fail(exception)
     }
 
   it should "vertexMappedTraversalBfs on small undirected graph" in {
@@ -96,8 +104,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         map(1) shouldBe 10
         map(2) shouldBe 20
         map(3) shouldBe 30
-      case Success(x) => fail(s"unexpected result: $x")
-      case Failure(exception) => fail(exception)
+      case Success(x) =>
+        fail(s"unexpected result: $x")
+      case Failure(exception) =>
+        fail(exception)
   }
 
   it should "vertexMappedTraversalBfs visits hop-1 before hop-2 on branching graph" in {
@@ -113,8 +123,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
       case Success(VertexTraversalResult(map)) =>
         map.size shouldBe 5
         map.keySet shouldBe Set(1, 2, 3, 4, 5)
-      case Success(x) => fail(s"unexpected result: $x")
-      case Failure(exception) => fail(exception)
+      case Success(x) =>
+        fail(s"unexpected result: $x")
+      case Failure(exception) =>
+        fail(exception)
   }
 
   it should "vertexMappedTraversalDfs on branching graph visits all vertices" in {
@@ -130,8 +142,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
       case Success(VertexTraversalResult(map)) =>
         map.size shouldBe 5
         map.keySet shouldBe Set(1, 2, 3, 4, 5)
-      case Success(x) => fail(s"unexpected result: $x")
-      case Failure(exception) => fail(exception)
+      case Success(x) =>
+        fail(s"unexpected result: $x")
+      case Failure(exception) =>
+        fail(exception)
   }
 
   it should "vertexMappedTraversalDfs from vertex 0 on dfsu.graph returns only component A" in :
@@ -141,8 +155,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
           map.size shouldBe 7
           map.keySet shouldBe Set(0, 1, 2, 3, 4, 5, 6)
           map.keySet should contain noneOf(7, 8, 9, 10, 11, 12)
-        case Success(x) => fail(s"unexpected result: $x")
-        case Failure(exception) => fail(exception)
+        case Success(x) =>
+          fail(s"unexpected result: $x")
+        case Failure(exception) =>
+          fail(exception)
     }
 
   it should "vertexMappedTraversalBfs from vertex 0 on dfsu.graph returns only component A" in :
@@ -151,8 +167,10 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         case Success(VertexTraversalResult(map)) =>
           map.size shouldBe 7
           map.keySet shouldBe Set(0, 1, 2, 3, 4, 5, 6)
-        case Success(x) => fail(s"unexpected result: $x")
-        case Failure(exception) => fail(exception)
+        case Success(x) =>
+          fail(s"unexpected result: $x")
+        case Failure(exception) =>
+          fail(exception)
     }
 
   it should "vertexMappedTraversalDfs applies function correctly to all visited vertices" in {
@@ -167,6 +185,8 @@ class TraversalResultSpec extends AnyFlatSpec with Matchers:
         map(10) shouldBe 1
         map(20) shouldBe 2
         map(30) shouldBe 3
-      case Success(x) => fail(s"unexpected result: $x")
-      case Failure(exception) => fail(exception)
+      case Success(x) =>
+        fail(s"unexpected result: $x")
+      case Failure(exception) =>
+        fail(exception)
   }

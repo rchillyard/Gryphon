@@ -50,8 +50,7 @@ class GraphBuilderSpec extends AnyFlatSpec with should.Matchers:
   it should "produce a graph whose MST (Kruskal) has total weight 1.81" in :
     import com.phasmidsoftware.gryphon.traverse.Kruskal
     GraphBuilder.undirected[Int, Double].fromResource("prim.graph") match
-      case Success(graph) =>
-        Kruskal.mst(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
+      case Success(graph) => Kruskal.mst(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
       case Failure(x) => fail("failed to load prim.graph", x)
 
   it should "return Failure for a non-existent resource" in :

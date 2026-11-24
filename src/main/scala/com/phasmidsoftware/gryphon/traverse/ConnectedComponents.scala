@@ -42,23 +42,36 @@ object ConnectedComponents:
   def components[V, E](graph: Traversable[V])(using @unused random: Random = Random()): ConnectedResult[V, E] =
     graph match
       case g: Graph[V] =>
-        val allVertices = g.vertexMap.keySet
+        loop(g)(g.vertexMap.keySet, Connexions.empty[V, E], Map.empty, 0)
+      case _ =>
+        throw GraphException(s"ConnectedComponents.components: graph must be a Graph[V]")
 
-        @tailrec
-        def loop(unvisited: Set[V], connexions: Connexions[V, E], componentMap: Map[V, Int], componentId: Int): ConnectedResult[V, E] =
-          if unvisited.isEmpty then (connexions, componentMap)
-          else
-            val root = unvisited.head
-            val newConnexions = graph.getConnexions[E](root)
-            val visited = newConnexions.connexions.keySet + root
-            val newComponentMap = componentMap ++ visited.map(_ -> componentId)
-            loop(
-              unvisited -- visited,
-              Connexions(connexions.connexions ++ newConnexions.connexions),
-              newComponentMap,
-              componentId + 1
-            )
-
-        loop(allVertices, Connexions.empty[V, E], Map.empty, 0)
-
-      case _ => throw GraphException(s"ConnectedComponents.components: graph must be a Graph[V]")
+  /**
+   * Tail-recursive helper that discovers connected components by repeatedly selecting an
+   * unvisited root vertex, collecting its connexions, assigning all vertices reached from
+   * that root to the current component identifier, and continuing until no unvisited
+   * vertices remain.
+   *
+   * @param g            the graph whose connected components are being identified.
+   * @param unvisited    the vertices not yet assigned to a connected component.
+   * @param connexions   the accumulated connexion data discovered so far.
+   * @param componentMap the accumulated mapping from each visited vertex to its component identifier.
+   * @param componentId  the identifier to assign to the next discovered connected component.
+   * @tparam V the vertex type.
+   * @tparam E the edge-attribute type.
+   * @return the accumulated connected-component result, containing the combined connexions and component map.
+   */
+  @tailrec
+  private def loop[V, E](g: Graph[V])(unvisited: Set[V], connexions: Connexions[V, E], componentMap: Map[V, Int], componentId: Int): ConnectedResult[V, E] =
+    if unvisited.isEmpty then (connexions, componentMap)
+    else
+      val root = unvisited.head
+      val newConnexions = g.getConnexions[E](root)
+      val visited = newConnexions.connexions.keySet + root
+      val newComponentMap = componentMap ++ visited.map(_ -> componentId)
+      loop(g)(
+        unvisited -- visited,
+        Connexions(connexions.connexions ++ newConnexions.connexions),
+        newComponentMap,
+        componentId + 1
+      )

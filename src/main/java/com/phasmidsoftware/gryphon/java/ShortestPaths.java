@@ -112,7 +112,6 @@ public class ShortestPaths {
      *         the start vertex is absent.
      * @throws IllegalStateException if {@code graph} is undirected.
      */
-    @SuppressWarnings("unchecked")
     public static <V, E> Map<V, WeightedEdge<V, E>> dijkstra(
             WeightedGraph<V, E> graph,
             V start,

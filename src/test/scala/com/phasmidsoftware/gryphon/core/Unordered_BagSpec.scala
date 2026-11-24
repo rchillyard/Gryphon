@@ -45,6 +45,16 @@ class Unordered_BagSpec extends AnyFlatSpec with Matchers {
     target.size shouldBe 1
   }
 
+  it should "count" in {
+    val target: Unordered[Int] = Unordered_Bag(Seq(1, 2, 3))
+    target.count(_%2==0) shouldBe 1
+  }
+
+  it should "find" in {
+    val target: Unordered[Int] = Unordered_Bag(Seq(1, 2, 3))
+    target.find(_%2==0) shouldBe Some(2)
+  }
+
   it should "apply" in {
     val target: Unordered[Int] = Unordered_Bag[Int](Seq(1))
     target should matchPattern { case Unordered_Bag(ListBag(Seq(1))) => }

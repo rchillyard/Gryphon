@@ -45,7 +45,8 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: UndirectedGraph[Int, Double] @unchecked) => f(graph)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   // -------------------------------------------------------------------------
   // Result structure

@@ -36,10 +36,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
     vertexMap(v).adjacencies.size
 
   /**
-   * Returns the maximum degree of any vertex in the graph.
-   */
-
-  /**
    * Returns the in-degree of `v`, which for an undirected graph is simply its degree:
    * every edge can be traversed in both directions.
    */
@@ -50,6 +46,9 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    */
   def outDegree(v: V): Int = degree(v)
 
+  /**
+   * Returns the maximum degree of any vertex in the graph.
+   */
   def maxDegree: Int =
     vertexMap.keySet.toSeq.map(degree).max
 
@@ -72,14 +71,16 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
     // what the mutable version got from sharing one `Set`.
     def dfs(v: V, parent: Option[V], visited: Set[V]): (Boolean, Set[V]) =
       adjacentVertices(v).foldLeft(false -> (visited + v)) {
-        case (found@(true, _), _) => found // a cycle is already known; stop looking
+        case (found@(true, _), _) =>
+          found // a cycle is already known; stop looking
         case ((false, seen), w) =>
           if !seen.contains(w) then dfs(w, Some(v), seen)
           else !parent.contains(w) -> seen // a back edge to anything but the parent is a cycle
       }
 
     vertexMap.keySet.foldLeft(false -> Set.empty[V]) {
-      case (found@(true, _), _) => found
+      case (found@(true, _), _) =>
+        found
       case ((false, seen), v) =>
         if seen.contains(v) then false -> seen else dfs(v, None, seen)
     }._1
@@ -119,7 +120,8 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
     // a self-loop is an odd cycle.
     def dfs(v: V, c: Boolean, colours: Map[V, Boolean]): Option[Map[V, Boolean]] =
       adjacentVertices(v).foldLeft(Option(colours + (v -> c))) {
-        case (None, _) => None
+        case (None, _) =>
+          None
         case (Some(acc), w) =>
           acc.get(w) match
             case Some(cw) => Option.when(cw != c)(acc)
@@ -131,8 +133,10 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
     // unchanged. Mutating this literal therefore survives mutation testing permanently and
     // by design — there is no test that could kill it, and none should be written. See #83.
     vertexMap.keySet.foldLeft(Option(Map.empty[V, Boolean])) {
-      case (None, _) => None
-      case (Some(acc), v) => if acc.contains(v) then Some(acc) else dfs(v, true, acc)
+      case (None, _) =>
+        None
+      case (Some(acc), v) =>
+        if acc.contains(v) then Some(acc) else dfs(v, true, acc)
     }.isDefined
 
   /**
@@ -144,7 +148,6 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
-   *
    * @return a new undirected graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): UndirectedGraph[V, E] =
@@ -170,30 +173,35 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
 }
 
 /**
- * Factory object for creating instances of `DirectedGraph`.
- * This object provides utility methods to construct a directed graph
+ * Factory object for creating instances of `UndirectedGraph`.
+ * This object provides utility methods to construct an undirected graph
  * from an edge list representation.
  */
 object UndirectedGraph {
 
   /**
-   * Converts a sequence of triplets representing graph edges into a `Try` of `Graph[V]`.
+   * Converts a sequence of triplets representing graph edges into a `Try` of `UndirectedGraph[V, E]`.
    *
    * Each triplet in the input sequence consists of two vertices (source and target)
    * and an attribute associated with the edge connecting the vertices.
-   * This method attempts to construct a directed graph from the provided triplets, returning
+   * This method attempts to construct an undirected graph from the provided triplets, returning
    * a `Success` with the graph instance if the operation is successful, or a `Failure`
    * if the construction process encounters an error.
    *
+   * @param f       builds a vertex from its attribute.
    * @param triples a sequence of triplets `Triplet[V, E]` where:
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
    *
+   * @param absent  decides whether a triplet carrying no attribute is admissible (implicit):
+   *                it is for `E = Unit`, and for nothing else, in which case the result is a
+   *                `Failure` naming the offending triplet. See `AbsentAttribute` and #56.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
-   * @return a `Try[Graph[V]]`, where:
-   *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
+   * @return a `Try[UndirectedGraph[V, E]]`, where:
+   *         - `Success` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
   def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]])(using absent: AbsentAttribute[E]): Try[UndirectedGraph[V, E]] =
@@ -205,7 +213,8 @@ object UndirectedGraph {
         // like the rest. It used to be an AttributedDirectedEdge, which UndirectedGraph.edges
         // then discarded — the graph counted the adjacency in `degree` but not the edge in
         // `edges` or `M`.
-        case (vv1, vv2, Some(e)) => AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
+        case (vv1, vv2, Some(e)) =>
+          AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
         case (vv1, vv2, None) =>
           // Reachable only when E can represent an absent attribute, i.e. E is Unit: fromTriplets
           // refuses the triplet otherwise. The attribute is then that type's own value for

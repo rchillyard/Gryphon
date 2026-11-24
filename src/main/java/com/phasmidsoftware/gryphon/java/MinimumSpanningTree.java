@@ -95,7 +95,6 @@ public class MinimumSpanningTree {
      * @return the MST as {@code Map<V, WeightedEdge<V, E>>}.
      * @throws IllegalStateException if {@code graph} is directed.
      */
-    @SuppressWarnings("unchecked")
     public static <V, E> Map<V, WeightedEdge<V, E>> prim(
             WeightedGraph<V, E> graph,
             V start,
@@ -154,7 +153,6 @@ public class MinimumSpanningTree {
      *         order.
      * @throws IllegalStateException if {@code graph} is directed.
      */
-    @SuppressWarnings("unchecked")
     public static <V, E> List<WeightedEdge<V, E>> kruskal(
             WeightedGraph<V, E> graph,
             Comparator<E> comparator) {
@@ -209,7 +207,6 @@ public class MinimumSpanningTree {
      * @return the MST as {@code List<WeightedEdge<V, E>>}.
      * @throws IllegalStateException if {@code graph} is directed.
      */
-    @SuppressWarnings("unchecked")
     public static <V, E> List<WeightedEdge<V, E>> boruvka(
             WeightedGraph<V, E> graph,
             Comparator<E> comparator) {

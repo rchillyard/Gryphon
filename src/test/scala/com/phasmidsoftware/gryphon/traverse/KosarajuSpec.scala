@@ -150,7 +150,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "find two SCCs in a two-vertex one-way edge" in {
@@ -162,7 +163,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         val result = stronglyConnectedComponents[Int, Unit](g)
         result.values.toSet.size shouldBe 2
         result(0) should not be result(1)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "find three SCCs in a three-vertex chain 0->1->2" in {
@@ -176,7 +178,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         result.values.toSet.size shouldBe 3
         result(0) should not be result(1)
         result(1) should not be result(2)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "find one SCC in a three-vertex cycle 0->1->2->0" in {
@@ -191,7 +194,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
         result(1) shouldBe result(2)
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   // -------------------------------------------------------------------------
@@ -223,7 +227,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
           "starters: 2 elements",
           "Kosaraju pass 2: DFS on original graph, 2 starter vertices"
         )
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
 
   it should "emit the expected verbose trace for a two-vertex mutual cycle" in {
@@ -244,7 +249,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         lines.count(_.contains("pass 1: seeding from")) shouldBe 1
         lines.count(_.contains("pass 2: SCC")) shouldBe 1
         lines.count(_.contains("pass 2: complete")) shouldBe 1
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
   }
   // -------------------------------------------------------------------------
   // Invariants
@@ -268,24 +274,24 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
       case other => fail(s"graph construction failed: $other")
 
   /**
-    * Is the condensation of `edges` under `scc` acyclic?
-    *
-    * The condensation contracts each strongly connected component to a single vertex, with an
-    * edge A -> B exactly where some edge of the original runs from a vertex of A to a vertex of
-    * B, with A != B. It is acyclic for *any* correct SCC decomposition: were two distinct
-    * components mutually reachable they would be one component.
-    *
-    * It catches *splitting* a component: the halves remain mutually reachable, so the
-    * condensation gains a cycle between them. It does NOT catch *merging* — a merge makes the
-    * cross-component edges internal, so they vanish from the condensation, and collapsing every
-    * vertex into one component yields a single vertex with no edges, trivially acyclic.
-    * Verified by mutating a known-correct map and watching which corruptions survive.
-    * `componentsAreMutuallyReachable` is the other half.
-    *
-    * Deliberately implemented here, by Kahn's algorithm, rather than by calling Gryphon's own
-    * `isCyclic`: checking one traversal with another from the same engine would let a shared
-    * fault hide exactly the error this is meant to expose.
-    */
+   * Is the condensation of `edges` under `scc` acyclic?
+   *
+   * The condensation contracts each strongly connected component to a single vertex, with an
+   * edge A -> B exactly where some edge of the original runs from a vertex of A to a vertex of
+   * B, with A != B. It is acyclic for *any* correct SCC decomposition: were two distinct
+   * components mutually reachable they would be one component.
+   *
+   * It catches *splitting* a component: the halves remain mutually reachable, so the
+   * condensation gains a cycle between them. It does NOT catch *merging* — a merge makes the
+   * cross-component edges internal, so they vanish from the condensation, and collapsing every
+   * vertex into one component yields a single vertex with no edges, trivially acyclic.
+   * Verified by mutating a known-correct map and watching which corruptions survive.
+   * `componentsAreMutuallyReachable` is the other half.
+   *
+   * Deliberately implemented here, by Kahn's algorithm, rather than by calling Gryphon's own
+   * `isCyclic`: checking one traversal with another from the same engine would let a shared
+   * fault hide exactly the error this is meant to expose.
+   */
   private def condensationIsAcyclic(edges: Seq[(Int, Int)], scc: SCCResult[Int]): Boolean =
     val condensed: Set[(Int, Int)] =
       edges.collect { case (u, v) if scc(u) != scc(v) => scc(u) -> scc(v) }.toSet
@@ -301,25 +307,26 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     peel(scc.values.toSet, condensed)
 
   /**
-    * Does every component contain exactly the vertices mutually reachable with its members?
-    *
-    * For a representative r, the set reachable from r intersected with the set that can reach r
-    * is, by definition, r's strongly connected component. Comparing that against what the
-    * algorithm reported is therefore a complete, independent check: it rejects merging,
-    * splitting and wholesale collapse alike. Verified by mutating a known-correct map.
-    *
-    * It is strictly stronger than `condensationIsAcyclic`, which is kept because it is the
-    * classic statement of the property and tests a different formulation of it — but on its own
-    * that one only catches splitting. Computed from the edge list alone, independently of
-    * Gryphon's own traversals, so that a fault in the engine cannot hide the error this is
-    * meant to expose.
-    */
+   * Does every component contain exactly the vertices mutually reachable with its members?
+   *
+   * For a representative r, the set reachable from r intersected with the set that can reach r
+   * is, by definition, r's strongly connected component. Comparing that against what the
+   * algorithm reported is therefore a complete, independent check: it rejects merging,
+   * splitting and wholesale collapse alike. Verified by mutating a known-correct map.
+   *
+   * It is strictly stronger than `condensationIsAcyclic`, which is kept because it is the
+   * classic statement of the property and tests a different formulation of it — but on its own
+   * that one only catches splitting. Computed from the edge list alone, independently of
+   * Gryphon's own traversals, so that a fault in the engine cannot hide the error this is
+   * meant to expose.
+   */
   private def componentsAreMutuallyReachable(edges: Seq[(Int, Int)], scc: SCCResult[Int]): Boolean =
     def closure(adj: Map[Int, Set[Int]], start: Int): Set[Int] =
       @annotation.tailrec
       def loop(frontier: Set[Int], seen: Set[Int]): Set[Int] =
         val next = frontier.flatMap(v => adj.getOrElse(v, Set.empty)).diff(seen)
         if next.isEmpty then seen else loop(next, seen ++ next)
+
       loop(Set(start), Set(start))
 
     val forward = edges.groupBy(_._1).view.mapValues(_.map(_._2).toSet).toMap

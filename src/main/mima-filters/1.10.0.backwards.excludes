@@ -183,3 +183,21 @@ ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.UndirectedGraph.triplesToTryGraph(scala.Function1,scala.collection.immutable.Seq)scala.util.Try")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.builder.GraphBuilder.undirected(com.phasmidsoftware.gryphon.parse.Parseable,com.phasmidsoftware.gryphon.parse.Parseable)com.phasmidsoftware.gryphon.builder.GraphBuilder")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.builder.GraphBuilder.directed(com.phasmidsoftware.gryphon.parse.Parseable,com.phasmidsoftware.gryphon.parse.Parseable)com.phasmidsoftware.gryphon.builder.GraphBuilder")
+
+# ---------------------------------------------------------------------------
+# NOT PART OF 1.11.0. These four belong to the release AFTER it.
+# ---------------------------------------------------------------------------
+# ShortestPaths.undiscoveredEdges and .undiscoveredVertices duplicated the methods of the same
+# names on Graph, with the receiver moved into a parameter, and nothing called them anywhere:
+# not src/main, not the specs (ShortestPathsSpec exercises Graph's pair), not the Java facade.
+# Deleted on tidy/robin1. See #106, which also asks whether Graph's surviving pair should be
+# renamed, since `filteredAdjacencies(_ => true)` filters nothing.
+#
+# They are in published 1.10.0 AND in the 1.11.0 jars attached to that release, so removing them
+# is a real break against both: the release carrying this must be 1.12.0, not 1.11.1.
+# These four move into 1.11.0.backwards.excludes when previousRelease advances, which it cannot
+# do until 1.11.0 is on Central.
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredEdges(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredEdges$default$3(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredVertices(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredVertices$default$3(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)scala.util.Random")

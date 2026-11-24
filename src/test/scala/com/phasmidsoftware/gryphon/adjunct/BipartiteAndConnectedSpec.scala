@@ -30,7 +30,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: UndirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   private def withDfsuGraph[A](f: UndirectedGraph[Int, Unit] => A): A =
     val p = new GraphParser[Int, Unit, EdgeType]
@@ -42,7 +43,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
         triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(g: UndirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   // -------------------------------------------------------------------------
   // isConnected — UndirectedGraph
@@ -67,7 +69,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a chain 0-1-2-3" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -78,7 +81,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for two disconnected edges 0-1 and 2-3" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -88,7 +92,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a triangle" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -99,7 +104,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isConnected shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // isConnected — DirectedGraph throws
@@ -123,7 +129,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val (_, componentMap) = ConnectedComponents.components[Int, Unit](g)
         componentMap.values.toSet.size shouldBe 2 // two weakly connected components
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // isBipartite — UndirectedGraph
@@ -143,7 +150,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a chain 0-1-2 (alternating colors)" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -153,7 +161,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for a triangle (odd cycle)" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -164,7 +173,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for an even cycle 0-1-2-3-0" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -176,7 +186,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for an odd cycle 0-1-2-3-4-0" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -189,7 +200,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a complete bipartite graph K2,3" in :
     // {0,1} connected to {2,3,4} — every edge crosses the partition
@@ -204,7 +216,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a disconnected bipartite graph" in :
     // Two separate even paths: 0-1-2 and 3-4
@@ -216,7 +229,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for a disconnected graph where one component has an odd cycle" in :
     // Chain 0-1-2 (bipartite) plus triangle 3-4-5-3 (not bipartite)
@@ -230,7 +244,8 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // isBipartite — DirectedGraph throws
@@ -248,4 +263,5 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     UndirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isBipartite shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")

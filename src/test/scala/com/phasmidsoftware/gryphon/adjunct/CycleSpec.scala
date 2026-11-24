@@ -37,7 +37,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(g: DirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   private def withDirectedGraph[A](f: DirectedGraph[Int, Unit] => A): A =
     val p = new GraphParser[Int, Unit, EdgeType]
@@ -49,7 +50,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(g: DirectedGraph[Int, Unit] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   private def withPrimGraph[A](f: UndirectedGraph[Int, Double] => A): A =
     val p = new GraphParser[Int, Double, EdgeType]
@@ -61,7 +63,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         undirectedTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(g: UndirectedGraph[Int, Double] @unchecked) => f(g)
           case Failure(x) => fail("graph construction failed", x)
-      case Failure(x) => fail("parse failed", x)
+      case Failure(x) =>
+        fail("parse failed", x)
 
   // -------------------------------------------------------------------------
   // DirectedGraph.isCyclic
@@ -86,7 +89,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a two-vertex mutual cycle" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -96,7 +100,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a three-vertex cycle" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -107,7 +112,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for a three-vertex chain" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -117,7 +123,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     directedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
   // DAG correctness
@@ -158,7 +165,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for a star graph (one centre, no cycles)" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -169,7 +177,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a triangle" in :
     val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
@@ -180,7 +189,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for a tree with multiple branches" in :
     // Tree: 0-1, 0-2, 1-3, 1-4 — no cycle
@@ -193,7 +203,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a graph with one extra edge creating a cycle" in :
     // Tree plus one back edge: 0-1, 1-2, 2-3, 3-1
@@ -206,7 +217,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return false for a disconnected forest (no cycles in any component)" in :
     // Two separate chains: 0-1-2 and 3-4
@@ -218,7 +230,8 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe false
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")
 
   it should "return true for a disconnected graph where one component has a cycle" in :
     // Chain 0-1-2 plus triangle 3-4-5-3
@@ -232,4 +245,5 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
     undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
         g.isCyclic shouldBe true
-      case other => fail(s"unexpected: $other")
+      case other =>
+        fail(s"unexpected: $other")

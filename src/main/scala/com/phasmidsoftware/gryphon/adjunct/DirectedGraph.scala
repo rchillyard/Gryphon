@@ -27,21 +27,14 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
   def reverse: DirectedGraph[V, E] =
     edges.foldLeft(DirectedGraph[V, E](vertexMap.keysOnly)) { (g, e) =>
       val rev: DirectedEdge[V, E] = e match
-        case AttributedDirectedEdge(attr, from, to) => AttributedDirectedEdge(attr, to, from)
-        case OrderedEdge(from, to) => OrderedEdge(to, from)
-        case other => throw GraphException(s"unexpected edge type in reverse: $other")
+        case AttributedDirectedEdge(attr, from, to) =>
+          AttributedDirectedEdge(attr, to, from)
+        case OrderedEdge(from, to) =>
+          OrderedEdge(to, from)
+        case other =>
+          throw GraphException(s"unexpected edge type in reverse: $other")
       g.addEdge(rev)
     }
-
-  /**
-   * Checks whether the directed graph contains a cycle.
-   *
-   * This method determines if the graph is cyclic by attempting to perform a
-   * topological sort. A graph is cyclic if and only if a topological order
-   * cannot be established.
-   *
-   * @return true if the graph is cyclic, false otherwise.
-   */
 
   /**
    * Returns the in-degree of `v`: the number of arcs whose head is `v`.
@@ -55,6 +48,15 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    */
   def outDegree(v: V): Int = edges.count(_.white == v)
 
+  /**
+   * Checks whether the directed graph contains a cycle.
+   *
+   * This method determines if the graph is cyclic by attempting to perform a
+   * topological sort. A graph is cyclic if and only if a topological order
+   * cannot be established.
+   *
+   * @return true if the graph is cyclic, false otherwise.
+   */
   def isCyclic: Boolean = TopologicalSort.sort(this).isEmpty
 
   // There is no isConnected or isBipartite here, and that is the point: both used to be declared
@@ -70,24 +72,6 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
   def shortestPaths(start: V)(using Monoid[E], Ordering[E]): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     BellmanFord.shortestPaths(this, start)
 
-  /**
-   * Adds an edge to the graph. The edge connects two vertices and may carry an attribute of type `E`.
-   * The type of the edge (e.g., directed, undirected, or orderable) determines how it is added to the graph.
-   *
-   * @param edge the edge to be added, which is an instance of `Edge[V, E]`. The edge defines the connection
-   *             between two vertices of type `V` and may have a direction and an associated attribute of type `E`.
-   * @return a new `EdgeGraph[V, E]` instance that includes the newly added edge. The returned graph preserves
-   *         all existing edges and vertices.
-   * @throws GraphException if the provided edge type is unexpected or unsupported.
-   */
-
-  /**
-   * Delegates to `VertexMap.+[E]`, which calls `ensure` for both endpoints.
-   * This ensures the destination vertex exists in the map even if it has no
-   * outgoing edges — fixing Issue #16.
-   * This is consistent with `UndirectedGraph.addEdge` which also delegates
-   * to `VertexMap.+[E]`.
-   */
   /** A directed graph admits directed edges only. */
   type EdgeT = DirectedEdge[V, E]
 
@@ -104,6 +88,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @param vertexMap the vertex map to be used for constructing the graph. It defines the vertices
    *                  and their adjacencies in the graph.
+   *
    * @return a new directed graph constructed with the given vertex map.
    */
   def unit(vertexMap: VertexMap[V]): DirectedGraph[V, E] =
@@ -122,6 +107,7 @@ object DirectedGraph {
    *
    * @param vertexMap a map containing the vertices of type `V` as keys and their associated
    *                  adjacency lists or other vertex-specific data.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
    * @return an instance of `DirectedGraph[V, E]` initialized with the given vertex map.
@@ -152,14 +138,20 @@ object DirectedGraph {
    * a `Success` with the graph instance if the operation is successful, or a `Failure`
    * if the construction process encounters an error.
    *
+   * A triplet carrying no attribute is admissible only where the implicit `AbsentAttribute[E]`
+   * says so — that is, for `E = Unit` and for nothing else; otherwise the result is a `Failure`
+   * naming the offending triplet. See `AbsentAttribute` and #56.
+   *
+   * @param f       builds a vertex from its attribute.
    * @param triples a sequence of triplets `Triplet[V, E]` where:
    *                - the first element is the source vertex of type `V`.
    *                - the second element is the target vertex of type `V`.
    *                - the third element is the edge attribute of type `E`.
+   *
    * @tparam V the type of the vertices in the graph.
    * @tparam E the type of the edges in the graph.
-   * @return a `Try[Graph[V]]`, where:
-   *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
+   * @return a `Try[DirectedGraph[V, E]]`, where:
+   *         - `Success` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
   def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]])(using AbsentAttribute[E]): Try[DirectedGraph[V, E]] =
@@ -167,7 +159,8 @@ object DirectedGraph {
       f = f,
       warn = t => Option.when(!t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is not directed."),
       adjacency = {
-        case (vv1, vv2, Some(e)) => AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
+        case (vv1, vv2, Some(e)) =>
+          AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))
         case (vv1, vv2, None) =>
           // Reachable only when E can represent an absent attribute, i.e. E is Unit: fromTriplets
           // refuses the triplet otherwise, before any adjacency is built. So OrderedEdge, which

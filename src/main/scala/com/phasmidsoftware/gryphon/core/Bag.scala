@@ -31,7 +31,6 @@ trait Bag[+X] extends IterableOnce[X] {
    *
    * @param p a predicate function that takes an element of type `X` and returns a boolean,
    *          indicating whether the element satisfies the condition or not.
-   *
    * @return an instance of `Bag[X]` containing the elements that satisfy the predicate.
    */
   def filter(p: X => Boolean): Bag[X]
@@ -42,7 +41,6 @@ trait Bag[+X] extends IterableOnce[X] {
    *
    * @param y the element to be added to the bag. This element can be of the same type as
    *          the elements currently in the bag or a supertype of the bag's element type.
-   *
    * @return a new instance of `Bag[Y]` containing all elements of the current bag and
    *         the added element `y`.
    */
@@ -70,7 +68,6 @@ trait Bag[+X] extends IterableOnce[X] {
  * @tparam X the type of elements contained within the `AbstractBag[X]`.
  *           The type is covariant to allow `ListBag[A]` to be used as `ListBag[B]`
  *           if `A` is a subtype of `B`.
- *
  * @param xs a sequence of elements of type `X`, representing the contents of this `ListBag`.
  */
 abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
@@ -109,7 +106,6 @@ abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
    *
    * @param p a predicate function that takes an element of type `X` and returns a boolean,
    *          indicating whether the element satisfies the condition or not.
-   *
    * @return an instance of `Bag[X]` containing the elements that satisfy the predicate.
    */
   def filter(p: X => Boolean): Bag[X] =
@@ -120,7 +116,6 @@ abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
    *
    * @param y the element to be added to the bag. The element can be of type `Y`,
    *          which must be a supertype of the elements currently present in the bag.
-   *
    * @return a new instance of `Bag[Y]` that includes all elements of the current bag
    *         and the newly added element.
    */
@@ -132,7 +127,6 @@ abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
    *
    * @param xs the sequence of elements to populate the new `Bag`. The type of elements in the sequence
    *           must be the same as or a supertype of the elements in the current context.
-   *
    * @return a new instance of `Bag[Z]` containing the elements from the input sequence.
    */
   def unit[Z >: X](xs: Seq[Z]): Bag[Z]
@@ -146,7 +140,6 @@ abstract class AbstractBag[+X](xs: Seq[X]) extends Bag[X] {
  * @tparam X the type of elements contained within the `ListBag`.
  *           The type is covariant to allow `ListBag[A]` to be used as `ListBag[B]`
  *           if `A` is a subtype of `B`.
- *
  * @param xs a sequence of elements of type `X`, representing the contents of this `ListBag`.
  */
 case class ListBag[X](xs: Seq[X]) extends AbstractBag[X](xs) {
@@ -156,7 +149,6 @@ case class ListBag[X](xs: Seq[X]) extends AbstractBag[X](xs) {
    *
    * @param xs the sequence of elements to populate the new `Bag`. The type of elements in the sequence
    *           must be the same as or a supertype of the elements in the current context.
-   *
    * @return a new instance of `Bag[Z]` containing the elements from the input sequence.
    */
   def unit[Z >: X](xs: Seq[Z]): Bag[Z] =
@@ -187,7 +179,6 @@ object Bag {
    *
    * @param xs the elements to populate the created `Bag` with. These elements
    *           are variable-length arguments that allow creating a `Bag` with one or more elements.
-   *
    * @return a new `Bag[X]` instance containing the provided elements.
    */
   def create[X](xs: X*): Bag[X] =

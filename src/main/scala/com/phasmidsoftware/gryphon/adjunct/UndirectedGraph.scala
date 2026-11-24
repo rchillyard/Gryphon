@@ -196,7 +196,7 @@ object UndirectedGraph {
    *         - `Success(Graph[V])` contains the constructed graph if the operation is successful.
    *         - `Failure` contains a `GraphException` if the graph construction fails.
    */
-  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]]): Try[UndirectedGraph[V, E]] =
+  def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]])(using absent: AbsentAttribute[E]): Try[UndirectedGraph[V, E]] =
     AbstractAdjunctGraph.fromTriplets[V, E, UndirectedGraph[V, E]](
       f = f,
       warn = t => Option.when(t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is directed."),
@@ -206,7 +206,12 @@ object UndirectedGraph {
         // then discarded — the graph counted the adjacency in `degree` but not the edge in
         // `edges` or `M`.
         case (vv1, vv2, Some(e)) => AdjacencyEdge(UndirectedEdge(e, vv1.attribute, vv2.attribute))
-        case (vv1, vv2, None) => AdjacencyEdge(UndirectedEdge(None, vv1.attribute, vv2.attribute))
+        case (vv1, vv2, None) =>
+          // Reachable only when E can represent an absent attribute, i.e. E is Unit: fromTriplets
+          // refuses the triplet otherwise. The attribute is then that type's own value for
+          // absence — (), not `None` standing in a field typed E, which is what this built up to
+          // 1.11.0 and what made `.attribute` throw ClassCastException when read (#56).
+          AdjacencyEdge(UndirectedEdge(absent.maybeValue.get, vv1.attribute, vv2.attribute))
       },
       bothWays = !_.edgeType.oneWay,
       build = UndirectedGraph(_)

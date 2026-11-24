@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.traverse.{Connexions, TraversalResult, VertexTraversalResult}
-import com.phasmidsoftware.visitor.core.{Traversal, *, given}
+import com.phasmidsoftware.gryphon.traverse.{BFSTraversal, Connexions, DFSTraversal, TraversalResult}
+import com.phasmidsoftware.visitor.core.*
 import scala.util.{Random, Try}
 
 /**
@@ -127,12 +127,7 @@ trait Traversable[V] {
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
   def vertexMappedTraversalDfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
-    new EvaluableGraphNeighboursTraversal[V, T, Try[TraversalResult[V, T]]](fulfill)(this) {
-      def traversal: Try[TraversalResult[V, T]] = Try {
-        val visitor = JournaledVisitor.withQueueJournal[V, T]
-        traversalResult(Traversal.dfs(start, visitor))
-      }
-    }.traversal
+    Try(DFSTraversal(fulfill).run(this)(start))
 
   /**
    * Performs a BFS traversal applying `fulfill` to each visited vertex and returns a
@@ -144,12 +139,7 @@ trait Traversable[V] {
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
    */
   def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
-    new EvaluableGraphNeighboursTraversal[V, T, Try[TraversalResult[V, T]]](fulfill)(this) {
-      def traversal = Try {
-        val visitor = JournaledVisitor.withQueueJournal[V, T]
-        traversalResult(Traversal.bfs(start, visitor))
-      }
-    }.traversal
+    Try(BFSTraversal(fulfill).run(this)(start))
 
   /**
    * Retrieves the connexions (edges) reachable from `start` via DFS.
@@ -215,25 +205,8 @@ trait Traversable[V] {
    */
   def graphNeighbours(using random: Random): GraphNeighbours[V] = (v: V) => adjacentVertices(v)
 
-  /**
-   * Processes the results of a traversal by aggregating vertex-to-result mappings
-   * and returning a complete `VertexTraversalResult` instance.
-   *
-   * @param visitor The visitor containing the traversal results captured in a journal.
-   *                The journal consists of entries where each vertex is optionally
-   *                associated with a result of type `T`.
-   *
-   * @tparam T The result type associated with each vertex in the traversal.
-   * @return A `VertexTraversalResult` mapping vertices to their respective results
-   *         as processed from the input `result`.
-   */
-  private def traversalResult[T](visitor: Visitor[V, Mapped[V, T], QueueJournal[(V, Option[T])]]) =
-    visitor.result.foldLeft(VertexTraversalResult.empty[V, T]) {
-      case (acc, (v, Some(r))) =>
-        acc + (v, r)
-      case (acc, _) =>
-        acc
-    }
+  // traversalResult, which unwrapped a journal into a VertexTraversalResult, is gone with the
+  // two bodies that used it: UnweightedTraversal.run does that unwrapping now, once.
 }
 
 /**

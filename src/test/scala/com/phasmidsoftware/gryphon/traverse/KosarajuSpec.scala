@@ -382,14 +382,15 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   // The existing DAG case is the path 0->1->2. dag.graph branches, which is where a wrong
   // implementation would spuriously merge.
   it should "give every vertex of dag.graph its own component" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    // dag.graph has no attribute column, so its edge type is Unit, not Double (#56).
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     val triplets = TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }.get
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets).get match
-      case g: DirectedGraph[Int, Double] @unchecked =>
-        val result = stronglyConnectedComponents[Int, Double](g)
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets).get match
+      case g: DirectedGraph[Int, Unit] @unchecked =>
+        val result = stronglyConnectedComponents[Int, Unit](g)
         result.size shouldBe 7
         result.values.toSet.size shouldBe 7 // all singletons
   }

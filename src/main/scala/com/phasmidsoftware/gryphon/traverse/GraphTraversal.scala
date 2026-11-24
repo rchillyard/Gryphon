@@ -43,16 +43,23 @@ trait GraphTraversal[V, E, R]:
  * of `UnweightedTraversal.search`, which subclasses implement.
  *
  * @tparam V the vertex type.
+ * @tparam T the type each visited vertex is mapped to.
  */
-type UnweightedVisitor[V] = Visitor[V, Mapped[V, V], QueueJournal[(V, Option[V])]]
+type UnweightedVisitor[V, T] = Visitor[V, Mapped[V, T], QueueJournal[(V, Option[T])]]
 
 /**
  * Abstract base class for the unweighted traversals, DFS and BFS.
  *
- * Mirrors [[WeightedTraversal]] for the `E = Unit`, `R = V` half of the family: the
+ * Mirrors [[WeightedTraversal]] for the `E = Unit` half of the family: the
  * `EvaluableGraphNeighboursTraversal` wiring, the journaled visitor and the unwrapping
  * of the result all live here, and a subclass supplies only the engine entry point.
  * DFS and BFS then differ in exactly one expression.
+ *
+ * This is the single implementation of a mapped unweighted traversal.
+ * `Traversable.vertexMappedTraversalDfs` and `vertexMappedTraversalBfs` delegate to it; until
+ * 1.11.0 they carried a copy of this body, so Gryphon had two parallel APIs for one operation,
+ * one of which had no callers at all and the other only tests. `fulfill` is what the two had
+ * that this class lacked, so it moves here rather than the duplication staying.
  *
  * NOTE that the frontier is not named here, unlike in `WeightedTraversal` where the
  * `IndexedPrioQueue` is a `given`. The stack and the queue live inside Visitor's
@@ -60,8 +67,11 @@ type UnweightedVisitor[V] = Visitor[V, Mapped[V, V], QueueJournal[(V, Option[V])
  * of which engine the subclass names rather than something this class can vary.
  *
  * @tparam V the vertex type.
+ * @tparam T the type each visited vertex is mapped to.
+ * @param fulfill the transformation applied to each visited vertex; `identity` for a
+ *                traversal that simply reports the vertices it reached.
  */
-abstract class UnweightedTraversal[V] extends GraphTraversal[V, Unit, V]:
+abstract class UnweightedTraversal[V, T](fulfill: V => T) extends GraphTraversal[V, Unit, T]:
 
   /**
    * Runs Visitor's traversal engine from `start`, with the frontier that engine implies.
@@ -77,12 +87,12 @@ abstract class UnweightedTraversal[V] extends GraphTraversal[V, Unit, V]:
    * @param visitor the journaled visitor to record into.
    * @return the visitor, after the traversal has run.
    */
-  protected def search(start: V, visitor: UnweightedVisitor[V])(using GraphNeighbours[V]): UnweightedVisitor[V]
+  protected def search(start: V, visitor: UnweightedVisitor[V, T])(using GraphNeighbours[V]): UnweightedVisitor[V, T]
 
-  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, V] =
-    new EvaluableGraphNeighboursTraversal[V, V, TraversalResult[V, V]](identity)(graph) {
-      def traversal: TraversalResult[V, V] =
-        val visitor = JournaledVisitor.withQueueJournal[V, V]
+  def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, T] =
+    new EvaluableGraphNeighboursTraversal[V, T, TraversalResult[V, T]](fulfill)(graph) {
+      def traversal: TraversalResult[V, T] =
+        val visitor = JournaledVisitor.withQueueJournal[V, T]
         val result = search(start, visitor)
         VertexTraversalResult(
           result.result.iterator.collect { case (v, Some(r)) => v -> r }.toMap
@@ -94,30 +104,48 @@ abstract class UnweightedTraversal[V] extends GraphTraversal[V, Unit, V]:
 // ============================================================
 
 /**
- * Depth-first search traversal. E = Unit, R = V.
- * Each visited vertex maps to itself in the result.
+ * Depth-first search traversal, mapping each visited vertex through `fulfill`.
+ *
+ * `DFSTraversal[V]()` is the identity case, where each visited vertex maps to itself.
  *
  * @tparam V the vertex type.
+ * @tparam T the type each visited vertex is mapped to.
+ * @param fulfill the transformation applied to each visited vertex.
  */
-case class DFSTraversal[V]() extends UnweightedTraversal[V]:
+case class DFSTraversal[V, T](fulfill: V => T) extends UnweightedTraversal[V, T](fulfill):
 
-  protected def search(start: V, visitor: UnweightedVisitor[V])(using GraphNeighbours[V]): UnweightedVisitor[V] =
+  protected def search(start: V, visitor: UnweightedVisitor[V, T])(using GraphNeighbours[V]): UnweightedVisitor[V, T] =
     Traversal.dfs(start, visitor)
+
+object DFSTraversal:
+  /**
+   * The identity traversal: each visited vertex maps to itself.
+   */
+  def apply[V](): DFSTraversal[V, V] = DFSTraversal(identity)
 
 // ============================================================
 // BFS
 // ============================================================
 
 /**
- * Breadth-first search traversal. E = Unit, R = V.
- * Each visited vertex maps to itself in the result.
+ * Breadth-first search traversal, mapping each visited vertex through `fulfill`.
+ *
+ * `BFSTraversal[V]()` is the identity case, where each visited vertex maps to itself.
  *
  * @tparam V the vertex type.
+ * @tparam T the type each visited vertex is mapped to.
+ * @param fulfill the transformation applied to each visited vertex.
  */
-case class BFSTraversal[V]() extends UnweightedTraversal[V]:
+case class BFSTraversal[V, T](fulfill: V => T) extends UnweightedTraversal[V, T](fulfill):
 
-  protected def search(start: V, visitor: UnweightedVisitor[V])(using GraphNeighbours[V]): UnweightedVisitor[V] =
+  protected def search(start: V, visitor: UnweightedVisitor[V, T])(using GraphNeighbours[V]): UnweightedVisitor[V, T] =
     Traversal.bfs(start, visitor)
+
+object BFSTraversal:
+  /**
+   * The identity traversal: each visited vertex maps to itself.
+   */
+  def apply[V](): BFSTraversal[V, V] = BFSTraversal(identity)
 
 // ============================================================
 // WeightedTraversal — shared base for Dijkstra and Prim

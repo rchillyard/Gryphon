@@ -107,13 +107,14 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
     }
 
   it should "dfs post-order on dag.graph yields children before parents (QueueJournal)" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    // dag.graph has no attribute column, so its edge type is Unit, not Double (#56).
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     } match
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfs(visitor, DfsOrder.Post)(3)
@@ -128,13 +129,14 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
   }
 
   it should "dfs post-order on dag.graph yields children before parents (ListJournal)" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    // dag.graph has no attribute column, so its edge type is Unit, not Double (#56).
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     } match
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withListJournal[Int, Int]
             val result = graph.dfs(visitor, DfsOrder.Post)(3)
@@ -149,13 +151,14 @@ class DFSSpec extends AnyFlatSpec with should.Matchers:
   }
 
   it should "dfsAll on dag.graph visits all 7 vertices" in {
-    val p = new GraphParser[Int, Double, EdgeType]
+    // dag.graph has no attribute column, so its edge type is Unit, not Double (#56).
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     } match
       case Success(triplets) =>
-        triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+        triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
           case Success(graph: Graph[Int]) =>
             val visitor = JournaledVisitor.withQueueJournal[Int, Int]
             val result = graph.dfsAll(visitor)

@@ -89,8 +89,19 @@ object AbstractAdjunctGraph:
                                                        adjacency: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V],
                                                        bothWays: Triplet[V, E, EdgeType] => Boolean,
                                                        build: VertexMap[V] => G
-                                               )(triples: Seq[Triplet[V, E, EdgeType]]): Try[G] =
+                                               )(triples: Seq[Triplet[V, E, EdgeType]])(using absent: AbsentAttribute[E]): Try[G] =
     SerializableGraph.createFromTriplets[V, E, EdgeType](triples) match
+      case _: Triplets[V, E, EdgeType] if absent.maybeValue.isEmpty && triples.exists(_.maybeAttribute.isEmpty) =>
+        // A triplet with no attribute, in a graph whose E has no value meaning "no attribute".
+        // Both flavours used to admit it and lie about the type — see AbsentAttribute and #56 —
+        // which handed the caller an edge whose `attribute` threw ClassCastException when read.
+        // Refusing here is the difference between a failure at construction, naming the triplet,
+        // and a failure much later at a use site that did nothing wrong.
+        val offenders = triples.filter(_.maybeAttribute.isEmpty)
+        Failure(GraphException(
+          s"triplesToTryGraph: ${offenders.size} triplet(s) have no attribute, but this graph's " +
+                  s"edge type cannot represent an absent attribute. First: ${offenders.head}. " +
+                  s"Either give every edge an attribute, or build a graph whose edge type is Unit."))
       case triplets: Triplets[V, E, EdgeType] =>
         val vertexMap: VertexMap[V] =
           triplets.triplets.foldLeft(VertexMap[V]) { (z, t) =>

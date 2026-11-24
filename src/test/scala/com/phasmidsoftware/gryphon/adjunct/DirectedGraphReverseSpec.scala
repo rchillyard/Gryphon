@@ -38,15 +38,19 @@ class DirectedGraphReverseSpec extends AnyFlatSpec with should.Matchers:
   // reverse.  Tests that don't need the graph file use inline triplets instead.
   // -------------------------------------------------------------------------
 
-  /** Parses dag.graph and returns (originalGraph, reversedGraph). */
-  private def loadDagGraphs: (DirectedGraph[Int, Double], DirectedGraph[Int, Double]) =
-    val p = new GraphParser[Int, Double, EdgeType]
+  /**
+   * Parses dag.graph and returns (originalGraph, reversedGraph).
+   *
+   * dag.graph has no attribute column, so its edge type is Unit, not Double (#56).
+   */
+  private def loadDagGraphs: (DirectedGraph[Int, Unit], DirectedGraph[Int, Unit]) =
+    val p = new GraphParser[Int, Unit, EdgeType]
     val triedSource = Try(Source.fromResource("dag.graph"))
     val triplets = TryUsing.tryIt(triedSource) { source =>
-      p.parseSource[Triplet[Int, Double, EdgeType]](p.parseTriple)(source)
+      p.parseSource[Triplet[Int, Unit, EdgeType]](p.parseTriple)(source)
     }.get
-    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets).get match
-      case g: DirectedGraph[Int, Double] @unchecked => (g, g.reverse)
+    triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets).get match
+      case g: DirectedGraph[Int, Unit] @unchecked => (g, g.reverse)
 
   // -------------------------------------------------------------------------
   // Structure tests

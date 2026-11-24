@@ -5,6 +5,7 @@
 package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
+import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -71,6 +72,13 @@ abstract class AbstractAdjunctGraph[V, E, G <: AbstractAdjunctGraph[V, E, G]](ve
 object AbstractAdjunctGraph:
 
   /**
+   * Where this object's diagnostics go. Until 1.11.1 they went to `System.err` directly, which an
+   * application could neither route nor silence — and which, being nobody's job to read, is how
+   * the adjacency-count mismatch of #57 went unnoticed for so long.
+   */
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  /**
    * The skeleton shared by `DirectedGraph.triplesToTryGraph` and
    * `UndirectedGraph.triplesToTryGraph`, which differed only in three places. Both previously
    * carried their own copy, one of them labelled `NOTE duplicated code in UndirectedGraph`.
@@ -91,8 +99,9 @@ object AbstractAdjunctGraph:
    * @tparam V the vertex attribute type.
    * @tparam E the edge attribute type.
    * @tparam G the concrete graph kind being built.
-   * @return `Success(G)`, or `Failure(GraphException)` if the triplets could not be parsed, or if
-   *         one carries no attribute where `E` cannot represent that.
+   * @return `Success(G)`, or `Failure(GraphException)` if the triplets could not be parsed, if one
+   *         carries no attribute where `E` cannot represent that, or if the finished graph does not
+   *         hold the adjacencies the triplets described.
    */
   def fromTriplets[V, E, G <: AbstractGraph[V]](
                                                        f: V => Vertex[V],
@@ -117,31 +126,41 @@ object AbstractAdjunctGraph:
         val vertexMap: VertexMap[V] =
           triplets.triplets.foldLeft(VertexMap[V]) { (z, t) =>
             // TODO see issue #57: a triplet whose EdgeType disagrees with the graph being built
-            //  is reported to stderr and then used anyway. It should be a Failure, but doing that
-            //  needs the parser to stop producing them.
-            warn(t).foreach(System.err.println)
+            //  is reported and then used anyway. It should be a Failure, but doing that needs the
+            //  parser to stop producing them. Logged rather than printed in the meantime, so that
+            //  an application can route or silence it; it fires on no tested path.
+            warn(t).foreach(logger.warn)
             z.createVerticesFromTriplet[E, EdgeType](f)(adjacency)(bothWays(t))(t)
           }
         val graph: G = build(vertexMap)
-        checkAdjacencies(graph, triplets)
-        Success(graph)
+        checkAdjacencies(graph, triplets).map(_ => graph)
       case z =>
         Failure(GraphException(s"parse failed: $z"))
 
   /**
    * Checks that the graph contains the expected number of adjacencies for the supplied triplets.
    *
-   * A one-way triplet is expected to contribute one adjacency, while a non-one-way triplet is
-   * expected to contribute two adjacencies. If the graph's actual adjacency count differs from
-   * this expected count, a warning is written to standard error.
+   * A one-way triplet contributes one adjacency. A two-way triplet contributes two, one at each
+   * end — unless both ends are the same vertex, because `createVerticesFromTriplet` gives a
+   * self-loop a single adjacency on a single vertex, deliberately. Before 1.11.1 the count did not
+   * know that, so every self-loop in an undirected graph produced a spurious warning: two of the
+   * three `numberOfSelfLoops` tests reported one on every run. Issue #57.
+   *
+   * This is an internal invariant, not a statement about the caller's data: a mismatch means the
+   * graph does not hold what the triplets described, which is this library's fault and not
+   * something a caller can act on from a line on stderr. Hence a `Failure` rather than a warning.
    *
    * @param graph    the graph whose adjacencies are counted.
    * @param triplets the triplets used to determine the expected adjacency count.
    * @tparam V the vertex attribute type.
    * @tparam E the edge attribute type.
-   * @return `Unit`.
+   * @return `Success(())` if the counts agree, otherwise `Failure(GraphException)`.
    */
-  private def checkAdjacencies[V, E](graph: AbstractGraph[V], triplets: Triplets[V, E, EdgeType]): Unit =
-    val expected = triplets.triplets.map(t => if t._4.oneWay then 1 else 2).sum
+  private def checkAdjacencies[V, E](graph: AbstractGraph[V], triplets: Triplets[V, E, EdgeType]): Try[Unit] =
+    val expected = triplets.triplets.map(t => if t.edgeType.oneWay || t.from == t.to then 1 else 2).sum
     val actual = graph.adjacencies.size
-    if actual != expected then System.err.println(s"WARNING: $actual != $expected")
+    if actual == expected then Success(())
+    else Failure(GraphException(
+      s"fromTriplets: the graph holds $actual adjacencies where ${triplets.triplets.size} triplet(s) " +
+              s"describe $expected. This is an internal inconsistency in Gryphon, not a problem with " +
+              s"the input; please report it with the graph which produced it (#57)."))

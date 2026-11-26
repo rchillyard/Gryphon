@@ -1,0 +1,22 @@
+# Deliberate binary breaks in 1.12.0, relative to 1.11.0. See the release note in README.md.
+#
+# ShortestPaths.undiscoveredEdges and .undiscoveredVertices duplicated the methods of the same
+# names on Graph, with the receiver moved into a parameter, and nothing called them anywhere:
+# not src/main, not the specs (ShortestPathsSpec exercises Graph's pair), not the Java facade.
+# Deleted on tidy/robin1. See #106, which also asks whether Graph's surviving pair should be
+# renamed, since `filteredAdjacencies(_ => true)` filters nothing.
+#
+# They are in published 1.10.0 AND in published 1.11.0, so removing them is a real break against
+# both: the release carrying this is 1.12.0, not 1.11.1. Under PVP, 1.11.x -> 1.12.0 is a major
+# bump, so the break is permitted.
+#
+# THESE FILTERS DO NOT RETIRE. sbt-mima reads every *.backwards.excludes in this directory
+# whatever it is named, so this file stays in force until somebody deletes it. Delete it at the
+# 1.12.0 post-release, when previousRelease moves to 1.12.0. See #107.
+#
+# The lines below are MiMa's own suggestions from the failing run, not hand-written.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredEdges(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredEdges$default$3(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredVertices(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredVertices$default$3(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)scala.util.Random")

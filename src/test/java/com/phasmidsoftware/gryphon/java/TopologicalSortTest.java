@@ -67,28 +67,45 @@ public class TopologicalSortTest {
         assertFalse(result.isPresent());
     }
 
+    // A source with four leaf children. Unlike buildSimpleDAG, this one is NOT invariant under
+    // adjacency shuffling: however the sort's loop orders its start vertices, at most one leaf is
+    // visited before 0 is expanded, leaving three or more unvisited children whose post-order
+    // depends entirely on the shuffle. buildSimpleDAG cannot vary — its keySet order is
+    // [1, 0, 2, 3], so the DFS from 1 records 3 and 1, and by the time 0 is expanded only 2 is
+    // left to choose. See #139.
+    private static Graph<Integer> buildStarDAG() {
+        Graph<Integer> g = Graph.directed();
+        g.addEdge(0, 1);
+        g.addEdge(0, 2);
+        g.addEdge(0, 3);
+        g.addEdge(0, 4);
+        return g;
+    }
+
     /**
-     * The facade returns the same ordering every time it is asked.
+     * Issue #139: the facade reads {@code DirectedGraph.topologicalOrder}, the lazy val from
+     * #118, rather than re-running the algorithm on every call.
      *
-     * <p><b>This does not test #139.</b> #139 routed the bridge through
-     * {@code DirectedGraph.topologicalOrder}, the lazy val from #118, so that
-     * {@code isDAG} followed by {@code ShortestPaths.acyclic} — the sequence the facade's own
-     * javadoc prescribes — sorts once rather than twice. That is a saving, not a behaviour, and
-     * nothing here can see it: this test was written expecting it to fail against the old code,
-     * and it passed. The ordering is deterministic in practice, so repeated runs of the
-     * algorithm agree with each other just as a memoized value does.</p>
+     * <p>{@code ShortestPaths.acyclic} tells Java callers in its own javadoc to check
+     * {@code isDAG} first, and {@code isDAG} is {@code sort(graph).isPresent()}. Before the fix
+     * that idiom sorted, discarded the ordering, and sorted again inside {@code acyclic} — which
+     * does read {@code topologicalOrder}.</p>
      *
-     * <p>It is kept because the property is worth pinning on its own account — a facade that
-     * returned a different valid ordering each call would be a nuisance to any caller comparing
-     * results — but reverting #139 will not make it fail. The determinism it rests on is
-     * incidental rather than guaranteed; see #131, which is about where the orderings get their
-     * {@code Random}.</p>
+     * <p>The saving is not directly observable, but a consequence of it is. Adjacency iteration
+     * is deliberately shuffled, and {@code TopologicalSort.sort} takes no {@code Random} of its
+     * own, so each vertex expansion builds a fresh one (#131). Running the algorithm repeatedly
+     * on a graph that is sensitive to the shuffle therefore yields different valid orderings,
+     * while one memoized value cannot. Equality across calls witnesses the memoization.</p>
+     *
+     * <p>The graph matters: this assertion passes with or without the fix on
+     * {@code buildSimpleDAG}, whose result is invariant under shuffling. {@code buildStarDAG}
+     * is not, and fails without the fix.</p>
      */
     @Test
     void repeated_sorts_of_one_graph_agree() {
-        Graph<Integer> g = buildSimpleDAG();
+        Graph<Integer> g = buildStarDAG();
         List<Integer> first = TopologicalSort.sort(g).get();
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 50; i++) {
             assertEquals(first, TopologicalSort.sort(g).get());
         }
         assertTrue(TopologicalSort.isDAG(g));

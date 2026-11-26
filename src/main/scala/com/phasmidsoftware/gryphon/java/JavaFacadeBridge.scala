@@ -660,11 +660,16 @@ private[java] object JavaFacadeBridge:
   // -- which does use `topologicalOrder`. That is precisely the double sort #118 removed. See
   // #139.
   //
-  // No test witnesses this. The saving is a saving, not a behaviour: both forms return the same
-  // ordering, and an attempt to catch the difference through repeated calls returning different
-  // valid orderings failed -- the ordering is deterministic in practice here, despite #131. The
-  // test in TopologicalSortTest passes with either form and is a consistency assertion, not a
-  // guard. Anyone tempted to revert this line should know that the suite will not stop them.
+  // `TopologicalSortTest.repeated_sorts_of_one_graph_agree` guards this, and the graph it uses
+  // is the whole point of it. Adjacency iteration is shuffled and `sort` takes no `Random` of
+  // its own, so each vertex expansion builds a fresh one (#131): running the algorithm twice on
+  // a shuffle-sensitive graph gives different valid orderings, while one lazy val cannot.
+  //
+  // The first version of that test used a four-vertex diamond and passed with this line
+  // reverted, which nearly had me record the fix as unobservable. That graph's keySet order is
+  // [1, 0, 2, 3], so the DFS from 1 records 3 and 1 before 0 is ever expanded, leaving it one
+  // unvisited child and nothing to shuffle. The test now uses a source with four leaves, where
+  // at least three children are unvisited whatever the start order.
   def topologicalSort[V](scalaGraph: AbstractGraph[V]): JavaOptional[JavaList[V]] =
     scalaGraph match
       case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, ?] @unchecked =>

@@ -128,3 +128,78 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
       val kruskalWeights = Kruskal.mst(graph).map(_.attribute).toSet
       boruvkaWeights shouldBe kruskalWeights
     }
+
+  // =====================================================================================
+  // Issue #79: the in-round cycle guard in `mergeUniqueEdges`.
+  //
+  //     if wcAcc.isConnected(u, v) then (wcAcc, edges) else (wcAcc.connect(u, v), edges :+ edge)
+  //
+  // This was the one Stryker4s survivor nobody could kill: mutating the condition to `false`
+  // passed the whole suite, and instrumenting the branch showed it never executed at all. Every
+  // existing Borůvka test uses prim.graph, whose sixteen weights are distinct, and with distinct
+  // weights the round's chosen edges can never close a cycle -- which is why the textbook states
+  // the algorithm for distinct weights.
+  //
+  // The witness below was found by search: five graph families, each over triplet permutations
+  // and 300 vertex relabellings, ~36,000 runs. Two things it taught us.
+  //
+  // First, the lever is NOT the triplet order, which is what an earlier search varied without
+  // ever reaching the guard. It is the order of `vertices` (`vertexMap.keySet.toSeq`), because a
+  // component's chosen edge comes from the FIRST of its vertices to offer a crossing edge --
+  // `cheapestCrossingEdges` keeps the incumbent on a tie, and here every weight ties. Labelling
+  // these six vertices 1..6 rather than 0..5 is the whole difference: it changes the hash order
+  // enough that each pair picks the crossing edge going the same way round the 6-cycle, so all
+  // three survive `uniqueCrossingEdges` (which keys by component-root PAIR) and together close
+  // a cycle.
+  //
+  // Second, the guard is live, not dead. Measured with the condition stubbed to `false`:
+  //
+  //     edges = 6 on a 6-vertex connected graph -- a cycle, not a spanning tree
+  //     total weight = 9.0, against the true 7.0
+  //
+  // Both assertions below therefore fail under the mutant. #79 asked whether to demonstrate a
+  // graph that needs the guard or remove it as dead; this is the demonstration, so it stays.
+  //
+  // CAVEAT worth knowing: the witness depends on the iteration order of a hash map over the keys
+  // 1..6. That is deterministic for a given Scala version but is not a guarantee across versions.
+  // If it ever changes, these assertions still hold -- a correct MST is a correct MST -- but they
+  // may stop exercising the guard, silently. If Stryker4s reports this survivor again, re-run the
+  // search rather than assuming the case is unreachable.
+
+  behavior of "Boruvka with tied weights"
+
+  private val tiedCycle: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+    Triplet(1, 2, Some(1.0), com.phasmidsoftware.gryphon.core.Undirected),
+    Triplet(3, 4, Some(1.0), com.phasmidsoftware.gryphon.core.Undirected),
+    Triplet(5, 6, Some(1.0), com.phasmidsoftware.gryphon.core.Undirected),
+    Triplet(2, 3, Some(2.0), com.phasmidsoftware.gryphon.core.Undirected),
+    Triplet(4, 5, Some(2.0), com.phasmidsoftware.gryphon.core.Undirected),
+    Triplet(6, 1, Some(2.0), com.phasmidsoftware.gryphon.core.Undirected)
+  )
+
+  private def withTiedCycle[A](f: UndirectedGraph[Int, Double] => A): A =
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(tiedCycle) match
+      case Success(g: UndirectedGraph[Int, Double] @unchecked) => f(g)
+      case other => fail(s"graph construction failed: $other")
+
+  it should "return a spanning TREE, not a cycle, when a round's edges would close one" in :
+    withTiedCycle { g =>
+      g.order shouldBe 6
+      Boruvka.mst(g).size shouldBe 5 // 6 under the mutant
+    }
+
+  it should "agree with Kruskal on total weight" in :
+    withTiedCycle { g =>
+      Boruvka.mst(g).map(_.attribute).sum shouldBe 7.0 // 9.0 under the mutant
+      Boruvka.mst(g).map(_.attribute).sum shouldBe Kruskal.mst(g).map(_.attribute).sum
+    }
+
+  it should "choose every cheap edge and exactly two of the three expensive ones" in :
+    // The three weight-1.0 pair edges must all be in: each is the unique cheapest edge of its
+    // own cut. Exactly two of the three weight-2.0 crossing edges join them into a tree; the
+    // third would close the cycle and is what the guard rejects.
+    withTiedCycle { g =>
+      val weights = Boruvka.mst(g).map(_.attribute)
+      weights.count(_ == 1.0) shouldBe 3
+      weights.count(_ == 2.0) shouldBe 2
+    }

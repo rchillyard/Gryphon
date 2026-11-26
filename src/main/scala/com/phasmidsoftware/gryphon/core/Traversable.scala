@@ -215,14 +215,24 @@ trait Traversable[V] {
    * Used internally by the default implementations of `vertexMappedTraversalDfs`,
    * `vertexMappedTraversalBfs`, and `getConnexions`.
    *
-   * CONSIDER making this protected again but that requires multiple instances in each type of Traversal. (#93)
-   * Blocked on issue #67: the NOTE below is that issue, and the trade-off only looks bad while
-   * multiple Random-derived instances are dangerous.
+   * Narrowed from public to `protected[core]` in 1.12.0 (#93). It is derived state — a type class
+   * instance built from `adjacentVertices` — rather than anything a caller of a graph needs, and
+   * it was public only because narrowing it was awkward.
+   *
+   * `protected[core]` rather than a plain `protected`, which is what the old CONSIDER here asked
+   * for and could not have. Of the two call sites, `VertexMap` is a subclass and so would satisfy
+   * a plain `protected`, but `GraphNeighboursTraversal` is not: it holds a `Traversable[V]` as a
+   * field and reads `traversable.graphNeighbours` off that other instance, which plain `protected`
+   * forbids. That is what the old note meant by "requires multiple instances in each type of
+   * Traversal" — the alternative was to give every traversal class its own instance. Widening to
+   * the package costs nothing, since both call sites live in `core`, and avoids that entirely.
    *
    * NOTE: do not be tempted to add a default Random implementation for this context.
-   * We need to enforce consistency of Random instances.
+   * We need to enforce consistency of Random instances. That was the reason this stayed public
+   * while #67 was open — multiple Random-derived instances were dangerous — and #67 closed with
+   * 1.11.0, so the reason is gone.
    */
-  def graphNeighbours(using random: Random): GraphNeighbours[V] = (v: V) => adjacentVertices(v)
+  protected[core] def graphNeighbours(using random: Random): GraphNeighbours[V] = (v: V) => adjacentVertices(v)
 
   // traversalResult, which unwrapped a journal into a VertexTraversalResult, is gone with the
   // two bodies that used it: UnweightedTraversal.run does that unwrapping now, once.

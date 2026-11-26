@@ -13,7 +13,7 @@ import scala.util.{Failure, Random, Success, Try}
 class TraversableSpec extends AnyFlatSpec with should.Matchers:
 
   // dfsu.graph is UNDIRECTED, so a vertex has several possible predecessors and which one a
-  // traversal records depends on adjacency order. "ProtoConnexions.create" asserts a specific
+  // traversal records depends on adjacency order. "Connexions.create" asserts a specific
   // predecessor edge, so it needs that order pinned. Before 1.11.0 this given could not have
   // helped: the bag path read an ambient, process-global generator and ignored anything in
   // scope, which is exactly what #67 was about. Now it is consulted, so the test is
@@ -114,7 +114,7 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
           fail(exception)
     }
 
-  it should "ProtoConnexions.create" in :
+  it should "Connexions.create" in :
     withDfsuGraph { graph =>
       val connexions: Connexions[Int, Unit] = Connexions.create[Int, Unit](graph)(0)
       connexions match

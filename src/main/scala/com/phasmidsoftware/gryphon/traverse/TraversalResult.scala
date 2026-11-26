@@ -379,13 +379,16 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
 }
 
 /**
- * Provides utility methods for creating and managing instances of the `ProtoConnexions` class,
- * which represents a specific traversal of vertices within a graph resulting from
- * a depth-first search starting at a particular vertex.
+ * Provides utility methods for creating `Connexions` instances, which represent a specific
+ * traversal of vertices within a graph resulting from a depth-first search starting at a
+ * particular vertex.
+ *
+ * NOTE this object documented itself as being about `ProtoConnexions` until #133. That is a
+ * different type entirely -- a `SerializableGraph` of vertex pairs, not a traversal result.
  */
 object Connexions {
   /**
-   * Creates a `ProtoConnexions` instance representing a traversal of a graph using depth-first search (DFS).
+   * Creates a `Connexions` instance representing a traversal of a graph using depth-first search (DFS).
    * The traversal starts from the specified vertex, processes each vertex using the provided function,
    * and returns the resulting connexions.
    *
@@ -405,10 +408,10 @@ object Connexions {
   }
 
   /**
-   * Creates an empty instance of the `ProtoConnexions` class, representing a traversal with no vertices or edges.
+   * Creates an empty `Connexions`, representing a traversal with no vertices or edges.
    *
    * @tparam V the type representing a vertex in the graph.
-   * @return an empty `ProtoConnexions` instance.
+   * @return an empty `Connexions[V, E]`.
    */
   def empty[V, E]: Connexions[V, E] =
     Connexions(Map.empty[V, DirectedEdge[V, E]])

@@ -8,6 +8,7 @@ import com.phasmidsoftware.gryphon.core.AbstractGraph;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * A mutable, lazily-materialised façade over Gryphon's purely functional graph types.
@@ -350,7 +351,7 @@ public class Graph<V> {
      * @param random the generator determining adjacency order.
      * @return the BFS came-from map.
      */
-    public Map<V, V> bfs(V start, java.util.Random random) {
+    public Map<V, V> bfs(V start, Random random) {
         return JavaFacadeBridge$.MODULE$.bfs(getScalaGraph(), start, random);
     }
 
@@ -377,7 +378,7 @@ public class Graph<V> {
      * @param random the generator determining adjacency order.
      * @return the DFS came-from map.
      */
-    public Map<V, V> dfs(V start, java.util.Random random) {
+    public Map<V, V> dfs(V start, Random random) {
         return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start, random);
     }
 
@@ -407,7 +408,7 @@ public class Graph<V> {
      * @param random the generator determining adjacency order.
      * @return the came-from map over all components.
      */
-    public Map<V, V> dfsAll(java.util.Random random) {
+    public Map<V, V> dfsAll(Random random) {
         return JavaFacadeBridge$.MODULE$.dfsAll(getScalaGraph(), random);
     }
 
@@ -433,7 +434,7 @@ public class Graph<V> {
      * @param goal  the stopping condition.
      * @return the partial BFS came-from map.
      */
-    public Map<V, V> bfsUntil(V start, java.util.function.Predicate<V> goal) {
+    public Map<V, V> bfsUntil(V start, Predicate<V> goal) {
         return JavaFacadeBridge$.MODULE$.bfsUntil(getScalaGraph(), start, goal::test);
     }
 
@@ -446,7 +447,7 @@ public class Graph<V> {
      * @param random the generator determining adjacency order.
      * @return the partial BFS came-from map.
      */
-    public Map<V, V> bfsUntil(V start, java.util.function.Predicate<V> goal, java.util.Random random) {
+    public Map<V, V> bfsUntil(V start, Predicate<V> goal, Random random) {
         return JavaFacadeBridge$.MODULE$.bfsUntil(getScalaGraph(), start, goal::test, random);
     }
 

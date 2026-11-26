@@ -66,7 +66,7 @@ public class StronglyConnectedComponents {
      * @throws IllegalStateException if {@code graph} is undirected.
      */
     public static <V> Map<V, Integer> kosaraju(Graph<V> graph) {
-        return kosaraju(graph, new java.util.Random());
+        return kosaraju(graph, new Random());
     }
 
     /**
@@ -86,7 +86,7 @@ public class StronglyConnectedComponents {
      * vertices with the same id are in the same SCC.
      * @throws IllegalStateException if {@code graph} is undirected.
      */
-    public static <V> Map<V, Integer> kosaraju(Graph<V> graph, java.util.Random random) {
+    public static <V> Map<V, Integer> kosaraju(Graph<V> graph, Random random) {
         if (!graph.isDirected())
             throw new IllegalStateException(
                     "StronglyConnectedComponents.kosaraju requires a directed graph");

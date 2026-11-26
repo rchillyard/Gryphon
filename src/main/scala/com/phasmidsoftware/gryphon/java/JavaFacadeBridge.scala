@@ -46,6 +46,38 @@ import scala.util.{Random, Try}
  * `Neighbours[V, V]` given instance, then delegates to `Traversal.bfs`/`dfs`.
  * The overhead of the `asScala` iterator conversion is O(1) per neighbour visit
  * and negligible for all realistic graph sizes.
+ *
+ * ==Randomness: when a method takes a `java.util.Random`==
+ *
+ * Adjacency iteration is shuffled, and a Scala caller controls it with `given Random`. A Java
+ * caller cannot write a `given`, so where the order can reach the result a method comes in a
+ * pair: one taking the caller's generator, and one building a fresh unseeded one. Taking a
+ * generator rather than a seed is deliberate — one generator can span several façade calls,
+ * which is what a `given` does and what a `long seed` could not express.
+ *
+ * '''Adding a method? The rule is: does adjacency order reach what this method returns?'''
+ *
+ *  - '''Yes — give it the pair.''' `bfs`, `dfs`, `dfsAll`, `bfsUntil`, `dijkstraDouble`,
+ *    `dijkstraCustom`, `primDouble`, `primCustom`, `kosaraju`. For Dijkstra and Prim the
+ *    numbers do not vary — distances are distances, a minimum spanning tree is minimum — but
+ *    which of several equal-cost trees comes back does.
+ *  - '''No — give it neither.''' `kruskal`, `boruvka`, `bellmanFord`, `acyclicShortestPaths`
+ *    sort or relax over all edges, so adjacency order cannot affect them. `bfsWithNeighbours`
+ *    and `dfsWithNeighbours` take the caller's own neighbour function and never consult the
+ *    graph's adjacencies.
+ *  - '''Careful with the third case.''' `connectedComponents` returns only the component map,
+ *    whose ids come from walking a Set and do not vary — so no pair — even though the
+ *    `Connexions` tree that `ConnectedComponents.components` also computes does vary, and does
+ *    take a generator (#143). The question is about what the method *returns*, not what the
+ *    algorithm computes. `topologicalSort` likewise takes none: it reads the memoized
+ *    `DirectedGraph.topologicalOrder`, so repeated calls agree — though the memoized value was
+ *    computed unseeded, so a different run of the program may memoize a different valid order
+ *    (#131).
+ *
+ * Until 1.13.0 there were no pairs: the façade pinned `Random(0)` at ten sites, and `Random(42)`
+ * at one for no reason anyone recorded. That bought reproducibility by telling Java users
+ * something false — that `dfs` and `bfs` return a particular order. They do not, and the Scala
+ * API has never claimed they do. See #141 and #142.
  */
 private[java] object JavaFacadeBridge:
 
@@ -57,16 +89,8 @@ private[java] object JavaFacadeBridge:
    * Runs BFS from `start` on the materialised Scala graph.
    * The start vertex is absent from the returned came-from map.
    */
-  // Every method below that consults adjacency order comes in a pair: one taking the caller's
-  // `java.util.Random`, and one that builds a fresh unseeded generator. The pair is how a Java
-  // caller gets the lever a Scala caller has as `given Random`, since a `given` cannot be written
-  // from Java (#142).
-  //
-  // Until 1.13.0 these pinned `Random(0)` internally. That made the facade reproducible, but by
-  // telling Java users something false -- that `dfs` and `bfs` return a particular order. They do
-  // not, and the Scala API has never claimed they do. Taking the generator rather than a seed is
-  // deliberate: one generator can span several facade calls, which is what a `given` does and what
-  // a `long seed` parameter could not express.
+  // The first of the paired methods; the rule deciding which methods get a pair is in this
+  // object's scaladoc, under "Randomness".
   def bfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
     bfs(scalaGraph, start, java.util.Random())
 

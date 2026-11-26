@@ -350,6 +350,9 @@ Both traversals return a came-from map — a `Map<V, V>` where each entry
 predecessor. So are unreachable vertices. This is the same convention as the
 Dijkstra SPT, the Prim MST and the Kosaraju SCC map.
 
+"Who discovered `v`" is meant literally, and for DFS it is not the same as "whose child
+`v` is in the search tree" — see the note below the DFS example.
+
 ```java
 Graph<String> g = Graph.undirected();
 g.addEdge("A", "B");
@@ -370,13 +373,23 @@ while (bfsTree.containsKey(v)) {
 }
 // path == ["A", "B", "C", "D"]
 
-Map<String, String> dfsTree = g.dfs("A");
+Map<String, String> dfsCameFrom = g.dfs("A");
 ```
 
+> **A came-from map is not a search tree.** It records, for each vertex, the vertex it
+> was *first seen from*. For BFS that is also the vertex it was explored from, so the
+> result is the BFS tree and walking it back gives a shortest path in edges. For DFS the
+> two differ: a vertex can be seen early from one neighbour and explored later from
+> somewhere deeper, and it is the deeper vertex that would be its parent in the DFS tree.
+> On a graph whose start vertex is adjacent to every other, `dfs` returns a star, where
+> the DFS tree is a path. Walking the map back still gives a genuine path to the start —
+> just not the path the search took. See issue #144.
+
 `dfs` explores only the component containing its start vertex. To cover the
-whole graph, use `dfsAll`, which restarts from each undiscovered vertex and
-returns a depth-first *forest*. One root per component is absent from the map,
-so the number of absent vertices is the number of components.
+whole graph, use `dfsAll`, which restarts from each undiscovered vertex so that the map
+covers every component. One root per component is absent from the map, so the number of
+absent vertices is the number of components. (This said "returns a depth-first *forest*"
+until #145; by the above, it does not.)
 
 ```java
 Graph<Integer> g = Graph.undirected();

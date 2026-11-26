@@ -325,6 +325,11 @@ public class Graph<V> {
      * <p>Path reconstruction: walk {@code result.get(v)} until the key is
      * absent — that vertex is the start.</p>
      *
+     * <p>The map records, for each vertex, the vertex it was <em>first seen from</em>. For
+     * breadth-first search that is also the vertex it was explored from, so the result is the
+     * BFS tree, and walking it back gives a shortest path in edges. Depth-first search is not
+     * like this — see {@link #dfs(Object)}.</p>
+     *
      * <p><b>The order is not fixed.</b> Adjacency iteration is shuffled, so this may return a
      * different — and equally valid — came-from map each time. If you need one reproducible
      * answer, use {@link #bfs(Object, java.util.Random)}.</p>
@@ -360,11 +365,22 @@ public class Graph<V> {
      *
      * <p>Returns a came-from map; start vertex absent.</p>
      *
+     * <p><b>This map is not the DFS tree.</b> Like {@link #bfs(Object)}, it records for each
+     * vertex the vertex it was <em>first seen from</em>. For BFS that coincides with the vertex
+     * it was explored from; for DFS it does not. A vertex can be seen early from one neighbour
+     * and then explored later from somewhere deeper, and it is the deeper vertex that would be
+     * its parent in the DFS tree.</p>
+     *
+     * <p>The difference is not a corner case. On a graph whose source is adjacent to every other
+     * vertex, every vertex is first seen from the source, so this returns a star — whereas the
+     * DFS tree of such a graph is a path. Walking the map back from a vertex still yields a
+     * genuine path to the start, but not the path the search took. See issue #144.</p>
+     *
      * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
      * {@link #dfs(Object, java.util.Random)} when you need one reproducible answer.</p>
      *
      * @param start the source vertex.
-     * @return the DFS came-from map.
+     * @return the DFS came-from map — a discovery map, not the DFS tree.
      */
     public Map<V, V> dfs(V start) {
         return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start);
@@ -387,10 +403,16 @@ public class Graph<V> {
      *
      * <p>{@link #dfs(Object)} explores only the component containing its start
      * vertex. This method restarts from each vertex not yet discovered, so the
-     * came-from map covers the whole graph — a depth-first <em>forest</em>.
-     * Each component's root is absent from the map, just as the start vertex is
-     * for a single DFS, so the number of absent vertices is the number of
-     * components.</p>
+     * came-from map covers the whole graph. Each component's root is absent from
+     * the map, just as the start vertex is for a single DFS, so the number of
+     * absent vertices is the number of components.</p>
+     *
+     * <p>This javadoc called the result a depth-first <em>forest</em> until #145. It is not one,
+     * for the reason given in {@link #dfs(Object)}: the map records where each vertex was first
+     * seen rather than where it was explored from, and for depth-first search those differ. It
+     * is a discovery map covering every component — which is what you want for counting
+     * components or reaching every vertex, and is not what you want if you need the shape of the
+     * search itself.</p>
      *
      * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
      * {@link #dfsAll(java.util.Random)} when you need one reproducible answer.</p>

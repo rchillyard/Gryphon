@@ -45,15 +45,27 @@ object Boruvka:
     // Each vertex starts as its own component using optimized Connectivity
     val wc0: Connectivity[V] = Connectivity.createOptimized(vertices *)
 
+    // Terminates when a round adds no edge, which proves every component is maximal.
+    //
+    // This used to terminate when exactly one component remained — `vertices.map(wc.getDisjointSet)
+    // .toSet.size == 1` — which is only ever true of a CONNECTED graph. On a disconnected one it
+    // did not terminate at all: once each component is internally spanned there are no crossing
+    // edges, so `cheapest` is empty, nothing merges, and `loop` recurses with identical arguments.
+    // Being @tailrec, it spun rather than overflowing the stack, so the symptom was a hang rather
+    // than a failure. See #117.
+    //
+    // The no-progress test is correct for both cases: Borůvka adds at least one edge per round
+    // while any crossing edge exists, so a round that adds none means every component is maximal.
+    // On a connected graph that is the spanning tree and the behaviour is unchanged; on a
+    // disconnected one it is the spanning forest. It also subsumes the old test — one component
+    // means no crossing edges — so that O(V) scan is gone from every round.
     @scala.annotation.tailrec
     def loop(wc: Connectivity[V], mstEdges: Seq[Edge[V, E]]): Seq[Edge[V, E]] =
-      // getDisjointSet walks the parent chain to the true root.
-      if vertices.map(wc.getDisjointSet).toSet.size == 1 then mstEdges
-      else
-        val cheapest = cheapestCrossingEdges(graph, vertices, wc)
-        val uniqueEdges = uniqueCrossingEdges(cheapest, wc).values
-        val (wc1, mstEdges1) = mergeUniqueEdges(wc, mstEdges, uniqueEdges)
-        loop(wc1, mstEdges1)
+      val cheapest = cheapestCrossingEdges(graph, vertices, wc)
+      val uniqueEdges = uniqueCrossingEdges(cheapest, wc).values
+      val (wc1, mstEdges1) = mergeUniqueEdges(wc, mstEdges, uniqueEdges)
+      if mstEdges1.size == mstEdges.size then mstEdges1
+      else loop(wc1, mstEdges1)
 
     loop(wc0, Seq.empty)
 

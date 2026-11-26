@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.12.1"
+ThisBuild / version := "1.13.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -16,7 +16,6 @@ val jupiterInterfaceVersion = "0.19.0"
 val visitorVersion      = "1.9.0"
 val flogVersion         = "1.1.0"
 val logbackVersion      = "1.5.32"
-val slf4jVersion        = "2.0.17"
 lazy val scalaParserCombinatorsVersion = "2.4.0"
 
 // ============================================================================
@@ -76,8 +75,14 @@ lazy val root = (project in file("."))
             "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
             "org.typelevel"          %% "cats-kernel"              % catsKernelVersion,
             "com.phasmidsoftware"    %% "visitor"                  % visitorVersion,
+            // flog is a DEBUGGING tool: you add calls while chasing something and take them out
+            // before committing. Zero call sites is therefore its normal, healthy state and is NOT
+            // evidence the dependency is unused. #102 proposed dropping it on exactly that basis;
+            // Robin's answer was no, and this comment is here so the question is not reopened.
             "com.phasmidsoftware"    %% "flog"                     % flogVersion,
-            "org.slf4j"               % "slf4j-api"                % slf4jVersion,
+            // slf4j-api is gone in 1.13.0 (#102). It had one user, a public `val logger` on
+            // VertexMap that nothing called, and after #57 made the orientation warning a Failure
+            // there is no logging call anywhere in src/main. Put it back the day something logs.
             // Test scope only: a library must not publish a logging backend for its users.
             "ch.qos.logback"          % "logback-classic"          % logbackVersion % Test,
             "org.scalatest"          %% "scalatest"                % scalaTestVersion % Test,

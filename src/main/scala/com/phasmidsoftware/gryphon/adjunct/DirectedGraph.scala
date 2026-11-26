@@ -57,7 +57,28 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @return true if the graph is cyclic, false otherwise.
    */
-  def isCyclic: Boolean = TopologicalSort.sort(this).isEmpty
+  def isCyclic: Boolean = topologicalOrder.isEmpty
+
+  /**
+   * A topological order of this graph, or `None` if it is cyclic. Computed once per instance.
+   *
+   * Cached because it was being computed twice on the ordinary path (#118). `isCyclic` is
+   * `topologicalOrder.isEmpty`, and the façade's own scaladoc tells a Java caller to check
+   * `isDAG` before calling `AcyclicShortestPaths` — which then sorts again internally. A
+   * `lazy val` is safe here where a mutable cache would not be: a derived graph is a different
+   * object with its own uninitialised field, so there is nothing to invalidate, and it is not a
+   * constructor parameter so `equals`, `hashCode`, `copy` and `unapply` do not see it.
+   *
+   * NOTE on which order you get. `TopologicalSort.sort` installs
+   * `GraphNeighbours[V] = graph.adjacentVertices(_)`, and `adjacentVertices` takes
+   * `using Random = Random()` with no `Random` in scope there — so a fresh generator is built
+   * per vertex and the DFS order varies from call to call. Every result is a valid topological
+   * order, so this is not a correctness problem, but it does mean the method is not reproducible
+   * under a caller's seed, which is the defect #67 fixed elsewhere and did not reach here.
+   * Caching therefore makes this MORE deterministic than before, not less: one order per graph
+   * instead of a fresh one per call. See #131.
+   */
+  lazy val topologicalOrder: Option[Seq[V]] = TopologicalSort.sort(this)
 
   // There is no isConnected or isBipartite here, and that is the point: both used to be declared
   // on the Graph trait and implemented here as `throw UnsupportedOperationException`. Connectivity

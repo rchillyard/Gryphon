@@ -126,13 +126,14 @@ object TraversalResult {
  * @tparam T the type representing the result of the edge traversal
  * @param ts a list of elements of type T representing traversal data, typically associated with edges
  */
-abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResult[Int, T] {
+abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResult[Int, T] with Seq[T] {
   /**
    * Returns the number of key-value pairs in the map.
    *
    * @return the size of the map as an integer
    */
-  def size: Int = ts.size
+  // No `size` here: it is final in SeqOps, defined as `length`, which this class supplies below.
+  // That inherited member also satisfies `TraversalResult.size`, so nothing is lost.
 
   /**
    * Retrieves the set of keys from the underlying map that represents the traversal result.
@@ -156,6 +157,32 @@ abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResu
    * @return the result of the traversal
    */
   def edgeTraverse(x: Int): T = ts(x)
+
+  /**
+   * The results in order. Extending `Iterable[T]` is what makes this branch usable, and was a
+   * precondition of #130.
+   *
+   * Before it, the branch offered only `size`, `keySet` (the indices) and `edgeTraverse(i)` —
+   * positional, O(n) into a `List`. Moving `Kruskal.mst` and `Boruvka.mst` onto it would then
+   * have cost every caller the `mst.map(_.attribute).sum` they all write: 46 sites in the test
+   * suite alone needed `map`, `exists` or `head`. Adding `.toSeq` at each of them would have been
+   * churn advertising an awkward type. `Seq` gives all of those directly — and `sorted`, which
+   * `Iterable` does not — so the move is a gain in type precision at NO cost in usability, which
+   * is the only basis on which it was worth making.
+   *
+   * It also makes #130 very nearly source-compatible: a caller who had a `Seq[Edge[V, E]]` from
+   * `Kruskal.mst` keeps every operation they were using. Only the declared type changed.
+   */
+  def iterator: Iterator[T] = ts.iterator
+
+  /**
+   * Positional access, as `Seq` requires — and the same operation as `edgeTraverse`, which is
+   * what the edge-keyed branch has always meant by a key. The two are deliberately the same.
+   */
+  def apply(i: Int): T = ts(i)
+
+  /** The number of results, as `Seq` requires. */
+  def length: Int = ts.size
 }
 
 /**

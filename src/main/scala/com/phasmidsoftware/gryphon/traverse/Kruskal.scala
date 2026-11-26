@@ -41,7 +41,7 @@ object Kruskal:
    *         distinct components are kept. See #117, and note that adding the usual "stop at
    *         `order - 1` edges" optimisation would break that.
    */
-  def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
+  def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
     // Seed `ConnectivityLazy` (aka `WeightedUnionFind`) with all vertices as singleton components.
@@ -62,4 +62,4 @@ object Kruskal:
         else (wuf.connect(u, v), mst :+ edge)
     }
 
-    mstEdges
+    EdgeTraversalResult(mstEdges.toList)

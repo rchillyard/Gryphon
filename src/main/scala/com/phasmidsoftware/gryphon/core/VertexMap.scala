@@ -3,7 +3,6 @@ package com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.Vertex.createWithSet
 import com.phasmidsoftware.gryphon.util.RandomIterator
 import com.phasmidsoftware.visitor.core.{*, given}
-import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.util.Random
 
@@ -405,15 +404,7 @@ object VertexMap:
       vm + (t.from -> vv1) + (t.to -> vv2)
     }
 
-  /**
-   * The logger for this object.
-   *
-   * Nothing currently logs through it: it is kept because it is public, so removing it would break
-   * binary compatibility, and 1.11.1 is a patch release. Queued for the next breaking window — see
-   * #102, which is also where the question of whether it should be used instead is recorded.
-   *
-   * The name was the string literal `"VertexMap"`, which would not have followed a rename. Changing
-   * it to the class is safe even in a patch release precisely because nothing logs through it, so
-   * no logging configuration can be keyed to the old name.
-   */
-  val logger: Logger = LoggerFactory.getLogger(getClass)
+  // The public `logger` that was here is gone, in 1.13.0, which is the breaking window its own
+  // scaladoc said it was queued for (#102). Nothing ever logged through it, and after #57 turned
+  // the orientation warning into a Failure there is no logging call anywhere in src/main — so
+  // slf4j-api went with it. Re-adding either is trivial the day something actually logs.

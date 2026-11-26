@@ -196,3 +196,62 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
         mst.map(_.attribute) should not contain 3.0
       case other =>
         fail(s"unexpected: $other")
+  // =====================================================================================
+  // Issue #130: the MST result is the edge-keyed TraversalResult, not a bare Seq.
+  //
+  // Every other test in this file exercises the Seq side, which is the point -- extending Seq is
+  // what made the change cost callers nothing, and 46 sites across the suite kept working
+  // untouched. These cover the side that is new: the TraversalResult interface.
+  //
+  // Note that `edgeTraverse(i)` and `apply(i)` are deliberately the same operation. A positional
+  // index IS what the edge-keyed branch has always meant by a key, so Seq's `apply` and the
+  // branch's `edgeTraverse` cannot sensibly differ.
+
+  behavior of "Kruskal.mst as a TraversalResult"
+
+  it should "answer vertexTraverse with None, having no vertex key" in :
+    withPrimGraph { g =>
+      val mst = Kruskal.mst(g)
+      mst.vertexTraverse(0) shouldBe None
+      mst.vertexTraverse(7) shouldBe None
+    }
+
+  it should "key the edges by position" in :
+    withPrimGraph { g =>
+      val mst = Kruskal.mst(g)
+      mst.keySet shouldBe Range(0, mst.size).toSet
+      mst.edgeTraverse(0) shouldBe mst.head
+      mst.edgeTraverse(mst.size - 1) shouldBe mst.last
+    }
+
+  it should "agree with itself as a Seq" in :
+    withPrimGraph { g =>
+      val mst = Kruskal.mst(g)
+      mst.size shouldBe 7 // 8 vertices, connected
+      mst.toSeq.size shouldBe mst.size
+      Range(0, mst.size).map(mst.edgeTraverse) shouldBe mst.toSeq
+    }
+
+  it should "hold the edges in ascending weight order, which is what the order means here" in :
+    withPrimGraph { g =>
+      val weights = Kruskal.mst(g).map(_.attribute).toSeq
+      weights shouldBe weights.sorted
+    }
+
+  it should "give Boruvka the same type and the same multiset of weights" in :
+    // Different edge ORDER -- Borůvka's is round order, Kruskal's is weight order -- but the same
+    // type, which is the point of #130, and necessarily the same edges.
+    //
+    // Compared as sorted multisets rather than by total, deliberately. Summing the same weights
+    // in a different order gives a different Double: these two produce 1.81 and
+    // 1.8099999999999998 on prim.graph. That is floating-point addition being non-associative,
+    // not a disagreement about the MST, and asserting on the total would make this test a
+    // hostage to the order each algorithm happens to emit.
+    withPrimGraph { g =>
+      val k = Kruskal.mst(g)
+      val b = Boruvka.mst(g)
+      b.size shouldBe k.size
+      b.map(_.attribute).toSeq.sorted shouldBe k.map(_.attribute).toSeq.sorted
+      b.map(_.attribute).sum shouldBe k.map(_.attribute).sum +- 1e-9
+      b.vertexTraverse(0) shouldBe None
+    }

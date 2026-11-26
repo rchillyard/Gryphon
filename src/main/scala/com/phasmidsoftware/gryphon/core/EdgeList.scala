@@ -3,14 +3,21 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Represents a graph structure defined by a sequence of edges.
  *
- * MOVED HERE FROM `src/main` IN 1.11.0 (#69). In the published library this type was reachable
- * but inert: its one consumer, `VertexMap.addEdges`, immediately read `.edges` and folded, and
- * its only real method, `triplets`, was called nowhere but the spec that exists to test it.
- * `addEdges` now takes the sequence directly, so nothing in main needs the wrapper.
+ * One of the four shapes a graph can be unbuilt into, and the most direct: an `EdgeGraph`
+ * already has `edges`, so `EdgeList(g.edges.toSeq)` is the whole conversion, and `triplets`
+ * carries it onward to `SerializableGraph.serialize`. See #135.
  *
- * It is kept here rather than deleted because it is a useful test implementor of
- * `SerializableGraph` and `Edges` — `Edges`'s only one — and `SerializableGraphSpec` exercises
- * both traits through it. That coverage is the reason this class still exists.
+ * It has been here before. #69 moved it to the test tree in 1.11.0 because in the published
+ * library it was reachable but inert: its one consumer, `VertexMap.addEdges`, immediately read
+ * `.edges` and folded, and `triplets` was called nowhere but the spec testing it. That was right
+ * on the evidence then — what was missing was not a consumer for the wrapper but the *reason* a
+ * wrapper should exist, which is that a graph needs rendering as well as building. With unbuild,
+ * it has one.
+ *
+ * The four shapes form a 2x2: attributed or not, against edge objects or raw tuples. This is the
+ * attributed, edge-object corner; `Triplets` is attributed tuples, and `VertexPairList` and
+ * `ProtoConnexions` are the attributeless ones. All four converge on `triplets`, which is why
+ * `serialize` needs no per-shape work.
  *
  * @param edges a sequence of edges that define the connections in the graph.
  * @tparam V the type of the vertices in the graph.

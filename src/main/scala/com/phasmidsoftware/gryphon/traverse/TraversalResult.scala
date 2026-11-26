@@ -54,6 +54,66 @@ object TraversalResult {
    */
   def edgeTraversal[V, E, T](f: Edge[V, E] => T)(traversable: core.EdgeTraversable[V, E]): AbstractEdgeTraversalResult[T] =
     EdgeTraversalResult(traversable.edges.foldLeft(List[T]())((list, edge) => f(edge) :: list))
+
+  /**
+   * The edges of the path ending at `target`, in order from the root.
+   *
+   * Several results in this library are parent maps — each reached vertex against the edge by
+   * which it was reached — which is the `edgeTo[]` array of Sedgewick & Wayne's `DepthFirstPaths`
+   * and `BreadthFirstPaths`. The structure was here and the walk back along it was not, so every
+   * caller wanting a path had to write the walk. Issue #112.
+   *
+   * One implementation serves all of them, because they share the shape rather than the type:
+   * `Connexions` from `getConnexions`, the `VertexTraversalResult` from `ShortestPaths.dijkstra`,
+   * and the one from `AcyclicShortestPaths.shortestPaths` and `longestPaths`.
+   *
+   * @param result the parent map to walk.
+   * @param target the vertex to walk back from.
+   * @tparam V the vertex type.
+   * @tparam E the edge attribute type.
+   * @tparam X the concrete edge type the result holds.
+   * @return the edges from the root to `target`, nearest the root first; empty when `target` has
+   *         no recorded incoming edge.
+   */
+  def pathEdgesTo[V, E, X <: Edge[V, E]](result: TraversalResult[V, X])(target: V): Seq[X] =
+    // The visited set is not decoration. Every map this library produces is acyclic -- a vertex is
+    // recorded once, at first discovery -- but the TYPE permits a cycle, and these are public case
+    // classes anybody can construct. Without the guard a hand-built map would hang here, which is
+    // the failure mode #117 has just shown is worth taking seriously.
+    @scala.annotation.tailrec
+    def loop(v: V, acc: List[X], seen: Set[V]): List[X] =
+      if seen.contains(v) then acc
+      else
+        result.vertexTraverse(v) match
+          case None => acc
+          case Some(edge) => loop(edge.white, edge :: acc, seen + v)
+
+    loop(target, Nil, Set.empty)
+
+  /**
+   * The vertices of the path ending at `target`, in order from the root.
+   *
+   * Always ends with `target`, so the result is never empty. A single-element `Seq(target)` means
+   * `target` has no recorded incoming edge — which is either that it is the root, or that it was
+   * never reached.
+   *
+   * **Those two cases are indistinguishable from a parent map alone**, because the root is simply
+   * absent from the map: it is the one reached vertex with no incoming edge. A caller who needs to
+   * tell them apart must compare against the start vertex it passed in. That is a real limitation
+   * of the representation rather than of this method, and is part of what
+   * [[https://github.com/rchillyard/Gryphon/issues/76 #76]] is about.
+   *
+   * @param result the parent map to walk.
+   * @param target the vertex to walk back from.
+   * @tparam V the vertex type.
+   * @tparam E the edge attribute type.
+   * @tparam X the concrete edge type the result holds.
+   * @return the vertices from the root to `target` inclusive.
+   */
+  def pathTo[V, E, X <: Edge[V, E]](result: TraversalResult[V, X])(target: V): Seq[V] =
+    pathEdgesTo[V, E, X](result)(target) match
+      case Nil => Seq(target)
+      case edges => edges.map(_.white) :+ target
 }
 
 /**

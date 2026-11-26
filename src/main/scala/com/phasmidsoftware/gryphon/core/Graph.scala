@@ -44,6 +44,20 @@ trait Graph[V] extends Traversable[V]:
     vertexMap.dfsAll(visitor)
 
   /**
+   * Performs a DFS from each of `sources` in turn, sharing one visited set — multi-source
+   * reachability. See `Traversable.dfsFrom` and issue #113.
+   *
+   * @param visitor the visitor accumulating results.
+   * @param sources the vertices to start from.
+   * @param random  controls adjacency ordering (implicit).
+   * @tparam E the journal's element type.
+   * @tparam J the journal type.
+   * @return the updated visitor after traversing everything reachable from any source.
+   */
+  def dfsFrom[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(sources: Iterable[V])(using random: Random): Visitor[V, E, J] =
+    vertexMap.dfsFrom(visitor)(sources)
+
+  /**
    * Performs BFS from `v`, accumulating results into `visitor`.
    *
    * @param visitor the visitor accumulating results.

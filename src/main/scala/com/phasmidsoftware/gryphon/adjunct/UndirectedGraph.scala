@@ -49,13 +49,13 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
   /**
    * Returns the maximum degree of any vertex in the graph.
    */
-  def maxDegree: Int =
+  lazy val maxDegree: Int =
     vertexMap.keySet.toSeq.map(degree).max
 
   /**
    * Returns the mean degree across all vertices in the graph.
    */
-  def meanDegree: Double =
+  lazy val meanDegree: Double =
     vertexMap.keySet.toSeq.map(degree).sum.toDouble / order
 
   /**
@@ -63,7 +63,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    *
    * @return true if the graph is cyclic (i.e., it contains at least one cycle), false otherwise.
    */
-  def isCyclic: Boolean =
+  lazy val isCyclic: Boolean =
     given Random = Random(0)
 
     // The visited set is threaded through rather than mutated: each call returns both its answer
@@ -92,7 +92,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    * Performs a single DFS from an arbitrary start vertex and checks whether
    * all N vertices were visited.
    */
-  def isConnected: Boolean =
+  lazy val isConnected: Boolean =
     if order == 0 then true
     else
       given Random = Random(0)
@@ -111,7 +111,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    * Uses DFS with 2-coloring. Handles disconnected graphs by seeding each
    * unvisited component in turn.
    */
-  def isBipartite: Boolean =
+  lazy val isBipartite: Boolean =
     given Random = Random(0)
 
     // `None` means a conflict was found and the answer is already false; otherwise the colouring

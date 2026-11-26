@@ -39,7 +39,7 @@ object Boruvka:
    * @return a `Seq[Edge[V, E]]` — the MST edges in order of addition, consistent with `Kruskal.mst`.
    */
   @nowarn("msg=unused implicit parameter") // E needs a Monoid, as for Kruskal.mst, although Borůvka only compares weights
-  def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
+  def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq
 
     // Each vertex starts as its own component using optimized Connectivity
@@ -67,7 +67,7 @@ object Boruvka:
       if mstEdges1.size == mstEdges.size then mstEdges1
       else loop(wc1, mstEdges1)
 
-    loop(wc0, Seq.empty)
+    EdgeTraversalResult(loop(wc0, Seq.empty).toList)
 
   /**
    * Adds unique crossing edges to the current Minimum Spanning Tree (MST) and updates the

@@ -307,3 +307,54 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
       1 -> AttributedDirectedEdge(1.0, 0, 1))
     val r = VertexTraversalResult[Int, AttributedDirectedEdge[Int, Double]](cyclicMap)
     TraversalResult.pathEdgesTo(r)(0).size should be <= 2
+
+  // =====================================================================================
+  // Issue #118: DirectedGraph.topologicalOrder is computed once per instance.
+  //
+  // The concrete case behind it: the Java façade's scaladoc tells a caller to check isDAG before
+  // calling AcyclicShortestPaths, isCyclic was TopologicalSort.sort(this).isEmpty, and
+  // shortestPaths sorted again internally -- so following the façade's own advice cost two full
+  // topological sorts. isCyclic is now derived from the cached order, and shortestPaths uses it.
+  //
+  // There is a second effect worth pinning, and it is the reason the reference-equality assertion
+  // below is not pedantry. TopologicalSort.sort installs
+  // GraphNeighbours = graph.adjacentVertices(_), and adjacentVertices takes `using Random =
+  // Random()` with no Random in scope there -- so a fresh generator is built PER VERTEX and the
+  // order varies between calls. Every such order is valid, so nothing was ever wrong, but the
+  // method ignores a caller's seed, which is #67's defect surviving in a corner (#131). Caching
+  // therefore makes this MORE deterministic than before: one order per graph instead of a fresh
+  // one per call. If the lazy val were ever turned back into a def, these assertions would start
+  // failing intermittently rather than reliably, so they are worth having.
+
+  behavior of "DirectedGraph.topologicalOrder"
+
+  it should "return the identical instance on every call" in :
+    withDag { graph =>
+      val first = graph.topologicalOrder
+      assert(first.asInstanceOf[AnyRef] eq graph.topologicalOrder.asInstanceOf[AnyRef])
+    }
+
+  it should "be a valid topological order of the DAG" in :
+    withDag { graph =>
+      val order = graph.topologicalOrder.getOrElse(fail("expected a DAG"))
+      order.toSet shouldBe Set(0, 1, 2, 3)
+      // Every edge must run forwards in the order.
+      val position = order.zipWithIndex.toMap
+      for edge <- graph.edges do position(edge.white) should be < position(edge.black)
+    }
+
+  it should "agree with isCyclic, which is derived from it" in :
+    withDag { graph =>
+      graph.isCyclic shouldBe false
+      graph.topologicalOrder should not be empty
+    }
+
+  it should "be None for a cyclic graph, and isCyclic true" in :
+    val cyclic: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.0), Directed),
+      Triplet(1, 0, Some(1.0), Directed))
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(cyclic) match
+      case Success(g: DirectedGraph[Int, Double] @unchecked) =>
+        g.topologicalOrder shouldBe None
+        g.isCyclic shouldBe true
+      case Failure(x) => fail("graph construction failed", x)

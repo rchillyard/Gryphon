@@ -82,7 +82,10 @@ object AcyclicShortestPaths:
    *              longest rather than shortest paths.
    */
   private def relax[V, E](graph: DirectedGraph[V, E], start: V)(using mn: Monoid[E], ord: Ordering[E]): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    val topoOrder: Seq[V] = TopologicalSort.sort(graph)
+    // graph.topologicalOrder, not TopologicalSort.sort(graph): the graph caches it, so a caller
+    // who checked isDAG first -- which the Java façade's own scaladoc tells them to do -- does not
+    // pay for the sort twice. That double cost was the concrete case behind #118.
+    val topoOrder: Seq[V] = graph.topologicalOrder
             .getOrElse(throw IllegalArgumentException("AcyclicShortestPaths: graph contains a cycle"))
 
     // One pass in topological order, so each vertex is final by the time it is reached and the

@@ -399,7 +399,7 @@ private[java] object JavaFacadeBridge:
 
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = Kruskal.mst(weightedGraph)
-    mstSeqToJavaList(result)
+    mstSeqToJavaList(result.toSeq)
 
   // ---------------------------------------------------------------------------
   // Kruskal — Option 3: custom type, Comparator only
@@ -417,7 +417,7 @@ private[java] object JavaFacadeBridge:
 
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = Kruskal.mst(weightedGraph)
-    mstSeqToJavaList(result)
+    mstSeqToJavaList(result.toSeq)
 
 
   // ---------------------------------------------------------------------------
@@ -431,7 +431,7 @@ private[java] object JavaFacadeBridge:
 
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
-    mstSeqToJavaList(result)
+    mstSeqToJavaList(result.toSeq)
 
   // ---------------------------------------------------------------------------
   // Boruvka — Option 3: custom type, Comparator only
@@ -453,7 +453,7 @@ private[java] object JavaFacadeBridge:
       def combine(x: E, y: E): E = empty
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
     val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
-    mstSeqToJavaList(result)
+    mstSeqToJavaList(result.toSeq)
 
   // ---------------------------------------------------------------------------
   // Bellman-Ford — Option 1: Double weights

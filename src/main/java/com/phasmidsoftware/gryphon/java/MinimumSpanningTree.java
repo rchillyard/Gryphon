@@ -7,6 +7,7 @@ package com.phasmidsoftware.gryphon.java;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Java façade for minimum spanning tree algorithms on weighted undirected graphs.
@@ -68,7 +69,7 @@ public class MinimumSpanningTree {
     public static <V> Map<V, WeightedEdge<V, Double>> prim(
             WeightedGraph<V, Double> graph,
             V start) {
-        return prim(graph, start, new java.util.Random());
+        return prim(graph, start, new Random());
     }
 
     /**
@@ -93,7 +94,7 @@ public class MinimumSpanningTree {
     public static <V> Map<V, WeightedEdge<V, Double>> prim(
             WeightedGraph<V, Double> graph,
             V start,
-            java.util.Random random) {
+            Random random) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.prim requires an undirected graph");
@@ -125,7 +126,7 @@ public class MinimumSpanningTree {
             WeightedGraph<V, E> graph,
             V start,
             Comparator<E> comparator) {
-        return prim(graph, start, comparator, new java.util.Random());
+        return prim(graph, start, comparator, new Random());
     }
 
     /**
@@ -152,7 +153,7 @@ public class MinimumSpanningTree {
             WeightedGraph<V, E> graph,
             V start,
             Comparator<E> comparator,
-            java.util.Random random) {
+            Random random) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.prim requires an undirected graph");

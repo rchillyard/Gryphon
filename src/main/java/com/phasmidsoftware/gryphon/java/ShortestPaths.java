@@ -7,6 +7,7 @@ package com.phasmidsoftware.gryphon.java;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.function.BinaryOperator;
 
 /**
@@ -74,7 +75,7 @@ public class ShortestPaths {
     public static <V> Map<V, WeightedEdge<V, Double>> dijkstra(
             WeightedGraph<V, Double> graph,
             V start) {
-        return dijkstra(graph, start, new java.util.Random());
+        return dijkstra(graph, start, new Random());
     }
 
     /**
@@ -96,7 +97,7 @@ public class ShortestPaths {
     public static <V> Map<V, WeightedEdge<V, Double>> dijkstra(
             WeightedGraph<V, Double> graph,
             V start,
-            java.util.Random random) {
+            Random random) {
         if (!graph.isDirected())
             throw new IllegalStateException(
                     "ShortestPaths.dijkstra requires a directed graph");
@@ -142,7 +143,7 @@ public class ShortestPaths {
             BinaryOperator<E> combine,
             E zero,
             Comparator<E> comparator) {
-        return dijkstra(graph, start, combine, zero, comparator, new java.util.Random());
+        return dijkstra(graph, start, combine, zero, comparator, new Random());
     }
 
     /**
@@ -173,7 +174,7 @@ public class ShortestPaths {
             BinaryOperator<E> combine,
             E zero,
             Comparator<E> comparator,
-            java.util.Random random) {
+            Random random) {
         if (!graph.isDirected())
             throw new IllegalStateException(
                     "ShortestPaths.dijkstra requires a directed graph");

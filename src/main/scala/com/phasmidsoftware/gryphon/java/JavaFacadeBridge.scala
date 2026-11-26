@@ -61,10 +61,21 @@ import scala.util.{Random, Try}
  *    `dijkstraCustom`, `primDouble`, `primCustom`, `kosaraju`. For Dijkstra and Prim the
  *    numbers do not vary — distances are distances, a minimum spanning tree is minimum — but
  *    which of several equal-cost trees comes back does.
- *  - '''No — give it neither.''' `kruskal`, `boruvka`, `bellmanFord`, `acyclicShortestPaths`
- *    sort or relax over all edges, so adjacency order cannot affect them. `bfsWithNeighbours`
- *    and `dfsWithNeighbours` take the caller's own neighbour function and never consult the
- *    graph's adjacencies.
+ *  - '''No — give it neither.''' `kruskal` and `boruvka` consult only `graph.edges` and never
+ *    an adjacency iterator. `bfsWithNeighbours` and `dfsWithNeighbours` take the caller's own
+ *    neighbour function and never consult the graph's adjacencies.
+ *  - '''`bellmanFord` and `acyclicShortestPaths` are in the wrong column, and knowingly so.'''
+ *    This list said they relax over all edges and so could not be affected by adjacency order.
+ *    That is false: both call `filteredAdjacencies` per vertex, so which of several equal-cost
+ *    predecessors they record depends on the order — the same variation `dijkstra` has. They
+ *    take no generator here because the Scala methods they delegate to take none either, and
+ *    adding one is a binary break (#154). `acyclicShortestPaths` additionally relaxes in
+ *    `topologicalOrder`, which is itself one of many valid orders (#131), so it has two sources
+ *    of variation rather than one and a generator alone would pin only half of it.
+ *
+ *    The rule above was stated from reading signatures instead of following the calls. It is
+ *    left here as a column with a correction rather than a quietly amended list, because the
+ *    next person to apply it should know that it was got wrong once.
  *  - '''Careful with the third case.''' `connectedComponents` returns only the component map,
  *    whose ids come from walking a Set and do not vary — so no pair — even though the
  *    `Connexions` tree that `ConnectedComponents.components` also computes does vary, and does

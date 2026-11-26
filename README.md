@@ -1006,9 +1006,17 @@ across a sequence of traversals makes the whole computation reproducible, which 
 per-call seed could not express.
 
 The pairs exist on `dfs`, `bfs`, `dfsAll`, `bfsUntil`, `dijkstra`, `prim` and
-`kosaraju`. The edge-list algorithms (Kruskal, Borůvka, Bellman–Ford, acyclic shortest
-paths) sort or relax over all edges, so adjacency order cannot reach their answers and
-they need no generator.
+`kosaraju`. Kruskal and Borůvka need no generator: they consult `graph.edges` and never
+an adjacency iterator.
+
+**Bellman–Ford and acyclic shortest paths have no pair, and should.** This section first
+claimed they relax over all edges and so could not be affected by adjacency order. That
+is false — both call `filteredAdjacencies` per vertex, so which of several equal-cost
+predecessors they record depends on the order, exactly as for Dijkstra. Their costs are
+unaffected; the path reported is not. Neither can be pinned today, because the Scala
+methods beneath them take no generator either and adding one is a binary change. See
+issue #154. Acyclic shortest paths also relaxes in `topologicalOrder`, which is one of
+many valid orders, so it varies for two independent reasons rather than one.
 
 Two methods are stable for reasons of their own rather than by seeding.
 `TopologicalSort` reads a memoized ordering, so repeated calls on one graph agree —

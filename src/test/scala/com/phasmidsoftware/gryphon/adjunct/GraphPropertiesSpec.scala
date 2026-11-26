@@ -288,3 +288,89 @@ class GraphPropertiesSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) should matchPattern {
       case Failure(_: GraphException) =>
     }
+
+  // ---------------------------------------------------------------------------------------
+  // Issue #106: adjacentVertices is correct on an UNDIRECTED graph, which is exactly what the
+  // deleted Graph.undiscoveredVertices was not. That method read `black` off the edge, and a
+  // two-way triplet stores a second, `flipped` adjacency at the far end whose far vertex is
+  // `white`, so reading `black` would have answered v itself for half of these. It hid that
+  // behind a filter admitting only AttributedDirectedEdge -- never stored flipped, since
+  // DirectedGraph passes bothWays = _ => false -- and so returned Nil here instead.
+  //
+  // These tests therefore guard against anyone "simplifying" adjacentVertices to read the edge
+  // rather than the adjacency. The expected sets are the spec header's own degree summary.
+
+  behavior of "adjacentVertices on an undirected graph"
+
+  it should "return the documented neighbours of vertex 0" in :
+    withPrimGraph(_.adjacentVertices(0).toSet shouldBe Set(2, 4, 6, 7))
+
+  it should "return the documented neighbours of vertex 7, which holds flipped adjacencies" in :
+    // 7 is the far end of 0-7, so its adjacency for that edge is the flipped one. If the far
+    // vertex were read as `black` rather than as the adjacency's own `vertex`, 0 would be missing
+    // and 7 would appear in its own neighbour set.
+    withPrimGraph { g =>
+      val neighbours = g.adjacentVertices(7).toSet
+      neighbours shouldBe Set(0, 1, 2, 4, 5)
+      neighbours should not contain 7
+    }
+
+  it should "agree with degree for every vertex" in :
+    withPrimGraph { g =>
+      val vertices = g.vertexMap.map.keys.toSeq.sorted
+      vertices.map(v => v -> g.adjacentVertices(v).size) shouldBe vertices.map(v => v -> g.degree(v))
+    }
+
+  // ---------------------------------------------------------------------------------------
+  // Issue #57, second half. A triplet whose orientation disagrees with the graph being built
+  // used to be reported -- to System.err, then from 1.11.1 to a logger -- and then used anyway,
+  // so the caller received a Success containing a graph built partly from data the library had
+  // just called wrong. It is now a Failure, like the parse error and the absent-attribute case.
+  // Nothing asserted the old behaviour, which is part of why it survived: the warning fired on
+  // no tested path.
+
+  behavior of "a triplet whose orientation disagrees with the graph"
+
+  it should "be refused when a directed triplet is given to UndirectedGraph" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.5), Undirected),
+      Triplet(1, 2, Some(2.5), Directed)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+      case Failure(x: GraphException) =>
+        x.getMessage should include("1 triplet(s) have an orientation that disagrees")
+        x.getMessage should include("is directed")
+        x.getMessage should include("Triplet(1,2,Some(2.5),Directed)")
+      case other =>
+        fail(s"expected a Failure naming the offending triplet, got: $other")
+
+  it should "be refused when an undirected triplet is given to DirectedGraph" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.5), Undirected)
+    )
+    DirectedGraph.triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+      case Failure(x: GraphException) =>
+        x.getMessage should include("is not directed")
+      case other =>
+        fail(s"expected a Failure, got: $other")
+
+  it should "count every offender, not just the first" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.5), Directed),
+      Triplet(1, 2, Some(2.5), Directed),
+      Triplet(2, 3, Some(3.5), Undirected)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
+      case Failure(x: GraphException) =>
+        x.getMessage should include("2 triplet(s)")
+      case other =>
+        fail(s"expected a Failure, got: $other")
+
+  it should "still succeed when every triplet agrees with the graph" in :
+    val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.5), Undirected),
+      Triplet(1, 2, Some(2.5), Undirected)
+    )
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) should matchPattern {
+      case Success(_: UndirectedGraph[Int, Double] @unchecked) =>
+    }

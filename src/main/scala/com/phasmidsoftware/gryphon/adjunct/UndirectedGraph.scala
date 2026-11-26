@@ -207,7 +207,7 @@ object UndirectedGraph {
   def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]])(using absent: AbsentAttribute[E]): Try[UndirectedGraph[V, E]] =
     AbstractAdjunctGraph.fromTriplets[V, E, UndirectedGraph[V, E]](
       f = f,
-      warn = t => Option.when(t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is directed."),
+      reject = t => Option.when(t.edgeType.oneWay)(s"edge ${t.maybeAttribute} is directed."),
       adjacency = {
         // An edge with no attribute is still an edge of this graph, so it must be undirected
         // like the rest. It used to be an AttributedDirectedEdge, which UndirectedGraph.edges

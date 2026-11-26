@@ -152,14 +152,35 @@ private[java] object JavaFacadeBridge:
    * The edge list is used to populate WeightedGraph.weightedEdges so that
    * algorithm bridge methods that require it work correctly.
    */
+  /**
+   * Unwraps a `Try` for a Java caller, turning a `Failure` into a `GryphonException` rather than
+   * rethrowing whatever the failure held.
+   *
+   * `Try.get` rethrows the Scala throwable as it stands — a `GraphException`, a parse error, or
+   * anything else — which a Java caller can only catch as `RuntimeException`, and can only tell
+   * apart by matching on the message or by naming a Scala class this facade otherwise hides.
+   * `GryphonException` is nameable and unchecked, and keeps the original as its cause, so nothing
+   * that was reachable before is lost. See issue #105.
+   *
+   * @param resourceName the resource being loaded, named in the message so the caller knows which.
+   * @param ty           the result of the Scala call.
+   * @tparam T the type of graph being loaded.
+   * @return the value, if the call succeeded.
+   * @throws GryphonException if it did not.
+   */
+  private def orThrow[T](resourceName: String)(ty: Try[T]): T = ty match
+    case scala.util.Success(t) => t
+    case scala.util.Failure(x) =>
+      throw GryphonException(s"could not load graph from resource '$resourceName': ${x.getMessage}", x)
+
   def undirectedWeightedFromResource(resourceName: String
                                     ): (UndirectedGraph[Int, Double], JavaList[WeightedEdge[Int, Double]]) =
-    val g = GraphBuilder.undirected[Int, Double].fromResource(resourceName).get
+    val g = orThrow(resourceName)(GraphBuilder.undirected[Int, Double].fromResource(resourceName))
     (g, extractWeightedEdges(g))
 
   def directedWeightedFromResource(resourceName: String
                                   ): (DirectedGraph[Int, Double], JavaList[WeightedEdge[Int, Double]]) =
-    val g = GraphBuilder.directed[Int, Double].fromResource(resourceName).get
+    val g = orThrow(resourceName)(GraphBuilder.directed[Int, Double].fromResource(resourceName))
     (g, extractWeightedEdges(g))
 
   def undirectedWeightedFromResourceCustom[V, E](
@@ -171,7 +192,7 @@ private[java] object JavaFacadeBridge:
 
     given Parseable[E] = asParseable(edgeParser, """(\d+(\.\d*)?|\d*\.\d+)""")
 
-    val g = GraphBuilder.undirected[V, E].fromResource(resourceName).get
+    val g = orThrow(resourceName)(GraphBuilder.undirected[V, E].fromResource(resourceName))
     (g, extractWeightedEdges(g))
 
   def directedWeightedFromResourceCustom[V, E](
@@ -183,7 +204,7 @@ private[java] object JavaFacadeBridge:
 
     given Parseable[E] = asParseable(edgeParser, """(\d+(\.\d*)?|\d*\.\d+)""")
 
-    val g = GraphBuilder.directed[V, E].fromResource(resourceName).get
+    val g = orThrow(resourceName)(GraphBuilder.directed[V, E].fromResource(resourceName))
     (g, extractWeightedEdges(g))
 
   /**

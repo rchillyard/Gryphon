@@ -1,6 +1,5 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.visitor.core.*
 import scala.util.Random
@@ -9,7 +8,7 @@ import scala.util.Random
  * A trait representing an abstract graph structure composed of vertices.
  *
  * All traversal methods delegate to the `VertexMap` which in turn uses the
- * Visitor 1.8.0 typeclass engine (`Traversal.dfs` / `Traversal.bfs`).
+ * Visitor typeclass engine (`Traversal.dfs` / `Traversal.bfs`).
  * The mutable `discovered` flag pattern has been removed throughout; visited-node
  * tracking is handled by the immutable `VisitedSet[V]` inside the engine.
  *
@@ -100,20 +99,28 @@ trait Graph[V] extends Traversable[V]:
   def unit(vertexMap: VertexMap[V]): Graph[V]
 
   /**
-   * Returns the directed edges reachable from v.
+   * Returns every edge adjacent to `v`, in adjacency order.
+   *
+   * Adjacencies that carry no edge — `AdjacencyVertex`, used where a connexion has no attribute —
+   * are dropped, so the result is the edges and only the edges. Nothing is filtered by
+   * discovery: this returns all of them, which is why it is no longer called
+   * `undiscoveredEdges`. That name described a design in which the caller tracked visited state;
+   * the traversal engine took that over and manages it internally through `VisitedSet`, but the
+   * name stayed behind and its body had long since degenerated to `filteredAdjacencies(_ => true)`,
+   * which filters nothing. See issue #106.
+   *
+   * For the adjacent vertices rather than the edges, use `adjacentVertices`, which is correct on
+   * undirected graphs as well — see the note there.
+   *
+   * @param v      the vertex whose adjacent edges are wanted.
+   * @param random the generator determining adjacency order (implicit).
+   * @tparam E the edge attribute type.
+   * @return the adjacent edges, as a `Seq`.
    */
-  def undiscoveredEdges[E](v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
+  def adjacentEdges[E](v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
     filteredAdjacencies(_ => true)(v)
             .flatMap(_.maybeEdge[E])
             .toSeq
-
-  /**
-   * Returns the vertices reachable via attributed directed edges from v.
-   * Useful for testing and inspection; the traversal engine manages visited
-   * state internally via VisitedSet.
-   */
-  def undiscoveredVertices[E](v: V)(using random: Random = Random()): Seq[V] =
-    undiscoveredEdges(v).collect { case e: AttributedDirectedEdge[V, ?] @unchecked => e.black }
 
   def debug: String = vertexMap.debug
 

@@ -20,3 +20,39 @@ ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredEdges$default$3(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)scala.util.Random")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredVertices(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.ShortestPaths.undiscoveredVertices$default$3(com.phasmidsoftware.gryphon.core.Traversable,java.lang.Object)scala.util.Random")
+
+# ----------------------------------------------------------------------------------------
+# #106: Graph.undiscoveredEdges renamed to adjacentEdges, and Graph.undiscoveredVertices
+# deleted outright.
+#
+# Neither name described what it returned. `undiscoveredEdges` was
+# `filteredAdjacencies(_ => true)`, which filters nothing: it returned every adjacent edge,
+# discovered or not. The name came from a design in which the caller tracked visited state;
+# the traversal engine took that over and manages it through VisitedSet, and the name stayed
+# behind.
+#
+# `undiscoveredVertices` is deleted rather than renamed because Traversable.adjacentVertices
+# already does the job, and does it correctly. The deleted method read `black` off the edge,
+# but a two-way triplet stores a second, `flipped` adjacency at the far end whose far vertex
+# is `white` -- so reading `black` answers v itself for half the adjacencies of an undirected
+# graph. It hid that behind a `collect` admitting only AttributedDirectedEdge, the one kind
+# never stored flipped since DirectedGraph passes bothWays = _ => false, and so returned Nil
+# on undirected graphs instead of wrong answers. adjacentVertices reads each adjacency's own
+# `vertex`, which is the correct end in both cases.
+#
+# Used by ShortestPathsSpec but by nothing in src/main, so this is a rename and a deletion
+# rather than a behaviour change for the library itself. It IS a binary break against
+# published 1.10.0 and 1.11.0, which is why it belongs in 1.12.0.
+#
+# The lines below are MiMa's own suggestions from the failing run, not hand-written.
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.undiscoveredEdges(java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.undiscoveredEdges$default$2(java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.undiscoveredVertices(java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.undiscoveredVertices$default$2(java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.undiscoveredEdges(java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.undiscoveredEdges$default$2$(com.phasmidsoftware.gryphon.core.Graph,java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.undiscoveredEdges$default$2(java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.undiscoveredVertices(java.lang.Object,scala.util.Random)scala.collection.immutable.Seq")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.undiscoveredVertices$default$2$(com.phasmidsoftware.gryphon.core.Graph,java.lang.Object)scala.util.Random")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Graph.undiscoveredVertices$default$2(java.lang.Object)scala.util.Random")

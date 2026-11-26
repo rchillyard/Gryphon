@@ -79,7 +79,9 @@ public class WeightedGraph<V, E> extends Graph<V> {
      *
      * @param resourceName the classpath resource name (e.g. {@code "prim.graph"}).
      * @return a populated undirected {@code WeightedGraph<Integer, Double>}.
-     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     * @throws GryphonException if the resource is not found, cannot be parsed, or describes a
+     *                          graph this method cannot build. The underlying Scala throwable is
+     *                          kept as the cause.
      */
     @SuppressWarnings("unchecked")
     public static WeightedGraph<Integer, Double> undirectedFromResource(String resourceName) {
@@ -93,7 +95,9 @@ public class WeightedGraph<V, E> extends Graph<V> {
      *
      * @param resourceName the classpath resource name (e.g. {@code "routes.graph"}).
      * @return a populated directed {@code WeightedGraph<Integer, Double>}.
-     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     * @throws GryphonException if the resource is not found, cannot be parsed, or describes a
+     *                          graph this method cannot build. The underlying Scala throwable is
+     *                          kept as the cause.
      */
     @SuppressWarnings("unchecked")
     public static WeightedGraph<Integer, Double> directedFromResource(String resourceName) {
@@ -115,7 +119,9 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * @param vertexParser parses a single token into a {@code V}.
      * @param edgeParser   parses a single token into an {@code E}.
      * @return a populated undirected {@code WeightedGraph<V, E>}.
-     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     * @throws GryphonException if the resource is not found, cannot be parsed, or describes a
+     *                          graph this method cannot build. The underlying Scala throwable is
+     *                          kept as the cause.
      */
     @SuppressWarnings("unchecked")
     public static <V, E> WeightedGraph<V, E> undirectedFromResource(
@@ -137,7 +143,9 @@ public class WeightedGraph<V, E> extends Graph<V> {
      * @param vertexParser parses a single token into a {@code V}.
      * @param edgeParser   parses a single token into an {@code E}.
      * @return a populated directed {@code WeightedGraph<V, E>}.
-     * @throws RuntimeException if the resource is not found or cannot be parsed.
+     * @throws GryphonException if the resource is not found, cannot be parsed, or describes a
+     *                          graph this method cannot build. The underlying Scala throwable is
+     *                          kept as the cause.
      */
     @SuppressWarnings("unchecked")
     public static <V, E> WeightedGraph<V, E> directedFromResource(

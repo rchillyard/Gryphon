@@ -47,6 +47,15 @@ trait Traversable[V] {
   /**
    * Retrieves the adjacent vertices connected to the specified vertex.
    *
+   * This reads each adjacency's own `vertex`, which is the end away from `v`. That matters on
+   * undirected graphs: a two-way triplet stores a second, `flipped` adjacency at the far end, and
+   * `AdjacencyEdge.vertex` answers `white` rather than `black` for it. Reading `black` off the
+   * edge instead would therefore give `v` itself for half the adjacencies of an undirected graph.
+   * `Graph.undiscoveredVertices` did exactly that and hid the error behind a filter that admitted
+   * only `AttributedDirectedEdge` — the one kind never stored flipped, since `DirectedGraph`
+   * passes `bothWays = _ => false` — so it returned `Nil` on undirected graphs rather than wrong
+   * answers. It was deleted in 1.12.0 in favour of this method; see issue #106.
+   *
    * @param v      the vertex whose adjacent vertices are to be returned.
    * @param random controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @return an iterator over the vertices adjacent to the specified vertex.

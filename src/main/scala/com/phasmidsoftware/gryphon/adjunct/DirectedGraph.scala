@@ -157,7 +157,7 @@ object DirectedGraph {
   def triplesToTryGraph[V, E](f: V => Vertex[V])(triples: Seq[Triplet[V, E, EdgeType]])(using AbsentAttribute[E]): Try[DirectedGraph[V, E]] =
     AbstractAdjunctGraph.fromTriplets[V, E, DirectedGraph[V, E]](
       f = f,
-      warn = t => Option.when(!t.edgeType.oneWay)(s"WARNING: edge ${t.maybeAttribute} is not directed."),
+      reject = t => Option.when(!t.edgeType.oneWay)(s"edge ${t.maybeAttribute} is not directed."),
       adjacency = {
         case (vv1, vv2, Some(e)) =>
           AdjacencyEdge(AttributedDirectedEdge(e, vv1.attribute, vv2.attribute))

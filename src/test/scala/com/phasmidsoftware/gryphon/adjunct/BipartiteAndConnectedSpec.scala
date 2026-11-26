@@ -265,3 +265,33 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
         g.isBipartite shouldBe true
       case other =>
         fail(s"unexpected: $other")
+  // -------------------------------------------------------------------------------------
+  // Issue #82: isConnected's empty-graph case. The guard reads
+  //   if order == 0 then true else ...
+  // and the Stryker4s trial saw both the guard and the literal survive mutation, which is
+  // one finding rather than two: isConnected was never called on an empty graph at all, so
+  // the convention that the empty graph counts as connected was asserted nowhere. The
+  // existing coverage is prim.graph (connected) and dfsu.graph (three components), neither
+  // of them empty. Unusually for the trial's findings, scoverage showed this too, as an
+  // uncovered branch at UndirectedGraph.scala:95 — mutation testing only made it concrete.
+
+  behavior of "isConnected on an empty graph"
+
+  it should "hold that the empty graph is connected" in :
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(Nil) match
+      case Success(g: UndirectedGraph[Int, Double] @unchecked) =>
+        g.order shouldBe 0
+        g.isConnected shouldBe true
+      case Failure(x) =>
+        fail("graph construction failed", x)
+
+  it should "distinguish that from a one-vertex graph, which is also connected" in :
+    // A self-loop is the smallest non-empty undirected graph the builder will make, and it
+    // takes the other arm of the guard. Without this, flipping `order == 0` to `true` would
+    // still pass everything.
+    triplesToTryGraph[Int, Double](Vertex.createWithSet)(Seq(Triplet(0, 0, Some(1.0), Undirected))) match
+      case Success(g: UndirectedGraph[Int, Double] @unchecked) =>
+        g.order shouldBe 1
+        g.isConnected shouldBe true
+      case other =>
+        fail(s"unexpected: $other")

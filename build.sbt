@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.13.0"
+ThisBuild / version := "1.13.1"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -44,7 +44,7 @@ Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 // The version scheme is PVP (see publish.sbt): a patch release must pass; a minor release may break compatibility,
 // on purpose and with a release note, by listing the breaks in mimaBinaryIssueFilters (or, after the release, by
 // moving previousRelease on). Note moduleName, not name: the published artifact is gryphon_3, not Gryphon_3.
-val previousRelease = "1.12.0"
+val previousRelease = "1.13.0"
 mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
 
 // Deliberate breaks are listed in src/main/mima-filters/<previousRelease>.backwards.excludes,

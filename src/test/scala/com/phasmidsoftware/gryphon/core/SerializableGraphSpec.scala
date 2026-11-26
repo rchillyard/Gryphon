@@ -44,7 +44,11 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
       Triplet(1, 2, Some(2.72), Undirected)
     )
     val sg = SerializableGraph.createFromTriplets(triplets)
-    sg.triplets.size shouldBe 2
+    // This asserted `sg.triplets.size shouldBe 2` until #137, under a name promising a round
+    // trip. Counting the output of a wrapper that stores what it is given cannot fail except by
+    // the wrapper dropping something, and says nothing about the values surviving. The round
+    // trip the name claims is the identity through the wrapper, which is this:
+    sg.triplets shouldBe triplets
   }
 
   it should "serialize to a non-empty string" in {
@@ -157,9 +161,16 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
       case Failure(e) => fail(e)
   }
 
-  it should "round-trip through serialize" in {
+  it should "write a format the parser reads back" in {
+    // Pinned as a string AND parsed back, because the two catch different things: the string
+    // catches a format change, and the parse catches a format change that happens to still be
+    // readable as something else -- which is exactly how the pre-#135 output failed, since
+    // `0,1,Some(5.0)` parsed as a single vertex named "0,1,Some(5.0)" rather than failing.
     val vpl = VertexPairList[Int, EdgeType](Seq((0, 1, Directed), (1, 2, Undirected)))
     vpl.serialize shouldBe "0 > 1\n1 = 2"
+    val reparsed = parser.parseStrings(parser.parseTriple)(vpl.serialize.linesIterator).get
+    reparsed.map(t => (t.from, t.to, t.edgeType)) shouldBe vpl.pairs
+    every(reparsed.map(_.maybeAttribute)) shouldBe None
   }
 
   it should "fail the whole sequence when one component will not parse" in {

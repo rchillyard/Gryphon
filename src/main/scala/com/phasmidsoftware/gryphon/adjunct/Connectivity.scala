@@ -37,7 +37,8 @@ object Connectivity {
    * @param vertices the elements to initialize as individual components in the `Connectivity` instance.
    * @return a new `Connectivity` instance containing the given elements as disjoint sets.
    */
-  def createLazy[V](vertices: V*): Connectivity[V] = ConnectivityLazy.create[V](vertices *)
+  def createLazy[V](vertices: V*): Connectivity[V] =
+    ConnectivityLazy.create[V](vertices *)
 
   /**
    * Creates a new `Connectivity` instance using the optimized implementation strategy.
@@ -47,7 +48,8 @@ object Connectivity {
    * @param vertices the elements to initialize as individual components in the `Connectivity` instance.
    * @return a new `Connectivity` instance containing the given elements as disjoint sets.
    */
-  def createOptimized[V](vertices: V*): Connectivity[V] = ConnectivityOptimized.create[V](vertices *)
+  def createOptimized[V](vertices: V*): Connectivity[V] =
+    ConnectivityOptimized.create[V](vertices *)
 }
 
 /**
@@ -71,7 +73,8 @@ case class ConnectivityLazy[V](map: Map[V, ParentSize[V]])
 
   def unit(map: Map[V, ParentSize[V]]): ConnectivityLazy[V] = ConnectivityLazy(map)
 
-  def put(key: V): ConnectivityLazy[V] = unit(map + (key -> ParentSize[V]))
+  def put(key: V): ConnectivityLazy[V] =
+    unit(map + (key -> ParentSize[V]))
 
   protected def union(v1: V, v2: V): Map[V, ParentSize[V]] =
     WeightedUnion(map, v1, v2, "ConnectivityLazy")
@@ -181,7 +184,8 @@ case class ConnectivityOptimized[V](map: Map[V, ParentSize[V]])
 
   def unit(map: Map[V, ParentSize[V]]): ConnectivityOptimized[V] = ConnectivityOptimized(map)
 
-  def put(key: V): ConnectivityOptimized[V] = unit(map + (key -> ParentSize[V]))
+  def put(key: V): ConnectivityOptimized[V] =
+    unit(map + (key -> ParentSize[V]))
 
   /**
    * Finds the root of `key`'s component and simultaneously compresses the path,
@@ -279,7 +283,8 @@ case class ConnectivityASP[V](map: Map[V, Option[V]])
 
   def unit(map: Map[V, Option[V]]): ConnectivityASP[V] = ConnectivityASP(map)
 
-  def put(key: V): ConnectivityASP[V] = unit(map + (key -> None))
+  def put(key: V): ConnectivityASP[V] =
+    unit(map + (key -> None))
 
   // The `v1 != v2` test asserts the precondition documented on `AbstractDisjointSet.union`.
   // Unlike `WeightedUnion`'s equivalent, this one is unreachable from anywhere: `union` is
@@ -322,7 +327,8 @@ object ConnectivityASP:
    * @return a `ConnectivityASP[V]` instance initialized with the specified values,
    *         where each value is mapped to `None` as its parent.
    */
-  def create[V](vs: V*): ConnectivityASP[V] = ConnectivityASP(vs.map(v => v -> None))
+  def create[V](vs: V*): ConnectivityASP[V] =
+    ConnectivityASP(vs.map(v => v -> None))
 
 /**
  * Carries an optional parent reference and the size of the component tree.

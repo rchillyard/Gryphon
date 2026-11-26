@@ -36,13 +36,17 @@ class StringsParser extends JavaTokenParsers {
     case Comment(z) => Left(z)
   }
 
-  def stringy: Parser[Stringy] = triple | pair | comment | failure("invalid tuple")
+  def stringy: Parser[Stringy] =
+    triple | pair | comment | failure("invalid tuple")
 
-  def comment: Parser[Comment] = """\s*//.*""".r ^^ (w => Comment(w))
+  def comment: Parser[Comment] =
+   """\s*//.*""".r ^^ (w => Comment(w))
 
-  def triple: Parser[Strings3] = word ~ word ~ word ^^ { case a ~ b ~ c => Strings3(a, b, c) }
+  def triple: Parser[Strings3] =
+    word ~ word ~ word ^^ { case a ~ b ~ c => Strings3(a, b, c) }
 
-  def pair: Parser[Strings2] = word ~ word ^^ { case a ~ b => Strings2(a, b) }
+  def pair: Parser[Strings2] =
+    word ~ word ^^ { case a ~ b => Strings2(a, b) }
 
   def word: Parser[String] = """[^/\s]+""".r
 }

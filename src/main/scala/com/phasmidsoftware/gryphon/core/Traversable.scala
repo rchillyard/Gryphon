@@ -239,7 +239,8 @@ trait Traversable[V] {
    * while #67 was open — multiple Random-derived instances were dangerous — and #67 closed with
    * 1.11.0, so the reason is gone.
    */
-  protected[core] def graphNeighbours(using random: Random): GraphNeighbours[V] = (v: V) => adjacentVertices(v)
+  protected[core] def graphNeighbours(using random: Random): GraphNeighbours[V] =
+    (v: V) => adjacentVertices(v)
 
   // traversalResult, which unwrapped a journal into a VertexTraversalResult, is gone with the
   // two bodies that used it: UnweightedTraversal.run does that unwrapping now, once.

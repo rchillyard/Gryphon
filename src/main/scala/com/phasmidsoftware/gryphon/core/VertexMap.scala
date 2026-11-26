@@ -135,7 +135,8 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
         @tailrec
         def loop(remaining: List[V], vis: Visitor[V, E, J], visited: Set[V]): Visitor[V, E, J] =
           remaining match
-            case Nil => vis
+            case Nil =>
+              vis
             case next :: rest if visited.contains(next) || !map.contains(next) =>
               // Already reached by an earlier source, or not a vertex of this graph. Skipping an
               // absent vertex rather than throwing keeps this usable as a filter over a candidate

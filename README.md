@@ -149,6 +149,11 @@ val bfsResult = graph.bfs(visitor)(0)
 val allVisited = graph.dfsAll(visitor).result.map(_._1).toSet
 ```
 
+> **These calls are not deterministic.** Adjacency iteration is shuffled on purpose, so
+> a second run may visit vertices in a different — equally valid — order. Put
+> `given Random = Random(42)` in scope to fix the order. See
+> [Randomised iteration, and how to pin it](#randomised-iteration-and-how-to-pin-it).
+
 ### Topological sort
 
 ```scala
@@ -277,6 +282,13 @@ Insert the following into the `<dependencies>` block of your pom.xml:
 ````
 
 The Java API is the primary interface for readers of DSAIPG and/or INFO6205 students at Northeastern University.
+
+Unlike the Scala API, the façade is **deterministic**: repeating a call on an unchanged
+graph gives the identical answer, because the façade pins its own random seeds — Java
+has no way to supply one. The Scala side shuffles adjacency iteration deliberately and
+varies between runs unless you provide a seed. See
+[Randomised iteration, and how to pin it](#randomised-iteration-and-how-to-pin-it) if
+you are comparing results across the two.
 
 ### Core types
 
@@ -734,11 +746,83 @@ recording `(node, result)` pairs.
 - **Java API hides all Scala-isms** — no `Option`, typeclasses, `given`/`using`,
   or companion object syntax visible to Java callers.
 
+### Randomised iteration, and how to pin it
+
+**Adjacency iteration is deliberately shuffled.** Running the same traversal twice on
+the same graph can give two different answers, and that is by design, not a bug.
+
+The reason is that an algorithm which quietly depends on insertion order is an
+algorithm with a bug nobody has noticed yet. Shuffling makes that dependence show up
+as a flapping test rather than as correct-looking output that happens to rely on the
+order your edges went in.
+
+What varies is **which** of several equally valid answers you get, never whether the
+answer is correct. A topological order is still a topological order; a DFS tree is
+still a DFS tree. If two runs disagree, both are right.
+
+#### Pinning a seed
+
+Every traversal and adjacency method takes a `using Random`, defaulted to `Random()`.
+With nothing in scope, each call builds a fresh, unseeded generator:
+
+```scala
+graph.dfs(visitor)(0)          // fresh Random() — may differ between calls
+```
+
+Supply a generator and the order becomes reproducible:
+
+```scala
+given Random = Random(42)
+graph.dfs(visitor)(0)          // same answer every time, for this seed
+```
+
+One `given` covers everything lexically below it, which is what makes a whole
+computation reproducible rather than just one step of it.
+
+#### The two container iterators
+
+`Bag` and `Unordered` each expose both, and the distinction is load-bearing:
+
+| | order | takes a `Random` |
+|---|---|---|
+| `iterator` | insertion order, deterministic | no — it is the `IterableOnce` iterator and *cannot* |
+| `randomIterator` | shuffled | yes, always the caller's |
+
+`randomIterator` is the only shuffled iteration in the library. Before 1.10.0 `iterator`
+itself shuffled, drawing on a process-global generator, which made the order
+unreproducible by construction — a seed at the call site could not reach it. Separating
+the two also took `size`, `isEmpty` and `contains` off the PRNG, which they had no
+business touching.
+
+#### The Java façade is deterministic
+
+Java callers never see any of this, and cannot: there is no way to write a `given` from
+Java. Rather than hand Java users variation they have no lever to control, the façade
+pins its own seed wherever adjacency order can reach the result — `dfs`, `bfs`,
+`dfsAll`, `bfsUntil`, Dijkstra, Prim, connected components and Kosaraju. The edge-list
+algorithms (Kruskal, Borůvka, Bellman–Ford, acyclic shortest paths) sort or relax over
+all edges, so adjacency order cannot affect their answers and they pin nothing.
+
+`TopologicalSort` is the one that is stable for a different reason. Since 1.13.0 the
+façade reads a memoized ordering, so every call on a given graph returns the identical
+result — but the value memoized was computed unseeded, so a *different run of your
+program* may memoize a different valid order. Repeat-call stability is guaranteed;
+run-to-run stability is not. The same `lazy val` reasoning applies to
+`UndirectedGraph`'s `isCyclic`, `isConnected` and `isBipartite`, which pin `Random(0)`
+internally because a `lazy val` takes no parameters and so cannot be given one.
+
+#### A known gap
+
+`TopologicalSort.sort` takes no `Random` of its own, so it builds a fresh one per
+vertex expansion rather than threading one through the traversal. A seed pinned at the
+call site therefore does **not** reach it, and its orderings vary even under a `given`.
+This is issue #131.
+
 ---
 
 ## Testing
 
-The library has 583 tests covering all algorithms, graph properties, and
+The library has 750 tests covering all algorithms, graph properties, and
 edge cases including:
 - Disconnected graphs and forests
 - Negative edge weights (Bellman–Ford, AcyclicShortestPaths)
@@ -779,7 +863,7 @@ sbt test
 | 1.10.0 | Moves to [Visitor 1.8.0](https://github.com/rchillyard/Visitor/releases/tag/V1.8.0) and **generalises the traversal entry points over the journal's element type**: `dfs`, `bfs` and `dfsAll` on `Traversable`, `Graph`, `AbstractGraph` and `VertexMap` now take `Visitor[V, E, J]` for any element type `E`, in place of a form that fixed the journal to `(V, Option[R])`. They also drop their `using Evaluable[V, R]`, which had become dead — Visitor's engine no longer asks for one, since a visitor carries its own. The practical gain is that Visitor's `SimpleVisitor` (bare nodes, no `Evaluable`, no pair allocated per visit) and `ParentedVisitor` (which can see the node a vertex was reached from) now work through every Gryphon traversal entry point; previously the signature rejected them. Both `Monoid as _` import exclusions are gone, Visitor 1.8.0 having removed `core.Monoid`. **Breaking**: dropping the `Evaluable` parameter changes the erased signature of 27 methods — callers passing it explicitly should remove it; callers relying on the implicit need no change beyond recompiling |
 | 1.11.0 | **Randomised iteration is now reproducible.** Gryphon shuffles iteration deliberately, so that algorithms are not accidentally sensitive to insertion order, but there were two sources of randomness and they disagreed about where the generator came from: `VertexMap.randomAdjacencies` took the caller's, while `Bag.iterator` picked up an ambient, process-global, unseeded `Bag.random`, ignoring any `Random` in scope. A seed pinned at a call site therefore did real work on one path and nothing at all on the other. `Bag.iterator` now returns insertion order — it is also the `IterableOnce` iterator, so it cannot take a generator — and shuffling moves to the new `Bag.randomIterator(using Random)`, mirrored on `Unordered`. `filteredAdjacencies` takes `using Random` and uses it, so both adjacency paths draw from the same place, and `Bag.random` is deleted. A caller's `given Random` always wins over the parameter default, which is the whole difference from the ambient value. `getConnexions` and `Connexions.create` take a `Random` too, without which they could not forward one and a pinned seed stopped at their signatures. Four pieces of API that nothing used are retired in the same release: `TraversalResult.edgeTraverse` moves to the edge-keyed branch, so the vertex-keyed one no longer carries a method whose only behaviour was to throw; `EdgeList` and `VertexPairList`, each of whose single consumer did nothing but unwrap it, move to the test tree, taking `VertexMap.createFromVertexPairList` with them and simplifying `addEdges` to take a plain `Seq`. **An attributeless connection is no longer admitted into an attributed graph.** A `VertexPair` — a connection carrying nothing — is all a graph needs unless its edges have an attribute such as a weight, but both graph flavours used to accept one into a graph whose edge type was, say, `Double`, and then lie about the type: the directed side cast an `OrderedEdge` to `DirectedEdge[V, E]`, and the undirected side put `None` in a field typed `E`. Reading `.attribute` on such an edge threw `ClassCastException`, at a use site far from the construction that caused it. The new `AbsentAttribute` type class decides whether `E` has a value meaning "no attribute" — `Unit` does, and it is `()` — and `triplesToTryGraph` now returns a `Failure` naming the offending triplet instead. A graph can therefore no longer mix attributed and attributeless edges. The unweighted traversals are also collapsed into one implementation: Gryphon had two APIs for a single operation — run a DFS or BFS, map each visited vertex, return a `TraversalResult` — one carried by `Traversable.vertexMappedTraversalDfs`/`Bfs` and the other by `DFSTraversal`/`BFSTraversal`, which had no callers at all. They now share `UnweightedTraversal`, which mirrors `WeightedTraversal` and takes the `fulfill` function that was the only difference between them; the `Traversable` methods keep their signatures and delegate. **Breaking** — see "Migrating from 1.10 to 1.11.0" below |
 | 1.12.0 | **Building a graph from inconsistent triplets now fails instead of printing to stderr.** `fromTriplets` checked that the finished graph held as many adjacencies as its triplets described, wrote `WARNING: 3 != 4` to `System.err` when it did not, and built the graph anyway. The check itself was wrong: `createVerticesFromTriplet` deliberately gives a self-loop one adjacency on one vertex, while the count expected two for every two-way triplet whatever its ends, so every self-loop in an undirected graph produced a spurious warning — two of the test suite's own graphs did so on every run. The count now allows for self-loops, and a genuine mismatch is a `Failure`, framed as an internal invariant: if the graph does not hold what the triplets described, that is Gryphon's fault and a line on stderr gives a caller nothing to act on. The orientation warning beside it, which fires on no tested path, stays — but goes to an SLF4J logger rather than stderr, so an application can route or silence it. **`src/main` now writes nothing to `System.err`.** Removed: `ShortestPaths.undiscoveredEdges` and `ShortestPaths.undiscoveredVertices`, which duplicated the methods of the same names on `Graph` with the receiver moved into a parameter, and which nothing called — not the library, not the tests, not the Java façade. `Graph`'s pair survives unchanged, and its name is under review, since `filteredAdjacencies(_ => true)` filters nothing and `undiscoveredVertices` returns `Nil` on an undirected graph. The scaladoc was also swept against the signatures: five orphaned blocks (two of which had been separated from their methods, leaving `isCyclic` and `maxDegree` undocumented), twenty-four missing `@param` tags — seventeen of them the context parameters added in 1.11.0 — and several documented types that were simply wrong. Gryphon now builds against **Visitor 1.9.0**, which adds in-order traversal for binary trees, renames `Traverse` to `Visits`, splits `Behaviours.scala` into one file per type class, and eliminates the `misc` package. None of those names appears in Gryphon, so the upgrade is a version bump and nothing more here; an application that reached through Gryphon to Visitor's `Traverse` or `misc` will need Visitor's own migration note. **A triplet whose orientation disagrees with the graph is now refused.** The second half of the same defect: building a `DirectedGraph` from an undirected triplet, or the reverse, used to write a warning — to `System.err`, then to a logger — and then use the triplet anyway, so the caller received a `Success` containing a graph built partly from data the library had just called wrong, and learned of it only if somebody was reading the log. It is the same kind of thing as a parse error, so it now takes the same exit: a `Failure` naming the offending triplet and saying what to do. **`Graph.undiscoveredEdges` is renamed `adjacentEdges`, and `Graph.undiscoveredVertices` is deleted.** Neither name described its result — `undiscoveredEdges` was `filteredAdjacencies(_ => true)`, which filters nothing — and the names were left over from a design in which the caller tracked visited state, before the traversal engine took that over. `undiscoveredVertices` is deleted rather than renamed because `adjacentVertices` already does the job and does it correctly on undirected graphs, where the deleted method returned `Nil`. **The Java façade now throws a `GryphonException` it can name**, with the Scala throwable as its cause, instead of rethrowing whatever a `Try` held — so a Java caller can tell "no such resource" from "the file parsed but describes an inconsistent graph" without naming a Scala class the façade otherwise hides. **`Boruvka.mst` no longer hangs on a disconnected graph.** Its only exit was "exactly one component remains", which a disconnected graph never reaches: once each component is internally spanned there are no crossing edges, so nothing merged and the tail-recursive loop spun with identical arguments — a hang rather than a wrong answer. It now terminates when a round adds no edge, which is correct for both cases and returns the minimum spanning forest. `Kruskal.mst` was already correct, having no early exit to mislead it, and `MST.prim`'s behaviour of returning only the start vertex's component is now documented and tested rather than merely true. **`Traversable.graphNeighbours` is now `protected[core]`.** It is derived state — a type class instance built from `adjacentVertices` — and was public only because narrowing it was awkward. Note that this is a *source* break and not a binary one: Scala enforces qualified access at compile time, so the method remains public in the bytecode and MiMa is silent. A caller outside `com.phasmidsoftware.gryphon.core` that used it will no longer compile. **Breaking**: the two 1.11.0 removals, the rename and deletion above, the refusal of mismatched triplets, the façade's exception type, and the `graphNeighbours` narrowing (source only) |
-| 1.13.0 | **The MST algorithms agree on a return type.** `Kruskal.mst` and `Boruvka.mst` returned a bare `Seq[Edge[V, E]]` while `MST.prim` returned a `TraversalResult`, so no caller could write one function over "an MST result". They now return the edge-keyed `TraversalResult`, which is what an edge list in order of addition actually is: positional, with no meaningful vertex key, and an order that means something — ascending weight for Kruskal, round order for Borůvka. Prim's result is a parent map and stays vertex-keyed, so the two branches of `TraversalResult` now express a real distinction instead of one being decoration; the edge-keyed branch previously had no producer outside a test. It extends `Seq`, so `map`, `exists`, `head` and `sorted` all work as before and most callers need no change at all. **Expensive graph properties are computed once.** `isConnected`, `isCyclic`, `isBipartite`, `maxDegree` and `meanDegree` become `lazy val`s, and `DirectedGraph` gains `topologicalOrder`, which `isCyclic` is derived from and which `AcyclicShortestPaths` now uses instead of sorting again — so a caller who checks `isDAG` first, as the Java façade's own scaladoc tells them to, no longer pays for two topological sorts. A `lazy val` is safe where a mutable cache would not be: a derived graph is a new object with its own uninitialised field, so there is nothing to invalidate. **`VertexMap.logger` is removed, and `slf4j-api` with it.** Nothing ever logged through it, and since 1.12.0 made the orientation warning a `Failure` there is no logging call anywhere in `src/main`. `flog` stays: it is a debugging tool, so zero call sites is its normal state and not evidence it is unused. **A graph can now be rendered, not only built.** `SerializableGraph.serialize` existed but could not be reached from a real graph, and what it emitted could not be read back: `0,1,Some(5.0)` — comma-separated where the parser wants whitespace, Scala's `Option.toString` where it wants a bare number, and no edge type at all, so directedness was lost. `EdgeGraph.unbuild` converts a graph into an `EdgeList` — one of three description shapes, which is why it is a conversion rather than `Graph` extending `SerializableGraph` — and `serialize` now writes the parser's own format. `Parseable` gains `render` as the inverse of `parse`, defaulting to `toString`, which is correct for every type here except `EdgeType`, whose `toString` is "Directed" where the parser reads ">". `EdgeList` and `VertexPairList` return to `src/main` for this, having been moved out in 1.11.0 when nothing used them. The round-trip property — parse, build, unbuild, serialize, parse — is now asserted on a real graph in both directions, which is the test whose absence let all of that sit undetected. **One of those description shapes was a duplicate.** `ProtoConnexions` and `VertexPairList` were the same type written twice — same field, same `triplets` body, differing only in that one fixed `Z` to `EdgeType` and extended `Pairs` — so the 2×2 of attributed-or-not against edge-objects-or-tuples had one cell occupied twice and another empty. `ProtoConnexions` is removed: it was the name nothing used, its sole call site being `createFromPairs` and its `parse` having none at all. `VertexPairList` keeps the name, widens to `[V, Z]` so `createFromPairs` need not narrow, and takes `parse` across, where it gains the test it never had. **Breaking**: the two MST result types, the removal of `VertexMap.logger`, `serialize` taking a `Parseable[Z]`, `size` becoming final on the edge-keyed result (a consequence of extending `Seq`, which no caller can observe), and the removal of `ProtoConnexions` |
+| 1.13.0 | **The MST algorithms agree on a return type.** `Kruskal.mst` and `Boruvka.mst` returned a bare `Seq[Edge[V, E]]` while `MST.prim` returned a `TraversalResult`, so no caller could write one function over "an MST result". They now return the edge-keyed `TraversalResult`, which is what an edge list in order of addition actually is: positional, with no meaningful vertex key, and an order that means something — ascending weight for Kruskal, round order for Borůvka. Prim's result is a parent map and stays vertex-keyed, so the two branches of `TraversalResult` now express a real distinction instead of one being decoration; the edge-keyed branch previously had no producer outside a test. It extends `Seq`, so `map`, `exists`, `head` and `sorted` all work as before and most callers need no change at all. **Expensive graph properties are computed once.** `isConnected`, `isCyclic`, `isBipartite`, `maxDegree` and `meanDegree` become `lazy val`s, and `DirectedGraph` gains `topologicalOrder`, which `isCyclic` is derived from and which `AcyclicShortestPaths` now uses instead of sorting again — so a caller who checks `isDAG` first, as the Java façade's own scaladoc tells them to, no longer pays for two topological sorts. A `lazy val` is safe where a mutable cache would not be: a derived graph is a new object with its own uninitialised field, so there is nothing to invalidate. **`VertexMap.logger` is removed, and `slf4j-api` with it.** Nothing ever logged through it, and since 1.12.0 made the orientation warning a `Failure` there is no logging call anywhere in `src/main`. `flog` stays: it is a debugging tool, so zero call sites is its normal state and not evidence it is unused. **A graph can now be rendered, not only built.** `SerializableGraph.serialize` existed but could not be reached from a real graph, and what it emitted could not be read back: `0,1,Some(5.0)` — comma-separated where the parser wants whitespace, Scala's `Option.toString` where it wants a bare number, and no edge type at all, so directedness was lost. `EdgeGraph.unbuild` converts a graph into an `EdgeList` — one of three description shapes, which is why it is a conversion rather than `Graph` extending `SerializableGraph` — and `serialize` now writes the parser's own format. `Parseable` gains `render` as the inverse of `parse`, defaulting to `toString`, which is correct for every type here except `EdgeType`, whose `toString` is "Directed" where the parser reads ">". `EdgeList` and `VertexPairList` return to `src/main` for this, having been moved out in 1.11.0 when nothing used them. The round-trip property — parse, build, unbuild, serialize, parse — is now asserted on a real graph in both directions, which is the test whose absence let all of that sit undetected. **One of those description shapes was a duplicate.** `ProtoConnexions` and `VertexPairList` were the same type written twice — same field, same `triplets` body, differing only in that one fixed `Z` to `EdgeType` and extended `Pairs` — so the 2×2 of attributed-or-not against edge-objects-or-tuples had one cell occupied twice and another empty. `ProtoConnexions` is removed: it was the name nothing used, its sole call site being `createFromPairs` and its `parse` having none at all. `VertexPairList` keeps the name, widens to `[V, Z]` so `createFromPairs` need not narrow, and takes `parse` across, where it gains the test it never had. **Randomised iteration is documented at last.** The README said nothing about it: that adjacency iteration is deliberately shuffled, that every traversal takes a `using Random` defaulted to a fresh one, that pinning a seed makes a run reproducible, or that the Java façade pins its own and so never varies. A Scala caller who ran DFS twice, got two answers and came here to find out why found nothing, while the Java half of the same documented API behaved differently without saying so. There is now a section under Design Principles, with pointers from the first traversal example and the Java API preamble. **Breaking**: the two MST result types, the removal of `VertexMap.logger`, `serialize` taking a `Parseable[Z]`, `size` becoming final on the edge-keyed result (a consequence of extending `Seq`, which no caller can observe), and the removal of `ProtoConnexions` |
 
 ### Migrating from 1.10 to 1.11.0
 

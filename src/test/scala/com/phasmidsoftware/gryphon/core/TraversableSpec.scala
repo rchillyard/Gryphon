@@ -129,3 +129,58 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
           values.contains(AttributedDirectedEdge((), 1, 0)) shouldBe false
           values.contains(AttributedDirectedEdge((), 0, 5)) shouldBe true
     }
+
+  // =====================================================================================
+  // Issue #113: multi-source reachability -- Sedgewick & Wayne's DirectedDFS over a set of
+  // sources, answering "what is reachable from ANY of these?".
+  //
+  // The shared visited set is the point, and the reason this is not a loop a caller writes:
+  // running dfs once per source and unioning visits shared territory once per source, which is
+  // quadratic in the worst case where this is linear in the graph.
+  //
+  // dfsAll is now this method over every vertex. The two always had the same body, one with the
+  // source list hard-coded, which is why defining it this way left all existing tests passing.
+
+  private def threeComponents: VertexMap[Int] =
+    VertexMap[Int]
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("a", 1, 2))
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("b", 10, 11))
+            .+(com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge("c", 20, 21))
+
+  private def reachedFrom(sources: Iterable[Int]): Set[Int] =
+    threeComponents.dfsFrom(JournaledVisitor.withQueueJournal[Int, Int])(sources).result.map(_._1).toSet
+
+  behavior of "dfsFrom"
+
+  it should "reach only the component of a single source" in :
+    reachedFrom(Seq(1)) shouldBe Set(1, 2)
+
+  it should "reach the union of the components of several sources" in :
+    reachedFrom(Seq(1, 10)) shouldBe Set(1, 2, 10, 11)
+    reachedFrom(Seq(1, 10)) should not contain 20
+
+  it should "reach everything when given one source per component" in :
+    reachedFrom(Seq(1, 10, 20)) shouldBe Set(1, 2, 10, 11, 20, 21)
+
+  it should "visit a vertex once even when it is both reached and named as a source" in :
+    // 2 is reached from 1, so by the time it comes up as a source it is already visited. Without
+    // the shared set it would start a second traversal over ground already covered -- which is
+    // the quadratic behaviour, and would also double its journal entry.
+    val journal = threeComponents
+            .dfsFrom(JournaledVisitor.withQueueJournal[Int, Int])(Seq(1, 2))
+            .result.map(_._1)
+    journal.count(_ == 2) shouldBe 1
+    journal.toSet shouldBe Set(1, 2)
+
+  it should "skip a source that is not a vertex of the graph" in :
+    // Rather than throwing, so the method stays usable as a filter over a candidate set, which
+    // is how the book's multi-source constructor is used.
+    reachedFrom(Seq(99)) shouldBe Set.empty
+    reachedFrom(Seq(99, 1)) shouldBe Set(1, 2)
+
+  it should "give the same answer as dfsAll when every vertex is a source" in :
+    val viaAll = threeComponents.dfsAll(JournaledVisitor.withQueueJournal[Int, Int]).result.map(_._1).toSet
+    viaAll shouldBe reachedFrom(threeComponents.map.keySet)
+
+  it should "reach nothing when given no sources" in :
+    reachedFrom(Nil) shouldBe Set.empty

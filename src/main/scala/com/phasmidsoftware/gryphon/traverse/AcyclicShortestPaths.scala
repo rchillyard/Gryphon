@@ -41,9 +41,47 @@ object AcyclicShortestPaths:
    * @throws IllegalArgumentException if the graph contains a cycle.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    val mn = implicitly[Monoid[E]]
-    val ord = implicitly[Ordering[E]]
+    relax(graph, start)(using summon[Monoid[E]], summon[Ordering[E]])
 
+  /**
+   * Computes LONGEST paths from `start` to all reachable vertices in `graph`.
+   *
+   * The textbook derives this by negating the weights, which cannot be done here: `E` carries
+   * only `Monoid` and `Ordering`, and neither offers negation. Demanding a `Group[E]` or a
+   * `Numeric[E]` would narrow the API for every caller in order to serve one method.
+   *
+   * It is also unnecessary. `relax` uses its two type classes in exactly two places — `Monoid` to
+   * accumulate a distance, `Ordering` only to decide whether a candidate beats the incumbent — so
+   * reversing the `Ordering` turns "keep the smaller" into "keep the larger" and changes nothing
+   * else. Issue #114.
+   *
+   * This works for a DAG precisely because the topological order makes each vertex final by the
+   * time it is reached, so "take the better candidate" is correct whichever direction better runs.
+   * The same trick does NOT work for Dijkstra, whose correctness depends on the minimum being
+   * extracted first.
+   *
+   * @param graph the directed acyclic graph.
+   * @param start the source vertex.
+   * @tparam V the vertex type.
+   * @tparam E the edge-weight type; must have `Monoid` (zero + combine) and `Ordering`.
+   * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
+   *         vertex (except `start`) to its longest-path incoming edge.
+   * @throws IllegalArgumentException if the graph contains a cycle.
+   */
+  def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start)(using summon[Monoid[E]], summon[Ordering[E]].reverse)
+
+  /**
+   * The relaxation shared by `shortestPaths` and `longestPaths`, which differ only in the
+   * `Ordering` they pass. Taking it as an explicit parameter rather than a context bound is the
+   * whole mechanism: `ord.lt` is the only place the direction is decided.
+   *
+   * @param graph the directed acyclic graph.
+   * @param start the source vertex.
+   * @param ord   decides whether a candidate distance beats the incumbent. Reversed, this yields
+   *              longest rather than shortest paths.
+   */
+  private def relax[V, E](graph: DirectedGraph[V, E], start: V)(using mn: Monoid[E], ord: Ordering[E]): VertexTraversalResult[V, DirectedEdge[V, E]] =
     val topoOrder: Seq[V] = TopologicalSort.sort(graph)
             .getOrElse(throw IllegalArgumentException("AcyclicShortestPaths: graph contains a cycle"))
 

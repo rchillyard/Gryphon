@@ -106,25 +106,53 @@ case class VertexMap[V](map: Map[V, Vertex[V]]) extends Traversable[V]:
    * @return the updated visitor after traversing all vertices.
    */
   def dfsAll[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(using random: Random): Visitor[V, E, J] =
+    dfsFrom(visitor)(map.keySet)
+
+  /**
+   * Performs DFS from each of `sources` in turn, sharing one visited set across all of them.
+   *
+   * This is Sedgewick & Wayne's multi-source `DirectedDFS`, and answers "which vertices are
+   * reachable from ANY of these?". Issue #113.
+   *
+   * The shared visited set is the whole point, and the reason this is not a loop a caller could
+   * write for themselves: running `dfs` once per source and unioning the results visits shared
+   * territory once per source, which is quadratic in the worst case where this is linear in the
+   * graph. It also yields one visitor rather than a pile of them to merge.
+   *
+   * `dfsAll` is now this method over every vertex, which is what it always was — the two had the
+   * same body, one with the source list hard-coded.
+   *
+   * @param visitor the visitor, accumulating results into its journal.
+   * @param sources the vertices to start from, each tried in turn and skipped if already reached.
+   * @param random  the generator determining adjacency order (implicit).
+   * @tparam E the journal's element type.
+   * @tparam J the journal type.
+   * @return the updated visitor after traversing everything reachable from any source.
+   */
+  def dfsFrom[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(sources: Iterable[V])(using random: Random): Visitor[V, E, J] =
     new GraphNeighboursTraversal[V, Visitor[V, E, J]](this) {
       def traversal: Visitor[V, E, J] =
         @tailrec
-        def loop(vis: Visitor[V, E, J], visited: Set[V]): Visitor[V, E, J] =
-          val unvisited = map.keySet.diff(visited)
-          if unvisited.isEmpty then vis
-          else
-            val next = unvisited.head
-            // Pre-mark all already-visited vertices so the engine skips them
-            val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
-            val result = Traversal.dfs(next, vis)(using nbrs, vs, summon[Tracer[V]])
-            // `visited` must grow by every vertex this DFS reached, not just by its root.
-            // Adding only `next` left the rest of the component unvisited as far as the loop
-            // was concerned, so each of them started another DFS over ground already covered,
-            // and a came-from journal ended up with mutually-referring entries (0 from 1 and
-            // 1 from 0) rather than a forest.
-            loop(result, visited ++ reachableFrom(next, visited))
+        def loop(remaining: List[V], vis: Visitor[V, E, J], visited: Set[V]): Visitor[V, E, J] =
+          remaining match
+            case Nil => vis
+            case next :: rest if visited.contains(next) || !map.contains(next) =>
+              // Already reached by an earlier source, or not a vertex of this graph. Skipping an
+              // absent vertex rather than throwing keeps this usable as a filter over a candidate
+              // set, which is how the book's multi-source constructor is used.
+              loop(rest, vis, visited)
+            case next :: rest =>
+              // Pre-mark all already-visited vertices so the engine skips them
+              val vs: VisitedSet[V] = visited.foldLeft(summon[VisitedSet[V]])(_.markVisited(_))
+              val result = Traversal.dfs(next, vis)(using nbrs, vs, summon[Tracer[V]])
+              // `visited` must grow by every vertex this DFS reached, not just by its root.
+              // Adding only `next` left the rest of the component unvisited as far as the loop
+              // was concerned, so each of them started another DFS over ground already covered,
+              // and a came-from journal ended up with mutually-referring entries (0 from 1 and
+              // 1 from 0) rather than a forest.
+              loop(rest, result, visited ++ reachableFrom(next, visited))
 
-        loop(visitor, Set.empty)
+        loop(sources.toList, visitor, Set.empty)
     }.traversal
 
   /**

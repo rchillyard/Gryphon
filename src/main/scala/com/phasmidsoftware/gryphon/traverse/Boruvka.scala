@@ -129,7 +129,7 @@ object Boruvka:
    * This is the per-round embarrassingly parallel step: each vertex independently
    * inspects its crossing edges with no inter-vertex dependencies.
    *
-   * CONSIDER Replacing the sequential `foldLeft` with a parallel fold over `vertices.par` to exploit it. (#94)
+   * CONSIDER Replacing the sequential `foldLeft` with a parallel fold over `vertices.par` to exploit it. (#75)
    * Tracked as issue #75, together with the note on the Boruvka object; unmeasured as yet.
    * However, note that we would not then be able to use `ConnectivityOptimized` and the trade-off
    * versus running `ConnectivityLazy` with parallelism would likely not be worth it.

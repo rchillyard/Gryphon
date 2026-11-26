@@ -117,6 +117,13 @@ trait Traversable[V] {
    */
   def dfsAll[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(using random: Random = Random()): Visitor[V, E, J]
 
+  // NOTE: `dfsFrom`, the multi-source counterpart of `dfsAll` (#113), is deliberately NOT declared
+  // here, although this is where it belongs beside `dfs`, `dfsAll` and `bfs`. A new ABSTRACT member
+  // on a published trait is a ReversedMissingMethodProblem: any implementation of `Traversable`
+  // outside this library would stop linking. MiMa caught exactly that. It lives on `VertexMap` and
+  // `Graph` instead, which costs only a caller working against `Traversable` abstractly, and keeps
+  // this a patch release rather than forcing a major one. Move it here at the next major bump.
+
   /**
    * Performs a breadth-first search (BFS) traversal starting from the specified vertex.
    *

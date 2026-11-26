@@ -15,7 +15,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
   behavior of "ShortestPaths"
 
   // dijkstra.graph: edges from 0 are 0->1 (5.0), 0->4 (9.0), 0->7 (8.0)
-  // so undiscoveredVertices(0) should return exactly those 3 edges.
+  // so adjacentVertices(0) should return exactly those 3 vertices.
 
   it should "Dijkstra" in {
     val p = new GraphParser[Int, Double, EdgeType]
@@ -46,7 +46,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
         fail("parse failed", x)
   }
 
-  it should "undiscoveredVertices" in {
+  it should "adjacentVertices" in {
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dijkstra.graph"))
     val zsy: Try[Seq[Triplet[Int, Double, EdgeType]]] = TryUsing.tryIt(triedSource) {
@@ -56,7 +56,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
-            val neighbours = graph.undiscoveredVertices(0)
+            val neighbours = graph.adjacentVertices(0).toSeq
             neighbours should not be empty
           case Failure(x) =>
             fail("parse failed", x)
@@ -66,7 +66,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
 
   // --- New tests ---
 
-  it should "undiscoveredVertices from vertex 0 returns exactly 3 direct neighbours" in {
+  it should "adjacentVertices from vertex 0 returns exactly 3 direct neighbours" in {
     // dijkstra.graph: 0->1 (5.0), 0->4 (9.0), 0->7 (8.0)
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dijkstra.graph"))
@@ -77,7 +77,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
-            val neighbours = graph.undiscoveredVertices(0)
+            val neighbours = graph.adjacentVertices(0).toSeq
             neighbours.size shouldBe 3
             neighbours.toSet shouldBe Set(1, 4, 7)
           case Failure(x) =>
@@ -86,7 +86,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
         fail("parse failed", x)
   }
 
-  it should "undiscoveredVertices from vertex 2 returns correct neighbours with weights" in {
+  it should "adjacentEdges from vertex 2 returns correct neighbours with weights" in {
     // dijkstra.graph: 2->3 (3.0), 2->6 (11.0)
     val p = new GraphParser[Int, Double, EdgeType]
     val triedSource = Try(Source.fromResource("dijkstra.graph"))
@@ -97,7 +97,7 @@ class ShortestPathsSpec extends AnyFlatSpec with Matchers:
       case Success(triplets) =>
         triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
           case Success(graph: DirectedGraph[Int, Double] @unchecked) =>
-            val neighbours = graph.undiscoveredEdges(2)
+            val neighbours = graph.adjacentEdges(2)
             neighbours.size shouldBe 2
             val edgeMap = neighbours.map(e => e.black -> e.attribute).toMap
             edgeMap(3) shouldBe 3.0

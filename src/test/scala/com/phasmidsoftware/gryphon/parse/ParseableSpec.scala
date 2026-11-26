@@ -125,4 +125,26 @@ class ParseableSpec extends AnyFlatSpec with Matchers {
       case scala.util.Failure(x) =>
         fail("failed to load longs.graph", x)
 
+  // -------------------------------------------------------------------------------------
+  // Issue #81: ParseableString's scaladoc says in as many words that the input "can be null
+  // or empty", and neither case was tested. The guard is
+  //   FP.assert(input != null && input.nonEmpty)("not a valid String")(input)
+  // and mutating `&&` to `||` survived the Stryker4s trial, because nothing distinguished
+  // the two operators: with `||`, null stops short-circuiting and `null.nonEmpty` throws an
+  // NPE, while "" returns Success("") instead of a Failure. Both assertions below fail under
+  // the mutant and pass against the real implementation, so this is missing coverage rather
+  // than a defect. Note scoverage structurally cannot show this: it does not model `&&`
+  // short-circuits as branches, so the line reports as fully covered with zero branches.
+
+  behavior of "ParseableString's documented null and empty handling"
+
+  it should "fail on the empty string" in :
+    implicitly[Parseable[String]].parse("") should matchPattern { case Failure(_) => }
+
+  it should "fail on null rather than throwing" in :
+    implicitly[Parseable[String]].parse(null) should matchPattern { case Failure(_) => }
+
+  it should "still succeed on an ordinary string" in :
+    implicitly[Parseable[String]].parse("hello") shouldBe Success("hello")
+
 }

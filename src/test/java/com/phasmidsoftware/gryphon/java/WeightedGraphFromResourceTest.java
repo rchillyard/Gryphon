@@ -100,7 +100,14 @@ public class WeightedGraphFromResourceTest {
 
     @Test
     void undirectedFromResource_throws_for_nonexistent_resource() {
-        assertThrows(FileNotFoundException.class,
+        // Changed in 1.12.0 by issue #105. This used to assert FileNotFoundException, which was
+        // whatever the Scala side happened to throw, escaping through Try.get. That is the very
+        // thing #105 is about: a Java caller could only name the failure by naming a type the
+        // facade does not otherwise expose, and a different failure of the same call -- a parse
+        // error, an inconsistent graph -- would have been a different type again. The facade now
+        // throws one nameable exception and keeps the original as the cause, so this asserts both.
+        GryphonException x = assertThrows(GryphonException.class,
                 () -> WeightedGraph.undirectedFromResource("nosuchfile.graph"));
+        assertInstanceOf(FileNotFoundException.class, x.getCause());
     }
 }

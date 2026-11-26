@@ -5,7 +5,6 @@
 package com.phasmidsoftware.gryphon.adjunct
 
 import com.phasmidsoftware.gryphon.core.*
-import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -80,7 +79,8 @@ object AbstractAdjunctGraph:
    * type here and `GraphBuilder` cast it straight back again.
    *
    * @param f         creates a vertex from an attribute.
-   * @param warn      the orientation this graph does not want, as a message; see the note below.
+   * @param reject    given a triplet, `Some(reason)` if its orientation disagrees with the graph
+   *                  being built, otherwise `None`. Such a triplet is refused; see #57.
    * @param adjacency builds the adjacency for a pair of vertices and an optional attribute.
    * @param bothWays  whether the triplet's adjacency should also be added in the reverse direction.
    * @param build     wraps the finished `VertexMap` as a graph of kind `G`.
@@ -99,7 +99,7 @@ object AbstractAdjunctGraph:
    */
   def fromTriplets[V, E, G <: AbstractGraph[V]](
                                                        f: V => Vertex[V],
-                                                       warn: Triplet[V, E, EdgeType] => Option[String],
+                                                       reject: Triplet[V, E, EdgeType] => Option[String],
                                                        adjacency: (Vertex[V], Vertex[V], Option[E]) => Adjacency[V],
                                                        bothWays: Triplet[V, E, EdgeType] => Boolean,
                                                        build: VertexMap[V] => G
@@ -116,14 +116,22 @@ object AbstractAdjunctGraph:
           s"triplesToTryGraph: ${offenders.size} triplet(s) have no attribute, but this graph's " +
                   s"edge type cannot represent an absent attribute. First: ${offenders.head}. " +
                   s"Either give every edge an attribute, or build a graph whose edge type is Unit."))
+      case triplets: Triplets[V, E, EdgeType] if triplets.triplets.exists(reject(_).isDefined) =>
+        // A triplet whose EdgeType disagrees with the graph being built. Up to 1.11.0 this was
+        // reported — to stderr, then to a logger — and the triplet was used anyway, so the caller
+        // got a Success containing a graph built partly from data the library had just called
+        // wrong, and only learned of it if somebody was reading the log. It is the same kind of
+        // thing as a parse failure and as the absent-attribute case above — the input does not
+        // describe the graph being asked for — so it now takes the same exit. Issue #57.
+        val offenders = triplets.triplets.filter(reject(_).isDefined)
+        Failure(GraphException(
+          s"triplesToTryGraph: ${offenders.size} triplet(s) have an orientation that disagrees " +
+                  s"with the graph being built: ${reject(offenders.head).get} " +
+                  s"First offender: ${offenders.head}. " +
+                  s"Either correct the triplets, or build a graph of the other orientation."))
       case triplets: Triplets[V, E, EdgeType] =>
         val vertexMap: VertexMap[V] =
           triplets.triplets.foldLeft(VertexMap[V]) { (z, t) =>
-            // TODO see issue #57: a triplet whose EdgeType disagrees with the graph being built
-            //  is reported and then used anyway. It should be a Failure, but doing that needs the
-            //  parser to stop producing them. Logged rather than printed in the meantime, so that
-            //  an application can route or silence it; it fires on no tested path.
-            warn(t).foreach(logger.warn)
             z.createVerticesFromTriplet[E, EdgeType](f)(adjacency)(bothWays(t))(t)
           }
         val graph: G = build(vertexMap)
@@ -159,9 +167,7 @@ object AbstractAdjunctGraph:
               s"describe $expected. This is an internal inconsistency in Gryphon, not a problem with " +
               s"the input; please report it with the graph which produced it (#57)."))
 
-  /**
-   * Where this object's diagnostics go. Until 1.11.1 they went to `System.err` directly, which an
-   * application could neither route nor silence — and which, being nobody's job to read, is how
-   * the adjacency-count mismatch of #57 went unnoticed for so long.
-   */
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
+  // The logger that lived here is gone. It had one call site, the orientation warning, and with
+  // #57 finished that warning is a Failure instead: both of this object's diagnostics are now
+  // returned to the caller rather than written anywhere. Note the consequence for #102 — this was
+  // the project's first real logging call, so slf4j-api is once again declared and barely used.

@@ -64,4 +64,42 @@ class GraphParserSpec extends AnyFlatSpec with Matchers {
     }
 
   }
+
+  // -------------------------------------------------------------------------------------
+  // Issue #80: parseStrings' two arms. `ok` is true when there were no failures at all, or
+  // when every failure was an EmptyStringException — blank lines are not an error. Anything
+  // else makes the whole parse a Failure. Only the success arm was ever exercised, so the
+  // Stryker4s trial found the `else` branch unasserted: nothing distinguished "tolerate the
+  // blank lines" from "tolerate everything".
+
+  behavior of "GraphParser.parseStrings"
+
+  it should "fail, naming the input, when a line cannot be parsed" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    p.parseStrings(p.parseTriple)(Iterator("0 1 2.0", "this is not a triple")) match {
+      case Failure(x: ParseException) =>
+        x.getMessage should startWith("Bad input:")
+      case other =>
+        fail(s"expected a ParseException naming the bad input, got: $other")
+    }
+  }
+
+  it should "tolerate blank lines, which fail with EmptyStringException" in {
+    val p = new GraphParser[Int, Double, EdgeType]
+    p.parseStrings(p.parseTriple)(Iterator("0 1 2.0", "", "1 2 3.0")) match {
+      case Success(ts) =>
+        ts.size shouldBe 2
+      case other =>
+        fail(s"expected the blank line to be tolerated, got: $other")
+    }
+  }
+
+  it should "fail when a bad line accompanies blank lines" in {
+    // The bad line must make the whole parse fail even though the blanks on their own would not:
+    // `forall` over a mixed `bad` is false, which is the case that distinguishes the two arms.
+    val p = new GraphParser[Int, Double, EdgeType]
+    p.parseStrings(p.parseTriple)(Iterator("0 1 2.0", "", "not a triple")) should matchPattern {
+      case Failure(_: ParseException) =>
+    }
+  }
 }

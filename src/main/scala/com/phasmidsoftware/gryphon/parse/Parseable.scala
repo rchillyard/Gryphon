@@ -27,6 +27,27 @@ trait Parseable[T] {
   def parse(input: String): Try[T]
 
   /**
+   * Renders an instance of `T` as a string that `parse` can read back.
+   *
+   * The inverse of `parse`, and deliberately declared next to it: the pair is only correct
+   * together, and `SerializableGraph.serialize` relies on that — the round-trip test in
+   * `SerializableGraphSpec` asserts `parse ∘ render` is the identity over a real graph. See #135.
+   *
+   * `toString` is the right default for the types this library parses — `Int`, `Double`, `String`
+   * all render to something `parse` accepts — and it is wrong for exactly one, `EdgeType`, whose
+   * `toString` is "Directed" where the parser reads ">". `ParseableEdgeType` overrides it.
+   *
+   * A note on the name. Putting rendering on something called `Parseable` is a slight stretch;
+   * the trait is really a codec now. Splitting it into `Parseable` and `Renderable` would be
+   * tidier and would also be a binary break for every implementor, so it is not worth doing for
+   * one override. Recorded rather than hidden.
+   *
+   * @param t the value to render.
+   * @return a string which `parse` maps back to `t`.
+   */
+  def render(t: T): String = t.toString
+
+  /**
    * The regular expression used for parsing a `Parseable[T]`.
    *
    * @return A compiled regular expression.

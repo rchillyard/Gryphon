@@ -214,6 +214,28 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
 trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
 
   /**
+   * Unbuilds this graph into a `SerializableGraph` — the inverse of what `GraphBuilder` does —
+   * from which `serialize` renders it in `GraphParser`'s format. See #135.
+   *
+   * The conversion is deliberately a separate step rather than this trait extending
+   * `SerializableGraph`. A graph is not a serializable description; it *becomes* one, and there
+   * are four descriptions it could become. The 2x2 is attributed or not, against edge objects or
+   * raw tuples: `EdgeList` here, `Triplets`, `VertexPairList` and `ProtoConnexions`. Making
+   * `EdgeGraph` extend the trait would have conflated the model with its wire form and forced
+   * one of the four on every caller.
+   *
+   * `EdgeList` is the natural target for a graph that has edges, and the conversion is only this
+   * line because `EdgeList.triplets` already carries it onward. A caller wanting one of the
+   * other three can convert from here.
+   *
+   * @tparam Z the edge-type parameter, a supertype of `EdgeType` so that `EdgeList.triplets`
+   *           needs no cast.
+   * @return this graph as an `EdgeList`, the concrete type rather than `SerializableGraph`, so a
+   *         caller keeps `edges` and `pairs` without having to cast back down.
+   */
+  def unbuild[Z >: EdgeType]: EdgeList[V, E, Z] = EdgeList(edges.toSeq)
+
+  /**
    * The kind of edge this graph admits.
    *
    * An undirected graph admits `UndirectedEdge`s and a directed one `DirectedEdge`s. Before 1.8.0

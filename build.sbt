@@ -13,7 +13,7 @@ val jupiterVersion      = "6.0.3"
 // Gryphon needs none of cats-core, so the dependency list grows by exactly one small jar.
 val catsKernelVersion   = "2.13.0"
 val jupiterInterfaceVersion = "0.19.0"
-val visitorVersion      = "1.8.0"
+val visitorVersion      = "1.9.0"
 val flogVersion         = "1.1.0"
 val logbackVersion      = "1.5.32"
 val slf4jVersion        = "2.0.17"
@@ -45,18 +45,17 @@ Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 // The version scheme is PVP (see publish.sbt): a patch release must pass; a minor release may break compatibility,
 // on purpose and with a release note, by listing the breaks in mimaBinaryIssueFilters (or, after the release, by
 // moving previousRelease on). Note moduleName, not name: the published artifact is gryphon_3, not Gryphon_3.
-// Still 1.10.0, not 1.11.0, because MiMa resolves this from Central and 1.11.0 is not there yet:
-// publication is blocked until 2026-12-01. Comparing 1.12.0 against 1.10.0 is a stricter check
-// than against 1.11.0, not a weaker one, so nothing is missed by waiting. Move it to 1.11.0 once
-// that publishes, and rename the filters file to match; the section at the end of the current one
-// marks which filters belong to 1.12.0 rather than to 1.11.0.
-val previousRelease = "1.10.0"
+val previousRelease = "1.11.0"
 mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease)
 
 // Deliberate breaks are listed in src/main/mima-filters/<previousRelease>.backwards.excludes,
-// which MiMa reads automatically. Keeping them there rather than here means they retire by
-// themselves: when previousRelease moves on, the old file stops being consulted. Up to 1.8.1 they
-// lived in this file and had to be deleted by hand after each release.
+// which MiMa reads automatically. The version in the name records which release the breaks belong
+// to; it is NOT a condition on when the file applies. sbt-mima reads EVERY *.backwards.excludes in
+// that directory whatever it is called, so a filter is a permanent, unconditional exemption for the
+// symbol it names and stays in force until the file is deleted by hand. Moving previousRelease on
+// does not retire anything. Deleting the filters for release N, once previousRelease has reached N,
+// is therefore a required step of the post-release and not tidying. See #107, where three files
+// were live and 81 filters in force where this comment had implied 36.
 
 // ============================================================================
 // MODULE DEFINITION

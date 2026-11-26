@@ -25,12 +25,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * second is not decoration. Three plausible fixtures were tried first and all three made the
  * reproducibility assertion vacuous, each for a different reason:</p>
  * <ul>
- *   <li>a four-vertex diamond — its traversal is forced by structure (see
- *       {@link TopologicalSortTest});</li>
- *   <li>a star {@code 0 -> 1..8} — a came-from map records each vertex's parent, and in a star
- *       every leaf's parent is the source whatever the order;</li>
- *   <li>a transitive tournament — came-from is recorded at <em>discovery</em>, and when the
- *       source is adjacent to every vertex, every vertex is discovered from the source.</li>
+ *   <li>a four-vertex diamond ({@code 0->1, 0->2, 1->3, 2->3}) — vertex 3 could be reached from
+ *       either side, but the traversal is forced by structure (see {@link TopologicalSortTest});</li>
+ *   <li>a star ({@code 0 -> 1..8}) — eight factorial adjacency orderings and not one of them
+ *       matters, because a came-from map records each vertex's <em>parent</em> and in a star
+ *       every leaf's parent is the source;</li>
+ *   <li>a transitive tournament ({@code i -> j} for every {@code i < j}; a tournament has exactly
+ *       one edge between each pair of vertices, as in round-robin play where the edge points to
+ *       the winner) — maximally connected, and still no good: came-from is recorded at
+ *       <em>discovery</em>, so when the source is adjacent to every vertex, every vertex is
+ *       discovered from the source and the result is a star again. This is also how we learned
+ *       that a came-from map is not a DFS tree.</li>
  * </ul>
  * <p>Without the variation half, all three would have reported success while testing nothing.</p>
  */

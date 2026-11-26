@@ -370,8 +370,8 @@ object Connexions {
    *
    * @tparam V the type representing a vertex in the graph.
    * @tparam E the type representing the edge attribute in the traversal.
-   * @return a `ProtoConnexions` object that encapsulates the result of the traversal,
-   *         mapping vertices to their respective directed edges.
+   * @return a `Connexions[V, E]` encapsulating the result of the traversal, mapping each reached
+   *         vertex to the directed edge by which it was reached.
    */
   def create[V, E](graph: core.Traversable[V])(start: V)(using random: Random = Random()): Connexions[V, E] = {
     graph.getConnexions(start)

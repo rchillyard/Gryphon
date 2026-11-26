@@ -94,11 +94,14 @@ object FP {
     sequence(xys.to(List)).map(_.iterator)
 
   /**
-   * Sequence method to combine elements of Try.
+   * Sequence method to combine elements of Option.
    *
-   * @param xos an Iterator of Try[X]
+   * This whole block was the `Try` overload's, copied: the summary, the `@param` and the
+   * `@return` all described `Try`. See #127.
+   *
+   * @param xos an Iterator of Option[X]
    * @tparam X the underlying type
-   * @return a Try of Iterator[X]
+   * @return an `Option[Iterator[X]]`: `Some` if every element was `Some`, otherwise `None`.
    */
   def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] =
     sequence(xos.to(List)).map(_.iterator)

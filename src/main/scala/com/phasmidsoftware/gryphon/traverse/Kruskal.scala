@@ -35,8 +35,11 @@ object Kruskal:
    * @param graph the undirected weighted graph.
    * @tparam V the vertex attribute type.
    * @tparam E the edge weight type; must be `Ordering`.
-   * @return a `TraversalResult[V, Edge[V, E]]` mapping each vertex to its incident MST edge
-   *         (`None` for isolated vertices or the arbitrary first vertex processed).
+   * @return a `Seq[Edge[V, E]]` — the MST edges in the order they were added, which for Kruskal
+   *         is ascending weight order. On a disconnected graph this is the minimum spanning
+   *         FOREST: there is no early exit, so every edge is considered and those joining
+   *         distinct components are kept. See #117, and note that adding the usual "stop at
+   *         `order - 1` edges" optimisation would break that.
    */
   def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): Seq[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq

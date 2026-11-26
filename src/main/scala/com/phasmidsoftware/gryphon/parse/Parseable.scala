@@ -101,7 +101,9 @@ object Parseable {
      * Ignores the given string and returns an Option containing Unit.
      *
      * @param w the input string to be parsed (ignored)
-     * @return an Option containing Unit, which is always Some(())
+     * @return `Success(())` if the input is exactly "()", otherwise a `Failure`. The tag here used
+     *         to say "an Option containing Unit, which is always Some(())", which was wrong twice:
+     *         the type is `Try`, and it is not always a success. See #127.
      */
     def parse(w: String): Try[Unit] =
       FP.assert(w == "()")("not a valid Unit")(())
@@ -220,7 +222,8 @@ object Parseable {
      * Otherwise, `None` is returned.
      *
      * @param input the input string to parse. It can be null or empty.
-     * @return an `Option[String]` containing the input string if it is non-null and non-empty, or `None` otherwise.
+     * @return `Success(input)` if it is non-null and non-empty, otherwise a `Failure`. Both of
+     *         those refusals are tested, as of #81.
      */
     def parse(input: String): Try[String] =
       FP.assert(input != null && input.nonEmpty)("not a valid String")(input)

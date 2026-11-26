@@ -14,7 +14,9 @@ import scala.annotation.unused
 // A wildcard import has lower precedence than same-package definitions, so `ShortestPaths` would
 // rebind to the Java façade class. BellmanFord, AcyclicShortestPaths, Boruvka and Kosaraju are
 // written out in full at their use sites instead.
-import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths, TopologicalSort as ScalaTopSort}
+// TopologicalSort is deliberately not imported: the bridge reaches the ordering through
+// `DirectedGraph.topologicalOrder`, which memoizes it, rather than running the algorithm (#139).
+import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths}
 // Visitor's own Monoid and Zero are hidden: Gryphon's algorithms take cats.kernel.Monoid now,
 // and the wildcard would otherwise make the two ambiguous.
 import cats.kernel.Monoid
@@ -648,10 +650,25 @@ private[java] object JavaFacadeBridge:
   // TopologicalSort
   // ---------------------------------------------------------------------------
 
+  // `dg.topologicalOrder`, not `ScalaTopSort.sort(dg)`. They compute the same thing, but the
+  // former is the lazy val #118 added and the latter runs the algorithm afresh every call.
+  //
+  // Calling the algorithm directly made #118 a Scala-only improvement, and the Java facade is
+  // where it was needed most: `ShortestPaths.acyclic` tells Java callers in its own javadoc to
+  // check `TopologicalSort.isDAG` first, and `isDAG` is `sort(graph).isPresent()`. So the idiom
+  // the facade documents sorted, discarded the ordering, and then sorted again inside `acyclic`
+  // -- which does use `topologicalOrder`. That is precisely the double sort #118 removed. See
+  // #139.
+  //
+  // No test witnesses this. The saving is a saving, not a behaviour: both forms return the same
+  // ordering, and an attempt to catch the difference through repeated calls returning different
+  // valid orderings failed -- the ordering is deterministic in practice here, despite #131. The
+  // test in TopologicalSortTest passes with either form and is a consistency assertion, not a
+  // guard. Anyone tempted to revert this line should know that the suite will not stop them.
   def topologicalSort[V](scalaGraph: AbstractGraph[V]): JavaOptional[JavaList[V]] =
     scalaGraph match
       case dg: com.phasmidsoftware.gryphon.adjunct.DirectedGraph[V, ?] @unchecked =>
-        ScalaTopSort.sort(dg) match
+        dg.topologicalOrder match
           case Some(order) =>
             val javaList = new java.util.ArrayList[V]()
             order.foreach(javaList.add)

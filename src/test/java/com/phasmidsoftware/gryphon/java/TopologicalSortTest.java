@@ -67,6 +67,34 @@ public class TopologicalSortTest {
         assertFalse(result.isPresent());
     }
 
+    /**
+     * The facade returns the same ordering every time it is asked.
+     *
+     * <p><b>This does not test #139.</b> #139 routed the bridge through
+     * {@code DirectedGraph.topologicalOrder}, the lazy val from #118, so that
+     * {@code isDAG} followed by {@code ShortestPaths.acyclic} — the sequence the facade's own
+     * javadoc prescribes — sorts once rather than twice. That is a saving, not a behaviour, and
+     * nothing here can see it: this test was written expecting it to fail against the old code,
+     * and it passed. The ordering is deterministic in practice, so repeated runs of the
+     * algorithm agree with each other just as a memoized value does.</p>
+     *
+     * <p>It is kept because the property is worth pinning on its own account — a facade that
+     * returned a different valid ordering each call would be a nuisance to any caller comparing
+     * results — but reverting #139 will not make it fail. The determinism it rests on is
+     * incidental rather than guaranteed; see #131, which is about where the orderings get their
+     * {@code Random}.</p>
+     */
+    @Test
+    void repeated_sorts_of_one_graph_agree() {
+        Graph<Integer> g = buildSimpleDAG();
+        List<Integer> first = TopologicalSort.sort(g).get();
+        for (int i = 0; i < 20; i++) {
+            assertEquals(first, TopologicalSort.sort(g).get());
+        }
+        assertTrue(TopologicalSort.isDAG(g));
+        assertEquals(first, TopologicalSort.sort(g).get());
+    }
+
     @Test
     void isDAG_true_for_dag() {
         assertTrue(TopologicalSort.isDAG(buildSimpleDAG()));

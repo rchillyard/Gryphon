@@ -78,6 +78,10 @@ Additionally, some algorithms and graph properties that are not directly covered
 - **Union-Find** — `Connectivity` (used internally by Kruskal and Borůvka)
 - **Graph reversal** — `DirectedGraph.reverse` (used internally by Kosaraju)
 
+For the systematic comparison behind this list — every algorithm in Sedgewick & Wayne chapter 4
+and in CLRS, each marked implemented, partial or missing, with the gaps named and sized — see
+[docs/textbook-coverage.md](docs/textbook-coverage.md).
+
 ---
 
 ## Graph Types

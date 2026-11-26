@@ -166,6 +166,22 @@ object EdgeType {
      * @param s the input string to be parsed into an `EdgeType`
      * @return a `Try[EdgeType]` representing success with a parsed `EdgeType` or failure with an exception
      */
+    /**
+     * The inverse of `parse`, and the one place in the library where the default `toString`
+     * rendering is wrong: `Directed.toString` is "Directed", which `parse` would read as
+     * `Undefined`, so a graph serialized with the default would come back having lost its
+     * directedness entirely. See #135.
+     *
+     * `Undefined` renders as "." — anything the regex `[=<->.]+` admits and which `parse` does
+     * not map to `Directed` or `Undirected` comes back as `Undefined`, so "." round-trips.
+     * Note the scaladoc below claims "." corresponds to `Directed`; it does not, and never did.
+     */
+    override def render(t: EdgeType): String = t match {
+      case Directed => ">"
+      case Undirected => "="
+      case _ => "."
+    }
+
     def parse(s: String): Try[EdgeType] = s match {
       case ">" =>
         Success(Directed)

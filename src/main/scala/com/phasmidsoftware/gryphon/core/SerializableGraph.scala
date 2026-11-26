@@ -1,5 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
+import com.phasmidsoftware.gryphon.parse.Parseable
+
 /**
  * A trait representing a serializable graph structure.
  *
@@ -23,15 +25,29 @@ trait SerializableGraph[V, E, Z]:
   def triplets: Seq[Triplet[V, E, Z]]
 
   /**
-   * Serializes the sequence of triplets into a string representation.
-   * Each triplet is converted to a comma-separated string of its elements, and the
-   * entire sequence is joined using newline characters.
+   * Renders the triplets in the format `GraphParser` reads, one per line.
    *
-   * @return a string representation of the triplets, where each triplet is serialized as "source, target, attribute"
-   *         and each serialized triplet is separated by a newline.
+   *   0 > 1 5.0
+   *
+   * That is: source, the edge type's symbol, target, and the attribute where there is one. The
+   * attribute is omitted entirely when absent, which is what `maybeEdge` in the grammar expects.
+   *
+   * Until #135 this wrote `source,target,Some(5.0)` — comma-separated, with Scala's
+   * `Option.toString`, and **no edge type at all**. Nothing could read it back, and the missing
+   * edge type meant directedness was lost, so no amount of separator fixing would have given a
+   * round trip. `SerializableGraphSpec` now asserts that parse ∘ serialize is the identity over
+   * a real graph, which is the test that settles the format by construction.
+   *
+   * @param pz renders `Z`. `Parseable` carries `render` as the inverse of `parse`, defaulting to
+   *           `toString`, which is correct for every type here except `EdgeType` — whose
+   *           `toString` is "Directed" where the parser reads ">".
+   * @return the graph in `GraphParser`'s own format.
    */
-  def serialize: String =
-    triplets.map(t => s"${t.from},${t.to},${t.maybeAttribute}").mkString("\n")
+  def serialize(using pz: Parseable[Z]): String =
+    triplets.map { t =>
+      val attribute = t.maybeAttribute.map(a => s" $a").getOrElse("")
+      s"${t.from} ${pz.render(t.edgeType)} ${t.to}$attribute"
+    }.mkString("\n")
 
 /**
  * Object providing factory methods for creating instances of the `SerializableGraph` trait.

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.gryphon.core
 
-import com.phasmidsoftware.gryphon.adjunct.AttributedDirectedEdge
+import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedGraph, UndirectedGraph}
+import com.phasmidsoftware.gryphon.parse.GraphParser
 import com.phasmidsoftware.gryphon.util.TryUsing
 import java.net.URL
 import org.scalatest.flatspec.AnyFlatSpec
@@ -74,4 +75,64 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
         Failure(e)
     triedStrings.isSuccess shouldBe true
     triedStrings.get.size shouldBe 17
+  }
+  // =====================================================================================
+  // Issue #135: the round trip.
+  //
+  // This is the test that settles the serialization format by construction -- whatever makes
+  // parse ∘ serialize the identity IS the correct output -- and it is the test whose absence let
+  // four defects sit undetected. What stood here before was
+  //
+  //     sg.serialize should not be empty
+  //
+  // which asserts that something was produced, not that it was right. serialize wrote
+  // `0,1,Some(5.0)`: comma-separated where the parser wants whitespace, Scala's Option.toString
+  // where it wants a bare number, and NO EDGE TYPE AT ALL, so directedness was lost. Nothing
+  // could read back what the library wrote.
+  //
+  // The undirected case below is not redundant with the directed one. It is the one that pins
+  // the edge type surviving: with `=` dropped, prim.graph comes back as eight Undefined-typed
+  // triplets and the assertion fails, where the directed case could still pass by accident if
+  // `>` happened to be the parser's default.
+
+  private val parser = new GraphParser[Int, Double, EdgeType]
+
+  private def tripletsOf(resource: String): Seq[Triplet[Int, Double, EdgeType]] =
+    TryUsing.tryIt(Try(Source.fromResource(resource)))(s =>
+      parser.parseSource[Triplet[Int, Double, EdgeType]](parser.parseTriple)(s)).get
+
+  behavior of "serialize, as the inverse of the parser"
+
+  it should "round-trip a directed graph" in {
+    val original = tripletsOf("dijkstra.graph")
+    DirectedGraph.triplesToTryGraph[Int, Double](Vertex.createWithSet)(original) match
+      case Success(g: DirectedGraph[Int, Double] @unchecked) =>
+        val unbuilt = g.unbuild[EdgeType]
+        val reparsed = parser.parseStrings(parser.parseTriple)(unbuilt.serialize.linesIterator).get
+        reparsed.toSet shouldBe unbuilt.triplets.toSet
+      case other => fail(s"graph construction failed: $other")
+  }
+
+  it should "round-trip an undirected graph, keeping the edge type" in {
+    val original = tripletsOf("prim.graph")
+    UndirectedGraph.triplesToTryGraph[Int, Double](Vertex.createWithSet)(original) match
+      case Success(g: UndirectedGraph[Int, Double] @unchecked) =>
+        val unbuilt = g.unbuild[EdgeType]
+        val reparsed = parser.parseStrings(parser.parseTriple)(unbuilt.serialize.linesIterator).get
+        reparsed.toSet shouldBe unbuilt.triplets.toSet
+        every(reparsed.map(_.edgeType)) shouldBe Undirected
+      case other => fail(s"graph construction failed: $other")
+  }
+
+  it should "write the parser's own format" in {
+    // Pinned explicitly as well as through the round trip, so a change to the format is visible
+    // as a change to this line rather than only as a distant failure.
+    val edges: Seq[Edge[Int, Double]] = Seq(AttributedDirectedEdge(5.0, 0, 1))
+    EdgeList[Int, Double, EdgeType](edges).serialize shouldBe "0 > 1 5.0"
+  }
+
+  it should "omit the attribute entirely when there is none" in {
+    // `maybeEdge` in the grammar is optional, so an absent attribute is absent from the line --
+    // not the "None" the old implementation wrote.
+    VertexPairList(Seq((0, 1, Undirected))).serialize shouldBe "0 = 1"
   }

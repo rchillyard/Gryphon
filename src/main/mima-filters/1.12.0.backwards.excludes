@@ -34,3 +34,21 @@ ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.
 ProblemFilters.exclude[FinalMethodProblem]("com.phasmidsoftware.gryphon.traverse.AbstractEdgeTraversalResult.size()Int")
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka.mst(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,cats.kernel.Monoid,scala.math.Ordering)scala.collection.immutable.Seq")
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.Kruskal.mst(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,scala.math.Ordering)scala.collection.immutable.Seq")
+
+# ---------------------------------------------------------------------------------------
+# #135: serialize takes a Parseable[Z], to render the edge type.
+#
+# It used to write `source,target,Some(5.0)` -- comma-separated where the parser wants
+# whitespace, Scala's Option.toString where it wants a bare number, and NO edge type at all, so
+# directedness was lost. Nothing could read back what the library wrote, and the only test was
+# `serialize should not be empty`.
+#
+# Rendering Z needs an instance, because Z is generic and EdgeType is the one type here whose
+# toString is wrong for the parser: "Directed" where it reads ">". Parseable carries `render` as
+# the inverse of `parse`, defaulting to toString, and ParseableEdgeType overrides it.
+#
+# Nothing called serialize outside a test, and what it emitted could not be parsed, so there is
+# no working behaviour being broken here -- only a signature.
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.ProtoConnexions.serialize()java.lang.String")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.SerializableGraph.serialize()java.lang.String")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Triplets.serialize()java.lang.String")

@@ -30,7 +30,7 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
 
   it should "createFromVertexPairs" in {
     val pairs: Seq[(Int, Int, EdgeType)] = Seq((1, 2, Directed), (2, 3, Undirected))
-    val vpl = VertexPairList[Int](pairs)
+    val vpl = VertexPairList[Int, EdgeType](pairs)
     vpl.triplets.size shouldBe 2
     vpl.triplets.head.from shouldBe 1
     vpl.triplets.head.to shouldBe 2
@@ -44,7 +44,11 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
       Triplet(1, 2, Some(2.72), Undirected)
     )
     val sg = SerializableGraph.createFromTriplets(triplets)
-    sg.triplets.size shouldBe 2
+    // This asserted `sg.triplets.size shouldBe 2` until #137, under a name promising a round
+    // trip. Counting the output of a wrapper that stores what it is given cannot fail except by
+    // the wrapper dropping something, and says nothing about the values surviving. The round
+    // trip the name claims is the identity through the wrapper, which is this:
+    sg.triplets shouldBe triplets
   }
 
   it should "serialize to a non-empty string" in {
@@ -134,5 +138,43 @@ class SerializableGraphSpec extends AnyFlatSpec with Matchers:
   it should "omit the attribute entirely when there is none" in {
     // `maybeEdge` in the grammar is optional, so an absent attribute is absent from the line --
     // not the "None" the old implementation wrote.
-    VertexPairList(Seq((0, 1, Undirected))).serialize shouldBe "0 = 1"
+    //
+    // `Z` is given explicitly because #137 widened VertexPairList from [V] to [V, Z]. Left to
+    // inference, `Seq((0, 1, Undirected))` is a Seq[(Int, Int, Undirected.type)] and Z lands on
+    // the singleton type, for which there is no Parseable -- ParseableEdgeType is a
+    // Parseable[EdgeType] and Parseable is invariant. Widening bought generality in
+    // createFromPairs at the price of this annotation at literal call sites.
+    VertexPairList[Int, EdgeType](Seq((0, 1, Undirected))).serialize shouldBe "0 = 1"
+  }
+
+  behavior of "VertexPairList.parse"
+
+  // This came across from ProtoConnexions in #137, where nothing called it and nothing tested it.
+  // It is the parsing counterpart of serialize for the pair-shaped description.
+
+  it should "parse well-formed pairs" in {
+    // The tuple is (from, to, edgeType) -- the edge type is the third component, not the middle
+    // one, which is the opposite of the order serialize writes them in.
+    VertexPairList.parse[Int, EdgeType](Seq(("0", "1", ">"), ("1", "2", "="))) match
+      case Success(vpl) =>
+        vpl.pairs shouldBe Seq((0, 1, Directed), (1, 2, Undirected))
+      case Failure(e) => fail(e)
+  }
+
+  it should "write a format the parser reads back" in {
+    // Pinned as a string AND parsed back, because the two catch different things: the string
+    // catches a format change, and the parse catches a format change that happens to still be
+    // readable as something else -- which is exactly how the pre-#135 output failed, since
+    // `0,1,Some(5.0)` parsed as a single vertex named "0,1,Some(5.0)" rather than failing.
+    val vpl = VertexPairList[Int, EdgeType](Seq((0, 1, Directed), (1, 2, Undirected)))
+    vpl.serialize shouldBe "0 > 1\n1 = 2"
+    val reparsed = parser.parseStrings(parser.parseTriple)(vpl.serialize.linesIterator).get
+    reparsed.map(t => (t.from, t.to, t.edgeType)) shouldBe vpl.pairs
+    every(reparsed.map(_.maybeAttribute)) shouldBe None
+  }
+
+  it should "fail the whole sequence when one component will not parse" in {
+    // FP.sequence propagates rather than skips, which is what a description meant to round-trip
+    // needs: a silently shortened graph would be worse than no graph.
+    VertexPairList.parse[Int, EdgeType](Seq(("0", "1", ">"), ("x", "2", ">"))).isSuccess shouldBe false
   }

@@ -19,6 +19,14 @@ trait Graph[V] extends Traversable[V]:
   /**
    * Performs DFS from `v`, accumulating results into `visitor`.
    *
+   * If `visitor` is one of Visitor's came-from journals, note what that map holds: for each
+   * vertex, the vertex it was *first seen from*. For BFS that is also the vertex it was explored
+   * from, so the map is the BFS tree. For DFS the two differ — a vertex can be seen early from
+   * one neighbour and explored later from somewhere deeper — so the map is a discovery map and
+   * **not** the DFS tree. On a graph whose start vertex is adjacent to every other, it is a star
+   * where the DFS tree is a path. Walking it back still gives a genuine path to the start, but
+   * not the path the search took. See issue #144.
+   *
    * @param visitor the visitor accumulating results.
    * @param order   whether a vertex is recorded before or after its descendants; pre-order by default.
    * @param v       the starting vertex.
@@ -219,14 +227,18 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    *
    * The conversion is deliberately a separate step rather than this trait extending
    * `SerializableGraph`. A graph is not a serializable description; it *becomes* one, and there
-   * are four descriptions it could become. The 2x2 is attributed or not, against edge objects or
-   * raw tuples: `EdgeList` here, `Triplets`, `VertexPairList` and `ProtoConnexions`. Making
-   * `EdgeGraph` extend the trait would have conflated the model with its wire form and forced
-   * one of the four on every caller.
+   * are three descriptions it could become: `EdgeList` here, `Triplets`, and `VertexPairList`.
+   * Making `EdgeGraph` extend the trait would have conflated the model with its wire form and
+   * forced one of the three on every caller.
+   *
+   * #135 described these as a 2x2 — attributed or not, against edge objects or raw tuples — with
+   * `ProtoConnexions` as the fourth. #137 found that `ProtoConnexions` and `VertexPairList` were
+   * one type written twice, so the attributeless, edge-object cell is in fact empty: there is no
+   * wrapper holding edge objects whose attributes are then discarded, and no reason to want one.
    *
    * `EdgeList` is the natural target for a graph that has edges, and the conversion is only this
    * line because `EdgeList.triplets` already carries it onward. A caller wanting one of the
-   * other three can convert from here.
+   * other two can convert from here.
    *
    * @tparam Z the edge-type parameter, a supertype of `EdgeType` so that `EdgeList.triplets`
    *           needs no cast.

@@ -13,8 +13,8 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
   private val edgeList: EdgeList[Int, String, EdgeType] = EdgeList(Seq(AttributedDirectedEdge("A", 1, 2), AttributedDirectedEdge("B", 2, 3)))
   private val tripletsDirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Directed), Triplet(2, 3, None, Directed))
   private val tripletsUndirected: Seq[Triplet[Int, Unit, EdgeType]] = Seq(Triplet(1, 2, None, Undirected), Triplet(2, 3, None, Undirected))
-  private val vertexPairListDirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
-  private val vertexPairListUndirected: VertexPairList[Int] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
+  private val vertexPairListDirected: VertexPairList[Int, EdgeType] = VertexPairList(Seq((1, 2, Directed), (2, 3, Directed)))
+  private val vertexPairListUndirected: VertexPairList[Int, EdgeType] = VertexPairList(Seq((1, 2, Undirected), (2, 3, Undirected)))
   private val defaultVertex: Vertex[Int] = Vertex.createWithBag(0)
 
   // Shared Evaluable instance for traversal tests

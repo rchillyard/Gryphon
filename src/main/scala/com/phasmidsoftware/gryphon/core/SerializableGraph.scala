@@ -87,10 +87,10 @@ object SerializableGraph {
    * @tparam V the type associated with the vertices in the graph.
    * @tparam Z the generic type for edge type.
    * @return a `SerializableGraph[V, Unit, Z]` representing the graph constructed from the given
-   *         vertex pairs — concretely a `ProtoConnexions`, but callers see the declared type.
+   *         vertex pairs — concretely a `VertexPairList`, but callers see the declared type.
    */
   def createFromPairs[V, Z](pairs: Seq[(V, V, Z)]): SerializableGraph[V, Unit, Z] =
-    ProtoConnexions(pairs)
+    VertexPairList(pairs)
 }
 
 /**

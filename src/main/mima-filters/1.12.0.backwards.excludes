@@ -52,3 +52,18 @@ ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryph
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.ProtoConnexions.serialize()java.lang.String")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.SerializableGraph.serialize()java.lang.String")
 ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Triplets.serialize()java.lang.String")
+
+# ---------------------------------------------------------------------------------------
+# #137: ProtoConnexions removed as a duplicate of VertexPairList.
+#
+# The two were one type written twice -- same field, same `triplets` body, differing only in that
+# VertexPairList fixed Z to EdgeType and extended Pairs. ProtoConnexions was the name nothing
+# used: its sole call site was SerializableGraph.createFromPairs, and its companion `parse` had
+# none at all and no test. VertexPairList kept the name, widened to [V, Z] so createFromPairs
+# need not narrow, and took `parse` across.
+#
+# This is a class removal, so it is a genuine break rather than a signature change. Under pvp,
+# 1.12.0 -> 1.13.0 is a major bump, so it is a break this release is entitled to make. It is made
+# now rather than later because publishing both names would mean supporting both.
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.ProtoConnexions")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.ProtoConnexions$")

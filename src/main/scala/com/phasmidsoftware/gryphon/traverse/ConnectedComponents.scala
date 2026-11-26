@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.core.{Graph, GraphException, Traversable}
-import scala.annotation.{tailrec, unused}
+import scala.annotation.tailrec
 import scala.util.Random
 
 /**
@@ -39,7 +39,21 @@ object ConnectedComponents:
    * @return a `ConnectedResult[V, E]` — a pair of (Connexions, componentMap).
    * @throws com.phasmidsoftware.gryphon.core.GraphException if `graph` is not a `Graph[V]`.
    */
-  def components[V, E](graph: Traversable[V])(using @unused random: Random = Random()): ConnectedResult[V, E] =
+  // The generator reaches `getConnexions` from 1.13.0. Until then this parameter was annotated
+  // `@unused` and was exactly that: the DFS inside each component built its own `Random` from
+  // the default on `getConnexions`, so a seed pinned here could not reach it.
+  //
+  // The two halves of the result differ in this respect, which is the whole subtlety. The
+  // component map does not vary: `visited` is the *set* a component's DFS reached, and ids are
+  // handed out as `unvisited.head` walks a Set, neither of which is shuffled. The `Connexions`
+  // tree does vary -- it records the edge by which each vertex was discovered, and within a
+  // component that depends on adjacency order.
+  //
+  // So removing the parameter, on the grounds that no present caller reads the tree, would have
+  // been wrong. That the tree is unobserved does not make it invariant; it would have carved
+  // into the API a claim the value does not support, and left the variation in place, merely
+  // beyond anyone's reach. See #143.
+  def components[V, E](graph: Traversable[V])(using random: Random = Random()): ConnectedResult[V, E] =
     graph match
       case g: Graph[V] =>
         loop(g)(g.vertexMap.keySet, Connexions.empty[V, E], Map.empty, 0)
@@ -62,11 +76,11 @@ object ConnectedComponents:
    * @return the accumulated connected-component result, containing the combined connexions and component map.
    */
   @tailrec
-  private def loop[V, E](g: Graph[V])(unvisited: Set[V], connexions: Connexions[V, E], componentMap: Map[V, Int], componentId: Int): ConnectedResult[V, E] =
+  private def loop[V, E](g: Graph[V])(unvisited: Set[V], connexions: Connexions[V, E], componentMap: Map[V, Int], componentId: Int)(using random: Random): ConnectedResult[V, E] =
     if unvisited.isEmpty then (connexions, componentMap)
     else
       val root = unvisited.head
-      val newConnexions = g.getConnexions[E](root)
+      val newConnexions = g.getConnexions[E](root)(using random)
       val visited = newConnexions.connexions.keySet + root
       val newComponentMap = componentMap ++ visited.map(_ -> componentId)
       loop(g)(

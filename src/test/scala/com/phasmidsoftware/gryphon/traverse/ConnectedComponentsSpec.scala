@@ -95,3 +95,43 @@ class ConnectedComponentsSpec extends AnyFlatSpec with should.Matchers:
         connexions.connexions.get(root) shouldBe None
       }
     }
+  // ---------------------------------------------------------------------------------------
+  // Issue #143: the generator reaches the traversal.
+  //
+  // The two halves of the result behave differently, and both are pinned here.
+  //
+  // The component map does not vary: `visited` is the set a component's DFS reached, and ids
+  // are handed out as `unvisited.head` walks a Set. Neither is shuffled.
+  //
+  // The Connexions tree does vary: it records the edge by which each vertex was discovered,
+  // and within a component that is exactly what adjacency order decides. Until 1.13.0 the
+  // `Random` parameter was annotated `@unused` and the DFS built its own, so the tree varied
+  // but no seed could reach it -- varying and uncontrollable at once.
+  //
+  // It was tempting to conclude from "no caller reads the tree" that the parameter was
+  // pointless and should be removed. That would have been wrong: unobserved is not invariant,
+  // and removing it would have frozen into the API a claim the value does not support.
+
+  it should "give the same component map whatever the generator" in :
+    withDfsuGraph { graph =>
+      val maps = (0 until 20).map(s =>
+        ConnectedComponents.components[Int, Unit](graph)(using Random(s))._2).distinct
+      maps.size shouldBe 1
+    }
+
+  it should "give a reproducible connexions tree for one seed" in :
+    withDfsuGraph { graph =>
+      val first = ConnectedComponents.components[Int, Unit](graph)(using Random(42))._1
+      val second = ConnectedComponents.components[Int, Unit](graph)(using Random(42))._1
+      first.connexions shouldBe second.connexions
+    }
+
+  it should "give different connexions trees for different seeds" in :
+    withDfsuGraph { graph =>
+      // The half that would have been lost by deleting the parameter. Component A has seven
+      // vertices, so there are many discovery trees to choose between; twenty seeds agreeing
+      // would mean the generator is not reaching getConnexions, which is what #143 was.
+      val trees = (0 until 20).map(s =>
+        ConnectedComponents.components[Int, Unit](graph)(using Random(s))._1.connexions).distinct
+      trees.size should be > 1
+    }

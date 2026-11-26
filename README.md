@@ -714,6 +714,182 @@ it, and the check happens in the Scala layer. `ShortestPaths.acyclic` throws
 
 ## Architecture
 
+### The graph types
+
+`Traversable` is the root: it knows how to reach a vertex's neighbours and nothing else — a
+`VertexMap` is one, and has no idea whether an adjacency it holds is half of an undirected
+edge or the whole of a directed one. `EdgeGraph` is where edges enter, which is why `size`
+(the edge count) is declared there and not above it.
+
+```mermaid
+classDiagram
+    class Traversable~V~ {
+        <<trait>>
+        +adjacentVertices(v) Iterator~V~
+        +dfs(visitor)(v) Visitor
+        +bfs(visitor)(v) Visitor
+    }
+    class Graph~V~ {
+        <<trait>>
+        +vertexMap VertexMap~V~
+        +isCyclic Boolean
+        +adjacentEdges(v) Seq~Edge~
+    }
+    class EdgeTraversable~V,E~ {
+        <<trait>>
+        +edges Iterator~Edge~
+        +size Int
+    }
+    class EdgeGraph~V,E~ {
+        <<trait>>
+        +EdgeT type
+        +addEdge(e) EdgeGraph
+        +unbuild() EdgeList
+        +inDegree(v) Int
+        +outDegree(v) Int
+    }
+    class AbstractGraph~V~ {
+        <<abstract>>
+        +order Int
+    }
+    class AbstractAdjunctGraph~V,E,G~ {
+        <<abstract>>
+        +unit(vertexMap) G
+    }
+    class DirectedGraph~V,E~ {
+        +topologicalOrder Option~Seq~V~~
+        +reverse DirectedGraph
+    }
+    class UndirectedGraph~V,E~ {
+        +isConnected Boolean
+        +isBipartite Boolean
+        +degree(v) Int
+    }
+    Traversable <|-- Graph
+    Traversable <|-- EdgeTraversable
+    Graph <|-- EdgeGraph
+    EdgeTraversable <|-- EdgeGraph
+    Graph <|-- AbstractGraph
+    AbstractGraph <|-- AbstractAdjunctGraph
+    EdgeGraph <|-- AbstractAdjunctGraph
+    AbstractAdjunctGraph <|-- DirectedGraph
+    AbstractAdjunctGraph <|-- UndirectedGraph
+```
+
+The asymmetry at the bottom is deliberate. `isConnected` and `isBipartite` are on
+`UndirectedGraph` alone, because connectivity of a digraph is either weak or strong and this
+library commits to neither; `topologicalOrder` is on `DirectedGraph` alone for the obvious
+reason. Until 1.8.0 both pairs were declared on `Graph` and the wrong one threw
+`UnsupportedOperationException` — a run-time failure where the compiler can decide.
+
+### Unbuilding a graph
+
+`EdgeGraph.unbuild` is the inverse of what `GraphBuilder` does, and `SerializableGraph.serialize`
+renders the result in `GraphParser`'s own format, so `parse ∘ serialize` is the identity.
+
+A graph is not a serializable description; it *becomes* one, and there are three it could
+become — which is why `unbuild` is a conversion rather than `EdgeGraph` extending the trait.
+
+```mermaid
+classDiagram
+    class SerializableGraph~V,E,Z~ {
+        <<trait>>
+        +triplets Seq~Triplet~
+        +serialize(Parseable~Z~) String
+    }
+    class EdgeList~V,E,Z~ {
+        attributed, edge objects
+        +edges Seq~Edge~
+    }
+    class Triplets~V,E,Z~ {
+        attributed, raw tuples
+        +triplets Seq~Triplet~
+    }
+    class VertexPairList~V,Z~ {
+        attributeless, raw tuples
+        +pairs Seq~tuple~
+        +parse(strings)$ Try
+    }
+    class Edges~V,E~ {
+        <<trait>>
+        +edges Seq~Edge~
+    }
+    class Pairs~V,Z~ {
+        <<trait>>
+        +pairs Seq~tuple~
+    }
+    SerializableGraph <|-- EdgeList
+    SerializableGraph <|-- Triplets
+    SerializableGraph <|-- VertexPairList
+    Edges <|-- EdgeList
+    Pairs <|-- Edges
+    Pairs <|-- VertexPairList
+```
+
+The shapes vary in two ways: whether they carry an edge attribute, and whether they hold edge
+objects or raw tuples. That is four possibilities and only three types, because the fourth —
+edge objects whose attributes are then discarded — is a wrapper nobody needs.
+
+|  | edge objects | raw tuples |
+|---|---|---|
+| **attributed** | `EdgeList` | `Triplets` |
+| **attributeless** | *(empty)* | `VertexPairList` |
+
+Until 1.13.0 that cell appeared occupied, by a `ProtoConnexions` that turned out to be
+`VertexPairList` written a second time — same field, same `triplets` body. All three converge
+on `triplets`, which is why `serialize` needs no per-shape code.
+
+### What a traversal returns
+
+`TraversalResult` has two branches, and which one an algorithm produces says something about
+its answer.
+
+```mermaid
+classDiagram
+    class TraversalResult~V,T~ {
+        <<trait>>
+        +keySet Set~V~
+        +vertexTraverse(v) Option~T~
+        +edgeTraverse(x) T
+    }
+    class AbstractVertexTraversalResult~V,T~ {
+        <<abstract>>
+        keyed by vertex
+    }
+    class AbstractEdgeTraversalResult~T~ {
+        <<abstract>>
+        keyed by position, extends Seq
+    }
+    class VertexTraversalResult~V,T~ {
+        Prim, Dijkstra, Bellman-Ford, acyclic
+    }
+    class Connexions~V,E~ {
+        ConnectedComponents
+    }
+    class TopologicalSort~V~ {
+        vertex to its position
+    }
+    class EdgeTraversalResult~V,E,T~ {
+        Kruskal, Boruvka
+    }
+    TraversalResult <|-- AbstractVertexTraversalResult
+    TraversalResult <|-- AbstractEdgeTraversalResult
+    AbstractVertexTraversalResult <|-- VertexTraversalResult
+    AbstractVertexTraversalResult <|-- Connexions
+    AbstractVertexTraversalResult <|-- TopologicalSort
+    AbstractEdgeTraversalResult <|-- EdgeTraversalResult
+```
+
+A parent map is vertex-keyed: ask it about a vertex and it tells you the edge you arrived by.
+An MST from Kruskal or Borůvka is not that — it is an edge list in order of addition,
+positional, with no meaningful vertex key, and an order that means something (ascending weight
+for Kruskal, round order for Borůvka). Before 1.13.0 those two returned a bare
+`Seq[Edge[V, E]]` while Prim returned a `TraversalResult`, so no caller could write one
+function over "an MST result". The edge-keyed branch extends `Seq`, so `map`, `exists`, `head`
+and `sorted` work on it as before.
+
+### Packages
+
 Gryphon is structured in five layers:
 
 ```

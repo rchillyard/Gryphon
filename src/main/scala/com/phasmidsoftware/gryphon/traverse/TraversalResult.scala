@@ -264,7 +264,7 @@ case class VertexTraversalResult[V, T](map: Map[V, T]) extends AbstractVertexTra
   // Declared as the concrete type, not TraversalResult[V, T]: `unit` is the single construction
   // point, so widening it here forced `+` to cast its own result straight back down. Same shape as
   // the Graph.unit bug fixed in 1.8.1.
-  override def unit(map: Map[V, T]): VertexTraversalResult[V, T] =
+  def unit(map: Map[V, T]): VertexTraversalResult[V, T] =
     VertexTraversalResult(map)
 }
 
@@ -316,7 +316,7 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
    * @return a new `Connexions[V, E]` initialized with the provided map.
    */
   // As in VertexTraversalResult: the concrete type, so `+` need not cast.
-  override def unit(map: Map[V, DirectedEdge[V, E]]): Connexions[V, E] =
+  def unit(map: Map[V, DirectedEdge[V, E]]): Connexions[V, E] =
     copy(connexions = map)
 
   /**

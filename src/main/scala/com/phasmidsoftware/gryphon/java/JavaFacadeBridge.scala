@@ -169,7 +169,8 @@ private[java] object JavaFacadeBridge:
    * @throws GryphonException if it did not.
    */
   private def orThrow[T](resourceName: String)(ty: Try[T]): T = ty match
-    case scala.util.Success(t) => t
+    case scala.util.Success(t) =>
+      t
     case scala.util.Failure(x) =>
       throw GryphonException(s"could not load graph from resource '$resourceName': ${x.getMessage}", x)
 

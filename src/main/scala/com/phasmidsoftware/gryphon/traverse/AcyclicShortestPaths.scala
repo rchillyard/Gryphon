@@ -95,7 +95,9 @@ object AcyclicShortestPaths:
         state // not reachable from start, so nothing leaving it can relax
       case (state, v) =>
         graph.filteredAdjacencies(_ => true)(v)
-                .flatMap(_.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e })
+                .flatMap(_.maybeEdge[E].collect {
+                  case e: AttributedDirectedEdge[V, E] => e
+                })
                 .foldLeft(state) {
                   case ((dist, pred), edge) =>
                     val newDist = mn.combine(dist(v), edge.attribute)

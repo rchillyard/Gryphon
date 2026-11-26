@@ -124,11 +124,14 @@ public class SuppliedRandomTest {
 
     @Test
     void componentIds_does_not_vary_at_all() {
-        // Not an assertSeedControls case, and deliberately so: there is no generator-taking
-        // overload, because ConnectedComponents.components is annotated `@unused` and ignores
-        // the one it is given. Component ids come from walking the vertex set, which is not
-        // shuffled. This pins that -- if it ever starts varying, the facade owes callers a lever
-        // and this test is where that shows up. See #143.
+        // Not an assertSeedControls case, and deliberately so. Component ids come from walking
+        // the vertex set, which is not shuffled, so they do not vary and there is no
+        // generator-taking overload to test.
+        //
+        // Note this is NOT because the underlying Scala `components` ignores its generator --
+        // since #143 it threads it through, and the discovery tree it returns does vary. That
+        // tree is simply not what this method returns. This pins the invariance of the ids; if
+        // it ever breaks, the facade owes callers a lever and this is where it shows up.
         Graph<Integer> g = threeComponents();
         Set<Map<Integer, Integer>> seen = new HashSet<>();
         for (int i = 0; i < 40; i++) seen.add(ConnectedComponents.componentIds(g));

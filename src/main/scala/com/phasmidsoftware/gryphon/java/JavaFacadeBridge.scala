@@ -701,10 +701,16 @@ private[java] object JavaFacadeBridge:
   // ConnectedComponents
   // ---------------------------------------------------------------------------
 
-  // No `java.util.Random` variant here, unlike the traversals above. `ConnectedComponents.components`
-  // takes a generator and is annotated `@unused`: it ignores it, and assigns component ids by
-  // walking the vertex set, which is not shuffled. The result does not vary between calls, so an
-  // overload taking a generator would accept a lever connected to nothing. See #143.
+  // No `java.util.Random` variant here, unlike the traversals above -- but not because the
+  // generator does nothing. `ConnectedComponents.components` returns a pair, and the two halves
+  // differ: the `Connexions` discovery tree varies with adjacency order (#143 made the generator
+  // reach it), while the component map does not, since ids are handed out as `unvisited.head`
+  // walks a Set.
+  //
+  // This method returns only the map. So there is nothing here for a caller's generator to
+  // change, and an overload taking one would be a lever connected to nothing -- which is a
+  // statement about what this method exposes, not about what `components` computes. If the
+  // facade ever exposes the tree, the overload comes with it.
   def connectedComponents[V](scalaGraph: AbstractGraph[V]): JavaMap[V, JavaInteger] =
     given scala.util.Random = scala.util.Random()
 

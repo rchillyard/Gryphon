@@ -56,9 +56,11 @@ public class ConnectedComponents {
      * <p>Unlike {@link Graph#dfs(Object)} and its relatives, this result does not vary between
      * calls, and there is deliberately no overload taking a {@code java.util.Random} (#142).
      * Component ids are assigned by walking the vertex set, which is not shuffled, so neither
-     * the partition nor its numbering depends on adjacency order. {@code ConnectedComponents.components}
-     * on the Scala side accepts a generator but is annotated {@code @unused} and ignores it;
-     * offering a parameter here would be a lever connected to nothing. See #143.</p>
+     * the partition nor its numbering depends on adjacency order.</p>
+     *
+     * <p>The underlying Scala {@code components} does take a generator, and since #143 uses it —
+     * but what it affects is the discovery tree, which this method does not return. The absence
+     * of an overload here reflects what is exposed, not a value that ignores its generator.</p>
      *
      * @param <V>   the vertex type.
      * @param graph an undirected graph.

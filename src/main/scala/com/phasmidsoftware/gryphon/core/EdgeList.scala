@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.core
 /**
  * Represents a graph structure defined by a sequence of edges.
  *
- * One of the four shapes a graph can be unbuilt into, and the most direct: an `EdgeGraph`
+ * One of the three shapes a graph can be unbuilt into, and the most direct: an `EdgeGraph`
  * already has `edges`, so `EdgeList(g.edges.toSeq)` is the whole conversion, and `triplets`
  * carries it onward to `SerializableGraph.serialize`. See #135.
  *
@@ -14,10 +14,14 @@ package com.phasmidsoftware.gryphon.core
  * wrapper should exist, which is that a graph needs rendering as well as building. With unbuild,
  * it has one.
  *
- * The four shapes form a 2x2: attributed or not, against edge objects or raw tuples. This is the
- * attributed, edge-object corner; `Triplets` is attributed tuples, and `VertexPairList` and
- * `ProtoConnexions` are the attributeless ones. All four converge on `triplets`, which is why
- * `serialize` needs no per-shape work.
+ * This is the attributed, edge-object shape; `Triplets` is attributed tuples and `VertexPairList`
+ * is attributeless tuples. All three converge on `triplets`, which is why `serialize` needs no
+ * per-shape work.
+ *
+ * #135 called these a 2x2, counting `ProtoConnexions` as a fourth. #137 found it to be
+ * `VertexPairList` under another name and removed it, which leaves the attributeless, edge-object
+ * cell empty — a wrapper around edge objects whose attributes are then thrown away is not a thing
+ * anyone needs.
  *
  * @param edges a sequence of edges that define the connections in the graph.
  * @tparam V the type of the vertices in the graph.

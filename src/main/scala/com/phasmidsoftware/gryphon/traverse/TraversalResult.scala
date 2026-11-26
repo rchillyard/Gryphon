@@ -383,8 +383,11 @@ case class Connexions[V, E](connexions: Map[V, DirectedEdge[V, E]]) extends Abst
  * traversal of vertices within a graph resulting from a depth-first search starting at a
  * particular vertex.
  *
- * NOTE this object documented itself as being about `ProtoConnexions` until #133. That is a
- * different type entirely -- a `SerializableGraph` of vertex pairs, not a traversal result.
+ * NOTE this object documented itself as being about `ProtoConnexions` until #133. That was a
+ * different type entirely -- a `SerializableGraph` of vertex pairs, not a traversal result -- and
+ * the similarity of the names was the whole of the confusion. #137 then removed it as a duplicate
+ * of `VertexPairList`, so the name no longer resolves to anything; it is left here because the
+ * note only makes sense if it says what the wrong name was.
  */
 object Connexions {
   /**

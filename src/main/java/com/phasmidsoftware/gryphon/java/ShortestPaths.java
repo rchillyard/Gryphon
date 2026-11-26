@@ -74,6 +74,29 @@ public class ShortestPaths {
     public static <V> Map<V, WeightedEdge<V, Double>> dijkstra(
             WeightedGraph<V, Double> graph,
             V start) {
+        return dijkstra(graph, start, new java.util.Random());
+    }
+
+    /**
+     * Runs Dijkstra's algorithm, drawing its adjacency order from {@code random}.
+     *
+     * <p>The distances are the same whatever the order — they are what Dijkstra computes. What
+     * can differ between runs is the <em>tree</em>: where two shortest paths to a vertex have
+     * equal total weight, which one is recorded depends on the order neighbours are relaxed in.
+     * Supply a generator to fix that choice.</p>
+     *
+     * @param <V>    the vertex type.
+     * @param graph  a directed {@code WeightedGraph<V, Double>}.
+     * @param start  the source vertex.
+     * @param random the generator determining adjacency order.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, Double>>}; the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Map<V, WeightedEdge<V, Double>> dijkstra(
+            WeightedGraph<V, Double> graph,
+            V start,
+            java.util.Random random) {
         if (!graph.isDirected())
             throw new IllegalStateException(
                     "ShortestPaths.dijkstra requires a directed graph");
@@ -81,7 +104,8 @@ public class ShortestPaths {
                 JavaFacadeBridge$.MODULE$.dijkstraDouble(
                         graph.getScalaGraph(),
                         (java.util.List) graph.weightedEdges(),
-                        start);
+                        start,
+                        random);
     }
 
     // -------------------------------------------------------------------------
@@ -118,13 +142,45 @@ public class ShortestPaths {
             BinaryOperator<E> combine,
             E zero,
             Comparator<E> comparator) {
+        return dijkstra(graph, start, combine, zero, comparator, new java.util.Random());
+    }
+
+    /**
+     * Runs Dijkstra's algorithm with a custom edge attribute type, drawing its adjacency order
+     * from {@code random}.
+     *
+     * <p>As with the {@code Double} form, the costs are the same whatever the order; what the
+     * order settles is which of several equal-cost paths is recorded in the tree. Supply a
+     * generator to make that choice reproducible.</p>
+     *
+     * <p>Pass the generator rather than a seed so that one generator can span several calls,
+     * which is what {@code given Random} does on the Scala side.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @param random     the generator determining adjacency order.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, E>>}; the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    public static <V, E> Map<V, WeightedEdge<V, E>> dijkstra(
+            WeightedGraph<V, E> graph,
+            V start,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator,
+            java.util.Random random) {
         if (!graph.isDirected())
             throw new IllegalStateException(
                     "ShortestPaths.dijkstra requires a directed graph");
         return JavaFacadeBridge$.MODULE$.dijkstraCustom(
                 graph.getScalaGraph(),
                 graph.weightedEdges(),
-                start, combine, zero, comparator);
+                start, combine, zero, comparator, random);
     }
 
     // -------------------------------------------------------------------------

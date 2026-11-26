@@ -53,6 +53,13 @@ public class ConnectedComponents {
      * <p>Vertices with the same id belong to the same connected component.
      * Component ids are assigned in DFS discovery order starting from 0.</p>
      *
+     * <p>Unlike {@link Graph#dfs(Object)} and its relatives, this result does not vary between
+     * calls, and there is deliberately no overload taking a {@code java.util.Random} (#142).
+     * Component ids are assigned by walking the vertex set, which is not shuffled, so neither
+     * the partition nor its numbering depends on adjacency order. {@code ConnectedComponents.components}
+     * on the Scala side accepts a generator but is annotated {@code @unused} and ignores it;
+     * offering a parameter here would be a lever connected to nothing. See #143.</p>
+     *
      * @param <V>   the vertex type.
      * @param graph an undirected graph.
      * @return an unmodifiable {@code Map<V, Integer>} mapping vertex to component id.

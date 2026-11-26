@@ -54,6 +54,11 @@ public class StronglyConnectedComponents {
      * or weighted edges ({@link WeightedEdge}{@code <V, E>}) — edge weights
      * are ignored for SCC computation.</p>
      *
+     * <p><b>The ids are not fixed.</b> Which vertices share an SCC is a property of the graph
+     * and never varies; the integers labelling those components come from traversal order, which
+     * is shuffled, so two calls may give the same partition under different ids. Compare
+     * partitions rather than ids, or use {@link #kosaraju(Graph, java.util.Random)}.</p>
+     *
      * @param <V>   the vertex type.
      * @param graph a directed graph.
      * @return a {@code Map<V, Integer>} mapping each vertex to its SCC id;
@@ -61,10 +66,31 @@ public class StronglyConnectedComponents {
      * @throws IllegalStateException if {@code graph} is undirected.
      */
     public static <V> Map<V, Integer> kosaraju(Graph<V> graph) {
+        return kosaraju(graph, new java.util.Random());
+    }
+
+    /**
+     * Computes the strongly connected components of a directed graph using Kosaraju's algorithm,
+     * drawing its traversal order from {@code random}.
+     *
+     * <p>Use this when the component ids themselves must be stable across runs. The partition
+     * does not depend on the generator; only the numbering does.</p>
+     *
+     * <p>Pass the generator rather than a seed so that one generator can span several calls,
+     * which is what {@code given Random} does on the Scala side.</p>
+     *
+     * @param <V>    the vertex type.
+     * @param graph  a directed graph.
+     * @param random the generator determining traversal order.
+     * @return a {@code Map<V, Integer>} mapping each vertex to its SCC id;
+     * vertices with the same id are in the same SCC.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    public static <V> Map<V, Integer> kosaraju(Graph<V> graph, java.util.Random random) {
         if (!graph.isDirected())
             throw new IllegalStateException(
                     "StronglyConnectedComponents.kosaraju requires a directed graph");
-        return JavaFacadeBridge$.MODULE$.kosaraju(graph.getScalaGraph(), graph.edges());
+        return JavaFacadeBridge$.MODULE$.kosaraju(graph.getScalaGraph(), graph.edges(), random);
     }
 
     /**

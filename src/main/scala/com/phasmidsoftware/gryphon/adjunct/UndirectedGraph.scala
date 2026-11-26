@@ -64,7 +64,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    * @return true if the graph is cyclic (i.e., it contains at least one cycle), false otherwise.
    */
   lazy val isCyclic: Boolean =
-    given Random = Random(0)
+    given Random = Random()
 
     // The visited set is threaded through rather than mutated: each call returns both its answer
     // and the set as it stands, so a later sibling sees what an earlier one reached — which is
@@ -95,7 +95,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
   lazy val isConnected: Boolean =
     if order == 0 then true
     else
-      given Random = Random(0)
+      given Random = Random()
 
       given Evaluable[V, V] with
         def evaluate(v: V): Option[V] = Some(v)
@@ -112,7 +112,7 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
    * unvisited component in turn.
    */
   lazy val isBipartite: Boolean =
-    given Random = Random(0)
+    given Random = Random()
 
     // `None` means a conflict was found and the answer is already false; otherwise the colouring
     // so far is carried forward, so each component starts from what the previous ones coloured.

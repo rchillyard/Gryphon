@@ -68,12 +68,38 @@ public class MinimumSpanningTree {
     public static <V> Map<V, WeightedEdge<V, Double>> prim(
             WeightedGraph<V, Double> graph,
             V start) {
+        return prim(graph, start, new java.util.Random());
+    }
+
+    /**
+     * Runs Prim's algorithm, drawing its adjacency order from {@code random}.
+     *
+     * <p>The total weight is the same whatever the order — a minimum spanning tree is minimum.
+     * What can differ is <em>which</em> minimum spanning tree you get: where two edges of equal
+     * weight both cross the cut, the order decides which is taken. On a graph with distinct edge
+     * weights the MST is unique and the order cannot matter; on one with ties it can.</p>
+     *
+     * <p>Pass the generator rather than a seed so that one generator can span several calls,
+     * which is what {@code given Random} does on the Scala side.</p>
+     *
+     * @param <V>    the vertex type.
+     * @param graph  an undirected {@code WeightedGraph<V, Double>}.
+     * @param start  the source vertex (absent from the result).
+     * @param random the generator determining adjacency order.
+     * @return the MST as {@code Map<V, WeightedEdge<V, Double>>}.
+     * @throws IllegalStateException if {@code graph} is directed.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Map<V, WeightedEdge<V, Double>> prim(
+            WeightedGraph<V, Double> graph,
+            V start,
+            java.util.Random random) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.prim requires an undirected graph");
         return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
                 JavaFacadeBridge$.MODULE$.primDouble(
-                        graph.getScalaGraph(), (List) graph.weightedEdges(), start);
+                        graph.getScalaGraph(), (List) graph.weightedEdges(), start, random);
     }
 
     // -------------------------------------------------------------------------
@@ -99,12 +125,40 @@ public class MinimumSpanningTree {
             WeightedGraph<V, E> graph,
             V start,
             Comparator<E> comparator) {
+        return prim(graph, start, comparator, new java.util.Random());
+    }
+
+    /**
+     * Runs Prim's algorithm with a custom edge attribute type, drawing its adjacency order from
+     * {@code random}.
+     *
+     * <p>As with the {@code Double} form, the tree's total weight is unaffected by the order;
+     * what the order settles is which of several equally minimal trees is produced when edges
+     * tie under {@code comparator}. Supply a generator to make that choice reproducible.</p>
+     *
+     * <p>Pass the generator rather than a seed so that one generator can span several calls,
+     * which is what {@code given Random} does on the Scala side.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      an undirected {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex (absent from the result).
+     * @param comparator orders edge attributes.
+     * @param random     the generator determining adjacency order.
+     * @return the MST as {@code Map<V, WeightedEdge<V, E>>}.
+     * @throws IllegalStateException if {@code graph} is directed.
+     */
+    public static <V, E> Map<V, WeightedEdge<V, E>> prim(
+            WeightedGraph<V, E> graph,
+            V start,
+            Comparator<E> comparator,
+            java.util.Random random) {
         if (graph.isDirected())
             throw new IllegalStateException(
                     "MinimumSpanningTree.prim requires an undirected graph");
         return JavaFacadeBridge$.MODULE$.primCustom(
                 graph.getScalaGraph(), graph.weightedEdges(),
-                start, comparator);
+                start, comparator, random);
     }
 
     // -------------------------------------------------------------------------

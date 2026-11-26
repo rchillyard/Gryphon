@@ -324,6 +324,10 @@ public class Graph<V> {
      * <p>Path reconstruction: walk {@code result.get(v)} until the key is
      * absent — that vertex is the start.</p>
      *
+     * <p><b>The order is not fixed.</b> Adjacency iteration is shuffled, so this may return a
+     * different — and equally valid — came-from map each time. If you need one reproducible
+     * answer, use {@link #bfs(Object, java.util.Random)}.</p>
+     *
      * @param start the source vertex.
      * @return the BFS came-from map.
      */
@@ -332,15 +336,49 @@ public class Graph<V> {
     }
 
     /**
+     * Performs a breadth-first search from {@code start}, drawing its adjacency order from
+     * {@code random}.
+     *
+     * <p>This is the Java equivalent of putting {@code given Random = Random(42)} in scope in
+     * Scala. Two calls with generators built from the same seed return the same map.</p>
+     *
+     * <p>Pass the generator rather than a seed so that one generator can span several calls:
+     * sharing it across a sequence of traversals makes the whole computation reproducible, which
+     * a per-call seed could not express.</p>
+     *
+     * @param start  the source vertex.
+     * @param random the generator determining adjacency order.
+     * @return the BFS came-from map.
+     */
+    public Map<V, V> bfs(V start, java.util.Random random) {
+        return JavaFacadeBridge$.MODULE$.bfs(getScalaGraph(), start, random);
+    }
+
+    /**
      * Performs a depth-first search from {@code start}.
      *
      * <p>Returns a came-from map; start vertex absent.</p>
+     *
+     * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
+     * {@link #dfs(Object, java.util.Random)} when you need one reproducible answer.</p>
      *
      * @param start the source vertex.
      * @return the DFS came-from map.
      */
     public Map<V, V> dfs(V start) {
         return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start);
+    }
+
+    /**
+     * Performs a depth-first search from {@code start}, drawing its adjacency order from
+     * {@code random}. See {@link #bfs(Object, java.util.Random)}.
+     *
+     * @param start  the source vertex.
+     * @param random the generator determining adjacency order.
+     * @return the DFS came-from map.
+     */
+    public Map<V, V> dfs(V start, java.util.Random random) {
+        return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start, random);
     }
 
     /**
@@ -353,10 +391,24 @@ public class Graph<V> {
      * for a single DFS, so the number of absent vertices is the number of
      * components.</p>
      *
+     * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
+     * {@link #dfsAll(java.util.Random)} when you need one reproducible answer.</p>
+     *
      * @return the came-from map over all components.
      */
     public Map<V, V> dfsAll() {
         return JavaFacadeBridge$.MODULE$.dfsAll(getScalaGraph());
+    }
+
+    /**
+     * Performs a depth-first search over every component, drawing its adjacency order from
+     * {@code random}. See {@link #bfs(Object, java.util.Random)}.
+     *
+     * @param random the generator determining adjacency order.
+     * @return the came-from map over all components.
+     */
+    public Map<V, V> dfsAll(java.util.Random random) {
+        return JavaFacadeBridge$.MODULE$.dfsAll(getScalaGraph(), random);
     }
 
     /**
@@ -371,12 +423,31 @@ public class Graph<V> {
      * lambda argument could not then be resolved against the
      * {@code Function<V, Iterable<V>>} overload.</p>
      *
+     * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
+     * {@link #bfsUntil(Object, java.util.function.Predicate, java.util.Random)} when you need one
+     * reproducible answer. This matters more here than elsewhere: which vertices are discovered
+     * before the goal is reached depends on the order, so the map's <em>contents</em> can differ
+     * between calls, not merely the paths within it.</p>
+     *
      * @param start the source vertex.
      * @param goal  the stopping condition.
      * @return the partial BFS came-from map.
      */
     public Map<V, V> bfsUntil(V start, java.util.function.Predicate<V> goal) {
         return JavaFacadeBridge$.MODULE$.bfsUntil(getScalaGraph(), start, goal::test);
+    }
+
+    /**
+     * Performs a breadth-first search from {@code start} stopping at {@code goal}, drawing its
+     * adjacency order from {@code random}. See {@link #bfs(Object, java.util.Random)}.
+     *
+     * @param start  the source vertex.
+     * @param goal   the stopping condition.
+     * @param random the generator determining adjacency order.
+     * @return the partial BFS came-from map.
+     */
+    public Map<V, V> bfsUntil(V start, java.util.function.Predicate<V> goal, java.util.Random random) {
+        return JavaFacadeBridge$.MODULE$.bfsUntil(getScalaGraph(), start, goal::test, random);
     }
 
     // -------------------------------------------------------------------------

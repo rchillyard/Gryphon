@@ -57,8 +57,21 @@ private[java] object JavaFacadeBridge:
    * Runs BFS from `start` on the materialised Scala graph.
    * The start vertex is absent from the returned came-from map.
    */
+  // Every method below that consults adjacency order comes in a pair: one taking the caller's
+  // `java.util.Random`, and one that builds a fresh unseeded generator. The pair is how a Java
+  // caller gets the lever a Scala caller has as `given Random`, since a `given` cannot be written
+  // from Java (#142).
+  //
+  // Until 1.13.0 these pinned `Random(0)` internally. That made the facade reproducible, but by
+  // telling Java users something false -- that `dfs` and `bfs` return a particular order. They do
+  // not, and the Scala API has never claimed they do. Taking the generator rather than a seed is
+  // deliberate: one generator can span several facade calls, which is what a `given` does and what
+  // a `long seed` parameter could not express.
   def bfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
-    given Random = Random(0)
+    bfs(scalaGraph, start, java.util.Random())
+
+  def bfs[V](scalaGraph: AbstractGraph[V], start: V, jr: java.util.Random): JavaMap[V, V] =
+    given Random = Random(jr)
 
     new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
       def traversal: JavaMap[V, V] =
@@ -110,7 +123,10 @@ private[java] object JavaFacadeBridge:
    * @return an unmodifiable Java `Map<V, V>` came-from map.
    */
   def dfs[V](scalaGraph: AbstractGraph[V], start: V): JavaMap[V, V] =
-    given Random = Random(0)
+    dfs(scalaGraph, start, java.util.Random())
+
+  def dfs[V](scalaGraph: AbstractGraph[V], start: V, jr: java.util.Random): JavaMap[V, V] =
+    given Random = Random(jr)
 
     new EvaluableGraphNeighboursTraversal[V, V, JavaMap[V, V]](identity)(scalaGraph) {
       def traversal: JavaMap[V, V] =
@@ -304,7 +320,15 @@ private[java] object JavaFacadeBridge:
                                edges: JavaList[WeightedEdge[V, Double]],
                                start: V
                        ): JavaMap[V, WeightedEdge[V, Double]] =
-    given Random = Random(0)
+    dijkstraDouble(scalaGraph, edges, start, java.util.Random())
+
+  def dijkstraDouble[V](
+                               @unused scalaGraph: AbstractGraph[V],
+                               edges: JavaList[WeightedEdge[V, Double]],
+                               start: V,
+                               jr: java.util.Random
+                       ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Random = Random(jr)
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
@@ -329,7 +353,18 @@ private[java] object JavaFacadeBridge:
                                   zero: E,
                                   comparator: JavaComparator[E]
                           ): JavaMap[V, WeightedEdge[V, E]] =
-    given Random = Random(0)
+    dijkstraCustom(scalaGraph, edges, start, combineFn, zero, comparator, java.util.Random())
+
+  def dijkstraCustom[V, E](
+                                  @unused scalaGraph: AbstractGraph[V],
+                                  edges: JavaList[WeightedEdge[V, E]],
+                                  start: V,
+                                  combineFn: JavaBinaryOperator[E],
+                                  zero: E,
+                                  comparator: JavaComparator[E],
+                                  jr: java.util.Random
+                          ): JavaMap[V, WeightedEdge[V, E]] =
+    given Random = Random(jr)
 
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
@@ -350,7 +385,15 @@ private[java] object JavaFacadeBridge:
                            edges: JavaList[WeightedEdge[V, Double]],
                            start: V
                    ): JavaMap[V, WeightedEdge[V, Double]] =
-    given Random = Random(0)
+    primDouble(scalaGraph, edges, start, java.util.Random())
+
+  def primDouble[V](
+                           @unused scalaGraph: AbstractGraph[V],
+                           edges: JavaList[WeightedEdge[V, Double]],
+                           start: V,
+                           jr: java.util.Random
+                   ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Random = Random(jr)
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
@@ -376,7 +419,16 @@ private[java] object JavaFacadeBridge:
                               start: V,
                               comparator: JavaComparator[E]
                       ): JavaMap[V, WeightedEdge[V, E]] =
-    given Random = Random(0)
+    primCustom(scalaGraph, edges, start, comparator, java.util.Random())
+
+  def primCustom[V, E](
+                              @unused scalaGraph: AbstractGraph[V],
+                              edges: JavaList[WeightedEdge[V, E]],
+                              start: V,
+                              comparator: JavaComparator[E],
+                              jr: java.util.Random
+                      ): JavaMap[V, WeightedEdge[V, E]] =
+    given Random = Random(jr)
 
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
@@ -606,7 +658,10 @@ private[java] object JavaFacadeBridge:
    * absent from the map, as the start vertex is for a single DFS.
    */
   def dfsAll[V](scalaGraph: AbstractGraph[V]): JavaMap[V, V] =
-    given Random = Random(0)
+    dfsAll(scalaGraph, java.util.Random())
+
+  def dfsAll[V](scalaGraph: AbstractGraph[V], jr: java.util.Random): JavaMap[V, V] =
+    given Random = Random(jr)
 
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
@@ -626,7 +681,15 @@ private[java] object JavaFacadeBridge:
                          start: V,
                          goal: JavaFunction[V, java.lang.Boolean]
                  ): JavaMap[V, V] =
-    given Random = Random(0)
+    bfsUntil(scalaGraph, start, goal, java.util.Random())
+
+  def bfsUntil[V](
+                         scalaGraph: AbstractGraph[V],
+                         start: V,
+                         goal: JavaFunction[V, java.lang.Boolean],
+                         jr: java.util.Random
+                 ): JavaMap[V, V] =
+    given Random = Random(jr)
 
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
@@ -638,8 +701,12 @@ private[java] object JavaFacadeBridge:
   // ConnectedComponents
   // ---------------------------------------------------------------------------
 
+  // No `java.util.Random` variant here, unlike the traversals above. `ConnectedComponents.components`
+  // takes a generator and is annotated `@unused`: it ignores it, and assigns component ids by
+  // walking the vertex set, which is not shuffled. The result does not vary between calls, so an
+  // overload taking a generator would accept a lever connected to nothing. See #143.
   def connectedComponents[V](scalaGraph: AbstractGraph[V]): JavaMap[V, JavaInteger] =
-    given scala.util.Random = scala.util.Random(0)
+    given scala.util.Random = scala.util.Random()
 
     val (_, componentMap) = ConnectedComponents.components[V, Unit](scalaGraph)
     val javaMap = new JavaLinkedHashMap[V, JavaInteger]()
@@ -691,7 +758,16 @@ private[java] object JavaFacadeBridge:
                          @unused scalaGraph: AbstractGraph[V],
                          edges: JavaList[Edge[V]]
                  ): JavaMap[V, JavaInteger] =
-    given Random = Random(42)
+    kosaraju(scalaGraph, edges, java.util.Random())
+
+  // This pinned `Random(42)` where everything else pinned `Random(0)`, for no reason anyone
+  // recorded -- see #141. Both are gone with #142.
+  def kosaraju[V](
+                         @unused scalaGraph: AbstractGraph[V],
+                         edges: JavaList[Edge[V]],
+                         jr: java.util.Random
+                 ): JavaMap[V, JavaInteger] =
+    given Random = Random(jr)
 
     val directedGraph: DirectedGraph[V, Unit] =
       scalaGraph match

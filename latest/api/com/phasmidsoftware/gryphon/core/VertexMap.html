@@ -342,6 +342,10 @@ node7 -> node2;
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>the generator determining adjacency order (implicit).</p>
+              </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
                <p>the vertex for which adjacent vertices are to be retrieved.</p>
@@ -445,11 +449,26 @@ node7 -> node2;
              <div class="doc">
               <p>Performs BFS from <code>v</code>, accumulating results into <code>visitor</code>.</p>
              </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">goal</dt>
               <dd class="body-medium">
                <p>early-termination predicate (default: never stop early).</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>the generator determining adjacency order (implicit).</p>
               </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
@@ -461,7 +480,12 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the updated visitor after traversal.</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -582,8 +606,27 @@ node7 -> node2;
               <p>Performs DFS from <code>v</code>, accumulating results into <code>visitor</code>.</p>
               <p>A local <code>GraphNeighbours[V]</code> derived from <code>adjacentVertices</code> is provided to the engine.</p>
              </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">order</dt>
+              <dd class="body-medium">
+               <p>whether a vertex is recorded before or after its descendants; pre-order by default.</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>the generator determining adjacency order (implicit).</p>
+              </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
                <p>the starting vertex.</p>
@@ -594,7 +637,12 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the updated visitor after traversal.</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -621,15 +669,35 @@ node7 -> node2;
              <div class="doc">
               <p>Performs DFS for all vertices in the graph, including those not reachable from any single start vertex.</p>
              </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the journal's element type.</p>
+              </dd>
+              <dt class="body-small">J</dt>
+              <dd class="body-medium">
+               <p>the journal type.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>the generator determining adjacency order (implicit).</p>
+              </dd>
               <dt class="body-small">visitor</dt>
               <dd class="body-medium">
                <p>the visitor to accumulate results.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Returns</dt>
+              <dd class="body-medium">
+               <p>the updated visitor after traversing all vertices.</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -661,6 +729,10 @@ node7 -> node2;
               <dt class="body-small">predicate</dt>
               <dd class="body-medium">
                <p>a function that evaluates each <code>Adjacency[V]</code> and returns true if the adjacency satisfies the specified condition.</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>the generator determining adjacency order (implicit).</p>
               </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
@@ -1121,41 +1193,6 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="graphNeighbours-fffff568" data-f-inherited="Traversable">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="VertexMap.html#graphNeighbours-fffff568" t="n" class="documentableName ">graphNeighbours</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">GraphNeighbours</span>[<span t="t">V</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Derives a <code>GraphNeighbours[V]</code> instance from <code>adjacentVertices</code>. Used internally by the default implementations of <code>vertexMappedTraversalDfs</code>, <code>vertexMappedTraversalBfs</code>, and <code>getConnexions</code>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Derives a <code>GraphNeighbours[V]</code> instance from <code>adjacentVertices</code>. Used internally by the default implementations of <code>vertexMappedTraversalDfs</code>, <code>vertexMappedTraversalBfs</code>, and <code>getConnexions</code>.</p>
-              <p>CONSIDER making this protected again but that requires multiple instances in each type of Traversal. (#93) Blocked on issue #67: the NOTE below is that issue, and the trade-off only looks bad while multiple Random-derived instances are dangerous.</p>
-              <p>NOTE: do not be tempted to add a default Random implementation for this context. We need to enforce consistency of Random instances.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">Inherited from:</dt>
-              <dd class="body-medium">
-               <a href="Traversable.html#graphNeighbours-fffff568">Traversable</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="productElementNames-0" data-f-inherited="Product">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1260,6 +1297,10 @@ node7 -> node2;
               <dd class="body-medium">
                <p>transformation function applied to each vertex.</p>
               </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
+              </dd>
               <dt class="body-small">start</dt>
               <dd class="body-medium">
                <p>the starting vertex.</p>
@@ -1314,6 +1355,10 @@ node7 -> node2;
               <dt class="body-small">fulfill</dt>
               <dd class="body-medium">
                <p>transformation function applied to each vertex.</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
               </dd>
               <dt class="body-small">start</dt>
               <dd class="body-medium">

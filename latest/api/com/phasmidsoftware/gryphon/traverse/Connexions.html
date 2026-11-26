@@ -251,14 +251,14 @@ node8 -> node3;
              <dl class="attributes attributes-small">
               <dt class="body-small">map</dt>
               <dd class="body-medium">
-               <p>a map where each key is a vertex of type <code>V</code> and its value is a tuple <code>(V, V)</code> representing the result associated with traversal from this vertex.</p>
+               <p>a map where each key is a vertex of type <code>V</code> and its value is the <code>DirectedEdge[V, E]</code> by which that vertex was reached.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">Returns</dt>
               <dd class="body-medium">
-               <p>a new <code>TraversalResult</code> instance of type <code>TraversalResult[V, (V, V)]</code> initialized with the provided map.</p>
+               <p>a new <code>Connexions[V, E]</code> initialized with the provided map.</p>
               </dd>
               <dt class="body-small">Definition Classes</dt>
               <dd class="body-medium">

@@ -119,6 +119,10 @@ node3 -> node2;
              </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">graph</dt>
+              <dd class="body-medium">
+               <p>the weighted directed graph.</p>
+              </dd>
               <dt class="body-small">random</dt>
               <dd class="body-medium">
                <p>controls adjacency ordering.</p>
@@ -127,74 +131,14 @@ node3 -> node2;
               <dd class="body-medium">
                <p>the source vertex.</p>
               </dd>
-              <dt class="body-small">traversable</dt>
-              <dd class="body-medium">
-               <p>the weighted directed graph.</p>
-              </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">Returns</dt>
               <dd class="body-medium">
-               <p>a <code>TraversalResult[V, DirectedEdge[V, E]]</code> mapping each settled vertex to its cheapest incoming edge, or None for the start vertex.</p>
+               <p>a <code>TraversalResult[V, AttributedDirectedEdge[V, E]]</code> mapping each settled vertex to its cheapest incoming edge, or None for the start vertex.</p>
               </dd>
              </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="undiscoveredEdges-fffffc30">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ShortestPaths$.html#undiscoveredEdges-fffffc30" t="n" class="documentableName ">undiscoveredEdges</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">traversable</span>: <a href="../core/Traversable.html" t="t">Traversable</a>[<span data-unresolved-link="" t="t">V</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span data-unresolved-link="" t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span> = ...): <span data-unresolved-link="" t="t">Seq</span>[<a href="../core/Edge.html" t="t">Edge</a>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">E</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns the directed edges reachable from v.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns the directed edges reachable from v.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="undiscoveredVertices-fffffc30">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ShortestPaths$.html#undiscoveredVertices-fffffc30" t="n" class="documentableName ">undiscoveredVertices</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">E</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">traversable</span>: <a href="../core/Traversable.html" t="t">Traversable</a>[<span data-unresolved-link="" t="t">V</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v</span>: <span data-unresolved-link="" t="t">V</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span> = ...): <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">V</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns the vertices reachable via attributed directed edges from v.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns the vertices reachable via attributed directed edges from v.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
             </div>
            </div>
           </div>

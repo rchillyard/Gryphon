@@ -222,9 +222,30 @@ node5 -> node1;
         </div>
         <div class="documentableElement" id="logger-0">
          <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="VertexMap$.html#logger-0" t="n" class="documentableName ">logger</a>: <span data-unresolved-link="" t="t">Logger</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The logger for this object.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The logger for this object.</p>
+              <p>Nothing currently logs through it: it is kept because it is public, so removing it would break binary compatibility, and 1.11.1 is a patch release. Queued for the next breaking window — see #102, which is also where the question of whether it should be used instead is recorded.</p>
+              <p>The name was the string literal <code>"VertexMap"</code>, which would not have followed a rename. Changing it to the class is safe even in a patch release precisely because nothing logs through it, so no logging configuration can be keyed to the old name.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
            </div>
           </div>
          </div>

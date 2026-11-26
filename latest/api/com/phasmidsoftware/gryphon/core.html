@@ -1799,7 +1799,7 @@
             <div class="cover">
              <div class="doc">
               <p>A trait representing an abstract graph structure composed of vertices.</p>
-              <p>All traversal methods delegate to the <code>VertexMap</code> which in turn uses the Visitor 1.8.0 typeclass engine (<code>Traversal.dfs</code> / <code>Traversal.bfs</code>). The mutable <code>discovered</code> flag pattern has been removed throughout; visited-node tracking is handled by the immutable <code>VisitedSet[V]</code> inside the engine.</p>
+              <p>All traversal methods delegate to the <code>VertexMap</code> which in turn uses the Visitor typeclass engine (<code>Traversal.dfs</code> / <code>Traversal.bfs</code>). The mutable <code>discovered</code> flag pattern has been removed throughout; visited-node tracking is handled by the immutable <code>VisitedSet[V]</code> inside the engine.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -3764,8 +3764,14 @@
              <div class="doc">
               <p>Type alias for an unordered collection of adjacencies for a given vertex type.</p>
               <p>NOTE: when <code>AdjacencyEdge</code> is used, an <code>Unordered_Set</code> is appropriate (no duplicate edges). When <code>AdjacencyVertex</code> is used, use <code>Unordered_Bag</code> (duplicate vertices are possible).</p>
-              <p>//@tparam V the type of the vertex attribute.</p>
              </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type of the vertex attribute.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
             </div>
@@ -3817,8 +3823,18 @@
              <div class="doc">
               <p>A type alias representing a connection-like structure composed of three elements: an edge of type <code>E</code> and two vertices of type <code>V</code>.</p>
               <p>This alias is typically used to describe relationships or connections in graphs or other data structures where a single edge connects two vertices.</p>
-              <p>// @tparam E the type representing the edge attribute. // @tparam V the type representing the vertex attribute.</p>
              </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">E</dt>
+              <dd class="body-medium">
+               <p>the type representing the edge attribute.</p>
+              </dd>
+              <dt class="body-small">V</dt>
+              <dd class="body-medium">
+               <p>the type representing the vertex attribute.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
             </div>

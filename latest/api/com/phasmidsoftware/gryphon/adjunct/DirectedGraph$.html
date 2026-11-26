@@ -302,6 +302,7 @@ node5 -> node1;
              <div class="doc">
               <p>Converts a sequence of triplets representing graph edges into a <code>Try</code> of <code>Graph[V]</code>.</p>
               <p>Each triplet in the input sequence consists of two vertices (source and target) and an attribute associated with the edge connecting the vertices. This method attempts to construct a directed graph from the provided triplets, returning a <code>Success</code> with the graph instance if the operation is successful, or a <code>Failure</code> if the construction process encounters an error.</p>
+              <p>A triplet carrying no attribute is admissible only where the implicit <code>AbsentAttribute[E]</code> says so — that is, for <code>E = Unit</code> and for nothing else; otherwise the result is a <code>Failure</code> naming the offending triplet. See <code>AbsentAttribute</code> and #56.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -316,6 +317,10 @@ node5 -> node1;
              </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">f</dt>
+              <dd class="body-medium">
+               <p>builds a vertex from its attribute.</p>
+              </dd>
               <dt class="body-small">triples</dt>
               <dd class="body-medium">
                <p>a sequence of triplets <code>Triplet[V, E]</code> where: - the first element is the source vertex of type <code>V</code>. - the second element is the target vertex of type <code>V</code>. - the third element is the edge attribute of type <code>E</code>.</p>
@@ -325,7 +330,7 @@ node5 -> node1;
              <dl class="attributes attributes-small">
               <dt class="body-small">Returns</dt>
               <dd class="body-medium">
-               <p>a <code>Try[Graph[V]]</code>, where: - <code>Success(Graph[V])</code> contains the constructed graph if the operation is successful. - <code>Failure</code> contains a <code>GraphException</code> if the graph construction fails.</p>
+               <p>a <code>Try[DirectedGraph[V, E]]</code>, where: - <code>Success</code> contains the constructed graph if the operation is successful. - <code>Failure</code> contains a <code>GraphException</code> if the graph construction fails.</p>
               </dd>
              </dl>
             </div>

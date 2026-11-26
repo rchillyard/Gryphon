@@ -338,41 +338,6 @@ node8 -> node6;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="graphNeighbours-fffff568" data-f-inherited="Traversable">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EdgeTraversable.html#graphNeighbours-fffff568" t="n" class="documentableName ">graphNeighbours</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">random</span>: <span data-unresolved-link="" t="t">Random</span>): <span data-unresolved-link="" t="t">GraphNeighbours</span>[<span t="t">V</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Derives a <code>GraphNeighbours[V]</code> instance from <code>adjacentVertices</code>. Used internally by the default implementations of <code>vertexMappedTraversalDfs</code>, <code>vertexMappedTraversalBfs</code>, and <code>getConnexions</code>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Derives a <code>GraphNeighbours[V]</code> instance from <code>adjacentVertices</code>. Used internally by the default implementations of <code>vertexMappedTraversalDfs</code>, <code>vertexMappedTraversalBfs</code>, and <code>getConnexions</code>.</p>
-              <p>CONSIDER making this protected again but that requires multiple instances in each type of Traversal. (#93) Blocked on issue #67: the NOTE below is that issue, and the trade-off only looks bad while multiple Random-derived instances are dangerous.</p>
-              <p>NOTE: do not be tempted to add a default Random implementation for this context. We need to enforce consistency of Random instances.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">Inherited from:</dt>
-              <dd class="body-medium">
-               <a href="Traversable.html#graphNeighbours-fffff568">Traversable</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="vertexMappedTraversalBfs-8b" data-f-inherited="Traversable">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -406,6 +371,10 @@ node8 -> node6;
               <dt class="body-small">fulfill</dt>
               <dd class="body-medium">
                <p>transformation function applied to each vertex.</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
               </dd>
               <dt class="body-small">start</dt>
               <dd class="body-medium">
@@ -462,6 +431,10 @@ node8 -> node6;
               <dd class="body-medium">
                <p>transformation function applied to each vertex.</p>
               </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
+              </dd>
               <dt class="body-small">start</dt>
               <dd class="body-medium">
                <p>the starting vertex.</p>
@@ -511,9 +484,14 @@ node8 -> node6;
             <div class="cover">
              <div class="doc">
               <p>Retrieves the adjacent vertices connected to the specified vertex.</p>
+              <p>This reads each adjacency's own <code>vertex</code>, which is the end away from <code>v</code>. That matters on undirected graphs: a two-way triplet stores a second, <code>flipped</code> adjacency at the far end, and <code>AdjacencyEdge.vertex</code> answers <code>white</code> rather than <code>black</code> for it. Reading <code>black</code> off the edge instead would therefore give <code>v</code> itself for half the adjacencies of an undirected graph. <code>Graph.undiscoveredVertices</code> did exactly that and hid the error behind a filter that admitted only <code>AttributedDirectedEdge</code> — the one kind never stored flipped, since <code>DirectedGraph</code> passes <code>bothWays = _ =&gt; false</code> — so it returned <code>Nil</code> on undirected graphs rather than wrong answers. It was deleted in 1.12.0 in favour of this method; see issue #106.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
+              </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
                <p>the vertex whose adjacent vertices are to be returned.</p>
@@ -572,6 +550,10 @@ node8 -> node6;
               <dt class="body-small">goal</dt>
               <dd class="body-medium">
                <p>an optional early-termination predicate; traversal halts after recording the first node for which <code>goal</code> returns true.</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
               </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
@@ -633,6 +615,14 @@ node8 -> node6;
              </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">order</dt>
+              <dd class="body-medium">
+               <p>whether a vertex is recorded before or after its descendants; pre-order by default.</p>
+              </dd>
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
+              </dd>
               <dt class="body-small">v</dt>
               <dd class="body-medium">
                <p>the starting vertex.</p>
@@ -692,6 +682,10 @@ node8 -> node6;
              </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">random</dt>
+              <dd class="body-medium">
+               <p>controls adjacency ordering (implicit); see <code>filteredAdjacencies</code>.</p>
+              </dd>
               <dt class="body-small">visitor</dt>
               <dd class="body-medium">
                <p>the visitor, accumulating results into its journal.</p>

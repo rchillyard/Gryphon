@@ -6,11 +6,19 @@ package com.phasmidsoftware.gryphon.core
  * sequence of graph edges without requiring direct knowledge of
  * the underlying graph implementation.
  *
- * NOTE that this is not polymorphic in Z like `EdgeList`, and from 1.11.0 that no longer
- * matters: #69 moved `EdgeList`, this trait's only implementor, to the test tree, so the two
- * are no longer a published pair that ought to match. The trait stays here as published API,
- * but nothing in main implements it — if that is still true at the next breaking release, it
- * is a candidate to follow `EdgeList` out.
+ * NOTE that this is not polymorphic in `Z` like `EdgeList`: `pairs` here is fixed to
+ * `Seq[(V, V, EdgeType)]`.
+ *
+ * That stopped mattering in 1.11.0, when #69 moved `EdgeList` — this trait's only implementor
+ * — to the test tree, leaving the two no longer a published pair that ought to match. It
+ * matters again from 1.13.0, because #135 brought `EdgeList` back into main to be `unbuild`'s
+ * target. So the note that stood here, saying nothing in main implements this trait and it was
+ * a candidate for removal, is withdrawn: something does, and it is not.
+ *
+ * Whether the mismatch is worth closing is a real question rather than a rhetorical one.
+ * `EdgeList[V, E, Z >: EdgeType]` can serialize to any supertype of `EdgeType`; a caller
+ * reaching it through `Edges` gets `EdgeType` and no choice. Nothing exercises the difference
+ * today, since every instantiation in the library uses `Z = EdgeType`.
  *
  * @tparam V the type of attributes associated with the vertices in the graph.
  * @tparam E the type of attributes associated with the edges in the graph.

@@ -233,7 +233,7 @@ The tables above follow the chapters' **algorithms**. Most of what follows lives
 | Prim variants | eager, with an indexed priority queue | P — note 23 |
 | Symbol graph | `GraphParser[String, …]`, `tunnels.graph` | Y |
 | Degrees of separation | — | N — note 24 |
-| Minimum spanning forest | probably falls out of Kruskal | ? — note 25 |
+| Minimum spanning forest | Kruskal yes; Borůvka **hung**, fixed in #117 | Y — note 25 |
 
 21. An Eulerian path exists under a degree condition Gryphon can already evaluate —
     `degree`, `inDegree` and `outDegree` are all there — so *deciding* existence is a short
@@ -251,12 +251,32 @@ The tables above follow the chapters' **algorithms**. Most of what follows lives
     part is done. Degrees of separation is then BFS plus `pathTo`, which is
     [#112](https://github.com/rchillyard/Gryphon/issues/112) again. It would make a good worked
     example once that exists.
-25. **Not checked, and worth a test rather than code.** Kruskal considers every edge in weight
-    order and keeps those joining distinct components, so on a disconnected graph it should
-    naturally yield a spanning forest rather than failing — but no fixture exercises that, and
-    `dfsu.graph` (three components) is used for connectivity rather than for MST. The honest
-    status is unknown. The same question applies to Borůvka, and differently to `MST.prim`, which
-    grows from a single start vertex and so can only ever return the tree of its own component.
+25. **This row began as "not checked" and finding out turned up a defect.** Robin's reasoning on
+    reading it: an MST algorithm on a connected graph can stop once the tree is complete, and
+    that does not carry to the forest case. Measured on two components, `0-1` and `2-3`:
+
+    | | Result |
+    |---|---|
+    | `Kruskal.mst` | 2 edges — a correct spanning forest |
+    | `Boruvka.mst` | **did not terminate within 15 seconds** |
+    | `Boruvka.mst`, connected control | terminated, 2 edges |
+
+    Borůvka's only exit was "exactly one component remains", which a disconnected graph never
+    reaches; once each component is internally spanned there are no crossing edges, so nothing
+    merged and the `@tailrec` loop spun with identical arguments. A hang, not a wrong answer.
+    Fixed in [#117](https://github.com/rchillyard/Gryphon/issues/117) by terminating when a round
+    adds no edge, which is correct for both cases and also removes an O(*V*) scan per round.
+
+    **Kruskal was already right, and the reason is worth keeping.** It is a `foldLeft` over all
+    sorted edges with no early exit, so it runs out of edges and returns the forest. The standard
+    optimisation of stopping at *order* − 1 edges is *not* implemented, and its absence is exactly
+    what makes the forest case work — so adding it later would break this, which `SpanningForestSpec`
+    now says in a comment. `MST.prim` is a third case: it grows from one start vertex and returns
+    that vertex's component only, which is defensible and is now pinned by a test.
+
+    The general lesson, which is why this note is long: **"not checked" is a finding, not a
+    placeholder.** Two of the three algorithms behaved differently from the guess this row
+    originally recorded.
 
 ---
 
@@ -286,7 +306,7 @@ What is genuinely missing, in rough order of how self-contained each is:
 | BFS that reports distance | small | the prerequisite for the next row; note 16 |
 | Eccentricity, diameter, radius, center | small, once the row above exists | **one** piece of work, not four |
 | 2-satisfiability | small | a client of `Kosaraju`, which is the hard half; note 19 |
-| A test for the minimum spanning forest | small | status currently unknown; note 25 |
+| ~~A test for the minimum spanning forest~~ | — | done: #117 found a hang in Borůvka; note 25 |
 | Deciding an Euler path exists | small | the degree condition is computable today |
 | Constructing an Euler path (Hierholzer) | medium | note 21 |
 | Report the negative cycle, not just detect it | medium | the specific #72 question |

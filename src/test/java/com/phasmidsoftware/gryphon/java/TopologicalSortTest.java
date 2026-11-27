@@ -92,10 +92,11 @@ public class TopologicalSortTest {
      * does read {@code topologicalOrder}.</p>
      *
      * <p>The saving is not directly observable, but a consequence of it is. Adjacency iteration
-     * is deliberately shuffled, and {@code TopologicalSort.sort} takes no {@code Random} of its
-     * own, so each vertex expansion builds a fresh one (#131). Running the algorithm repeatedly
-     * on a graph that is sensitive to the shuffle therefore yields different valid orderings,
-     * while one memoized value cannot. Equality across calls witnesses the memoization.</p>
+     * is deliberately shuffled, and since #131 {@code TopologicalSort.sort} takes a
+     * {@code Random} whose default is a fresh generator — and this façade method passes none.
+     * Running the algorithm repeatedly on a graph that is sensitive to the shuffle therefore
+     * yields different valid orderings, while one memoized value cannot. Equality across calls
+     * witnesses the memoization.</p>
      *
      * <p>The graph matters: this assertion passes with or without the fix on
      * {@code buildSimpleDAG}, whose result is invariant under shuffling. {@code buildStarDAG}

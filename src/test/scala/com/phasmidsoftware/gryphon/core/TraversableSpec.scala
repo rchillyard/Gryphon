@@ -54,11 +54,33 @@ class TraversableSpec extends AnyFlatSpec with should.Matchers:
   }
 
   it should "filteredAdjacentVertices — keep all" in {
-    target.filteredAdjacentVertices(_ => true)(1).toSet shouldBe Set(2)
+    target.filteredAdjacentVertices(_ => true)(1).toList shouldBe List(2)
   }
 
   it should "filteredAdjacentVertices — keep none" in {
-    target.filteredAdjacentVertices(_ => false)(1).toSet shouldBe Set.empty
+    target.filteredAdjacentVertices(_ => false)(1).toList shouldBe Nil
+  }
+
+  // The two tests above are why #153 went unseen for three releases. They were written with
+  // `.toSet`, on a `target` whose every vertex has at most one neighbour -- so neither the order
+  // nor the generator that decides it could possibly show through, and the method's missing
+  // `using Random` was invisible. `.toList` costs nothing and would at least have had a chance.
+  // This one gives it a vertex with five neighbours and asserts the two properties that matter.
+  it should "filteredAdjacentVertices take its order from the caller's seed, unchanged (#153)" in {
+    val fanOut: VertexMap[Int] = VertexMap[Int].addEdges(
+      EdgeList[Int, String, EdgeType]((1 to 5).map(i => AttributedDirectedEdge(s"e$i", 0, i))).edges)
+
+    // Same seed, same order as the method it delegates to: the filter must not reorder, and the
+    // seed must reach through it. Fresh generators rather than one shared instance, since a
+    // Random is stateful and two draws from one would differ for an uninteresting reason.
+    fanOut.filteredAdjacentVertices(_ => true)(0)(using Random(7)).toList shouldBe
+            fanOut.adjacentVertices(0)(using Random(7)).toList
+
+    // And the fixture can actually tell: without this, the assertion above would hold just as
+    // well on a method that ignored its seed entirely, which is precisely what it used to do.
+    val orders = (0 until 20).map(s => fanOut.filteredAdjacentVertices(_ => true)(0)(using Random(s)).toList)
+    orders.distinct.size should be > 1
+    orders.foreach(_.toSet shouldBe Set(1, 2, 3, 4, 5))
   }
 
   it should "filteredAdjacencies" in {

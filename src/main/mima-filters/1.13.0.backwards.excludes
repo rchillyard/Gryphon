@@ -1,0 +1,87 @@
+# Deliberate binary breaks in 1.14.0, relative to 1.13.0. See the release note in README.md.
+#
+# THESE FILTERS DO NOT RETIRE. sbt-mima reads every *.backwards.excludes in this directory
+# whatever it is named, so this file stays in force until somebody deletes it. Delete it at the
+# 1.14.0 post-release, when previousRelease moves to 1.14.0. See #107, where three stale files
+# had put 81 filters in force where the build comment implied 36.
+#
+# ---------------------------------------------------------------------------------------
+# All seven breaks below are one change: four methods gain a `(using Random = Random())`.
+#
+# Every one of them consults adjacency order -- which Gryphon shuffles, by a generator a caller
+# is meant to be able to pin with `given Random` (#67) -- and none of them had a parameter for
+# that generator to arrive through. So each fell to the `= Random()` default declared on
+# `adjacentVertices` / `filteredAdjacencies`, constructing a fresh unseeded generator per vertex
+# and discarding it. A caller's seed stopped dead at the call site.
+#
+# Nothing about the results was wrong. Every topological order returned was a valid topological
+# order; every distance computed was the correct distance. What could not be done was reproduce
+# a particular run, which is the entire purpose of seeding, and the compiler had been saying so
+# all along: `-Wunused` reports `unused local definition` for a `given Random` that nothing
+# consumes.
+#
+# Adding a parameter -- even one with a default -- changes the erased signature, so all four are
+# source-compatible and binary-incompatible. A caller recompiling against 1.14.0 needs no edit.
+#
+# AcyclicShortestPaths is NOT among them, and the reason is worth recording because the obvious
+# guess is wrong. It consults adjacency order too, so it looks like a fifth case -- but the only
+# order a generator could reach there is inert. `relax` folds over a vertex's outgoing edges and
+# each one writes its own key in the predecessor map, so two can compete only by running from one
+# vertex to the same target at equal cost: parallel edges, which `fromTriplets` refuses to build
+# (#57). Measured on a diamond with two equal-cost paths, forty seeds give one result. All of its
+# variation comes from the memoized `DirectedGraph.topologicalOrder`, which a `lazy val` cannot
+# accept a generator for. A `(using Random)` would therefore have been a parameter that provably
+# does nothing while reading as a guarantee of reproducibility -- the same false promise as the
+# `Random(0)` the Java facade pinned before 1.13.0. Its signature is unchanged, so it appears
+# nowhere in this file. See #158.
+#
+# ---------------------------------------------------------------------------------------
+# #153: Traversable.filteredAdjacentVertices, and its two implementors.
+#
+# The odd one out of its own family: `filteredAdjacencies` is the same shape for the same purpose
+# and always took the generator. Invisible because nothing in src/main called it and its two
+# tests ended in `.toSet`, which discards the only thing that varied.
+#
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.filteredAdjacentVertices(scala.Function1,java.lang.Object)scala.collection.Iterator")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.filteredAdjacentVertices(scala.Function1,java.lang.Object)scala.collection.Iterator")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.filteredAdjacentVertices(scala.Function1,java.lang.Object)scala.collection.Iterator")
+#
+# ---------------------------------------------------------------------------------------
+# #131: TopologicalSort.sort and traversal.
+#
+# A DAG generally admits many topological orders and adjacency order picks between them, so this
+# is where the defect had the most visible effect and the least detectable one: no test can fail
+# because of it, since every answer satisfies the postcondition.
+#
+# `DirectedGraph.topologicalOrder` is NOT in this list and does not change. It is a `lazy val`,
+# a `val` takes no `using` clause, and so it remains unseedable by construction -- memoized,
+# stable within a run, arbitrary across runs. That is the right trade for `isCyclic` and the
+# Java facade, which want a stable answer rather than a pinned one, and it is why
+# AcyclicShortestPaths stopped reading it (below).
+#
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.TopologicalSort.sort(com.phasmidsoftware.gryphon.adjunct.DirectedGraph)scala.Option")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.TopologicalSort.traversal(com.phasmidsoftware.gryphon.adjunct.DirectedGraph)scala.Option")
+#
+# ---------------------------------------------------------------------------------------
+# #154: BellmanFord.shortestPaths, and DirectedGraph.shortestPaths, which delegates to it.
+#
+# Found by a sweep #131 asked for, and the ones a stated rule had excused. Through 1.13.x the
+# facade's scaladoc said relaxation-based algorithms sort or relax over all edges and so cannot
+# be affected by adjacency order. True of the distances, false of the predecessors -- and it is
+# the predecessors that are returned. Which of several equal-cost paths you are told about is
+# exactly what varies, the same variation Dijkstra has.
+#
+# Bellman-Ford is queue-based, which is why a seed does real work here where it would not in
+# AcyclicShortestPaths: adjacency order decides the order vertices are enqueued and so dequeued,
+# and a vertex may be relaxed several times, so the order propagates globally rather than staying
+# within one vertex's edge list.
+#
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths(com.phasmidsoftware.gryphon.adjunct.DirectedGraph,java.lang.Object,cats.kernel.Monoid,scala.math.Ordering)scala.Option")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.DirectedGraph.shortestPaths(java.lang.Object,cats.kernel.Monoid,scala.math.Ordering)scala.Option")
+#
+# ---------------------------------------------------------------------------------------
+# NOT listed here, because it is an addition rather than a break: the Java facade's
+# `ShortestPaths.bellmanFord` gained a `java.util.Random` overload, bringing it into line with
+# the ten pairs added in 1.13.0. A Java caller has no way to write a `given`, so where the order
+# reaches the result the method comes in a pair. `ShortestPaths.acyclic` deliberately did not --
+# see the note above.

@@ -200,6 +200,11 @@ public class ShortestPaths {
      *
      * <p>The graph must be directed.</p>
      *
+     * <p>The distances this computes are invariant, but which of several equal-cost
+     * predecessors is recorded is not: relaxation reads each vertex's adjacencies in a
+     * shuffled order. This form builds a fresh generator, so repeated calls on a graph with
+     * ties may differ; {@link #bellmanFord(WeightedGraph, Object, Random)} takes yours.</p>
+     *
      * @param <V>   the vertex type.
      * @param graph a directed {@code WeightedGraph<V, Double>}.
      * @param start the source vertex.
@@ -208,14 +213,42 @@ public class ShortestPaths {
      *         reachable from {@code start}.
      * @throws IllegalStateException if {@code graph} is undirected.
      */
-    @SuppressWarnings("unchecked")
     public static <V> Optional<Map<V, WeightedEdge<V, Double>>> bellmanFord(
             WeightedGraph<V, Double> graph,
             V start) {
+        return bellmanFord(graph, start, new Random());
+    }
+
+    /**
+     * Runs the Bellman-Ford algorithm on {@code Double} weights, drawing its adjacency order
+     * from {@code random}.
+     *
+     * <p>The costs are the same whatever the order. What the order settles is which of several
+     * equal-cost paths is recorded, exactly as for {@code dijkstra} — the claim in earlier
+     * releases that relaxation-based algorithms were immune to adjacency order was wrong, and
+     * this overload is the correction.</p>
+     *
+     * <p>Pass the generator rather than a seed so that one generator can span several calls,
+     * which is what {@code given Random} does on the Scala side.</p>
+     *
+     * @param <V>    the vertex type.
+     * @param graph  a directed {@code WeightedGraph<V, Double>}.
+     * @param start  the source vertex.
+     * @param random the generator determining adjacency order.
+     * @return the SPT as {@code Map<V, WeightedEdge<V, Double>>} with the start
+     *         vertex absent, or an empty {@code Optional} if a negative cycle is
+     *         reachable from {@code start}.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Optional<Map<V, WeightedEdge<V, Double>>> bellmanFord(
+            WeightedGraph<V, Double> graph,
+            V start,
+            Random random) {
         requireDirected(graph, "bellmanFord");
         return (Optional<Map<V, WeightedEdge<V, Double>>>) (Optional<?>)
                 JavaFacadeBridge$.MODULE$.bellmanFordDouble(
-                        (java.util.List) graph.weightedEdges(), start);
+                        (java.util.List) graph.weightedEdges(), start, random);
     }
 
     /**
@@ -241,9 +274,38 @@ public class ShortestPaths {
             BinaryOperator<E> combine,
             E zero,
             Comparator<E> comparator) {
+        return bellmanFord(graph, start, combine, zero, comparator, new Random());
+    }
+
+    /**
+     * Runs the Bellman-Ford algorithm with a custom edge attribute type, drawing its adjacency
+     * order from {@code random}.
+     *
+     * <p>As with the {@code Double} form, the costs are the same whatever the order; what the
+     * order settles is which of several equal-cost paths is recorded.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @param random     the generator determining adjacency order.
+     * @return the SPT, or an empty {@code Optional} if a negative cycle is
+     *         reachable from {@code start}.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    public static <V, E> Optional<Map<V, WeightedEdge<V, E>>> bellmanFord(
+            WeightedGraph<V, E> graph,
+            V start,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator,
+            Random random) {
         requireDirected(graph, "bellmanFord");
         return JavaFacadeBridge$.MODULE$.bellmanFordCustom(
-                graph.weightedEdges(), start, combine, zero, comparator);
+                graph.weightedEdges(), start, combine, zero, comparator, random);
     }
 
     // -------------------------------------------------------------------------
@@ -261,6 +323,30 @@ public class ShortestPaths {
      *
      * <p>The graph must be directed and acyclic. Test with
      * {@link TopologicalSort#isDAG(Graph)} if you are not sure.</p>
+     *
+     * <p><b>Reproducibility — read this before comparing results between runs.</b></p>
+     *
+     * <p><b>The costs are invariant. Which of several equal-cost paths is reported is not, and
+     * there is no way to pin it.</b> Unlike {@code dijkstra}, {@code prim}, {@code bfs} and
+     * {@code bellmanFord}, this method has no {@code java.util.Random} overload — not because
+     * it does not vary, but because a generator could not settle it. It is the only method in
+     * this façade in that position.</p>
+     *
+     * <p>What is stable: everything, for one graph object. The relaxation order comes from the
+     * graph's memoized topological order, computed on first use and reused thereafter, so
+     * repeated calls on the same {@code graph} agree.</p>
+     *
+     * <p>What is not: a rebuilt or re-parsed graph is a different object, and may memoize a
+     * different valid topological order and so report a different (equally short) path. Across
+     * runs of your program it is arbitrary. <b>If you are asserting a particular predecessor in
+     * a test, hold one graph object; otherwise assert on the costs.</b></p>
+     *
+     * <p>Why an overload would not help: the topological order lives in a lazily computed field
+     * that cannot take a generator, and the one order a generator could reach — the order a
+     * vertex's outgoing edges are relaxed in — decides nothing, since each edge updates its own
+     * entry. Two edges could only compete by running from one vertex to the same target at
+     * equal cost, and the graph builder rejects such a graph. Adding the overload would read as
+     * a guarantee it could not keep.</p>
      *
      * @param <V>   the vertex type.
      * @param graph a directed acyclic {@code WeightedGraph<V, Double>}.
@@ -282,6 +368,11 @@ public class ShortestPaths {
 
     /**
      * Runs the acyclic shortest-paths algorithm with a custom edge attribute type.
+     *
+     * <p>The reproducibility note on {@link #acyclic(WeightedGraph, Object)} applies here
+     * unchanged: the costs are invariant, which of several equal-cost paths is reported is
+     * stable for one graph object and arbitrary across them, and there is no {@code Random}
+     * overload because one could not settle it.</p>
      *
      * @param <V>        the vertex type.
      * @param <E>        the edge attribute type.

@@ -58,32 +58,40 @@ import scala.util.{Random, Try}
  * '''Adding a method? The rule is: does adjacency order reach what this method returns?'''
  *
  *  - '''Yes — give it the pair.''' `bfs`, `dfs`, `dfsAll`, `bfsUntil`, `dijkstraDouble`,
- *    `dijkstraCustom`, `primDouble`, `primCustom`, `kosaraju`. For Dijkstra and Prim the
- *    numbers do not vary — distances are distances, a minimum spanning tree is minimum — but
- *    which of several equal-cost trees comes back does.
- *  - '''No — give it neither.''' `kruskal` and `boruvka` consult only `graph.edges` and never
- *    an adjacency iterator. `bfsWithNeighbours` and `dfsWithNeighbours` take the caller's own
- *    neighbour function and never consult the graph's adjacencies.
- *  - '''`bellmanFord` and `acyclicShortestPaths` are in the wrong column, and knowingly so.'''
- *    This list said they relax over all edges and so could not be affected by adjacency order.
- *    That is false: both call `filteredAdjacencies` per vertex, so which of several equal-cost
- *    predecessors they record depends on the order — the same variation `dijkstra` has. They
- *    take no generator here because the Scala methods they delegate to take none either, and
- *    adding one is a binary break (#154). `acyclicShortestPaths` additionally relaxes in
- *    `topologicalOrder`, which is itself one of many valid orders (#131), so it has two sources
- *    of variation rather than one and a generator alone would pin only half of it.
- *
- *    The rule above was stated from reading signatures instead of following the calls. It is
- *    left here as a column with a correction rather than a quietly amended list, because the
- *    next person to apply it should know that it was got wrong once.
- *  - '''Careful with the third case.''' `connectedComponents` returns only the component map,
- *    whose ids come from walking a Set and do not vary — so no pair — even though the
+ *    `dijkstraCustom`, `primDouble`, `primCustom`, `kosaraju`, and since 1.14.0 `bellmanFordDouble`
+ *    and `bellmanFordCustom`. For Dijkstra, Prim and Bellman-Ford the numbers do not vary —
+ *    distances are distances, a minimum spanning tree is minimum — but which of several
+ *    equal-cost trees or paths comes back does.
+ *  - '''No, because nothing varies.''' `kruskal` and `boruvka` consult only `graph.edges` and
+ *    never an adjacency iterator. `bfsWithNeighbours` and `dfsWithNeighbours` take the caller's
+ *    own neighbour function and never consult the graph's adjacencies. `connectedComponents`
+ *    returns only the component map, whose ids come from walking a Set — even though the
  *    `Connexions` tree that `ConnectedComponents.components` also computes does vary, and does
  *    take a generator (#143). The question is about what the method *returns*, not what the
- *    algorithm computes. `topologicalSort` likewise takes none: it reads the memoized
- *    `DirectedGraph.topologicalOrder`, so repeated calls agree — though the memoized value was
- *    computed unseeded, so a different run of the program may memoize a different valid order
- *    (#131).
+ *    algorithm computes.
+ *  - '''No, although it DOES vary — the third column, and the one to be careful with.'''
+ *    `topologicalSort` and `acyclicShortestPaths*` both vary, and neither can be pinned. Both
+ *    get their order from `DirectedGraph.topologicalOrder`, a memoized `lazy val`, and a `val`
+ *    takes no `using` clause, so no generator can reach it. Repeated calls within a run agree;
+ *    a different run may memoize a different valid order.
+ *
+ *    An overload would not fix this and must not be added as though it did. For
+ *    `acyclicShortestPaths` the only order a generator could reach is the edge order within a
+ *    vertex, and that is inert: each edge writes its own key, so two can compete only as
+ *    parallel edges to one target, which `fromTriplets` refuses to build (#57). Measured on a
+ *    diamond with two equal-cost paths, forty seeds give one result. Shipping the pair anyway
+ *    would repeat exactly the mistake 1.13.0 corrected — an API that reads as a reproducibility
+ *    guarantee and is not one. See #158.
+ *  - '''How two of these got into the wrong column, and how to avoid repeating it.''' Through
+ *    1.13.x this list said `bellmanFord` and `acyclicShortestPaths` relax over all edges and so
+ *    could not be affected by adjacency order. False: both call `filteredAdjacencies` per
+ *    vertex. The claim was true of the *distances* and was carried over to the *predecessors*,
+ *    which is where the variation actually lives. It was stated from reading signatures instead
+ *    of following the calls (#154). Two tells, both mechanical: grep the Scala method's
+ *    transitive body for `adjacentVertices` or `filteredAdjacencies` to find what consults the
+ *    order — then, before adding a pair, '''measure''' that a seed changes the answer. The
+ *    second step is what separates `bellmanFord`, where it does, from `acyclicShortestPaths`,
+ *    where it does not.
  *
  * Until 1.13.0 there were no pairs: the façade pinned `Random(0)` at ten sites, and `Random(42)`
  * at one for no reason anyone recorded. That bought reproducibility by telling Java users
@@ -551,11 +559,24 @@ private[java] object JavaFacadeBridge:
   /**
    * Shortest paths allowing negative edge weights.
    * Empty if a negative cycle is reachable from `start`.
+   *
+   * Paired since 1.14.0: relaxation reads `filteredAdjacencies` per vertex, so the distances are
+   * invariant but the recorded predecessors are not. See this object's "Randomness" scaladoc,
+   * and #154.
    */
   def bellmanFordDouble[V](
                                   edges: JavaList[WeightedEdge[V, Double]],
                                   start: V
                           ): JavaOptional[JavaMap[V, WeightedEdge[V, Double]]] =
+    bellmanFordDouble(edges, start, java.util.Random())
+
+  def bellmanFordDouble[V](
+                                  edges: JavaList[WeightedEdge[V, Double]],
+                                  start: V,
+                                  jr: java.util.Random
+                          ): JavaOptional[JavaMap[V, WeightedEdge[V, Double]]] =
+    given Random = Random(jr)
+
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
     optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, Double](materialiseWeighted(edges), start))
@@ -576,6 +597,18 @@ private[java] object JavaFacadeBridge:
                                      zero: E,
                                      comparator: JavaComparator[E]
                              ): JavaOptional[JavaMap[V, WeightedEdge[V, E]]] =
+    bellmanFordCustom(edges, start, combineFn, zero, comparator, java.util.Random())
+
+  def bellmanFordCustom[V, E](
+                                     edges: JavaList[WeightedEdge[V, E]],
+                                     start: V,
+                                     combineFn: JavaBinaryOperator[E],
+                                     zero: E,
+                                     comparator: JavaComparator[E],
+                                     jr: java.util.Random
+                             ): JavaOptional[JavaMap[V, WeightedEdge[V, E]]] =
+    given Random = Random(jr)
+
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     given Monoid[E] with
@@ -591,6 +624,18 @@ private[java] object JavaFacadeBridge:
   /**
    * Shortest paths in a DAG, in topological order: linear time, and negative
    * weights are allowed because a DAG has no cycles.
+   *
+   * Deliberately NOT paired, and this is the one case where "no pair" does not mean "does not
+   * vary". It does vary: which of several equal-cost paths comes back is decided by the
+   * memoized `DirectedGraph.topologicalOrder`, so it is fixed per graph instance and arbitrary
+   * across runs. A `java.util.Random` overload would not settle it, because a `lazy val` takes
+   * no generator and the one order a generator could reach -- the edge order within a vertex --
+   * is inert here: parallel edges to a single target are the only shape it could decide, and
+   * `fromTriplets` refuses to build those (#57). Measured: forty seeds, one result.
+   *
+   * Offering the overload anyway would repeat the mistake 1.13.0 corrected, of giving a Java
+   * caller an API that reads as a reproducibility guarantee and is not one. See #158, and the
+   * reproducibility note on `AcyclicShortestPaths.shortestPaths`.
    */
   def acyclicShortestPathsDouble[V](
                                            edges: JavaList[WeightedEdge[V, Double]],
@@ -768,10 +813,16 @@ private[java] object JavaFacadeBridge:
   // -- which does use `topologicalOrder`. That is precisely the double sort #118 removed. See
   // #139.
   //
+  // 1.14.0 weighed giving that up so a caller could seed the order, and declined: it would cost
+  // every caller the saving in order to serve the few who want reproducibility. The price of
+  // keeping it is that neither this method nor `acyclic` can be pinned at all, which the rule in
+  // this object's scaladoc now records as a column of its own rather than leaving it to be read
+  // as "does not vary". See #158.
+  //
   // `TopologicalSortTest.repeated_sorts_of_one_graph_agree` guards this, and the graph it uses
-  // is the whole point of it. Adjacency iteration is shuffled and `sort` takes no `Random` of
-  // its own, so each vertex expansion builds a fresh one (#131): running the algorithm twice on
-  // a shuffle-sensitive graph gives different valid orderings, while one lazy val cannot.
+  // is the whole point of it. Adjacency iteration is shuffled, and since #131 `sort` takes a
+  // `Random` with a fresh default -- so running the algorithm twice on a shuffle-sensitive graph
+  // with nothing in scope gives different valid orderings, while one lazy val cannot.
   //
   // The first version of that test used a four-vertex diamond and passed with this line
   // reverted, which nearly had me record the fix as unobservable. That graph's keySet order is

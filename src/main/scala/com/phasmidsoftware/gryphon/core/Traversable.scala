@@ -69,10 +69,15 @@ trait Traversable[V] {
    *                  if the vertex satisfies the specified condition.
    *
    * @param v         the vertex whose adjacent vertices are to be filtered.
+   * @param random    the generator determining the order of the adjacencies, exactly as for the
+   *                  sibling `filteredAdjacencies`. Until 1.14.0 this method took no `Random`, so
+   *                  `adjacentVertices` fell to its own default and built a fresh unseeded
+   *                  generator: a caller's `given Random` stopped at the call site and the order
+   *                  could not be pinned. See #153.
    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
    */
-  def filteredAdjacentVertices(predicate: V => Boolean)(v: V): Iterator[V] =
-    adjacentVertices(v).filter(predicate)
+  def filteredAdjacentVertices(predicate: V => Boolean)(v: V)(using random: Random = Random()): Iterator[V] =
+    adjacentVertices(v)(using random).filter(predicate)
 
   /**
    * Filters the adjacencies of a given vertex based on a specified predicate.

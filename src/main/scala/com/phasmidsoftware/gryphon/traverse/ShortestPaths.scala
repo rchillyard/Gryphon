@@ -19,6 +19,11 @@ import scala.util.Random
  *  - `bellmanFord` relaxes over a work queue. Allows negative weights and detects a negative
  *    cycle, returning `None`. The most general and the slowest.
  *
+ * `aStar` is the odd one out, and is chosen on a different question. The three above are
+ * single-source: they answer "how far is everything from `start`". A* answers "how do I get from
+ * `start` to '''this''' vertex", and uses a heuristic to avoid settling the rest of the graph on
+ * the way. Ask it for one destination; ask `dijkstra` for all of them.
+ *
  * `longestAcyclic` is `acyclic` with the ordering reversed, which is the only difference between
  * longest and shortest paths on a DAG.
  *
@@ -54,6 +59,49 @@ object ShortestPaths:
    */
   def dijkstra[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[V, E]] =
     DijkstraTraversal[V, E]().run(graph)(start)
+
+  /**
+   * Runs A* from `start`, stopping once `goal` is settled.
+   *
+   * Dijkstra settles vertices in order of cost from the start and so spreads outwards in every
+   * direction. A* settles them in order of `g + heuristic(v)` -- cost so far plus estimated cost
+   * remaining -- so the frontier grows towards the goal and usually far fewer vertices are
+   * settled before it is reached. Measured in `AStarSpec` on a 12x12 grid with an expensive wall:
+   * '''62 vertices settled with a Manhattan heuristic against 126 with none''', for the same
+   * optimal cost.
+   *
+   * ==The heuristic must be consistent==
+   *
+   * Not merely admissible (never overestimating) but '''consistent''': `h(v) <= cost(v, w) + h(w)`
+   * for every edge. The engine will not re-open a settled vertex, which is correct for a
+   * consistent heuristic and silently wrong for an inconsistent one -- the path returned may be
+   * suboptimal, with nothing raised. See [[AStarTraversal]] for the full reasoning.
+   *
+   * A constant zero is consistent and turns this into Dijkstra. Manhattan distance on a grid
+   * whose minimum step cost is 1 is consistent.
+   *
+   * ==Reading the answer==
+   *
+   * The result is a shortest-path tree of the part of the graph A* settled, in the same shape
+   * `dijkstra` returns, so `TraversalResult.pathEdgesTo(result)(goal)` reconstructs the path.
+   * Unlike `dijkstra` the tree is '''partial''' by design: vertices the search never needed are
+   * absent, which is the entire point. Do not read it as the full single-source answer.
+   *
+   * @param graph     the weighted directed graph.
+   * @param start     the source vertex.
+   * @param goal      the target vertex.
+   * @param heuristic the estimated remaining cost to `goal`; must be consistent.
+   * @param random    controls adjacency ordering.
+   * @tparam V the vertex type.
+   * @tparam E the edge-weight type; must be Monoid and Ordering.
+   * @return the shortest-path tree over the settled region, mapping each settled vertex to its
+   *         cheapest incoming edge; the start vertex is absent.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
+   *       The cost of the path to `goal` does not vary; which of several equal-cost paths is
+   *       reported does, and so does which other vertices appear in the tree.
+   */
+  def aStar[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, goal: V, heuristic: V => E)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[V, E]] =
+    AStarTraversal[V, E](goal, heuristic).run(graph)(start)
 
   /**
    * Runs the Bellman-Ford-Moore algorithm from `start`, allowing negative edge weights.

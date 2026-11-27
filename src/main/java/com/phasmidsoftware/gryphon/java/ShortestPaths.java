@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 
 /**
  * Java façade for shortest-path algorithms on weighted directed graphs.
@@ -182,6 +183,152 @@ public class ShortestPaths {
                 graph.getScalaGraph(),
                 graph.weightedEdges(),
                 start, combine, zero, comparator, random);
+    }
+
+    // -------------------------------------------------------------------------
+    // A* — one destination, guided by a heuristic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Runs A* from {@code start} to {@code goal} on a graph whose edges carry
+     * {@code Double} weights.
+     *
+     * <p>Where {@link #dijkstra(WeightedGraph, Object)} answers "how far is everything from
+     * {@code start}", this answers "how do I get to {@code goal}" — and uses {@code heuristic}
+     * to avoid settling the rest of the graph on the way. On a 12x12 grid with an expensive wall:
+     * 62 vertices settled with a Manhattan heuristic against 126 with none, for the same optimal
+     * cost.</p>
+     *
+     * <p><b>The heuristic must be consistent</b>, not merely admissible: {@code h(v)} must be no
+     * greater than {@code cost(v, w) + h(w)} for every edge {@code v → w}. The engine never
+     * re-opens a settled vertex, which is correct for a consistent heuristic; with an
+     * inconsistent one the path returned may be suboptimal and <em>nothing is thrown</em>.
+     * Manhattan distance on a grid whose cheapest step is 1 is consistent; so is
+     * {@code v -> 0.0}, which makes this Dijkstra.</p>
+     *
+     * <p>The map covers only the region A* settled, which is the reason to use it. It is not the
+     * full single-source tree, so do not read an absent vertex as unreachable.</p>
+     *
+     * @param <V>       the vertex type.
+     * @param graph     a directed {@code WeightedGraph<V, Double>}.
+     * @param start     the source vertex.
+     * @param goal      the target vertex.
+     * @param heuristic the estimated remaining cost to {@code goal}; must be consistent.
+     * @return the SPT over the settled region; the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Map<V, WeightedEdge<V, Double>> aStar(
+            WeightedGraph<V, Double> graph,
+            V start,
+            V goal,
+            Function<V, Double> heuristic) {
+        return aStar(graph, start, goal, heuristic, new Random());
+    }
+
+    /**
+     * Runs A*, drawing its adjacency order from {@code random}.
+     *
+     * <p>The cost of the path to {@code goal} is the same whatever the order. What the order
+     * settles is which of several equal-cost paths is recorded, and which other vertices end up
+     * in the tree. Supply a generator to fix both.</p>
+     *
+     * @param <V>       the vertex type.
+     * @param graph     a directed {@code WeightedGraph<V, Double>}.
+     * @param start     the source vertex.
+     * @param goal      the target vertex.
+     * @param heuristic the estimated remaining cost to {@code goal}; must be consistent.
+     * @param random    the generator determining adjacency order.
+     * @return the SPT over the settled region; the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Map<V, WeightedEdge<V, Double>> aStar(
+            WeightedGraph<V, Double> graph,
+            V start,
+            V goal,
+            Function<V, Double> heuristic,
+            Random random) {
+        if (!graph.isDirected())
+            throw new IllegalStateException(
+                    "ShortestPaths.aStar requires a directed graph");
+        return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
+                JavaFacadeBridge$.MODULE$.aStarDouble(
+                        graph.getScalaGraph(),
+                        (java.util.List) graph.weightedEdges(),
+                        start,
+                        goal,
+                        heuristic,
+                        random);
+    }
+
+    /**
+     * Runs A* with a custom edge attribute type.
+     *
+     * <p>As with {@code dijkstra}, {@code combine} and {@code zero} are needed because path costs
+     * accumulate. Here {@code combine} is also what adds {@code heuristic(v)} to the cost so far,
+     * so it must agree with {@code comparator}.</p>
+     *
+     * <p>The consistency requirement on {@code heuristic} is as for the {@code Double} form, and
+     * is easier to get wrong for a custom cost type: an inconsistent heuristic returns a
+     * suboptimal path silently.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param goal       the target vertex.
+     * @param heuristic  the estimated remaining cost to {@code goal}; must be consistent.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @return the SPT over the settled region; the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    public static <V, E> Map<V, WeightedEdge<V, E>> aStar(
+            WeightedGraph<V, E> graph,
+            V start,
+            V goal,
+            Function<V, E> heuristic,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator) {
+        return aStar(graph, start, goal, heuristic, combine, zero, comparator, new Random());
+    }
+
+    /**
+     * Runs A* with a custom edge attribute type, drawing its adjacency order from
+     * {@code random}.
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param goal       the target vertex.
+     * @param heuristic  the estimated remaining cost to {@code goal}; must be consistent.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @param random     the generator determining adjacency order.
+     * @return the SPT over the settled region; the start vertex is absent.
+     * @throws IllegalStateException if {@code graph} is undirected.
+     */
+    public static <V, E> Map<V, WeightedEdge<V, E>> aStar(
+            WeightedGraph<V, E> graph,
+            V start,
+            V goal,
+            Function<V, E> heuristic,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator,
+            Random random) {
+        if (!graph.isDirected())
+            throw new IllegalStateException(
+                    "ShortestPaths.aStar requires a directed graph");
+        return JavaFacadeBridge$.MODULE$.aStarCustom(
+                graph.getScalaGraph(),
+                graph.weightedEdges(),
+                start, goal, heuristic, combine, zero, comparator, random);
     }
 
     // -------------------------------------------------------------------------

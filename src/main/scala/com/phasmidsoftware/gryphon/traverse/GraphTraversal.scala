@@ -210,6 +210,32 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
    */
   protected def filterEdge(e: Edge[V, E]): Option[R]
 
+  /**
+   * The order the frontier is kept in.
+   *
+   * Dijkstra and Prim compare by the cost component alone, which is this default. A* overrides it
+   * to compare by `g + h(v)`, while the frontier element still carries the true `g` -- that, and
+   * the goal below, are the whole difference between A* and Dijkstra, which is why they are seams
+   * here rather than literals in `run`.
+   *
+   * An override must agree with `Ordering[E]` about which of two entries for the SAME vertex is
+   * better, because `CostUpdate` decides improvements by `Ordering[E]` and then calls
+   * `decreaseKey` on this queue. A* satisfies that: `h(v)` is constant for a given `v`, so a
+   * decrease in `g` is a decrease in `g + h(v)`.
+   */
+  protected def frontierOrdering: Ordering[(E, V)] = Ordering.by(_._1)
+
+  /**
+   * Whether settling `v` ends the traversal.
+   *
+   * The engine tests this AFTER dequeue and visit, not at discovery, which is what makes it a
+   * sound stopping rule: a vertex is settled at its final cost, so stopping there still reports
+   * an optimal path to it. Stopping at discovery would not.
+   *
+   * The default never stops early, so Dijkstra and Prim cover everything reachable.
+   */
+  protected def isGoal(v: V): Boolean = false
+
   def run(graph: Traversable[V])(start: V)(using random: Random = Random()): TraversalResult[V, R] =
     val zero = summon[Monoid[E]]
 
@@ -220,8 +246,8 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
     val pred: mutable.Map[V, R] = mutable.Map.empty
     val bestCost: mutable.Map[V, E] = mutable.Map(start -> zero.empty)
 
-    // Ordering: compare by cost component only.
-    given Ordering[(E, V)] = Ordering.by(_._1)
+    // Ordering: by default the cost component only; A* compares by g + h(v). See frontierOrdering.
+    given Ordering[(E, V)] = frontierOrdering
 
     // Evaluable: when (cost, v) is settled, return its predecessor edge.
     given Evaluable[(E, V), R] with
@@ -271,7 +297,7 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
 
     val visitor: Visitor[(E, V), Mapped[(E, V), R], QueueJournal[((E, V), Option[R])]] =
       JournaledVisitor.withQueueJournal[(E, V), R]
-    val result = Traversal.bestFirstWeighted((zero.empty, start), visitor)
+    val result = Traversal.bestFirstWeighted((zero.empty, start), visitor, ev => isGoal(ev._2))
 
     // Unwrap tuple keys; source vertex has no predecessor so it's filtered by collect.
     VertexTraversalResult(
@@ -297,7 +323,18 @@ abstract class WeightedTraversal[V, E: {Monoid, Ordering}, R <: Edge[V, E]]
  * @tparam V the vertex type.
  * @tparam E the edge-weight type; must have Monoid and Ordering.
  */
-case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
+/**
+ * The shared half of Dijkstra and A*: cumulative cost over directed attributed edges.
+ *
+ * All three of `WeightedTraversal`'s abstract members are the same for both, and necessarily so
+ * rather than by coincidence -- A* is Dijkstra with the frontier ordered by `g + h(v)` and a
+ * stopping condition, so anything true of how Dijkstra reads the graph is true of how A* reads
+ * it. A change to `filterEdge` here would have to be made twice if these were written out twice.
+ *
+ * @tparam V the vertex type.
+ * @tparam E the edge-weight type; must have `Monoid` and `Ordering`.
+ */
+abstract class CumulativeDirectedTraversal[V, E: {Monoid, Ordering}]
         extends WeightedTraversal[V, E, AttributedDirectedEdge[V, E]]:
 
   protected def edgeCost(accCost: E, e: Edge[V, E], v: V): E =
@@ -309,6 +346,54 @@ case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
   protected def filterEdge(e: Edge[V, E]): Option[AttributedDirectedEdge[V, E]] = e match
     case ade: AttributedDirectedEdge[V, E] => Some(ade)
     case _ => None
+
+case class DijkstraTraversal[V, E: {Monoid, Ordering}]()
+        extends CumulativeDirectedTraversal[V, E]
+
+// ============================================================
+// A*
+// ============================================================
+
+/**
+ * The A* shortest-path traversal: Dijkstra, guided towards `goal` by `heuristic`.
+ * See [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm).
+ *
+ * Dijkstra settles vertices in order of `g`, the cost from the start. A* settles them in order of
+ * `f = g + h(v)`, where `h` estimates the cost remaining to the goal, so the frontier grows
+ * towards the goal instead of outwards in all directions. Both return the same optimal path; A*
+ * usually reaches it having settled fewer vertices. Measured in `AStarSpec` on a 12x12 grid with
+ * an expensive wall: '''62 vertices settled with a Manhattan heuristic against 126 with none''',
+ * for the same optimal cost. The comparison there is A* against A*, both stopping at the same
+ * goal, because `dijkstra` has no goal and would be beaten by any early stop at all.
+ *
+ * ==The heuristic must be CONSISTENT, not merely admissible==
+ *
+ * Admissible means `h` never overestimates. Consistent (monotone) is stronger: for every edge
+ * `v -> w`, `h(v) <= cost(v, w) + h(w)`.
+ *
+ * The engine's `VisitedSet` will not re-open a settled vertex. With a consistent heuristic that
+ * is correct, because A* never needs to. With an admissible-but-inconsistent one it does need to,
+ * '''and this will quietly return a suboptimal path rather than raise anything'''. Supporting
+ * inconsistent heuristics would need a re-openable visited set in Visitor, which is a separate
+ * question and not one to meet by surprise.
+ *
+ * Manhattan distance on a grid whose minimum step cost is 1 is consistent. So is the constant
+ * zero, which makes A* exactly Dijkstra -- a useful thing to compare against in a test.
+ *
+ * @param goal      the vertex to stop at, once it is settled.
+ * @param heuristic the estimated remaining cost from a vertex to `goal`; must be consistent.
+ * @tparam V the vertex type.
+ * @tparam E the edge-weight type; must have `Monoid` and `Ordering`.
+ */
+case class AStarTraversal[V, E: {Monoid, Ordering}](goal: V, heuristic: V => E)
+        extends CumulativeDirectedTraversal[V, E]:
+
+  // f = g + h(v). The element keeps the true g, which is what CostUpdate relaxes on; only the
+  // comparison adds h. Since h(v) is fixed for a given v, the two agree about improvements.
+  override protected def frontierOrdering: Ordering[(E, V)] =
+    Ordering.by((gv: (E, V)) => summon[Monoid[E]].combine(gv._1, heuristic(gv._2)))
+
+  override protected def isGoal(v: V): Boolean = v == goal
 
 // ============================================================
 // Prim

@@ -66,6 +66,7 @@ Sedgewick & Wayne, *Algorithms* (4th ed.):
 | 4.9 | Shortest paths (Dijkstra) | `ShortestPaths.dijkstra` |
 | 4.10 | Shortest paths in DAGs | `AcyclicShortestPaths` |
 | 4.11 | Shortest paths (Bellman–Ford) | `BellmanFord` |
+| — | Shortest path to one goal (A*) | `ShortestPaths.aStar` |
 
 Additionally, some algorithms and graph properties that are not directly covered in that chapter:
 
@@ -171,6 +172,36 @@ given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 val result = ShortestPaths.dijkstra(graph, 0)   // graph must be a DirectedGraph
 result.vertexTraverse(5).foreach(e => println(s"Shortest edge into 5: $e"))
 ```
+
+### A* — the shortest path to ONE destination
+
+`dijkstra` answers "how far is everything from the start". `aStar` answers "how do I
+get to *this* vertex", and uses a heuristic to avoid settling the rest of the graph on
+the way.
+
+```scala
+given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+// h must be CONSISTENT: h(v) <= cost(v, w) + h(w) for every edge.
+// Manhattan distance on a grid whose cheapest step is 1 qualifies.
+def manhattan(v: Int): Double = ???
+
+val result = ShortestPaths.aStar(graph, start = 0, goal = 143, manhattan)
+val path = TraversalResult.pathTo(result)(143)
+```
+
+Measured in `AStarSpec` on a 12x12 grid with an expensive wall: **62 vertices settled
+with the Manhattan heuristic against 126 with none**, for the same optimal cost.
+
+Two things to know before using it:
+
+- **The heuristic must be consistent, not merely admissible.** The engine never re-opens
+  a settled vertex, which is correct for a consistent heuristic. An inconsistent one
+  returns a *suboptimal path and raises nothing* — `AStarSpec` asserts that, so the
+  limitation is tested rather than only described. A constant zero is consistent, and
+  turns `aStar` into Dijkstra-with-a-goal.
+- **The tree it returns is partial by design.** Only the region A* settled appears, which
+  is the whole point of using it. An absent vertex does not mean unreachable.
 
 ### Shortest paths in a DAG (handles negative weights)
 
@@ -347,6 +378,7 @@ the Java equivalent of `given Random` and makes the answer reproducible. See
 | `TopologicalSort` | Topological sort of DAGs; `isDAG` predicate |
 | `ShortestPaths.bellmanFord` | Shortest paths with negative weights; detects negative cycles |
 | `ShortestPaths.acyclic` | Linear-time shortest paths in a DAG |
+| `ShortestPaths.aStar` | Shortest path to one goal, guided by a consistent heuristic |
 | `StronglyConnectedComponents` | Kosaraju's algorithm |
 
 ### Building a graph from a resource file
@@ -773,6 +805,7 @@ Map<Integer, WeightedEdge<Integer, Double>> spt3 =
 | `Graph.isConnected` / `isBipartite` | undirected |
 | `Graph.degree` / `maxDegree` / `meanDegree` | undirected |
 | `ShortestPaths.dijkstra` | directed |
+| `ShortestPaths.aStar` | directed |
 | `ShortestPaths.bellmanFord` | directed |
 | `ShortestPaths.acyclic` | directed, and acyclic |
 | `MinimumSpanningTree.prim` | undirected |

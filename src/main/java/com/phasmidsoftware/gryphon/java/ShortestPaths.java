@@ -543,6 +543,83 @@ public class ShortestPaths {
                 graph.weightedEdges(), start, combine, zero, comparator);
     }
 
+    /**
+     * Runs the acyclic shortest-paths algorithm, relaxing in the order you supply.
+     *
+     * <p><b>This is the form you can make reproducible.</b> The other {@code acyclic} methods
+     * relax in the graph's own cached topological order, which nothing can seed — so their
+     * answer is stable for one graph object and arbitrary across them. Here the order is yours,
+     * so the result becomes a function of arguments you control:</p>
+     *
+     * <pre>{@code
+     * List<V> order = TopologicalSort.sort(g).orElseThrow();
+     * Map<V, WeightedEdge<V, Double>> spt = ShortestPaths.acyclic(g, start, order);
+     * // that same order, later or on a rebuilt graph, gives that same tree
+     * }</pre>
+     *
+     * <p><b>One gap, for Java callers specifically.</b> {@link TopologicalSort#sort(Graph)} is
+     * itself unseeded — it reads the graph's memoized order rather than running the algorithm
+     * (#139) — so to pin a result across runs you must keep the order you were given rather than
+     * recompute it. Scala has a seeded topological sort and can therefore generate a fresh
+     * reproducible order; the Java façade does not yet.</p>
+     *
+     * <p>The order is what decides which of several equal-cost paths is recorded, so the order is
+     * the parameter. There is still no {@code Random} overload here, and there should not be: a
+     * generator could not reach that decision, so it would read as a guarantee it could not keep.</p>
+     *
+     * @param <V>   the vertex type.
+     * @param graph a directed acyclic {@code WeightedGraph<V, Double>}.
+     * @param start the source vertex.
+     * @param order a topological order of {@code graph}, which is validated.
+     * @return the SPT; the start vertex is absent.
+     * @throws IllegalStateException    if {@code graph} is undirected.
+     * @throws IllegalArgumentException if {@code order} is not a topological order of
+     *                                  {@code graph} — it must list every vertex exactly once,
+     *                                  with every edge running forwards. An invalid order would
+     *                                  otherwise give a wrong answer silently.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> Map<V, WeightedEdge<V, Double>> acyclic(
+            WeightedGraph<V, Double> graph,
+            V start,
+            java.util.List<V> order) {
+        requireDirected(graph, "acyclic");
+        return (Map<V, WeightedEdge<V, Double>>) (Map<?, ?>)
+                JavaFacadeBridge$.MODULE$.acyclicShortestPathsDouble(
+                        (java.util.List) graph.weightedEdges(), start, order);
+    }
+
+    /**
+     * Runs the acyclic shortest-paths algorithm with a custom edge attribute type, relaxing in
+     * the order you supply.
+     *
+     * <p>The reproducible form, exactly as for {@link #acyclic(WeightedGraph, Object, java.util.List)}.</p>
+     *
+     * @param <V>        the vertex type.
+     * @param <E>        the edge attribute type.
+     * @param graph      a directed acyclic {@code WeightedGraph<V, E>}.
+     * @param start      the source vertex.
+     * @param order      a topological order of {@code graph}, which is validated.
+     * @param combine    accumulates two costs into one.
+     * @param zero       the identity element for {@code combine}.
+     * @param comparator orders costs.
+     * @return the SPT; the start vertex is absent.
+     * @throws IllegalStateException    if {@code graph} is undirected.
+     * @throws IllegalArgumentException if {@code order} is not a topological order of
+     *                                  {@code graph}.
+     */
+    public static <V, E> Map<V, WeightedEdge<V, E>> acyclic(
+            WeightedGraph<V, E> graph,
+            V start,
+            java.util.List<V> order,
+            BinaryOperator<E> combine,
+            E zero,
+            Comparator<E> comparator) {
+        requireDirected(graph, "acyclic");
+        return JavaFacadeBridge$.MODULE$.acyclicShortestPathsCustom(
+                graph.weightedEdges(), start, order, combine, zero, comparator);
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

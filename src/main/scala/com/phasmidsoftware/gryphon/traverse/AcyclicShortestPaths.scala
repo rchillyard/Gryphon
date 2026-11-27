@@ -98,7 +98,49 @@ private[traverse] object AcyclicShortestPaths:
    *       generator for. Stable for one graph instance. See #158.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    relax(graph, start)(using summon[Monoid[E]], summon[Ordering[E]])
+    relax(graph, start, cachedOrder(graph))(using summon[Monoid[E]], summon[Ordering[E]])
+
+  /**
+   * Computes shortest paths from `start`, relaxing in the topological order the caller supplies.
+   *
+   * ==This is the pinnable form (#158)==
+   *
+   * The two-argument method takes its order from `DirectedGraph.topologicalOrder`, a memoized
+   * `lazy val` that no generator can reach -- which is why its answer is stable for one graph
+   * instance and arbitrary across instances. This one takes the order as an argument, so a caller
+   * who needs a reproducible answer computes it themselves with a seed they control:
+   *
+   * {{{
+   * given Random = Random(42)
+   * val order = TopologicalSort.sort(dag).get      // seeded, and reproducible
+   * AcyclicShortestPaths.shortestPaths(dag, 0, order)
+   * }}}
+   *
+   * '''The order is the mechanism, so the order is the parameter.''' A `(using Random)` was
+   * considered under #154 and rejected: the only ordering a generator can reach inside this
+   * algorithm is the edge order within a vertex, which is provably inert, so the parameter would
+   * have read as a reproducibility guarantee while changing nothing. Naming the real thing avoids
+   * that -- a caller passing an order can see exactly what their choice decides.
+   *
+   * The cost is one extra O(V+E) sort, paid only by the caller who asks for it; the two-argument
+   * method still uses the cache.
+   *
+   * @param graph the directed acyclic graph.
+   * @param start the source vertex.
+   * @param order a topological order of `graph`, which is validated.
+   * @tparam V the vertex type.
+   * @tparam E the edge-weight type; must have `Monoid` (zero + combine) and `Ordering`.
+   * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
+   *         vertex (except `start`) to its shortest-path incoming edge.
+   * @throws IllegalArgumentException if `order` is not a topological order of `graph` -- it must
+   *                                  list every vertex exactly once, with every edge running
+   *                                  forwards. An invalid order would otherwise produce a wrong
+   *                                  answer silently, so it is checked rather than trusted.
+   * @note Result: a function of `graph`, `start` and `order`. Supply a seeded order and the
+   *       result is fully reproducible, which the two-argument form cannot promise.
+   */
+  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start, validatedOrder(graph, order))(using summon[Monoid[E]], summon[Ordering[E]])
 
   /**
    * Computes LONGEST paths from `start` to all reachable vertices in `graph`.
@@ -134,7 +176,27 @@ private[traverse] object AcyclicShortestPaths:
    *       generator for. Stable for one graph instance. See #158.
    */
   def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    relax(graph, start)(using summon[Monoid[E]], summon[Ordering[E]].reverse)
+    relax(graph, start, cachedOrder(graph))(using summon[Monoid[E]], summon[Ordering[E]].reverse)
+
+  /**
+   * Computes LONGEST paths from `start`, relaxing in the topological order the caller supplies.
+   *
+   * The pinnable form, exactly as for `shortestPaths` above and for the same reasons; the only
+   * difference here remains the reversed `Ordering` (#114).
+   *
+   * @param graph the directed acyclic graph.
+   * @param start the source vertex.
+   * @param order a topological order of `graph`, which is validated.
+   * @tparam V the vertex type.
+   * @tparam E the edge-weight type; must have `Monoid` (zero + combine) and `Ordering`.
+   * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
+   *         vertex (except `start`) to its longest-path incoming edge.
+   * @throws IllegalArgumentException if `order` is not a topological order of `graph`.
+   * @note Result: a function of `graph`, `start` and `order`, so a seeded order makes it
+   *       fully reproducible.
+   */
+  def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start, validatedOrder(graph, order))(using summon[Monoid[E]], summon[Ordering[E]].reverse)
 
   /**
    * The relaxation shared by `shortestPaths` and `longestPaths`, which differ only in the
@@ -146,21 +208,62 @@ private[traverse] object AcyclicShortestPaths:
    * @param ord   decides whether a candidate distance beats the incumbent. Reversed, this yields
    *              longest rather than shortest paths.
    */
-  private def relax[V, E](graph: DirectedGraph[V, E], start: V)(using mn: Monoid[E], ord: Ordering[E]): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    // graph.topologicalOrder, not TopologicalSort.sort(graph): the graph caches it, so a caller
-    // who checked isDAG first -- which the Java façade's own scaladoc tells them to do -- does not
-    // pay for the sort twice. That double cost was the concrete case behind #118, and keeping it
-    // is a deliberate choice, made again in 1.14.0 when the alternative was on the table.
-    //
-    // The consequence is stated in full on `shortestPaths` and must not be glossed: a `lazy val`
-    // takes no `using` clause, so this order cannot be seeded, and it is the ONLY thing that
-    // decides which equal-cost predecessor is recorded. The edge order below is reachable but
-    // inert -- each edge writes its own key, so two can compete only if they are parallel edges
-    // to one target, which `fromTriplets` refuses to build (#57). That is why neither this method
-    // nor its callers take a generator: there is nothing for one to do. See #158.
-    val topoOrder: Seq[V] = graph.topologicalOrder
+  /**
+   * The graph's own cached topological order, which is what the two-argument methods use.
+   *
+   * `graph.topologicalOrder`, not `TopologicalSort.sort(graph)`: the graph caches it, so a caller
+   * who checked `isDAG` first -- which the Java façade's own scaladoc tells them to do -- does not
+   * pay for the sort twice. That double cost was the concrete case behind #118, and keeping the
+   * cache is a deliberate choice, made again in 1.14.0 when the alternative was on the table.
+   *
+   * It is also what cannot be seeded, a `lazy val` taking no `using` clause. The three-argument
+   * methods exist so that a caller who needs a particular order can supply one instead (#158).
+   *
+   * @throws IllegalArgumentException if the graph contains a cycle.
+   */
+  private def cachedOrder[V, E](graph: DirectedGraph[V, E]): Seq[V] =
+    graph.topologicalOrder
             .getOrElse(throw IllegalArgumentException("AcyclicShortestPaths: graph contains a cycle"))
 
+  /**
+   * Checks that `order` really is a topological order of `graph`, and returns it.
+   *
+   * Two conditions, and both are needed: `order` lists each of the graph's vertices exactly once,
+   * and every edge runs forwards in it.
+   *
+   * ==Why this is validated when A*'s heuristic is not==
+   *
+   * Both are preconditions a caller can get wrong, and both would otherwise fail by returning a
+   * wrong answer rather than by raising -- the relaxation would simply read a vertex before its
+   * predecessors were final. The difference is cost. A consistent heuristic cannot be checked
+   * without effectively solving the problem, so `aStar` documents the requirement and tests the
+   * consequence. This check is O(V+E), and the algorithm it guards is already O(V+E), so it does
+   * not change the complexity class -- which is what #162 meant by "validate it where cheap".
+   *
+   * @throws IllegalArgumentException if `order` is not a topological order of `graph`.
+   */
+  private def validatedOrder[V, E](graph: DirectedGraph[V, E], order: Seq[V]): Seq[V] =
+    val position: Map[V, Int] = order.zipWithIndex.toMap
+    if position.size != order.size then
+      throw IllegalArgumentException("AcyclicShortestPaths: the supplied order repeats a vertex")
+    val vertices = graph.vertexMap.keySet
+    if position.keySet != vertices then
+      throw IllegalArgumentException(
+        s"AcyclicShortestPaths: the supplied order must list every vertex exactly once; " +
+                s"missing ${vertices -- position.keySet}, unknown ${position.keySet -- vertices}")
+    for
+      v <- order
+      e <- graph.filteredAdjacencies(_ => true)(v).flatMap(_.maybeEdge[E].collect {
+        case a: AttributedDirectedEdge[V, E] => a
+      })
+      if position(e.black) <= position(v)
+    do
+      throw IllegalArgumentException(
+        s"AcyclicShortestPaths: the supplied order is not topological; " +
+                s"edge $v -> ${e.black} runs backwards in it")
+    order
+
+  private def relax[V, E](graph: DirectedGraph[V, E], start: V, topoOrder: Seq[V])(using mn: Monoid[E], ord: Ordering[E]): VertexTraversalResult[V, DirectedEdge[V, E]] =
     // One pass in topological order, so each vertex is final by the time it is reached and the
     // state can simply be threaded through rather than mutated. `dist` and `pred` travel together
     // because they are updated together, on exactly the edges that relax.

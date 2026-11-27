@@ -30,9 +30,11 @@ import scala.util.Random
  * ==What varies==
  *
  * Never the distances. What can differ between runs is '''which''' of several equal-cost paths
- * is reported — see each method's `@note`. `dijkstra` and `bellmanFord` take a `Random` that
- * settles it; `acyclic` and `longestAcyclic` cannot be pinned at all, for reasons given there
- * and tracked as #158.
+ * is reported — see each method's `@note`. `dijkstra`, `aStar` and `bellmanFord` take a `Random`
+ * that settles it. `acyclic` and `longestAcyclic` do not, because a generator would have nothing
+ * to reach: their answer is decided by the topological order, which is memoized in a `lazy val`.
+ * Since 1.15.0 each has an overload '''taking that order''', so a caller who needs a reproducible
+ * answer supplies one they computed with their own seed (#158).
  *
  * ==Why they live here==
  *
@@ -143,6 +145,34 @@ object ShortestPaths:
     AcyclicShortestPaths.shortestPaths(graph, start)
 
   /**
+   * Runs the acyclic shortest-paths algorithm, relaxing in the order the caller supplies.
+   *
+   * The reproducible form. The two-argument method relaxes in `DirectedGraph.topologicalOrder`,
+   * a memoized `lazy val` that no seed can reach; this one takes the order as an argument:
+   *
+   * {{{
+   * given Random = Random(42)
+   * ShortestPaths.acyclic(dag, 0, TopologicalSort.sort(dag).get)
+   * }}}
+   *
+   * The order is what decides which of several equal-cost predecessors is recorded, so the order
+   * is the parameter. A `(using Random)` would not have reached it -- see
+   * `AcyclicShortestPaths.shortestPaths` for why that was rejected under #154, and #158 for this.
+   *
+   * @param graph the directed acyclic graph.
+   * @param start the source vertex.
+   * @param order a topological order of `graph`, which is validated.
+   * @tparam V the vertex type.
+   * @tparam E the edge-weight type; must have `Monoid` and `Ordering`.
+   * @return the shortest-path tree; the start vertex is absent.
+   * @throws IllegalArgumentException if `order` is not a topological order of `graph`.
+   * @note Result: a function of `graph`, `start` and `order` -- fully reproducible, which the
+   *       two-argument form cannot promise.
+   */
+  def acyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    AcyclicShortestPaths.shortestPaths(graph, start, order)
+
+  /**
    * Runs the acyclic LONGEST-paths algorithm, which is `acyclic` with the ordering reversed.
    *
    * The textbook derives this by negating the weights, which is not possible here: `E` carries
@@ -160,6 +190,23 @@ object ShortestPaths:
    */
   def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
     AcyclicShortestPaths.longestPaths(graph, start)
+
+  /**
+   * Runs the acyclic LONGEST-paths algorithm, relaxing in the order the caller supplies.
+   *
+   * The reproducible form, exactly as for `acyclic` above (#158).
+   *
+   * @param graph the directed acyclic graph.
+   * @param start the source vertex.
+   * @param order a topological order of `graph`, which is validated.
+   * @tparam V the vertex type.
+   * @tparam E the edge-weight type; must have `Monoid` and `Ordering`.
+   * @return the longest-path tree; the start vertex is absent.
+   * @throws IllegalArgumentException if `order` is not a topological order of `graph`.
+   * @note Result: a function of `graph`, `start` and `order` -- fully reproducible.
+   */
+  def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    AcyclicShortestPaths.longestPaths(graph, start, order)
 
 // undiscoveredEdges and undiscoveredVertices were here, duplicating the methods of the same
 // names on Graph with the receiver moved into a parameter. Nothing called them: not src/main,

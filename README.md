@@ -210,6 +210,15 @@ val result = ShortestPaths.acyclic(dag, 0)
 result.vertexTraverse(3).foreach(e => println(s"Shortest edge into 3: $e"))
 ```
 
+The costs are invariant, but *which* of several equal-cost paths is reported depends on the
+topological order — which this form takes from the graph's memoized one, so it is stable for
+one graph instance and arbitrary across instances. To pin it, supply the order (#158):
+
+```scala
+given Random = Random(42)
+ShortestPaths.acyclic(dag, 0, TopologicalSort.sort(dag).get)   // reproducible
+```
+
 ### Bellman–Ford (handles negative weights and detects negative cycles)
 
 ```scala
@@ -1162,7 +1171,21 @@ generator (#131, #153, #154).
 clause — so the order that decides its answer cannot be seeded, while the order that
 could be seeded decides nothing. Its results are therefore stable per graph instance and
 arbitrary across instances. The methods take no `Random` rather than an inert one; see
-their scaladoc for the measurement, and #158 for what would make them pinnable.
+their scaladoc for the measurement.
+
+**Since 1.15.0 they can be pinned, by a different route (#158).** `acyclic` and
+`longestAcyclic` have overloads taking the topological order itself:
+
+```scala
+given Random = Random(42)
+ShortestPaths.acyclic(dag, 0, TopologicalSort.sort(dag).get)
+```
+
+`TopologicalSort.sort` *is* seedable, so the whole result becomes a function of arguments
+the caller controls. The order is what decides the answer, so the order is the parameter —
+a `Random` here would still be inert, and is still not offered. The supplied order is
+validated (O(V+E), against an algorithm already O(V+E)): one that is not topological throws
+rather than quietly returning a wrong answer.
 
 #### The two container iterators
 

@@ -365,22 +365,26 @@ public class Graph<V> {
      *
      * <p>Returns a came-from map; start vertex absent.</p>
      *
-     * <p><b>This map is not the DFS tree.</b> Like {@link #bfs(Object)}, it records for each
-     * vertex the vertex it was <em>first seen from</em>. For BFS that coincides with the vertex
-     * it was explored from; for DFS it does not. A vertex can be seen early from one neighbour
-     * and then explored later from somewhere deeper, and it is the deeper vertex that would be
-     * its parent in the DFS tree.</p>
+     * <p><b>This map is the DFS tree</b>, as of 1.15.0. It records, for each vertex, the vertex
+     * it was <em>explored from</em> — so walking it back from any vertex retraces the path the
+     * search actually took to reach it.</p>
      *
-     * <p>The difference is not a corner case. On a graph whose source is adjacent to every other
-     * vertex, every vertex is first seen from the source, so this returns a star — whereas the
-     * DFS tree of such a graph is a path. Walking the map back from a vertex still yields a
-     * genuine path to the start, but not the path the search took. See issue #144.</p>
+     * <p>Until 1.15.0 it did not. It recorded where each vertex was first <em>seen</em>, which
+     * coincides with exploration for BFS and does not for DFS: a vertex can be seen early from
+     * one neighbour and explored later from somewhere deeper, and it is the deeper vertex that is
+     * its parent in the tree. The difference was not a corner case — on a graph whose source is
+     * adjacent to every other vertex, every vertex is first seen from the source, so the method
+     * returned a star where the tree is a path. Fixed upstream in Visitor 1.10.0; see issue #146.</p>
+     *
+     * <p>Note that a DFS tree is <b>not</b> generally a path, and no test should assume it is.
+     * Which tree you get depends on the adjacency order, and since that is shuffled the search
+     * may descend, backtrack, and leave one vertex with several children.</p>
      *
      * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
      * {@link #dfs(Object, java.util.Random)} when you need one reproducible answer.</p>
      *
      * @param start the source vertex.
-     * @return the DFS came-from map — a discovery map, not the DFS tree.
+     * @return the DFS tree, as a came-from map.
      */
     public Map<V, V> dfs(V start) {
         return JavaFacadeBridge$.MODULE$.dfs(getScalaGraph(), start);
@@ -407,17 +411,17 @@ public class Graph<V> {
      * the map, just as the start vertex is for a single DFS, so the number of
      * absent vertices is the number of components.</p>
      *
-     * <p>This javadoc called the result a depth-first <em>forest</em> until #145. It is not one,
-     * for the reason given in {@link #dfs(Object)}: the map records where each vertex was first
-     * seen rather than where it was explored from, and for depth-first search those differ. It
-     * is a discovery map covering every component — which is what you want for counting
-     * components or reaching every vertex, and is not what you want if you need the shape of the
-     * search itself.</p>
+     * <p><b>This is a depth-first forest</b>, as of 1.15.0 — one DFS tree per component. The
+     * history is worth knowing, because the claim was made, withdrawn, and is now true again:
+     * this javadoc called it a forest until #145, which corrected it, because the map then
+     * recorded where each vertex was first <em>seen</em> rather than where it was explored from,
+     * and for depth-first search those differ. Visitor 1.10.0 fixed that upstream (#146), so the
+     * original wording is accurate at last.</p>
      *
      * <p><b>The order is not fixed.</b> See {@link #bfs(Object)}; use
      * {@link #dfsAll(java.util.Random)} when you need one reproducible answer.</p>
      *
-     * @return the came-from map over all components.
+     * @return the depth-first forest, as a came-from map over all components.
      */
     public Map<V, V> dfsAll() {
         return JavaFacadeBridge$.MODULE$.dfsAll(getScalaGraph());

@@ -19,13 +19,15 @@ trait Graph[V] extends Traversable[V]:
   /**
    * Performs DFS from `v`, accumulating results into `visitor`.
    *
-   * If `visitor` is one of Visitor's came-from journals, note what that map holds: for each
-   * vertex, the vertex it was *first seen from*. For BFS that is also the vertex it was explored
-   * from, so the map is the BFS tree. For DFS the two differ — a vertex can be seen early from
-   * one neighbour and explored later from somewhere deeper — so the map is a discovery map and
-   * **not** the DFS tree. On a graph whose start vertex is adjacent to every other, it is a star
-   * where the DFS tree is a path. Walking it back still gives a genuine path to the start, but
-   * not the path the search took. See issue #144.
+   * If `visitor` is one of Visitor's came-from journals, note what that map holds, and that it
+   * changed in 1.15.0. It now records, for each vertex, the vertex it was *explored from*, so
+   * `withListJournalAndCameFrom` gives the DFS tree and `withQueueJournalAndCameFrom` the BFS
+   * tree — each traversal getting the parent its own tree is defined by.
+   *
+   * Before 1.15.0 both recorded where a vertex was first *seen*. That coincides with exploration
+   * for BFS and not for DFS, so the DFS map was a discovery map: on a graph whose start vertex is
+   * adjacent to every other it was a star, where the DFS tree is a path. Fixed upstream in
+   * Visitor 1.10.0; see issue #146.
    *
    * @param visitor the visitor accumulating results.
    * @param order   whether a vertex is recorded before or after its descendants; pre-order by default.

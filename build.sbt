@@ -1,6 +1,6 @@
 // Gryphon project build file.
 
-ThisBuild / version := "1.14.1"
+ThisBuild / version := "1.15.0"
 
 ThisBuild / organization := "com.phasmidsoftware"
 
@@ -13,7 +13,7 @@ val jupiterVersion      = "6.0.3"
 // Gryphon needs none of cats-core, so the dependency list grows by exactly one small jar.
 val catsKernelVersion   = "2.13.0"
 val jupiterInterfaceVersion = "0.19.0"
-val visitorVersion      = "1.9.0"
+val visitorVersion      = "1.10.0"
 val flogVersion         = "1.1.0"
 val logbackVersion      = "1.5.32"
 lazy val scalaParserCombinatorsVersion = "2.4.0"

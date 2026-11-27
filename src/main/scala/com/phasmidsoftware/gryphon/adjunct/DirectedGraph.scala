@@ -2,7 +2,7 @@ package com.phasmidsoftware.gryphon.adjunct
 
 import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.core.*
-import com.phasmidsoftware.gryphon.traverse.{BellmanFord, TopologicalSort, VertexTraversalResult}
+import com.phasmidsoftware.gryphon.traverse.{ShortestPaths, TopologicalSort, VertexTraversalResult}
 import scala.util.{Random, Try}
 
 /**
@@ -108,13 +108,13 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    * Returns None if a negative cycle is reachable from start.
    *
    * The distances do not depend on `random`; which of several equal-cost predecessors is
-   * recorded does. See `BellmanFord.shortestPaths`, and #154 — until 1.14.0 this method had no
+   * recorded does. See `ShortestPaths.bellmanFord`, and #154 — until 1.14.0 this method had no
    * `Random` to pass on, so the generator was built inside the algorithm and could not be
    * reached from here.
    * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def shortestPaths(start: V)(using mo: Monoid[E], or: Ordering[E], random: Random = Random()): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
-    BellmanFord.shortestPaths(this, start)
+    ShortestPaths.bellmanFord(this, start)
 
   /** A directed graph admits directed edges only. */
   type EdgeT = DirectedEdge[V, E]

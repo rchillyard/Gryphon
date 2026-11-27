@@ -8,7 +8,7 @@ import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph.triplesToTryGraph
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.parse.GraphParser
-import com.phasmidsoftware.gryphon.traverse.Kosaraju.stronglyConnectedComponents
+import com.phasmidsoftware.gryphon.traverse.StronglyConnectedComponents.kosaraju
 import com.phasmidsoftware.gryphon.util.TryUsing
 import com.phasmidsoftware.visitor.core.Tracer
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -53,12 +53,12 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — result structure"
 
   it should "label all 7 vertices" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     result.size shouldBe 7
   }
 
   it should "find exactly 4 SCCs" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     result.values.toSet.size shouldBe 4
   }
 
@@ -74,7 +74,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   // several graphs, including ones where components could tie, give one labelling. But nothing
   // documents that, so it is not worth depending on.)
   it should "find the five strong components of directedSCC.graph" in {
-    val result: SCCResult[Int] = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directedSCC.graph"))
+    val result: SCCResult[Int] = kosaraju[Int, Unit](loadDirectedGraph("directedSCC.graph"))
     result.values.toSet.size shouldBe 5
     result.groupBy(_._2).values.map(_.keySet).toSet shouldBe
             Set(Set(1), Set(0, 2, 3, 4, 5), Set(9, 10, 11, 12), Set(6, 8), Set(7))
@@ -87,14 +87,14 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — non-trivial SCC {0, 2, 5, 6}"
 
   it should "assign vertices 0, 2, 5, and 6 the same SCC id" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     result(0) shouldBe result(2)
     result(2) shouldBe result(5)
     result(5) shouldBe result(6)
   }
 
   it should "assign the SCC {0,2,5,6} a different id from every singleton" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     val scc0256 = result(0)
     result(1) should not be scc0256
     result(3) should not be scc0256
@@ -108,18 +108,18 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — singleton SCCs"
 
   it should "assign vertices 1, 3, 4 each their own unique SCC id" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     val singletons = Seq(result(1), result(3), result(4))
     singletons.distinct.size shouldBe 3
   }
 
   it should "assign vertex 1 a different SCC id from vertex 4 (1->4 is a cross edge)" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     result(1) should not be result(4)
   }
 
   it should "assign vertex 3 a different SCC id from vertex 6 (3->6 is a cross edge)" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     result(3) should not be result(6)
   }
 
@@ -135,7 +135,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = stronglyConnectedComponents[Int, Unit](g)
+        val result = kosaraju[Int, Unit](g)
         result.values.toSet.size shouldBe 1
       case other => fail(s"unexpected: $other")
   }
@@ -147,7 +147,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = stronglyConnectedComponents[Int, Unit](g)
+        val result = kosaraju[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
       case other =>
@@ -160,7 +160,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = stronglyConnectedComponents[Int, Unit](g)
+        val result = kosaraju[Int, Unit](g)
         result.values.toSet.size shouldBe 2
         result(0) should not be result(1)
       case other =>
@@ -174,7 +174,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = stronglyConnectedComponents[Int, Unit](g)
+        val result = kosaraju[Int, Unit](g)
         result.values.toSet.size shouldBe 3
         result(0) should not be result(1)
         result(1) should not be result(2)
@@ -190,7 +190,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val result = stronglyConnectedComponents[Int, Unit](g)
+        val result = kosaraju[Int, Unit](g)
         result.values.toSet.size shouldBe 1
         result(0) shouldBe result(1)
         result(1) shouldBe result(2)
@@ -221,7 +221,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         val lines = captureOutput: ps =>
           given Tracer[Int] = Tracer.summary(out = ps)
 
-          stronglyConnectedComponents[Int, Unit](g): Unit
+          kosaraju[Int, Unit](g): Unit
         lines shouldBe List(
           "Kosaraju pass 1: post-order DFS on reversed graph",
           "starters: 2 elements",
@@ -241,7 +241,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         val lines = captureOutput: ps =>
           given Tracer[Int] = Tracer.verbose(maxDepth = 1, out = ps)
 
-          stronglyConnectedComponents[Int, Unit](g): Unit
+          kosaraju[Int, Unit](g): Unit
 
         println(lines)
         lines should contain("Kosaraju pass 1: post-order DFS on reversed graph")
@@ -341,21 +341,21 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — the condensation"
 
   it should "be acyclic for directed.graph" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     condensationIsAcyclic(directedGraphEdges, result) shouldBe true
   }
 
   it should "be acyclic for a graph with two separate cycles" in {
     val edges = Seq(0 -> 1, 1 -> 2, 2 -> 0, 3 -> 4, 4 -> 5, 5 -> 3, 2 -> 3)
     withGraph(edges*) { g =>
-      condensationIsAcyclic(edges, stronglyConnectedComponents[Int, Unit](g)) shouldBe true
+      condensationIsAcyclic(edges, kosaraju[Int, Unit](g)) shouldBe true
     }
   }
 
   behavior of "Kosaraju — the labelling partitions the vertices"
 
   it should "give every vertex of directed.graph exactly one component" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     result.keySet shouldBe Set(0, 1, 2, 3, 4, 5, 6)
     result.groupBy(_._2).values.map(_.size).sum shouldBe 7
   }
@@ -366,7 +366,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   // implementation that merged two of them. This one can.
   it should "keep two disjoint cycles apart, joined one way" in {
     withGraph(0 -> 1, 1 -> 2, 2 -> 0, 3 -> 4, 4 -> 5, 5 -> 3, 2 -> 3) { g =>
-      val result = stronglyConnectedComponents[Int, Unit](g)
+      val result = kosaraju[Int, Unit](g)
       result.values.toSet.size shouldBe 2
       result(0) shouldBe result(1)
       result(1) shouldBe result(2)
@@ -378,7 +378,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
 
   it should "keep them apart when nothing joins them at all" in {
     withGraph(0 -> 1, 1 -> 2, 2 -> 0, 3 -> 4, 4 -> 5, 5 -> 3) { g =>
-      val result = stronglyConnectedComponents[Int, Unit](g)
+      val result = kosaraju[Int, Unit](g)
       result.values.toSet.size shouldBe 2
       result.groupBy(_._2).values.map(_.size).toSet shouldBe Set(3)
     }
@@ -397,14 +397,14 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     }.get
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets).get match
       case g: DirectedGraph[Int, Unit] @unchecked =>
-        val result = stronglyConnectedComponents[Int, Unit](g)
+        val result = kosaraju[Int, Unit](g)
         result.size shouldBe 7
         result.values.toSet.size shouldBe 7 // all singletons
   }
 
   it should "give every vertex of a diamond its own component" in {
     withGraph(0 -> 1, 0 -> 2, 1 -> 3, 2 -> 3) { g =>
-      stronglyConnectedComponents[Int, Unit](g).values.toSet.size shouldBe 4
+      kosaraju[Int, Unit](g).values.toSet.size shouldBe 4
     }
   }
 
@@ -415,7 +415,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   // behaviours.
   it should "collapse a bidirectional path to a single component" in {
     withGraph(0 -> 1, 1 -> 0, 1 -> 2, 2 -> 1, 2 -> 3, 3 -> 2) { g =>
-      val result = stronglyConnectedComponents[Int, Unit](g)
+      val result = kosaraju[Int, Unit](g)
       result.values.toSet.size shouldBe 1
       result.size shouldBe 4
     }
@@ -423,7 +423,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give one component per bidirectional island" in {
     withGraph(0 -> 1, 1 -> 0, 2 -> 3, 3 -> 2) { g =>
-      val result = stronglyConnectedComponents[Int, Unit](g)
+      val result = kosaraju[Int, Unit](g)
       result.values.toSet.size shouldBe 2
       result(0) shouldBe result(1)
       result(2) shouldBe result(3)
@@ -434,20 +434,20 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   behavior of "Kosaraju — components are mutually reachable"
 
   it should "hold for directed.graph" in {
-    val result = stronglyConnectedComponents[Int, Unit](loadDirectedGraph("directed.graph"))
+    val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
     componentsAreMutuallyReachable(directedGraphEdges, result) shouldBe true
   }
 
   it should "hold for two cycles joined one way" in {
     val edges = Seq(0 -> 1, 1 -> 2, 2 -> 0, 3 -> 4, 4 -> 5, 5 -> 3, 2 -> 3)
     withGraph(edges*) { g =>
-      componentsAreMutuallyReachable(edges, stronglyConnectedComponents[Int, Unit](g)) shouldBe true
+      componentsAreMutuallyReachable(edges, kosaraju[Int, Unit](g)) shouldBe true
     }
   }
 
   it should "hold for a bidirectional path" in {
     val edges = Seq(0 -> 1, 1 -> 0, 1 -> 2, 2 -> 1, 2 -> 3, 3 -> 2)
     withGraph(edges*) { g =>
-      componentsAreMutuallyReachable(edges, stronglyConnectedComponents[Int, Unit](g)) shouldBe true
+      componentsAreMutuallyReachable(edges, kosaraju[Int, Unit](g)) shouldBe true
     }
   }

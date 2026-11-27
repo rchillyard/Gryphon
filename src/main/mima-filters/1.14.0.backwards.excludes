@@ -1,0 +1,63 @@
+# Deliberate binary breaks in 1.15.0, relative to 1.14.0. See the release note in README.md.
+#
+# THESE FILTERS DO NOT RETIRE. sbt-mima reads every *.backwards.excludes in this directory
+# whatever it is named, so this file stays in force until somebody deletes it. Delete it at the
+# 1.15.0 post-release, when previousRelease moves to 1.15.0.
+#
+# ---------------------------------------------------------------------------------------
+# #171: the algorithm objects stop being the entry point.
+#
+# Every break below is one change. `Kruskal`, `Boruvka`, `BellmanFord`, `AcyclicShortestPaths`
+# and `Kosaraju` were top-level public objects, each named for an ALGORITHM and holding a method
+# named for the PROBLEM -- `Kruskal.mst`, `BellmanFord.shortestPaths`. Meanwhile `MST.prim` and
+# `ShortestPaths.dijkstra` did it the other way round, so the same problem was named in opposite
+# directions and a caller who found one learned nothing about the others.
+#
+# They are now `private[traverse]` implementation homes, reached through the problem objects:
+#
+#     Kruskal.mst                          ->  MST.kruskal
+#     Boruvka.mst                          ->  MST.boruvka
+#     BellmanFord.shortestPaths            ->  ShortestPaths.bellmanFord
+#     AcyclicShortestPaths.shortestPaths   ->  ShortestPaths.acyclic
+#     AcyclicShortestPaths.longestPaths    ->  ShortestPaths.longestAcyclic
+#     Kosaraju.stronglyConnectedComponents ->  StronglyConnectedComponents.kosaraju
+#
+# Source-incompatible as well as binary-incompatible: a caller needs an edit, not a recompile.
+# The Java facade is unaffected -- it already had this shape, which is the strongest argument
+# that the shape is right.
+#
+# MiMa reports each object twice, as a class and as an object, because Scala compiles a Scala
+# `object` into both.
+#
+# The problem type is ClassNoLongerCheckedProblem, which is what MiMa calls a definition that has
+# left the checked API rather than vanished. Its message -- "is not part of the API in current
+# version" -- reads like an access problem, and a filter written from that wording silently
+# matches nothing. Read the problem type out of MiMa's own suggestion block rather than inferring
+# it from the prose.
+#
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.Kruskal")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.Kruskal$")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka$")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.BellmanFord")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.BellmanFord$")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths$")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.Kosaraju")
+ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon.traverse.Kosaraju$")
+#
+# ---------------------------------------------------------------------------------------
+# SCCResult moves from Kosaraju.scala to StronglyConnectedComponents.scala.
+#
+# The type is the result of the PROBLEM, not of one algorithm for it: a second implementation --
+# Tarjan's, say -- would return the same thing, and would have had to import it from its rival.
+# Scala compiles a file's top-level definitions into a synthetic class named after the file, so
+# moving the alias empties `Kosaraju$package` and creates `StronglyConnectedComponents$package`.
+#
+# Worth recording WHY these two are filtered, because the first reading of them was wrong. They
+# appeared while the alias still sat in Kosaraju.scala, which would have meant a public type had
+# silently become unreachable -- a real regression wearing the same error message. Moving the
+# alias is what makes the report legitimate rather than something to be filtered away.
+#
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.traverse.Kosaraju$package")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.traverse.Kosaraju$package$")

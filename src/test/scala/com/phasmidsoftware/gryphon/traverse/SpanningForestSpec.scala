@@ -17,9 +17,9 @@ import scala.util.{Random, Success}
  *
  * Nothing exercised this before, and the three behaved quite differently:
  *
- *   - `Kruskal.mst` was already correct. It is a `foldLeft` over all sorted edges with no early
+ *   - `MST.kruskal` was already correct. It is a `foldLeft` over all sorted edges with no early
  *     exit, so it runs out of edges and returns what it accumulated, which is the forest.
- *   - `Boruvka.mst` DID NOT TERMINATE. Its only exit was "exactly one component remains", which
+ *   - `MST.boruvka` DID NOT TERMINATE. Its only exit was "exactly one component remains", which
  *     a disconnected graph never reaches; once each component is internally spanned there are no
  *     crossing edges, so nothing merged and the `@tailrec` loop spun with identical arguments.
  *   - `MST.prim` grows from one start vertex, so it returns that vertex's component and stops.
@@ -64,14 +64,14 @@ class SpanningForestSpec extends AnyFlatSpec with should.Matchers:
 
   it should "span both components" in :
     withGraph(twoComponents) { g =>
-      val forest = Kruskal.mst(g)
+      val forest = MST.kruskal(g)
       forest.size shouldBe 2
       forest.map(_.attribute).toSet shouldBe Set(1.0, 2.0)
     }
 
   it should "span three components, excluding the triangle's expensive edge" in :
     withGraph(threeComponents) { g =>
-      val forest = Kruskal.mst(g)
+      val forest = MST.kruskal(g)
       // 7 vertices, 3 components => 7 - 3 = 4 edges in the spanning forest.
       forest.size shouldBe 4
       forest.map(_.attribute).toSet shouldBe Set(1.0, 2.0, 3.0, 4.0)
@@ -82,14 +82,14 @@ class SpanningForestSpec extends AnyFlatSpec with should.Matchers:
 
   it should "terminate, and span both components" in :
     withGraph(twoComponents) { g =>
-      val forest = Boruvka.mst(g)
+      val forest = MST.boruvka(g)
       forest.size shouldBe 2
       forest.map(_.attribute).toSet shouldBe Set(1.0, 2.0)
     }
 
   it should "terminate, and span three components, excluding the triangle's expensive edge" in :
     withGraph(threeComponents) { g =>
-      val forest = Boruvka.mst(g)
+      val forest = MST.boruvka(g)
       forest.size shouldBe 4
       forest.map(_.attribute).toSet shouldBe Set(1.0, 2.0, 3.0, 4.0)
       forest.map(_.attribute) should not contain 9.0
@@ -99,7 +99,7 @@ class SpanningForestSpec extends AnyFlatSpec with should.Matchers:
     // The two algorithms may choose different edges where weights tie, but a minimum spanning
     // forest has a unique total weight, so this holds whatever they pick.
     withGraph(threeComponents) { g =>
-      Boruvka.mst(g).map(_.attribute).sum shouldBe Kruskal.mst(g).map(_.attribute).sum
+      MST.boruvka(g).map(_.attribute).sum shouldBe MST.kruskal(g).map(_.attribute).sum
     }
 
   behavior of "Prim on a disconnected graph"

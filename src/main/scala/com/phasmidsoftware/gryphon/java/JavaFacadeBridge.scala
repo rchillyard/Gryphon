@@ -16,7 +16,7 @@ import scala.annotation.unused
 // written out in full at their use sites instead.
 // TopologicalSort is deliberately not imported: the bridge reaches the ordering through
 // `DirectedGraph.topologicalOrder`, which memoizes it, rather than running the algorithm (#139).
-import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, Kruskal, MST, ShortestPaths}
+import com.phasmidsoftware.gryphon.traverse.{ConnectedComponents, MST, ShortestPaths}
 // Visitor's own Monoid and Zero are hidden: Gryphon's algorithms take cats.kernel.Monoid now,
 // and the wildcard would otherwise make the two ambiguous.
 import cats.kernel.Monoid
@@ -495,7 +495,7 @@ private[java] object JavaFacadeBridge:
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
-    val result = Kruskal.mst(weightedGraph)
+    val result = MST.kruskal(weightedGraph)
     mstSeqToJavaList(result.toSeq)
 
   // ---------------------------------------------------------------------------
@@ -513,7 +513,7 @@ private[java] object JavaFacadeBridge:
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
-    val result = Kruskal.mst(weightedGraph)
+    val result = MST.kruskal(weightedGraph)
     mstSeqToJavaList(result.toSeq)
 
 
@@ -527,7 +527,7 @@ private[java] object JavaFacadeBridge:
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
     val weightedGraph = materialiseWeightedUndirected[V, Double](edges)
-    val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
+    val result = com.phasmidsoftware.gryphon.traverse.MST.boruvka(weightedGraph)
     mstSeqToJavaList(result.toSeq)
 
   // ---------------------------------------------------------------------------
@@ -549,7 +549,7 @@ private[java] object JavaFacadeBridge:
 
       def combine(x: E, y: E): E = empty
     val weightedGraph = materialiseWeightedUndirected[V, E](edges)
-    val result = com.phasmidsoftware.gryphon.traverse.Boruvka.mst(weightedGraph)
+    val result = com.phasmidsoftware.gryphon.traverse.MST.boruvka(weightedGraph)
     mstSeqToJavaList(result.toSeq)
 
   // ---------------------------------------------------------------------------
@@ -579,7 +579,7 @@ private[java] object JavaFacadeBridge:
 
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
-    optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, Double](materialiseWeighted(edges), start))
+    optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.ShortestPaths.bellmanFord[V, Double](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Bellman-Ford — Option 3: custom type, combine + zero + comparator
@@ -615,7 +615,7 @@ private[java] object JavaFacadeBridge:
       def empty: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
-    optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.BellmanFord.shortestPaths[V, E](materialiseWeighted(edges), start))
+    optionalEdgeResult(com.phasmidsoftware.gryphon.traverse.ShortestPaths.bellmanFord[V, E](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Acyclic shortest paths — Option 1: Double weights
@@ -635,7 +635,7 @@ private[java] object JavaFacadeBridge:
    *
    * Offering the overload anyway would repeat the mistake 1.13.0 corrected, of giving a Java
    * caller an API that reads as a reproducibility guarantee and is not one. See #158, and the
-   * reproducibility note on `AcyclicShortestPaths.shortestPaths`.
+   * reproducibility note on `ShortestPaths.acyclic`.
    */
   def acyclicShortestPathsDouble[V](
                                            edges: JavaList[WeightedEdge[V, Double]],
@@ -643,7 +643,7 @@ private[java] object JavaFacadeBridge:
                                    ): JavaMap[V, WeightedEdge[V, Double]] =
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
-    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths[V, Double](materialiseWeighted(edges), start))
+    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, Double](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Acyclic shortest paths — Option 3: custom type
@@ -662,7 +662,7 @@ private[java] object JavaFacadeBridge:
       def empty: E = zero
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
-    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths[V, E](materialiseWeighted(edges), start))
+    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, E](materialiseWeighted(edges), start))
 
   // ---------------------------------------------------------------------------
   // Graph properties
@@ -867,8 +867,8 @@ private[java] object JavaFacadeBridge:
         case _ =>
           materialise(edges, JavaCollections.emptySet[V](), directed = true)
                   .asInstanceOf[DirectedGraph[V, Unit]]
-    val result = com.phasmidsoftware.gryphon.traverse.Kosaraju
-            .stronglyConnectedComponents(directedGraph)
+    val result = com.phasmidsoftware.gryphon.traverse.StronglyConnectedComponents
+            .kosaraju(directedGraph)
     val javaMap = new JavaLinkedHashMap[V, JavaInteger]()
     result.foreach { case (v, id) => javaMap.put(v, id) }
     JavaCollections.unmodifiableMap(javaMap)

@@ -64,19 +64,19 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "label all reachable non-source vertices" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.map.size shouldBe 3  // vertices 1, 2, 3 — not 0 (source)
     }
 
   it should "not include the source vertex in the result" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.vertexTraverse(0) shouldBe None
     }
 
   it should "include all reachable vertices" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.map.keySet shouldBe Set(1, 2, 3)
     }
 
@@ -88,20 +88,20 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "find shortest path to vertex 1 with distance 1.0" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.vertexTraverse(1).map(_.attribute) shouldBe Some(1.0)
     }
 
   it should "find shortest path to vertex 2 with distance 3.0 (via 0->1->2, not 0->2)" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       // Direct edge 0->2 costs 4.0; via 1 costs 1.0+2.0=3.0
       result.vertexTraverse(2).map(_.attribute) shouldBe Some(2.0)
     }
 
   it should "find shortest path to vertex 3 with distance 2.0 (via 0->1->3)" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       // Via 1->3: 1.0+1.0=2.0; via 2->3: 3.0+1.0=4.0
       result.vertexTraverse(3).map(_.attribute) shouldBe Some(1.0)
     }
@@ -114,7 +114,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give vertex 1 predecessor edge from 0" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.vertexTraverse(1) match
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 0
@@ -125,7 +125,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give vertex 2 predecessor edge from 1 (not from 0)" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.vertexTraverse(2) match
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 1
@@ -136,7 +136,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give vertex 3 predecessor edge from 1 (not from 2)" in :
     withDag { graph =>
-      val result = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val result = ShortestPaths.acyclic(graph, 0)
       result.vertexTraverse(3) match
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 1
@@ -158,7 +158,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
-        val result = AcyclicShortestPaths.shortestPaths(g, 0)
+        val result = ShortestPaths.acyclic(g, 0)
         result.vertexTraverse(1).map(_.attribute) shouldBe Some(1.0)
         result.vertexTraverse(2).map(_.attribute) shouldBe Some(-2.0)
       case other =>
@@ -179,7 +179,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
-        val result = AcyclicShortestPaths.shortestPaths(g, 0)
+        val result = ShortestPaths.acyclic(g, 0)
         result.map.keySet shouldBe Set(1, 2)
         result.vertexTraverse(3) shouldBe None
         result.vertexTraverse(4) shouldBe None
@@ -200,7 +200,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
-        an[IllegalArgumentException] should be thrownBy AcyclicShortestPaths.shortestPaths(g, 0)
+        an[IllegalArgumentException] should be thrownBy ShortestPaths.acyclic(g, 0)
       case other =>
         fail(s"unexpected: $other")
   // =====================================================================================
@@ -219,23 +219,23 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
   //
   // so a test that confused them would have to be wrong twice in the same direction to pass.
 
-  behavior of "AcyclicShortestPaths.longestPaths"
+  behavior of "ShortestPaths.longestAcyclic"
 
   it should "label the same vertices as shortestPaths" in :
     withDag { graph =>
-      AcyclicShortestPaths.longestPaths(graph, 0).map.keySet shouldBe Set(1, 2, 3)
+      ShortestPaths.longestAcyclic(graph, 0).map.keySet shouldBe Set(1, 2, 3)
     }
 
   it should "reach 2 directly, where the shortest path goes via 1" in :
     withDag { graph =>
-      AcyclicShortestPaths.longestPaths(graph, 0).vertexTraverse(2).map(_.white) shouldBe Some(0)
-      AcyclicShortestPaths.shortestPaths(graph, 0).vertexTraverse(2).map(_.white) shouldBe Some(1)
+      ShortestPaths.longestAcyclic(graph, 0).vertexTraverse(2).map(_.white) shouldBe Some(0)
+      ShortestPaths.acyclic(graph, 0).vertexTraverse(2).map(_.white) shouldBe Some(1)
     }
 
   it should "reach 3 via 2, where the shortest path goes via 1" in :
     withDag { graph =>
-      AcyclicShortestPaths.longestPaths(graph, 0).vertexTraverse(3).map(_.white) shouldBe Some(2)
-      AcyclicShortestPaths.shortestPaths(graph, 0).vertexTraverse(3).map(_.white) shouldBe Some(1)
+      ShortestPaths.longestAcyclic(graph, 0).vertexTraverse(3).map(_.white) shouldBe Some(2)
+      ShortestPaths.acyclic(graph, 0).vertexTraverse(3).map(_.white) shouldBe Some(1)
     }
 
   it should "agree with shortestPaths where only one path exists" in :
@@ -243,8 +243,8 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     // must agree. Without this, reversing the Ordering somewhere it should not be would be
     // invisible on a graph where every vertex has a choice.
     withDag { graph =>
-      AcyclicShortestPaths.longestPaths(graph, 0).vertexTraverse(1) shouldBe
-              AcyclicShortestPaths.shortestPaths(graph, 0).vertexTraverse(1)
+      ShortestPaths.longestAcyclic(graph, 0).vertexTraverse(1) shouldBe
+              ShortestPaths.acyclic(graph, 0).vertexTraverse(1)
     }
 
   it should "refuse a cyclic graph, as shortestPaths does" in :
@@ -253,7 +253,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
       Triplet(1, 0, Some(1.0), Directed))
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(cyclic) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
-        an[IllegalArgumentException] should be thrownBy AcyclicShortestPaths.longestPaths(g, 0)
+        an[IllegalArgumentException] should be thrownBy ShortestPaths.longestAcyclic(g, 0)
       case Failure(x) => fail("graph construction failed", x)
 
   // =====================================================================================
@@ -269,22 +269,22 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give the shortest path to 3 as 0, 1, 3" in :
     withDag { graph =>
-      val r = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val r = ShortestPaths.acyclic(graph, 0)
       TraversalResult.pathTo(r)(3) shouldBe Seq(0, 1, 3)
     }
 
   it should "give the longest path to 3 as 0, 2, 3" in :
     withDag { graph =>
-      val r = AcyclicShortestPaths.longestPaths(graph, 0)
+      val r = ShortestPaths.longestAcyclic(graph, 0)
       TraversalResult.pathTo(r)(3) shouldBe Seq(0, 2, 3)
     }
 
   it should "give the edges of the path, so a caller can total the weights" in :
     withDag { graph =>
-      val edges = TraversalResult.pathEdgesTo(AcyclicShortestPaths.shortestPaths(graph, 0))(3)
+      val edges = TraversalResult.pathEdgesTo(ShortestPaths.acyclic(graph, 0))(3)
       edges.map(_.attribute) shouldBe Seq(1.0, 1.0) // 0->1 then 1->3
       edges.map(_.attribute).sum shouldBe 2.0
-      TraversalResult.pathEdgesTo(AcyclicShortestPaths.longestPaths(graph, 0))(3)
+      TraversalResult.pathEdgesTo(ShortestPaths.longestAcyclic(graph, 0))(3)
               .map(_.attribute).sum shouldBe 5.0 // 0->2 (4.0) then 2->3 (1.0)
     }
 
@@ -293,7 +293,7 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
     // indistinguishable from a parent map alone, because the root is simply absent from it.
     // That is a limitation of the representation, not of pathTo, and is part of what #76 is for.
     withDag { graph =>
-      val r = AcyclicShortestPaths.shortestPaths(graph, 0)
+      val r = ShortestPaths.acyclic(graph, 0)
       TraversalResult.pathTo(r)(0) shouldBe Seq(0)
       TraversalResult.pathTo(r)(99) shouldBe Seq(99)
     }

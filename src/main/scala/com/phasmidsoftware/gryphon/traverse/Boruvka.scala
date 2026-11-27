@@ -28,7 +28,11 @@ import scala.annotation.nowarn
  *
  * NOTE: intended for undirected weighted graphs only.
  */
-object Boruvka:
+// The implementation lives here; the entry point is on the problem object -- see #171.
+// Named for the algorithm because that is what it IS, and private because that is not
+// how a caller should reach it: `MST.kruskal`, `ShortestPaths.bellmanFord` and the rest
+// say which problem is being solved, which is the decision a caller actually makes.
+private[traverse] object Boruvka:
 
   /**
    * Computes the MST of `graph` using Borůvka's algorithm.

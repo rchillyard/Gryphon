@@ -52,16 +52,16 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
   // Result structure
   // -------------------------------------------------------------------------
 
-  behavior of "Kruskal.mst — result structure"
+  behavior of "MST.kruskal — result structure"
 
   it should "produce exactly 7 MST edges (N-1 for 8 vertices)" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).size shouldBe 7
+      MST.kruskal(graph).size shouldBe 7
     }
 
   it should "return edges in non-decreasing weight order" in :
     withPrimGraph { graph =>
-      val weights = Kruskal.mst(graph).map(_.attribute)
+      val weights = MST.kruskal(graph).map(_.attribute)
       weights shouldBe weights.sorted
     }
 
@@ -69,86 +69,86 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
   // MST weight
   // -------------------------------------------------------------------------
 
-  behavior of "Kruskal.mst — total weight"
+  behavior of "MST.kruskal — total weight"
 
   it should "produce MST with total weight 1.81" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
+      MST.kruskal(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
     }
 
   // -------------------------------------------------------------------------
   // MST edge set
   // -------------------------------------------------------------------------
 
-  behavior of "Kruskal.mst — edge set"
+  behavior of "MST.kruskal — edge set"
 
   it should "include edge 0-7 with weight 0.16" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.16)
+      MST.kruskal(graph).map(_.attribute) should contain(0.16)
     }
 
   it should "include edge 2-3 with weight 0.17" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.17)
+      MST.kruskal(graph).map(_.attribute) should contain(0.17)
     }
 
   it should "include edge 1-7 with weight 0.19" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.19)
+      MST.kruskal(graph).map(_.attribute) should contain(0.19)
     }
 
   it should "include edge 0-2 with weight 0.26" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.26)
+      MST.kruskal(graph).map(_.attribute) should contain(0.26)
     }
 
   it should "include edge 5-7 with weight 0.28" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.28)
+      MST.kruskal(graph).map(_.attribute) should contain(0.28)
     }
 
   it should "include edge 4-5 with weight 0.35" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.35)
+      MST.kruskal(graph).map(_.attribute) should contain(0.35)
     }
 
   it should "include edge 6-2 with weight 0.40" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should contain(0.40)
+      MST.kruskal(graph).map(_.attribute) should contain(0.40)
     }
 
   it should "not include edge 1-3 with weight 0.29 (would create cycle)" in :
     withPrimGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute) should not contain 0.29
+      MST.kruskal(graph).map(_.attribute) should not contain 0.29
     }
 
   // -------------------------------------------------------------------------
   // Per-vertex endpoint checks
   // -------------------------------------------------------------------------
 
-  behavior of "Kruskal.mst — edge endpoints"
+  behavior of "MST.kruskal — edge endpoints"
 
   it should "include an edge connecting vertices 0 and 7" in :
     withPrimGraph { graph =>
-      val mst = Kruskal.mst(graph)
+      val mst = MST.kruskal(graph)
       mst.exists(e => Set(e.white, e.black) == Set(0, 7)) shouldBe true
     }
 
   it should "include an edge connecting vertices 2 and 3" in :
     withPrimGraph { graph =>
-      val mst = Kruskal.mst(graph)
+      val mst = MST.kruskal(graph)
       mst.exists(e => Set(e.white, e.black) == Set(2, 3)) shouldBe true
     }
 
   it should "include an edge connecting vertices 4 and 5" in :
     withPrimGraph { graph =>
-      val mst = Kruskal.mst(graph)
+      val mst = MST.kruskal(graph)
       mst.exists(e => Set(e.white, e.black) == Set(4, 5)) shouldBe true
     }
 
   it should "include an edge connecting vertices 6 and 2" in :
     withPrimGraph { graph =>
-      val mst = Kruskal.mst(graph)
+      val mst = MST.kruskal(graph)
       mst.exists(e => Set(e.white, e.black) == Set(6, 2)) shouldBe true
     }
 
@@ -156,13 +156,13 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
   // Inline graph tests
   // -------------------------------------------------------------------------
 
-  behavior of "Kruskal.mst — inline graphs"
+  behavior of "MST.kruskal — inline graphs"
 
   it should "find the single MST edge in a two-vertex graph" in :
     val triplets: Seq[Triplet[Int, Double, EdgeType]] = Seq(Triplet(0, 1, Some(1.0), Undirected))
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
-        val mst = Kruskal.mst(graph)
+        val mst = MST.kruskal(graph)
         mst.size shouldBe 1
         mst.head.attribute shouldBe 1.0
       case other =>
@@ -175,7 +175,7 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
-        val mst = Kruskal.mst(graph)
+        val mst = MST.kruskal(graph)
         mst.size shouldBe 2
         mst.map(_.attribute) should contain allOf(1.0, 2.0)
       case other =>
@@ -189,7 +189,7 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(graph: UndirectedGraph[Int, Double] @unchecked) =>
-        val mst = Kruskal.mst(graph)
+        val mst = MST.kruskal(graph)
         mst.size shouldBe 2
         mst.map(_.attribute) should contain(1.0)
         mst.map(_.attribute) should contain(2.0)
@@ -207,18 +207,18 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
   // index IS what the edge-keyed branch has always meant by a key, so Seq's `apply` and the
   // branch's `edgeTraverse` cannot sensibly differ.
 
-  behavior of "Kruskal.mst as a TraversalResult"
+  behavior of "MST.kruskal as a TraversalResult"
 
   it should "answer vertexTraverse with None, having no vertex key" in :
     withPrimGraph { g =>
-      val mst = Kruskal.mst(g)
+      val mst = MST.kruskal(g)
       mst.vertexTraverse(0) shouldBe None
       mst.vertexTraverse(7) shouldBe None
     }
 
   it should "key the edges by position" in :
     withPrimGraph { g =>
-      val mst = Kruskal.mst(g)
+      val mst = MST.kruskal(g)
       mst.keySet shouldBe Range(0, mst.size).toSet
       mst.edgeTraverse(0) shouldBe mst.head
       mst.edgeTraverse(mst.size - 1) shouldBe mst.last
@@ -226,7 +226,7 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
 
   it should "agree with itself as a Seq" in :
     withPrimGraph { g =>
-      val mst = Kruskal.mst(g)
+      val mst = MST.kruskal(g)
       mst.size shouldBe 7 // 8 vertices, connected
       mst.toSeq.size shouldBe mst.size
       Range(0, mst.size).map(mst.edgeTraverse) shouldBe mst.toSeq
@@ -234,7 +234,7 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
 
   it should "hold the edges in ascending weight order, which is what the order means here" in :
     withPrimGraph { g =>
-      val weights = Kruskal.mst(g).map(_.attribute).toSeq
+      val weights = MST.kruskal(g).map(_.attribute).toSeq
       weights shouldBe weights.sorted
     }
 
@@ -248,8 +248,8 @@ class KruskalSpec extends AnyFlatSpec with should.Matchers:
     // not a disagreement about the MST, and asserting on the total would make this test a
     // hostage to the order each algorithm happens to emit.
     withPrimGraph { g =>
-      val k = Kruskal.mst(g)
-      val b = Boruvka.mst(g)
+      val k = MST.kruskal(g)
+      val b = MST.boruvka(g)
       b.size shouldBe k.size
       b.map(_.attribute).toSeq.sorted shouldBe k.map(_.attribute).toSeq.sorted
       b.map(_.attribute).sum shouldBe k.map(_.attribute).sum +- 1e-9

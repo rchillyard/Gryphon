@@ -5,7 +5,7 @@
 package com.phasmidsoftware.gryphon.builder
 
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
-import com.phasmidsoftware.gryphon.traverse.{Boruvka, Kruskal}
+import com.phasmidsoftware.gryphon.traverse.{MST}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.util.{Failure, Success}
@@ -59,12 +59,12 @@ class TunnelsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce 79 MST edges" in :
     withTunnelGraph { graph =>
-      Kruskal.mst(graph).size shouldBe KNOWN_MST_EDGES
+      MST.kruskal(graph).size shouldBe KNOWN_MST_EDGES
     }
 
   it should "produce total cost of 6648954" in :
     withTunnelGraph { graph =>
-      Kruskal.mst(graph).map(_.attribute).sum shouldBe KNOWN_MST_COST +- 1.0
+      MST.kruskal(graph).map(_.attribute).sum shouldBe KNOWN_MST_COST +- 1.0
     }
 
   // -------------------------------------------------------------------------
@@ -75,12 +75,12 @@ class TunnelsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce 79 MST edges" in :
     withTunnelGraph { graph =>
-      Boruvka.mst(graph).size shouldBe KNOWN_MST_EDGES
+      MST.boruvka(graph).size shouldBe KNOWN_MST_EDGES
     }
 
   it should "produce total cost of 6648954" in :
     withTunnelGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute).sum shouldBe KNOWN_MST_COST +- 1.0
+      MST.boruvka(graph).map(_.attribute).sum shouldBe KNOWN_MST_COST +- 1.0
     }
 
   // -------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class TunnelsSpec extends AnyFlatSpec with should.Matchers:
 
   it should "Kruskal and Boruvka agree on total cost" in :
     withTunnelGraph { graph =>
-      val kruskalTotal = Kruskal.mst(graph).map(_.attribute).sum
-      val boruvkaTotal = Boruvka.mst(graph).map(_.attribute).sum
+      val kruskalTotal = MST.kruskal(graph).map(_.attribute).sum
+      val boruvkaTotal = MST.boruvka(graph).map(_.attribute).sum
       kruskalTotal shouldBe boruvkaTotal +- 1.0
     }

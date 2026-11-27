@@ -36,7 +36,7 @@ jobs:
 
       - run:
           name: Compile
-          command: cat /dev/null | sbt Test/compile
+          command: cat /dev/null | sbt Test/compile Scale/compile
 
       - save_cache:
           paths:
@@ -48,6 +48,18 @@ jobs:
       - run:
           name: Test
           command: cat /dev/null | sbt test
+
+      # The scale suite: 1000-vertex graphs, in its own sbt configuration so that `sbt test`
+      # above stays fast (see #165). Its own step, so that a failure here is distinguishable at
+      # a glance from an ordinary test failure -- these exercise a different thing.
+      #
+      # `no_output_timeout` is raised because MST.prim alone takes about six seconds on the
+      # sparse graph and CircleCI's containers are slower than a laptop; the default 10 minutes
+      # would be close enough to matter if anything else regressed. See #164.
+      - run:
+          name: Scale tests
+          command: cat /dev/null | sbt Scale/test
+          no_output_timeout: 20m
 
       # Binary compatibility with the last release (MiMa: see previousRelease in build.sbt)
       - run:

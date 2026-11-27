@@ -97,6 +97,44 @@ lazy val root = (project in file("."))
         // Scaladoc is published to https://rchillyard.github.io/Gryphon/latest/api/ by `sbt ghpagesPushSite`
         .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
         .settings(git.remoteRepo := "git@github.com:rchillyard/Gryphon.git")
+        .configs(Scale)
+        .settings(scaleSettings)
+
+// ============================================================================
+// THE SCALE CONFIGURATION: `sbt Scale/test`
+// ============================================================================
+// Tests against 1000-vertex graphs, which are too slow to belong in `sbt test`.
+//
+// `sbt test` runs in about 15 seconds and is the loop everyone works in. Parsing the scale
+// fixtures alone costs a few seconds, and `MST.prim` on the dense graph takes over two minutes
+// (#164) -- so putting these in the ordinary suite would make the fast feedback loop slow for
+// everybody, every time, in exchange for a check that only needs running deliberately.
+//
+// A CUSTOM configuration, not sbt's built-in `IntegrationTest`: that is deprecated in sbt 1.9
+// and removed in sbt 2. `extend(Test)` means this config inherits the test dependencies --
+// scalatest, the JUnit engine, logback -- so they are declared once, in Test scope, above.
+//
+// Sources live in src/it/scala and fixtures in src/it/resources, which is where `Defaults
+// .testSettings` would NOT look by default: `inConfig` gives the config `src/<config name>/...`
+// only once scalaSource and friends are pointed there, which is what the three lines below do.
+//
+// See #165. The graphs themselves are generated and deterministic -- the generator and its seeds
+// are recorded in src/it/resources/scale/README.md so they can be rebuilt or extended.
+lazy val Scale = config("it") extend Test
+
+lazy val scaleSettings: Seq[Setting[?]] =
+  inConfig(Scale)(Defaults.testSettings) ++ Seq(
+    Scale / scalaSource := baseDirectory.value / "src" / "it" / "scala",
+    Scale / javaSource := baseDirectory.value / "src" / "it" / "java",
+    Scale / resourceDirectory := baseDirectory.value / "src" / "it" / "resources",
+    // One at a time: these specs report timings, and specs competing for cores would make the
+    // numbers meaningless. The ordinary suite sets the same thing, lower down, for its own reasons.
+    Scale / parallelExecution := false,
+    // A forked JVM with room for the dense graphs, and so that a scale run cannot disturb the
+    // heap of whatever else sbt is doing.
+    Scale / fork := true,
+    Scale / javaOptions ++= Seq("-Xmx2g")
+  )
 
 // ============================================================================
 // JAVADOC FOR THE JAVA FAÇADE

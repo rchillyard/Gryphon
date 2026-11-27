@@ -1134,6 +1134,36 @@ edge cases including:
   also asserts that its graph is *capable* of varying, since a fixture that cannot
   would let the reproducibility assertion pass while testing nothing
 - Integration tests on the Northeastern University tunnel network (80 buildings, 79 edges, $6,648,954)
+
+`sbt test` runs all of these, in under ten seconds.
+
+### The scale suite: `sbt Scale/test`
+
+A second configuration, with its own sources in `src/it/scala`, runs against four generated
+1000-vertex graphs — sparse and dense, undirected and acyclic-directed, 7,000 and 30,000 edges.
+They are separate from `sbt test` because they are slow: parsing the dense fixtures alone costs
+a couple of seconds, and `MST.prim` takes minutes on the dense graph (issue #164).
+
+It exists for two reasons.
+
+**To check correctness at a size nothing else reaches.** The next largest graph in the repository
+is the tunnel network at 79 edges. The scale specs assert *properties* rather than expected
+values — a spanning tree has `V-1` edges, every arc runs forwards in the topological order — and
+cross-check algorithms against each other: three MST implementations must agree on the total
+weight, three shortest-path implementations on the distances. Agreement between implementations
+sharing no code is far better evidence at this size than any value written down by hand, and it
+is immune to the fact that most of these results legitimately vary between runs.
+
+**To make performance claims reproducible.** This README has quoted timings since 1.9.0 against
+a 1491-vertex DAG that was never committed, so those figures cannot be re-derived or challenged
+by anyone, including whoever wrote them. The timing spec prints its numbers rather than asserting
+them — a hard performance bound is flaky on shared CI hardware — so the figures can be checked on
+demand against fixtures that are actually in the repository. The generator and its seeds are in
+`src/it/resources/scale/README.md`, so the graphs can be rebuilt or extended.
+
+Reading the timing output, the ratios matter more than the absolutes: dense has 4.3 times the
+edges of sparse, so an algorithm linear in edges should take a little over four times as long.
+`MST.prim` takes 24 times as long. That is how #164 was found.
 - Java API tests for all major algorithms
 
 ```bash

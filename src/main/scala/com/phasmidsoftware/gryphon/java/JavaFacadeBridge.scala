@@ -870,7 +870,7 @@ private[java] object JavaFacadeBridge:
     val result = com.phasmidsoftware.gryphon.traverse.StronglyConnectedComponents
             .kosaraju(directedGraph)
     val javaMap = new JavaLinkedHashMap[V, JavaInteger]()
-    result.foreach { case (v, id) => javaMap.put(v, id) }
+    result.map.foreach { case (v, id) => javaMap.put(v, id) }
     JavaCollections.unmodifiableMap(javaMap)
 
   // ---------------------------------------------------------------------------

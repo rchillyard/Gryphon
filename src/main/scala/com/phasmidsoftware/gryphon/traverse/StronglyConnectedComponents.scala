@@ -12,16 +12,38 @@ import scala.util.Random
  * The result of a strongly-connected-components analysis: every vertex against an integer
  * component id (0, 1, 2, ...), vertices sharing an id belonging to the same component.
  *
- * It lived in `Kosaraju.scala` until 1.15.0, which was the wrong home: it is the result of the
- * PROBLEM, not of one algorithm for it. A second algorithm -- Tarjan's, say -- would return the
- * same thing, and would have had to import it from its rival (#171).
+ * ==Read `partition`, not `map`==
  *
- * '''This is a bare `Map`, and should not be.''' `ConnectedComponents` returns a `ConnectedResult`
- * that is a `TraversalResult` and offers `partition`, the view whose invariance needs no
- * footnote; the other component algorithm offers a raw map whose ids explicitly DO vary. That
- * asymmetry is #168, and this alias is what it replaces.
+ * The ids are '''arbitrary''' and genuinely vary: they come from traversal order, which is shuffled.
+ * Measured over forty seeds on a DAG of singleton components, where only the numbering can
+ * differ: '''two distinct numberings, one grouping'''. So two correct runs can return the same
+ * decomposition under different labels, and comparing `map` between runs will report a
+ * difference that is not there.
+ *
+ * `partition` carries no labelling and is a property of the graph. Compare that.
+ *
+ * This is a sharper warning than the one on `ConnectedResult`, whose ids happen not to vary --
+ * and the two now share a supertype precisely so that the difference is stated once rather than
+ * half-remembered on each. See [[AbstractComponentResult]] and #168.
+ *
+ * ==It was a bare `Map` until 1.15.0==
+ *
+ * `type SCCResult[V] = Map[V, Int]`, which meant the one algorithm whose ids explicitly DO vary
+ * handed back a raw map and left every caller to derive the trustworthy view, while
+ * `ConnectedComponents` -- whose ids do not vary -- returned a rich result that offered it. The
+ * asymmetry was exactly backwards. The Java façade has offered the grouping as
+ * `StronglyConnectedComponents.components` all along; this brings the Scala side into line.
+ *
+ * @param map every vertex against its component id.
+ * @tparam V the vertex type.
  */
-type SCCResult[V] = Map[V, Int]
+case class SCCResult[V](map: Map[V, Int]) extends AbstractComponentResult[V](map):
+
+  /**
+   * @param m the replacement vertex-to-component-id map.
+   * @return this result with `map` replaced.
+   */
+  def unit(m: Map[V, Int]): TraversalResult[V, Int] = copy(map = m)
 
 /**
  * Strongly connected components: the problem, with the algorithm that solves it.
@@ -77,4 +99,4 @@ object StronglyConnectedComponents:
    *       Specifically: the component NUMBERING varies, the GROUPING does not.
    */
   def kosaraju[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] =
-    Kosaraju.stronglyConnectedComponents(graph)
+    SCCResult(Kosaraju.stronglyConnectedComponents(graph))

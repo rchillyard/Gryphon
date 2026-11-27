@@ -47,13 +47,14 @@ private[traverse] object Kosaraju {
    * @param graph  The directed graph for which strongly connected components are to be computed.
    * @param random An implicit random number generator, defaulting to `Random()`.
    * @param tracer An implicit tracer for logging and debugging, defaulting to `Tracer.silent`.
-   * @return An `SCCResult[V]` mapping each vertex to its strongly connected component identifier.
+   * @return the vertex-to-component-id map. `StronglyConnectedComponents.kosaraju` wraps this
+   *         in an `SCCResult`; the algorithm itself works in plain maps.
    * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    *       Specifically: the component NUMBERING varies, the GROUPING does not. Measured over
    *       forty seeds on a DAG of singleton components, where only the numbering can differ:
    *       two distinct numberings, one grouping. So compare `groupBy` of the result, never ids.
    */
-  def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] = {
+  def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): Map[V, Int] = {
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
@@ -98,9 +99,9 @@ private[traverse] object Kosaraju {
      * GraphNeighbours is fixed for the original graph throughout pass 2.
      *
      * @param starters the vertices in the order produced by pass1.
-     * @return an SCCResult[V]
+     * @return the vertex-to-component-id map
      */
-    def pass2Kosaraju(starters: List[V]): SCCResult[V] = {
+    def pass2Kosaraju(starters: List[V]): Map[V, Int] = {
       tracer.trace(0, s"Kosaraju pass 2: DFS on original graph, ${starters.size} starter vertices")
 
       given GraphNeighbours[V] = graph.vertexMap.neighboursGiven
@@ -109,9 +110,9 @@ private[traverse] object Kosaraju {
       def pass2Loop(
                            seeds: List[V],
                            visited: Set[V],
-                           componentMap: SCCResult[V],
+                           componentMap: Map[V, Int],
                            sccId: Int
-                   ): SCCResult[V] =
+                   ): Map[V, Int] =
         seeds match
           case Nil =>
             tracer.trace(1, s"pass 2: complete, $sccId SCCs found")

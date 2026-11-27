@@ -118,3 +118,28 @@ ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.Ve
 ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.Vertex$package$")
 ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$package")
 ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$package$")
+#
+# ---------------------------------------------------------------------------------------
+# #157: ConnectedComponents.components returns a ConnectedResult case class, not a tuple.
+#
+# Until 1.14.0 `ConnectedResult[V, E]` was a type alias for `(Connexions[V, E], Map[V, Int])`:
+# half first-class, since Connexions is itself a TraversalResult, and half a bare Map. The bare
+# half was the one every caller used, so connected components was the one algorithm whose result
+# could not be handed to a function written over "a vertex-keyed traversal result".
+#
+# It is now a case class extending AbstractVertexTraversalResult[V, Int], matching TopologicalSort,
+# which has been that shape all along and is also a vertex-to-Int map. It gains `partition:
+# Set[Set[V]]`, derived from the id map rather than stored so the two cannot drift -- the one view
+# whose invariance needs no footnote, since it carries no arbitrary labelling.
+#
+# Source-incompatible as well as binary-incompatible: `val (_, m) = components(g)` stops
+# compiling. Migration is mechanical -- `.map` for the ids, `.connexions` for the tree,
+# `.partition` for the components.
+#
+# The two MissingClassProblem entries are the synthetic `ConnectedComponents$package` holder, which
+# existed to carry the top-level type alias and goes with it, exactly as for `Vertex$package` in
+# #160 above.
+#
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.ConnectedComponents.components(com.phasmidsoftware.gryphon.core.Traversable,scala.util.Random)scala.Tuple2")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.traverse.ConnectedComponents$package")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.traverse.ConnectedComponents$package$")

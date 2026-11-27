@@ -127,7 +127,7 @@ class BipartiteAndConnectedSpec extends AnyFlatSpec with should.Matchers:
     )
     DirectedGraph.triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
-        val (_, componentMap) = ConnectedComponents.components[Int, Unit](g)
+        val componentMap = ConnectedComponents.components[Int, Unit](g).map
         componentMap.values.toSet.size shouldBe 2 // two weakly connected components
       case other =>
         fail(s"unexpected: $other")

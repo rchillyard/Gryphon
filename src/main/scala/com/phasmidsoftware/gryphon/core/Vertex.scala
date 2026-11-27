@@ -110,13 +110,15 @@ case class SimpleVertex[V](override val attribute: V, override val adjacencies: 
     s"v$attribute with adjacencies: ${mkStringLimitIterator(adjacencies.iterator)}"
 
 // ---------------------------------------------------------------------------
-// Backward-compatibility type alias
+// The `DiscoverableVertex` alias that stood here is gone, in 1.14.0 (#160).
 //
-// The old `DiscoverableVertex` name is preserved as an alias so that call sites
-// outside this file continue to compile without changes.
+// It was kept so that call sites outside this file continued to compile when the
+// `discovered` flag went and the type became `SimpleVertex`. Nothing in src/main ever
+// named it afterwards, and the only two users were tests that each carried a comment
+// saying it was an alias -- which is a name earning its keep by being explained rather
+// than by being used. `DiscoverableRelaxableVertex` went with `RelaxableVertex` in 1.9.0.
 //
-// `DiscoverableRelaxableVertex` went with `RelaxableVertex` in 1.9.0.
+// Unlike the other three removals in #160 this alias carried no `since` version, so it
+// had given no formal notice. It goes anyway: it aliases a type declared in this same
+// file, so the replacement is visible at the point of use.
 // ---------------------------------------------------------------------------
-
-/** @deprecated Use [[SimpleVertex]] instead. */
-type DiscoverableVertex[V] = SimpleVertex[V]

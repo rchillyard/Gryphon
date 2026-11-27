@@ -48,6 +48,10 @@ object Kosaraju {
    * @param random An implicit random number generator, defaulting to `Random()`.
    * @param tracer An implicit tracer for logging and debugging, defaulting to `Tracer.silent`.
    * @return An `SCCResult[V]` mapping each vertex to its strongly connected component identifier.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
+   *       Specifically: the component NUMBERING varies, the GROUPING does not. Measured over
+   *       forty seeds on a DAG of singleton components, where only the numbering can differ:
+   *       two distinct numberings, one grouping. So compare `groupBy` of the result, never ids.
    */
   def stronglyConnectedComponents[V, E](graph: DirectedGraph[V, E])(using random: Random = Random(), tracer: Tracer[V] = Tracer.silent): SCCResult[V] = {
     given Evaluable[V, V] with

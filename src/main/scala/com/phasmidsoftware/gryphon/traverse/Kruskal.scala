@@ -40,6 +40,9 @@ object Kruskal:
    *         FOREST: there is no early exit, so every edge is considered and those joining
    *         distinct components are kept. See #117, and note that adding the usual "stop at
    *         `order - 1` edges" optimisation would break that.
+   * @note Result: invariant. Measured on a cycle whose weights are ALL tied,
+   *       where any spanning subset is an MST: forty seeds, one answer. Kruskal sorts
+   *       `graph.edges`, which is not shuffled, and never consults an adjacency iterator.
    */
   def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =
     val vertices = graph.vertexMap.keySet.toSeq

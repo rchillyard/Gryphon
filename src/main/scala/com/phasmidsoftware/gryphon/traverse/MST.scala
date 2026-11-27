@@ -24,6 +24,9 @@ object MST:
    * @tparam E the edge-weight type; must be Monoid and Ordering.
    * @return a `TraversalResult[V, Edge[V, E]]` mapping each MST vertex to its
    *         cheapest incoming edge.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
+   *       The total weight does not vary -- a minimum spanning tree is minimum -- but which of
+   *       several equal-weight trees comes back does.
    */
   def prim[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, Edge[V, E]] =
     PrimTraversal[V, E]().run(graph)(start)

@@ -24,6 +24,7 @@ trait Traversable[V] {
    * The *order* of the graph: the number of vertices.
    *
    * @return the number of vertices in the graph.
+   * @note Result: invariant.
    */
   def order: Int
 
@@ -36,6 +37,7 @@ trait Traversable[V] {
    *
    * @param key the key of type V for which the associated vertex is to be retrieved.
    * @return an Option containing the associated Vertex if found, or None if not.
+   * @note Result: invariant.
    */
   def get(key: V): Option[Vertex[V]]
 
@@ -54,6 +56,7 @@ trait Traversable[V] {
    * @param v      the vertex whose adjacent vertices are to be returned.
    * @param random controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @return an iterator over the vertices adjacent to the specified vertex.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def adjacentVertices(v: V)(using random: Random = Random()): Iterator[V]
 
@@ -70,6 +73,7 @@ trait Traversable[V] {
    *                  generator: a caller's `given Random` stopped at the call site and the order
    *                  could not be pinned. See #153.
    * @return an iterator over the vertices that are adjacent to v and satisfy the predicate.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def filteredAdjacentVertices(predicate: V => Boolean)(v: V)(using random: Random = Random()): Iterator[V] =
     adjacentVertices(v)(using random).filter(predicate)
@@ -85,6 +89,7 @@ trait Traversable[V] {
    *                  default is only reached when nobody has one (#67).
    *
    * @return an iterator over the adjacencies of the given vertex that satisfy the predicate.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def filteredAdjacencies(predicate: Adjacency[V] => Boolean)(v: V)(using random: Random = Random()): Iterator[Adjacency[V]]
 
@@ -102,6 +107,7 @@ trait Traversable[V] {
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def dfs[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J], order: DfsOrder = DfsOrder.Pre)(v: V)(using random: Random = Random()): Visitor[V, E, J]
 
@@ -114,6 +120,7 @@ trait Traversable[V] {
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversing all vertices.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def dfsAll[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(using random: Random = Random()): Visitor[V, E, J]
 
@@ -136,6 +143,7 @@ trait Traversable[V] {
    * @tparam E the journal's element type.
    * @tparam J the journal type.
    * @return the updated visitor after traversal.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def bfs[E, J <: Appendable[E, J]](visitor: Visitor[V, E, J])(v: V, goal: V => Boolean = _ => false)(using random: Random = Random()): Visitor[V, E, J]
 
@@ -149,6 +157,7 @@ trait Traversable[V] {
    * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def vertexMappedTraversalDfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
     Try(DFSTraversal(fulfill).run(this)(start))
@@ -162,6 +171,7 @@ trait Traversable[V] {
    * @param random  controls adjacency ordering (implicit); see `filteredAdjacencies`.
    * @tparam T the result type produced by `fulfill`.
    * @return `Try[TraversalResult[V, T]]` containing the traversal result or a failure.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def vertexMappedTraversalBfs[T](fulfill: V => T)(start: V)(using random: Random = Random()): Try[TraversalResult[V, T]] =
     Try(BFSTraversal(fulfill).run(this)(start))
@@ -176,6 +186,7 @@ trait Traversable[V] {
    *
    * @tparam E the type of the edges in the graph.
    * @return a `Connexions[V, E]` object representing the discovered connexions.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def getConnexions[E](start: V)(using random: Random = Random()): Connexions[V, E] = {
     // Visitor 1.8.0's ParentedVisitor does expose the predecessor *vertex*, but what this
@@ -257,6 +268,7 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
    * Retrieves an iterator over all the edges in the graph.
    *
    * @return an `Iterator[Edge[V, E]]` over all edges.
+   * @note Result: invariant.
    */
   def edges: Iterator[Edge[V, E]]
 
@@ -270,6 +282,7 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
    * answers until 1.9.0.
    *
    * @return the number of edges in the graph.
+   * @note Result: invariant.
    */
   def size: Int
 

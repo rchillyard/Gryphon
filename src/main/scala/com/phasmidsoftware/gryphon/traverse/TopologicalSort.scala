@@ -62,6 +62,8 @@ object TopologicalSort:
    * @tparam V the vertex attribute type.
    * @tparam E the edge attribute type.
    * @return `Some(Seq[V])` in topological order, or `None` if the graph is cyclic.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
+   *       Every result is a valid topological order; which one you get is what varies.
    */
   def sort[V, E](graph: DirectedGraph[V, E])(using random: Random = Random()): Option[Seq[V]] =
     given Evaluable[V, V] with
@@ -116,6 +118,7 @@ object TopologicalSort:
    * @tparam E the edge attribute type.
    * @return `Some(TopologicalSort[V])` with each vertex mapped to its position,
    *         or `None` if the graph is cyclic.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def traversal[V, E](graph: DirectedGraph[V, E])(using random: Random = Random()): Option[TopologicalSort[V]] =
     sort(graph)(using random).map { topologicalOrder =>

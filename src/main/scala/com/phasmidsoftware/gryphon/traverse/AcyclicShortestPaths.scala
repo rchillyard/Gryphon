@@ -89,6 +89,9 @@ object AcyclicShortestPaths:
    *         vertex (except `start`) to its shortest-path incoming edge.
    *
    * @throws IllegalArgumentException if the graph contains a cycle.
+   * @note Result: varies between graph instances, and NO seed can pin it -- the order comes from
+   *       the memoized `DirectedGraph.topologicalOrder`, which a `lazy val` cannot take a
+   *       generator for. Stable for one graph instance. See #158.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
     relax(graph, start)(using summon[Monoid[E]], summon[Ordering[E]])
@@ -122,6 +125,9 @@ object AcyclicShortestPaths:
    * @return a `VertexTraversalResult[V, DirectedEdge[V, E]]` mapping each reachable
    *         vertex (except `start`) to its longest-path incoming edge.
    * @throws IllegalArgumentException if the graph contains a cycle.
+   * @note Result: varies between graph instances, and NO seed can pin it -- the order comes from
+   *       the memoized `DirectedGraph.topologicalOrder`, which a `lazy val` cannot take a
+   *       generator for. Stable for one graph instance. See #158.
    */
   def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
     relax(graph, start)(using summon[Monoid[E]], summon[Ordering[E]].reverse)

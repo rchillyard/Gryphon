@@ -20,6 +20,8 @@ object ShortestPaths:
    * @tparam E the edge-weight type; must be Monoid and Ordering.
    * @return a `TraversalResult[V, AttributedDirectedEdge[V, E]]` mapping each settled
    *         vertex to its cheapest incoming edge, or None for the start vertex.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
+   *       The distances do not vary; which of several equal-cost paths is reported does.
    */
   def dijkstra[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, AttributedDirectedEdge[V, E]] =
     DijkstraTraversal[V, E]().run(graph)(start)

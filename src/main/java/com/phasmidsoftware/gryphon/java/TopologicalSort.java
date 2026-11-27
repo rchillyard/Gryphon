@@ -44,6 +44,19 @@ public class TopologicalSort {
      * <p>Uses post-order DFS — each vertex appears in the result only after
      * all vertices reachable from it have been recorded.</p>
      *
+     * <p><b>Which valid order you get varies, and there is no way to pin it.</b> A DAG
+     * generally admits several topological orders and this returns one of them. Unlike
+     * {@code bfs}, {@code dfs}, {@code dijkstra} and {@code prim}, there is no
+     * {@code java.util.Random} overload — not because the result is fixed, but because a
+     * generator could not reach it. The order comes from the graph's memoized topological
+     * order, computed on first use and held in a lazily initialised field that takes no
+     * generator.</p>
+     *
+     * <p>So: repeated calls on <b>one graph object</b> agree, while a rebuilt or re-parsed
+     * graph may memoize a different valid order, and across runs of your program it is
+     * arbitrary. If a test asserts a particular ordering, hold one graph object — or better,
+     * assert the property that matters, namely that every edge runs forwards in the order.</p>
+     *
      * @param <V>   the vertex type.
      * @param graph a directed graph.
      * @return {@code Optional} containing a topological ordering of all vertices,
@@ -61,6 +74,9 @@ public class TopologicalSort {
      * Returns {@code true} if the graph is a DAG (contains no directed cycle).
      *
      * <p>Convenience method — equivalent to {@code sort(graph).isPresent()}.</p>
+     *
+     * <p>This answer <b>is</b> invariant: whether a graph has a cycle is a property of the
+     * graph, and only the emptiness of {@link #sort(Graph)} is read, never the order.</p>
      *
      * @param <V>   the vertex type.
      * @param graph a directed graph.

@@ -62,32 +62,56 @@ case class UndirectedGraph[V, E](vertexMap: VertexMap[V])
     vertexMap.keySet.toSeq.map(degree).sum.toDouble / order
 
   /**
-   * Determines whether the graph contains a cycle using DFS to detect is we encounter a previously visited vertex.
+   * Determines whether the graph contains a cycle.
+   *
+   * ==Counting, not cycle-hunting==
+   *
+   * An undirected graph is a '''forest''' exactly when it has `order - componentCount` edges: each
+   * component with `k` vertices contributes `k - 1` tree edges and no more. Any additional edge
+   * closes a cycle. So the question is answered by a count, and the only traversal needed is the
+   * one that establishes how many components there are — which is the engine's `dfs`, the same
+   * call `isConnected` makes below.
+   *
+   * This also handles the degenerate shapes without special-casing them: a self-loop is one extra
+   * edge over the forest bound, and so are parallel edges, were `fromTriplets` ever to admit them
+   * (#57).
+   *
+   * ==Why not a parent-aware traversal, which is what #53 proposed==
+   *
+   * The textbook rule is "a back edge to anything other than the vertex you came from", and #53
+   * expected to express it through the engine once Visitor#20 supplied the predecessor. Visitor
+   * 1.10.0 does supply it, via `EvaluableFrom` and `ParentedVisitor`, and it is '''still not
+   * enough''': `Traversal.traverse` filters neighbours through the visited set '''before''' it
+   * calls `discover`, so a back edge is never reported to a visitor at all. The predecessor
+   * identifies which non-tree edges to ignore; it cannot show you the non-tree edges.
+   *
+   * Reporting them would be a change to Visitor's engine rather than to its visitors. Counting
+   * needs neither, and removes the hand-rolled DFS this method used to carry — which is what #53
+   * actually wanted, there being no second DFS implementation here any more.
    *
    * @return true if the graph is cyclic (i.e., it contains at least one cycle), false otherwise.
-   * @note Result: invariant.
+   * @note Result: invariant. `order` and `size` are counts, and the number of components is a
+   *       property of the graph -- only the component IDs and the spanning trees vary, and
+   *       neither is read here.
    */
   lazy val isCyclic: Boolean =
     given Random = Random()
 
-    // The visited set is threaded through rather than mutated: each call returns both its answer
-    // and the set as it stands, so a later sibling sees what an earlier one reached — which is
-    // what the mutable version got from sharing one `Set`.
-    def dfs(v: V, parent: Option[V], visited: Set[V]): (Boolean, Set[V]) =
-      adjacentVertices(v).foldLeft(false -> (visited + v)) {
-        case (found@(true, _), _) =>
-          found // a cycle is already known; stop looking
-        case ((false, seen), w) =>
-          if !seen.contains(w) then dfs(w, Some(v), seen)
-          else !parent.contains(w) -> seen // a back edge to anything but the parent is a cycle
-      }
+    given Evaluable[V, V] with
+      def evaluate(v: V): Option[V] = Some(v)
 
-    vertexMap.keySet.foldLeft(false -> Set.empty[V]) {
-      case (found@(true, _), _) =>
-        found
-      case ((false, seen), v) =>
-        if seen.contains(v) then false -> seen else dfs(v, None, seen)
-    }._1
+    // One engine DFS per component, each seeded at the first vertex the previous ones did not
+    // reach. The traversal belongs to Visitor; all this adds is the seeding and the tally.
+    val componentCount: Int =
+      vertexMap.keySet.foldLeft(0 -> Set.empty[V]) {
+        case (acc@(count, seen), v) =>
+          if seen.contains(v) then acc
+          else
+            val reached = dfs(JournaledVisitor.withQueueJournal[V, V])(v).result.map(_._1).toSet
+            (count + 1) -> (seen ++ reached)
+      }._1
+
+    size > order - componentCount
 
   /**
    * Returns true if this undirected graph is connected — i.e. every vertex

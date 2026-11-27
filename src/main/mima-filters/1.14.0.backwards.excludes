@@ -61,3 +61,29 @@ ProblemFilters.exclude[ClassNoLongerCheckedProblem]("com.phasmidsoftware.gryphon
 #
 ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.traverse.Kosaraju$package")
 ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.traverse.Kosaraju$package$")
+#
+# ---------------------------------------------------------------------------------------
+# The MST algorithms return MST-specific result types.
+#
+# Prim returned `TraversalResult[V, Edge[V, E]]` and Kruskal/Boruvka returned
+# `AbstractEdgeTraversalResult[Edge[V, E]]`. Those have no common supertype that says anything
+# useful: the first is keyed by VERTEX and the second by POSITION, so `TraversalResult`'s own key
+# parameter is filled differently and no function could take all three results.
+#
+# They now return `MSTParentMap` and `MSTEdgeList`, which share `MSTResult` -- a trait carrying
+# `edges` and `totalWeight`. The representations are deliberately NOT normalised: Prim's parent
+# map and Kruskal's ascending-weight order are both real information, and 1.13.0 separated the
+# two branches for that reason. What is shared is a VIEW, as `AbstractComponentResult` does for
+# the component algorithms.
+#
+# Source-compatible for existing callers: MSTEdgeList is still an AbstractEdgeTraversalResult and
+# so still a Seq, and MSTParentMap is still an AbstractVertexTraversalResult. Every operation that
+# worked before still works; 794 tests needed no edit.
+#
+# The two `mst` entries are the private[traverse] implementation objects, whose return type
+# changed before their visibility did -- the ClassNoLongerCheckedProblem filters above cover the
+# visibility, not the signature.
+#
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.Kruskal.mst(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,scala.math.Ordering)com.phasmidsoftware.gryphon.traverse.AbstractEdgeTraversalResult")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka.mst(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,cats.kernel.Monoid,scala.math.Ordering)com.phasmidsoftware.gryphon.traverse.AbstractEdgeTraversalResult")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,java.lang.Object,cats.kernel.Monoid,scala.math.Ordering,scala.util.Random)com.phasmidsoftware.gryphon.traverse.TraversalResult")

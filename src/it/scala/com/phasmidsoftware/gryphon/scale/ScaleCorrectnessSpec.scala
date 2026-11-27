@@ -145,8 +145,10 @@ class ScaleCorrectnessSpec extends AnyFlatSpec with Matchers:
     for g <- Seq(ScaleGraphs.sparseDag, ScaleGraphs.denseDag) do
       val sccs = StronglyConnectedComponents.kosaraju[Int, Double](g)
       sccs.keySet shouldBe (0 until V).toSet
-      // Grouping is invariant even though the numbering is not, so this is the safe assertion.
-      sccs.groupBy((_, id) => id).values.map(_.keySet).toSet.size shouldBe V
+      // Grouping is invariant even though the numbering is not, so this is the safe assertion --
+      // and since 1.15.0 the result offers it directly rather than making each caller derive it.
+      sccs.partition.size shouldBe V
+      sccs.partition.flatten shouldBe (0 until V).toSet
   }
 
   /** Walks each vertex's recorded predecessor edge back to the source, summing the weights. */

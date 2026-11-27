@@ -46,21 +46,11 @@ import scala.util.Random
  * @tparam E the edge-attribute type.
  */
 case class ConnectedResult[V, E](map: Map[V, Int], connexions: Connexions[V, E])
-        extends AbstractVertexTraversalResult[V, Int](map):
+        extends AbstractComponentResult[V](map):
 
-  /**
-   * The components themselves, as a partition of the vertices.
-   *
-   * This is the strongest thing this type offers, and the one to compare between runs: unlike
-   * `map` it carries no arbitrary labelling, so its invariance needs no footnote. The number of
-   * components is `partition.size`.
-   *
-   * Derived from `map` rather than stored alongside it, so the two cannot drift apart.
-   *
-   * @return one `Set[V]` per connected component.
-   */
-  def partition: Set[Set[V]] =
-    map.groupBy(_._2).values.map(_.keySet).toSet
+  // `partition` is inherited from AbstractComponentResult, which it moved to in 1.15.0 so that
+  // this and SCCResult share it -- and, more to the point, share the contract about which view
+  // to trust. See #168.
 
   /**
    * @param m the replacement vertex-to-component-id map.

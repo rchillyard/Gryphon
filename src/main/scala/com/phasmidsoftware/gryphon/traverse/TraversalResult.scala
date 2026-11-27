@@ -269,6 +269,51 @@ case class EdgeTraversalResult[V, E, T](ts: List[T]) extends AbstractEdgeTravers
  * @tparam V The type representing a vertex in the graph.
  * @tparam T The resulting type after traversing a vertex or an edge.
  */
+/**
+  * A decomposition of a graph's vertices into components, each labelled with an integer id.
+  *
+  * Two algorithms produce one of these: `ConnectedComponents.components` for weak connectivity
+  * and `StronglyConnectedComponents.kosaraju` for strong. They answer the same KIND of question,
+  * and before 1.15.0 they shared no type at all -- one returned a rich result, the other a bare
+  * `Map`. See #168.
+  *
+  * ==What this type is really for: saying which view to trust==
+  *
+  * It exists less to share the one-line `partition` than to state a contract that is subtle,
+  * identical for both, and easy to get wrong in different ways on each:
+  *
+  *  - `partition` is '''a property of the graph'''. Which vertices share a component does not depend
+  *    on how the search ran. Invariant, without qualification. '''Compare this.'''
+  *  - `map` is '''a labelling''', and its stability is an implementation detail rather than a promise.
+  *    For connected components it happens not to vary, because ids are handed out by walking a
+  *    `Set`. For strongly connected components it '''does''' vary -- measured over forty seeds on a
+  *    DAG of singleton components: two distinct numberings, one grouping. '''Do not compare this.'''
+  *
+  * That asymmetry is exactly the sort of thing that gets documented on one type and forgotten on
+  * the other. Here it is written once, and `partition` is visibly the member the contract is about.
+  *
+  * ==A trap inherited from above==
+  *
+  * `size` comes from [[AbstractVertexTraversalResult]] and counts '''vertices''', as on every
+  * `TraversalResult`. On a type about components it is tempting to read it as the component
+  * count. That is `partition.size`.
+  *
+  * @param map every vertex against its component id (0, 1, 2, ...).
+  * @tparam V the vertex type.
+  */
+abstract class AbstractComponentResult[V](map: Map[V, Int]) extends AbstractVertexTraversalResult[V, Int](map) {
+
+  /**
+    * The components themselves, as a partition of the vertices.
+    *
+    * Derived from `map` rather than stored beside it, so the two cannot drift apart. The number
+    * of components is `partition.size`.
+    *
+    * @return one `Set[V]` per component.
+    */
+  def partition: Set[Set[V]] = map.groupBy((_, id) => id).values.map(_.keySet).toSet
+}
+
 case class VertexTraversalResult[V, T](map: Map[V, T]) extends AbstractVertexTraversalResult[V, T](map) {
   /**
    * Adds a new mapping of a vertex to its corresponding traversal result to the existing map,

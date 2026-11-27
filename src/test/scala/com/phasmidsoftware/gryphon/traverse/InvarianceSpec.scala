@@ -97,11 +97,13 @@ class InvarianceSpec extends AnyFlatSpec with Matchers:
       given Random = Random(s)
       StronglyConnectedComponents.kosaraju[Int, Double](g)
     }
-    // Grouping: a property of the graph.
-    numberings.map(m => m.groupBy((_, id) => id).values.map(_.keySet).toSet).distinct.size shouldBe 1
+    // Grouping: a property of the graph. Since 1.15.0 the result offers this directly as
+    // `partition`, rather than leaving each caller to derive it -- which is what this test used
+    // to do by hand, and is exactly the argument #168 made for giving the type a real member.
+    numberings.map(_.partition).distinct.size shouldBe 1
     // Numbering: not. This half must keep failing to be constant, or the advice to compare
     // groupings rather than ids would be unnecessary caution rather than a real warning.
-    numberings.distinct.size should be > 1
+    numberings.map(_.map).distinct.size should be > 1
   }
 
   behavior of "a method documented as varying"

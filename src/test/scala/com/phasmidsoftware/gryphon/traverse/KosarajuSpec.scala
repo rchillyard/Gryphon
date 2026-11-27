@@ -54,12 +54,12 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
 
   it should "label all 7 vertices" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    result.size shouldBe 7
+    result.map.size shouldBe 7
   }
 
   it should "find exactly 4 SCCs" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    result.values.toSet.size shouldBe 4
+    result.map.values.toSet.size shouldBe 4
   }
 
   // Sedgewick & Wayne, Algorithms 4th ed., figure for Algorithm 4.6 (p587).
@@ -75,8 +75,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   // documents that, so it is not worth depending on.)
   it should "find the five strong components of directedSCC.graph" in {
     val result: SCCResult[Int] = kosaraju[Int, Unit](loadDirectedGraph("directedSCC.graph"))
-    result.values.toSet.size shouldBe 5
-    result.groupBy(_._2).values.map(_.keySet).toSet shouldBe
+    result.map.values.toSet.size shouldBe 5
+    result.map.groupBy(_._2).values.map(_.keySet).toSet shouldBe
             Set(Set(1), Set(0, 2, 3, 4, 5), Set(9, 10, 11, 12), Set(6, 8), Set(7))
   }
 
@@ -88,17 +88,17 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
 
   it should "assign vertices 0, 2, 5, and 6 the same SCC id" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    result(0) shouldBe result(2)
-    result(2) shouldBe result(5)
-    result(5) shouldBe result(6)
+    result.map(0) shouldBe result.map(2)
+    result.map(2) shouldBe result.map(5)
+    result.map(5) shouldBe result.map(6)
   }
 
   it should "assign the SCC {0,2,5,6} a different id from every singleton" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    val scc0256 = result(0)
-    result(1) should not be scc0256
-    result(3) should not be scc0256
-    result(4) should not be scc0256
+    val scc0256 = result.map(0)
+    result.map(1) should not be scc0256
+    result.map(3) should not be scc0256
+    result.map(4) should not be scc0256
   }
 
   // -------------------------------------------------------------------------
@@ -109,18 +109,18 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
 
   it should "assign vertices 1, 3, 4 each their own unique SCC id" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    val singletons = Seq(result(1), result(3), result(4))
+    val singletons = Seq(result.map(1), result.map(3), result.map(4))
     singletons.distinct.size shouldBe 3
   }
 
   it should "assign vertex 1 a different SCC id from vertex 4 (1->4 is a cross edge)" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    result(1) should not be result(4)
+    result.map(1) should not be result.map(4)
   }
 
   it should "assign vertex 3 a different SCC id from vertex 6 (3->6 is a cross edge)" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    result(3) should not be result(6)
+    result.map(3) should not be result.map(6)
   }
 
   // -------------------------------------------------------------------------
@@ -136,7 +136,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val result = kosaraju[Int, Unit](g)
-        result.values.toSet.size shouldBe 1
+        result.map.values.toSet.size shouldBe 1
       case other => fail(s"unexpected: $other")
   }
 
@@ -148,8 +148,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val result = kosaraju[Int, Unit](g)
-        result.values.toSet.size shouldBe 1
-        result(0) shouldBe result(1)
+        result.map.values.toSet.size shouldBe 1
+        result.map(0) shouldBe result.map(1)
       case other =>
         fail(s"unexpected: $other")
   }
@@ -161,8 +161,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val result = kosaraju[Int, Unit](g)
-        result.values.toSet.size shouldBe 2
-        result(0) should not be result(1)
+        result.map.values.toSet.size shouldBe 2
+        result.map(0) should not be result.map(1)
       case other =>
         fail(s"unexpected: $other")
   }
@@ -175,9 +175,9 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val result = kosaraju[Int, Unit](g)
-        result.values.toSet.size shouldBe 3
-        result(0) should not be result(1)
-        result(1) should not be result(2)
+        result.map.values.toSet.size shouldBe 3
+        result.map(0) should not be result.map(1)
+        result.map(1) should not be result.map(2)
       case other =>
         fail(s"unexpected: $other")
   }
@@ -191,9 +191,9 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Unit] @unchecked) =>
         val result = kosaraju[Int, Unit](g)
-        result.values.toSet.size shouldBe 1
-        result(0) shouldBe result(1)
-        result(1) shouldBe result(2)
+        result.map.values.toSet.size shouldBe 1
+        result.map(0) shouldBe result.map(1)
+        result.map(1) shouldBe result.map(2)
       case other =>
         fail(s"unexpected: $other")
   }
@@ -294,7 +294,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
    */
   private def condensationIsAcyclic(edges: Seq[(Int, Int)], scc: SCCResult[Int]): Boolean =
     val condensed: Set[(Int, Int)] =
-      edges.collect { case (u, v) if scc(u) != scc(v) => scc(u) -> scc(v) }.toSet
+      edges.collect { case (u, v) if scc.map(u) != scc.map(v) => scc.map(u) -> scc.map(v) }.toSet
 
     @annotation.tailrec
     def peel(remaining: Set[Int], es: Set[(Int, Int)]): Boolean =
@@ -304,7 +304,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
         if sources.isEmpty then false // every surviving vertex has an incoming edge: a cycle
         else peel(remaining -- sources, es.filterNot((u, _) => sources.contains(u)))
 
-    peel(scc.values.toSet, condensed)
+    peel(scc.map.values.toSet, condensed)
 
   /**
    * Does every component contain exactly the vertices mutually reachable with its members?
@@ -332,8 +332,7 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     val forward = edges.groupBy(_._1).view.mapValues(_.map(_._2).toSet).toMap
     val backward = edges.groupBy(_._2).view.mapValues(_.map(_._1).toSet).toMap
 
-    scc.groupBy(_._2).forall { (_, members) =>
-      val component = members.keySet
+    scc.partition.forall { component =>
       val r = component.head
       closure(forward, r).intersect(closure(backward, r)) == component
     }
@@ -356,8 +355,8 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give every vertex of directed.graph exactly one component" in {
     val result = kosaraju[Int, Unit](loadDirectedGraph("directed.graph"))
-    result.keySet shouldBe Set(0, 1, 2, 3, 4, 5, 6)
-    result.groupBy(_._2).values.map(_.size).sum shouldBe 7
+    result.map.keySet shouldBe Set(0, 1, 2, 3, 4, 5, 6)
+    result.map.groupBy(_._2).values.map(_.size).sum shouldBe 7
   }
 
   behavior of "Kosaraju — two non-trivial SCCs"
@@ -367,20 +366,20 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   it should "keep two disjoint cycles apart, joined one way" in {
     withGraph(0 -> 1, 1 -> 2, 2 -> 0, 3 -> 4, 4 -> 5, 5 -> 3, 2 -> 3) { g =>
       val result = kosaraju[Int, Unit](g)
-      result.values.toSet.size shouldBe 2
-      result(0) shouldBe result(1)
-      result(1) shouldBe result(2)
-      result(3) shouldBe result(4)
-      result(4) shouldBe result(5)
-      result(0) should not be result(3)
+      result.map.values.toSet.size shouldBe 2
+      result.map(0) shouldBe result.map(1)
+      result.map(1) shouldBe result.map(2)
+      result.map(3) shouldBe result.map(4)
+      result.map(4) shouldBe result.map(5)
+      result.map(0) should not be result.map(3)
     }
   }
 
   it should "keep them apart when nothing joins them at all" in {
     withGraph(0 -> 1, 1 -> 2, 2 -> 0, 3 -> 4, 4 -> 5, 5 -> 3) { g =>
       val result = kosaraju[Int, Unit](g)
-      result.values.toSet.size shouldBe 2
-      result.groupBy(_._2).values.map(_.size).toSet shouldBe Set(3)
+      result.map.values.toSet.size shouldBe 2
+      result.map.groupBy(_._2).values.map(_.size).toSet shouldBe Set(3)
     }
   }
 
@@ -398,13 +397,13 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
     triplesToTryGraph[Int, Unit](Vertex.createWithSet)(triplets).get match
       case g: DirectedGraph[Int, Unit] @unchecked =>
         val result = kosaraju[Int, Unit](g)
-        result.size shouldBe 7
-        result.values.toSet.size shouldBe 7 // all singletons
+        result.map.size shouldBe 7
+        result.map.values.toSet.size shouldBe 7 // all singletons
   }
 
   it should "give every vertex of a diamond its own component" in {
     withGraph(0 -> 1, 0 -> 2, 1 -> 3, 2 -> 3) { g =>
-      kosaraju[Int, Unit](g).values.toSet.size shouldBe 4
+      kosaraju[Int, Unit](g).map.values.toSet.size shouldBe 4
     }
   }
 
@@ -416,18 +415,18 @@ class KosarajuSpec extends AnyFlatSpec with should.Matchers:
   it should "collapse a bidirectional path to a single component" in {
     withGraph(0 -> 1, 1 -> 0, 1 -> 2, 2 -> 1, 2 -> 3, 3 -> 2) { g =>
       val result = kosaraju[Int, Unit](g)
-      result.values.toSet.size shouldBe 1
-      result.size shouldBe 4
+      result.map.values.toSet.size shouldBe 1
+      result.map.size shouldBe 4
     }
   }
 
   it should "give one component per bidirectional island" in {
     withGraph(0 -> 1, 1 -> 0, 2 -> 3, 3 -> 2) { g =>
       val result = kosaraju[Int, Unit](g)
-      result.values.toSet.size shouldBe 2
-      result(0) shouldBe result(1)
-      result(2) shouldBe result(3)
-      result(0) should not be result(2)
+      result.map.values.toSet.size shouldBe 2
+      result.map(0) shouldBe result.map(1)
+      result.map(2) shouldBe result.map(3)
+      result.map(0) should not be result.map(2)
     }
   }
 

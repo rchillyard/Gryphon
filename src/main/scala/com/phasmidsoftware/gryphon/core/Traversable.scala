@@ -27,14 +27,9 @@ trait Traversable[V] {
    */
   def order: Int
 
-  /**
-   * @return the number of vertices in the graph.
-   * @deprecated `order` is the standard graph-theory term for this, and is what the Java façade
-   *             has always called it. A single capital letter also reads as a type parameter in
-   *             Scala, which `N` is not.
-   */
-  @deprecated("Use order", "1.9.0")
-  def N: Int = order
+  // `N`, a deprecated alias for `order` since 1.9.0, was removed in 1.14.0 (#160). `order` is the
+  // standard graph-theory term and is what the Java facade has always called it; a single capital
+  // letter also reads as a type parameter in Scala, which `N` was not.
 
   /**
    * Retrieves the vertex associated with the given key.
@@ -278,13 +273,7 @@ trait EdgeTraversable[V, E] extends Traversable[V] {
    */
   def size: Int
 
-  /**
-   * @return the number of edges in the graph.
-   * @deprecated `size` is the standard graph-theory term for this, and is what the Java façade
-   *             has always called it. See the note on [[Traversable.N]].
-   */
-  @deprecated("Use size", "1.9.0")
-  def M: Int = size
+  // `M`, a deprecated alias for `size` since 1.9.0, was removed in 1.14.0 (#160), with `N`.
 }
 
 /**

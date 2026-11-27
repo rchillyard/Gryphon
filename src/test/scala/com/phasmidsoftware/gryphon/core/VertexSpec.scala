@@ -7,8 +7,7 @@ class VertexSpec extends AnyFlatSpec with should.Matchers:
 
   behavior of "Vertex"
 
-  // DiscoverableVertex is a type alias for SimpleVertex — both names are valid
-  val target: DiscoverableVertex[Int] = Vertex.create(1)
+  val target: SimpleVertex[Int] = Vertex.create(1)
 
   it should "adjacencies" in {
     target.adjacencies shouldBe Unordered_Bag(Bag.empty)

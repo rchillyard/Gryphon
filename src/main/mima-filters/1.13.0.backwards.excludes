@@ -85,3 +85,36 @@ ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.
 # the ten pairs added in 1.13.0. A Java caller has no way to write a `given`, so where the order
 # reaches the result the method comes in a pair. `ShortestPaths.acyclic` deliberately did not --
 # see the note above.
+#
+# ---------------------------------------------------------------------------------------
+# #160: the four deprecated aliases are removed.
+#
+# None of them had a call site anywhere in this repository, and two had been deprecated for
+# seven releases. A deprecated alias costs nothing to keep for one release and something to
+# keep forever: it is published API, it appears in Scaladoc, and the next person reading
+# `Traversable` meets two names for the vertex count and has to work out which is current.
+#
+# `util.GraphException` (since 1.7.0) existed because Gryphon once had two identical but
+# unrelated `GraphException` case classes, so catching one did not catch the other. `core` has
+# been the only one since. The whole file is gone; the rest of the `util` package stays.
+#
+# `N` and `M` (since 1.9.0) were replaced by `order` and `size`, the standard graph-theory terms
+# and what the Java facade has always called them. MiMa reports five removals for two methods
+# because the inherited copies on `AbstractGraph`, `AbstractAdjunctGraph`, `EdgeTraversable` and
+# `VertexMap` are separate entries in the erased API.
+#
+# `DiscoverableVertex` had no `since` version, so it had given no formal notice. It goes anyway:
+# it aliased a type declared in the same file. Removing it removes the synthetic `Vertex$package`
+# holder with it, because that alias was the only top-level definition in Vertex.scala -- which
+# is why two MissingClassProblem entries appear for what reads as one deletion, and the same for
+# `GraphException$package`.
+#
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.Traversable.N()Int")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.AbstractGraph.N()Int")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.VertexMap.N()Int")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.core.EdgeTraversable.M()Int")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.adjunct.AbstractAdjunctGraph.M()Int")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.Vertex$package")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.core.Vertex$package$")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$package")
+ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.util.GraphException$package$")

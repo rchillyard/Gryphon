@@ -100,7 +100,6 @@ class VertexMapSpec extends AnyFlatSpec with Matchers:
     val updated = target + AttributedDirectedEdge("C", 4, 2)
     updated.contains(4) shouldBe true
     updated.apply(4).attribute shouldBe 4
-    // SimpleVertex is aliased as DiscoverableVertex for backward compatibility
     updated.get(2) should matchPattern { case Some(SimpleVertex(2, Unordered_Set(_))) => }
     updated(2).adjacencies.iterator.hasNext shouldBe false
     updated(4).adjacencies.iterator.to(List) shouldBe List(AdjacencyEdge(AttributedDirectedEdge("C", 4, 2)))

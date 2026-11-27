@@ -52,14 +52,21 @@ class ScaleTimingSpec extends AnyFlatSpec with Matchers:
     succeed
   }
 
-  // Prim on the SPARSE graph only. The dense case takes over two minutes (#164), which is too
-  // long even here; the ratio between sparse and dense is recorded on that issue instead. Add
-  // the dense case back when #164 is fixed.
-  it should "report Prim on the sparse graph, which is slow enough to be the point" in {
-    val ms = time("sparse MST.prim")(MST.prim[Int, Double](ScaleGraphs.sparse, 0).keySet.size)
-    // A sanity bound, not a performance target: Prim took about 5.7 s when #164 was filed, so a
-    // minute means something has gone badly wrong rather than merely slowly.
-    ms should be < 60000L
+  // Both graphs again, as of 1.15.0. The dense case was excluded while #164 stood, because Prim
+  // took over two minutes on it -- an unreasonable cost for one assertion even in a deliberate
+  // suite. Visitor 1.10.0 fixed the O(n log n) decreaseKey behind that, and it now runs in a few
+  // hundred milliseconds, so the exclusion has no justification left.
+  //
+  // This is the test that would catch a regression there, which is exactly why it belongs back.
+  it should "report Prim on both graphs, which is where #164 showed up" in {
+    val sparse = time("sparse MST.prim")(MST.prim[Int, Double](ScaleGraphs.sparse, 0).keySet.size)
+    val dense = time("dense MST.prim")(MST.prim[Int, Double](ScaleGraphs.dense, 0).keySet.size)
+
+    // Sanity bounds, not performance targets, set well above the observed figures so that CI
+    // hardware cannot flake them. Before the fix the dense case was 138,858 ms; ten seconds
+    // means something has gone badly wrong rather than merely slowly.
+    sparse should be < 10000L
+    dense should be < 10000L
   }
 
   behavior of "the directed algorithms"

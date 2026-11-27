@@ -6,6 +6,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
+import scala.util.Random
 
 /**
  * Computes shortest paths in a weighted DAG using topological relaxation.
@@ -31,9 +32,9 @@ import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge
  * methods take none. The costs they compute are invariant; which of several equal-cost paths
  * they report is fixed per graph '''instance''' — the relaxation order is the memoized
  * `DirectedGraph.topologicalOrder` — and arbitrary across instances and across runs. A seed
- * cannot change that, and adding a parameter for one would not help, since the only order a
- * generator could reach here is provably inert. `shortestPaths` explains why in full; #158
- * tracks what it would take to make this pinnable.
+ * cannot change that: the topological order is what decides it. Since 1.15.0 these methods take
+ * the order as an argument, which is the route to a reproducible answer (#158), '''and''' a
+ * `Random`, which settles the one other thing that turned out to matter (#184).
  */
 // The implementation lives here; the entry point is on the problem object -- see #171.
 // Named for the algorithm because that is what it IS, and private because that is not
@@ -70,11 +71,18 @@ private[traverse] object AcyclicShortestPaths:
    *  - The topological order is memoized in a `lazy val`, and a `val` takes no `using` clause.
    *    A generator cannot reach it. Keeping the cache is deliberate — it is what stops a caller
    *    who checks `isDAG` first from paying for two sorts (#118).
-   *  - The edge order within a vertex is reachable, and settles nothing. Each edge `v -> w`
-   *    updates its own key, so two edges from `v` can only compete when they run to the '''same'''
-   *    `w` at equal cost — parallel edges, which Gryphon's adjacency structure does not admit:
-   *    `fromTriplets` rejects such a graph outright (#57). Measured on a diamond with both equal-cost
-   *    paths present, forty seeds give one result.
+   *  - The edge order within a vertex is reachable, and '''does''' settle something, which was
+   *    missed until #184. Each edge `v -> w` updates its own key, so two edges from `v` compete
+   *    only when they run to the '''same''' `w` at equal cost — parallel edges. Those were
+   *    believed unbuildable, on a misreading of #57, which is about triplet orientation and
+   *    adjacency counts. `fromTriplets` builds parallel edges perfectly happily, so the
+   *    relaxation keeps whichever the shuffled adjacency iterator offers first. Measured on
+   *    parallel equal-cost edges with the topological order held fixed: two answers over two
+   *    hundred calls. The original "forty seeds, one result" used a diamond, which has no
+   *    parallel edges and so could not have varied whatever the seed.
+   *
+   * That is why these methods DO now take a `Random`. The paragraph below survives as the
+   * argument that was made, and it is wrong in its premise:
    *
    * So a `(using Random)` here would be a parameter that provably does nothing on any graph this
    * library can build, while reading as a guarantee of reproducibility it could not keep. That is
@@ -97,8 +105,8 @@ private[traverse] object AcyclicShortestPaths:
    *       the memoized `DirectedGraph.topologicalOrder`, which a `lazy val` cannot take a
    *       generator for. Stable for one graph instance. See #158.
    */
-  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    relax(graph, start, cachedOrder(graph))(using summon[Monoid[E]], summon[Ordering[E]])
+  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start, cachedOrder(graph))(using summon[Monoid[E]], summon[Ordering[E]], random)
 
   /**
    * Computes shortest paths from `start`, relaxing in the topological order the caller supplies.
@@ -116,11 +124,11 @@ private[traverse] object AcyclicShortestPaths:
    * AcyclicShortestPaths.shortestPaths(dag, 0, order)
    * }}}
    *
-   * '''The order is the mechanism, so the order is the parameter.''' A `(using Random)` was
-   * considered under #154 and rejected: the only ordering a generator can reach inside this
-   * algorithm is the edge order within a vertex, which is provably inert, so the parameter would
-   * have read as a reproducibility guarantee while changing nothing. Naming the real thing avoids
-   * that -- a caller passing an order can see exactly what their choice decides.
+   * '''The order is one of two mechanisms, and both are now parameters.''' This overload fixes
+   * the order of VERTICES. The order of EDGES within a vertex is settled by the `Random`, which
+   * this overload requires rather than defaults — #154 rejected that generator as inert, on a
+   * premise that turned out to be false (#184), and a form whose whole purpose is reproducibility
+   * should not quietly fall back to a generator its caller cannot reach.
    *
    * The cost is one extra O(V+E) sort, paid only by the caller who asks for it; the two-argument
    * method still uses the cache.
@@ -139,8 +147,8 @@ private[traverse] object AcyclicShortestPaths:
    * @note Result: a function of `graph`, `start` and `order`. Supply a seeded order and the
    *       result is fully reproducible, which the two-argument form cannot promise.
    */
-  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    relax(graph, start, validatedOrder(graph, order))(using summon[Monoid[E]], summon[Ordering[E]])
+  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V])(using random: Random): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start, validatedOrder(graph, order))(using summon[Monoid[E]], summon[Ordering[E]], random)
 
   /**
    * Computes LONGEST paths from `start` to all reachable vertices in `graph`.
@@ -175,8 +183,8 @@ private[traverse] object AcyclicShortestPaths:
    *       the memoized `DirectedGraph.topologicalOrder`, which a `lazy val` cannot take a
    *       generator for. Stable for one graph instance. See #158.
    */
-  def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    relax(graph, start, cachedOrder(graph))(using summon[Monoid[E]], summon[Ordering[E]].reverse)
+  def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start, cachedOrder(graph))(using summon[Monoid[E]], summon[Ordering[E]].reverse, random)
 
   /**
    * Computes LONGEST paths from `start`, relaxing in the topological order the caller supplies.
@@ -195,8 +203,8 @@ private[traverse] object AcyclicShortestPaths:
    * @note Result: a function of `graph`, `start` and `order`, so a seeded order makes it
    *       fully reproducible.
    */
-  def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    relax(graph, start, validatedOrder(graph, order))(using summon[Monoid[E]], summon[Ordering[E]].reverse)
+  def longestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V])(using random: Random): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    relax(graph, start, validatedOrder(graph, order))(using summon[Monoid[E]], summon[Ordering[E]].reverse, random)
 
   /**
    * The relaxation shared by `shortestPaths` and `longestPaths`, which differ only in the
@@ -263,7 +271,7 @@ private[traverse] object AcyclicShortestPaths:
                 s"edge $v -> ${e.black} runs backwards in it")
     order
 
-  private def relax[V, E](graph: DirectedGraph[V, E], start: V, topoOrder: Seq[V])(using mn: Monoid[E], ord: Ordering[E]): VertexTraversalResult[V, DirectedEdge[V, E]] =
+  private def relax[V, E](graph: DirectedGraph[V, E], start: V, topoOrder: Seq[V])(using mn: Monoid[E], ord: Ordering[E], random: Random): VertexTraversalResult[V, DirectedEdge[V, E]] =
     // One pass in topological order, so each vertex is final by the time it is reached and the
     // state can simply be threaded through rather than mutated. `dist` and `pred` travel together
     // because they are updated together, on exactly the edges that relax.

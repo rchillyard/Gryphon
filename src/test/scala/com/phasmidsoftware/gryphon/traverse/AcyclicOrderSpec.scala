@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.gryphon.traverse
 
+import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.gryphon.core.{Directed, EdgeType, Triplet, Vertex}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -39,6 +40,12 @@ class AcyclicOrderSpec extends AnyFlatSpec with Matchers:
 
   given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
+  // The order-taking overloads REQUIRE a generator since #184 -- they do not default one, because
+  // a form whose purpose is reproducibility should not fall back on something its caller cannot
+  // reach. These tests are about the ORDER, so they hold the generator still; the parallel-edge
+  // tests at the end shadow this with their own.
+  given Random = Random(0)
+
   private def directed(ts: Seq[Triplet[Int, Double, EdgeType]]): DirectedGraph[Int, Double] =
     DirectedGraph.triplesToTryGraph[Int, Double](Vertex.createWithSet)(ts) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) => g
@@ -57,6 +64,8 @@ class AcyclicOrderSpec extends AnyFlatSpec with Matchers:
     Triplet(1, 3, Some(1.0), Directed),
     Triplet(2, 3, Some(1.0), Directed)))
 
+  // A fixed generator, so these tests isolate the ORDER's effect. #184 showed the edge order
+  // within a vertex matters too; the parallel-edge tests at the end are about that half.
   private def predecessorOf3(g: DirectedGraph[Int, Double], order: Seq[Int]): String =
     ShortestPaths.acyclic[Int, Double](g, 0, order).vertexTraverse(3).toString
 
@@ -141,4 +150,82 @@ class AcyclicOrderSpec extends AnyFlatSpec with Matchers:
     val thrown = the[IllegalArgumentException] thrownBy
             ShortestPaths.acyclic[Int, Double](diamond, 0, Seq(0, 1, 2, 99))
     thrown.getMessage should include("every vertex exactly once")
+  }
+
+  // ---------------------------------------------------------------------------
+  // The OTHER order, which #158 missed and #184 corrects
+  // ---------------------------------------------------------------------------
+
+  /**
+    * A cost whose `Ordering` ignores `tag`, so two parallel edges can tie on cost and still be
+    * told apart in the result.
+    *
+    * With plain `Double` they would be equal objects and any variation would be invisible, which
+    * is exactly why this went unnoticed: the original measurement used a diamond, which has no
+    * parallel edges at all, so no seed could have changed its answer. A fixture that cannot vary
+    * proves nothing.
+    */
+  case class Cost(amount: Double, tag: String)
+
+  private given Monoid[Cost] with
+    def empty: Cost = Cost(0.0, "")
+
+    def combine(x: Cost, y: Cost): Cost = Cost(x.amount + y.amount, x.tag + y.tag)
+
+  private given Ordering[Cost] = Ordering.by(_.amount)
+
+  /** Two parallel 0 -> 1 edges of equal cost, distinguishable only by their tag. */
+  private def parallelEdges: DirectedGraph[Int, Cost] =
+    val ts: Seq[Triplet[Int, Cost, EdgeType]] = Seq(
+      Triplet(0, 1, Some(Cost(1.0, "a")), Directed),
+      Triplet(0, 1, Some(Cost(1.0, "b")), Directed),
+      Triplet(1, 2, Some(Cost(1.0, "c")), Directed))
+    DirectedGraph.triplesToTryGraph[Int, Cost](Vertex.createWithSet)(ts) match
+      case Success(g: DirectedGraph[Int, Cost] @unchecked) => g
+      case other => fail(s"construction failed: $other")
+
+  behavior of "the edge order within a vertex"
+
+  // The premise everything rested on. Four places in the library said parallel edges could not
+  // be built, citing #57 -- which is about triplet orientation and adjacency counts.
+  it should "be buildable at all: fromTriplets does NOT refuse parallel edges" in {
+    val g = parallelEdges
+    g.order shouldBe 3
+    g.size shouldBe 3 // both 0 -> 1 edges survive, so the forest bound is exceeded
+  }
+
+  // The correction itself. With the topological order held FIXED, the answer still varies --
+  // so the order parameter #158 added was never going to be sufficient on its own.
+  it should "reach the recorded predecessor, with the topological order held fixed" in {
+    val g = parallelEdges
+    val order = g.topologicalOrder.getOrElse(fail("this is a DAG"))
+
+    def tagFor(seed: Int): String =
+      given Random = Random(seed)
+      ShortestPaths.acyclic[Int, Cost](g, 0, order).vertexTraverse(1).map(_.attribute.tag).toString
+
+    (0 until 40).map(tagFor).distinct.size should be > 1
+  }
+
+  // ... and a seed pins it, which is the whole point of the parameter.
+  it should "be pinned by a seed, given the same order" in {
+    val g = parallelEdges
+    val order = g.topologicalOrder.getOrElse(fail("this is a DAG"))
+
+    def tagFor(seed: Int): String =
+      given Random = Random(seed)
+      ShortestPaths.acyclic[Int, Cost](g, 0, order).vertexTraverse(1).map(_.attribute.tag).toString
+
+    (0 until 10).foreach(s => tagFor(s) shouldBe tagFor(s))
+  }
+
+  // The cost is still invariant, which is what most callers assert on and what was never at risk.
+  it should "leave the cost alone whatever the seed" in {
+    val g = parallelEdges
+    val order = g.topologicalOrder.getOrElse(fail("this is a DAG"))
+    val costs = (0 until 40).map { s =>
+      given Random = Random(s)
+      TraversalResult.pathEdgesTo(ShortestPaths.acyclic[Int, Cost](g, 0, order))(2).map(_.attribute.amount).sum
+    }
+    costs.distinct shouldBe Seq(2.0)
   }

@@ -36,6 +36,32 @@ class MSTResultSpec extends AnyFlatSpec with Matchers:
       case Success(g: UndirectedGraph[Int, Double] @unchecked) => g
       case other => fail(s"construction failed: $other")
 
+  /**
+    * A tied diamond -- 0-1, 0-2, 1-3, 2-3, every weight equal -- where Prim can reach vertex 3
+    * by either arm, so two spanning trees are equally minimal and the generator decides which.
+    *
+    * ==Two fixtures that look adequate and are not==
+    *
+    * `weighted` above cannot show variation: tinyEWG's weights are all distinct, so its minimum
+    * spanning tree is UNIQUE and no seed can change it.
+    *
+    * A tied 5-cycle cannot either, which is less obvious. Every vertex has degree two, so each
+    * step of Prim's offers exactly one new neighbour and the shuffle has nothing to permute; both
+    * arms advance together and always meet at the same place. Measured: one answer over twenty
+    * seeds, with edge (2,3) omitted every time. `InvarianceSpec` uses that cycle for Kruskal and
+    * Borůvka, where it is the hardest case, and the diamond for Prim -- the two fixtures are not
+    * interchangeable, and both drafts of this test used the wrong one.
+    *
+    * The branch at vertex 3 is the whole point: variation needs a vertex reachable two ways.
+    */
+  private def tiedDiamond: UndirectedGraph[Int, Double] =
+    val ts: Seq[Triplet[Int, Double, EdgeType]] = Seq(
+      Triplet(0, 1, Some(1.0), Undirected), Triplet(0, 2, Some(1.0), Undirected),
+      Triplet(1, 3, Some(1.0), Undirected), Triplet(2, 3, Some(1.0), Undirected))
+    UndirectedGraph.triplesToTryGraph[Int, Double](Vertex.createWithSet)(ts) match
+      case Success(g: UndirectedGraph[Int, Double] @unchecked) => g
+      case other => fail(s"construction failed: $other")
+
   behavior of "MSTResult"
 
   // The point of the trait. Before this, the three results had no common type at all: Prim's is
@@ -100,4 +126,72 @@ class MSTResultSpec extends AnyFlatSpec with Matchers:
     mst.size shouldBe 7
     mst.head.attribute shouldBe 0.16 +- 0.001
     mst.map(_.attribute).sum shouldBe 1.81 +- 0.001
+  }
+
+  behavior of "MSTAlgorithm"
+
+  // The thing the whole exercise was for. This list could not be written before: the three had no
+  // common result type (#177) and prim's extra parameter meant no common function type (#179).
+  it should "hold all three algorithms in one list" in {
+    given Random = Random(42)
+
+    val g = weighted
+    val algorithms: List[MSTAlgorithm[Int, Double]] = List(
+      KruskalAlgorithm[Int, Double](), BoruvkaAlgorithm[Int, Double](), PrimAlgorithm[Int, Double](0))
+
+    val totals = algorithms.map(a => a(g).totalWeight)
+    totals.foreach(_ shouldBe 1.81 +- 0.001)
+    algorithms.map(a => a(g).edges.size).distinct shouldBe List(7)
+  }
+
+  // The start vertex is configuration, so it belongs to the algorithm rather than the call. On a
+  // CONNECTED graph every root gives the same total; the point here is that varying it is a
+  // property of the value, not an argument every caller must carry.
+  it should "let Prim be configured with its root" in {
+    given Random = Random(42)
+
+    val g = weighted
+    val fromEach = (0 until 8).map(v => PrimAlgorithm[Int, Double](v)(g).totalWeight)
+    fromEach.foreach(_ shouldBe 1.81 +- 0.001)
+  }
+
+  // The honest part of the abstraction: `apply` is shared, the shapes underneath are not.
+  it should "keep each algorithm's own result shape reachable" in {
+    given Random = Random(42)
+
+    val g = weighted
+    MST.prim(g, 0).map.keySet.size shouldBe 7 // Prim's parent map survives
+    MST.kruskal(g).edges.map(_.attribute) shouldBe MST.kruskal(g).edges.map(_.attribute).sorted
+  }
+
+  // The defect this nearly reintroduced, now asserted. The first draft of PrimAlgorithm called
+  // MST.prim with no generator in scope, so the default built a fresh one per call and a
+  // caller's seed stopped dead -- which is #131, inside the abstraction written to tidy these
+  // up. Compiling proves nothing here; only running it does.
+  it should "let a caller's seed reach Prim through the abstraction" in {
+    val g = tiedDiamond // vertex 3 is reachable by either arm, so the seed has a real choice
+    val algorithm = PrimAlgorithm[Int, Double](0)
+
+    // Same seed, same tree.
+    // Identified through MSTResult's own API, not by reaching into Prim's parent map -- which
+    // `apply` does not expose, and should not: a caller holding the abstraction has `edges`.
+    def treeFor(seed: Int): String =
+      algorithm(g)(using Random(seed)).edges.map(_.toString).sorted.mkString("|")
+
+    treeFor(42) shouldBe treeFor(42)
+
+    // And the fixture can tell: without this the assertion above would hold just as well on an
+    // implementation that ignored its seed entirely, which is what the first draft did.
+    (0 until 20).map(treeFor).distinct.size should be > 1
+  }
+
+  // The contrast, and the reason the parameter sits on the shared method rather than only on
+  // Prim: a caller holding an MSTAlgorithm cannot know which they have.
+  it should "leave Kruskal and Boruvka unmoved by the seed" in {
+    val g = tiedDiamond // the same fixture, where Prim DOES vary -- so this is a real contrast
+    val kruskal = KruskalAlgorithm[Int, Double]()
+    val boruvka = BoruvkaAlgorithm[Int, Double]()
+
+    (0 until 20).map(s => kruskal(g)(using Random(s)).edges.map(_.attribute)).distinct.size shouldBe 1
+    (0 until 20).map(s => boruvka(g)(using Random(s)).edges.map(_.attribute)).distinct.size shouldBe 1
   }

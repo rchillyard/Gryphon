@@ -66,7 +66,7 @@ import scala.util.{Random, Try}
  *    never an adjacency iterator. `bfsWithNeighbours` and `dfsWithNeighbours` take the caller's
  *    own neighbour function and never consult the graph's adjacencies. `connectedComponents`
  *    returns only the component map, whose ids come from walking a Set — even though the
- *    `Connexions` tree that `ConnectedComponents.components` also computes does vary, and does
+ *    `connexions` tree that `ConnectedComponents.components` also carries does vary, and does
  *    take a generator (#143). The question is about what the method *returns*, not what the
  *    algorithm computes.
  *  - '''No, although it DOES vary — the third column, and the one to be careful with.'''
@@ -782,19 +782,18 @@ private[java] object JavaFacadeBridge:
   // ---------------------------------------------------------------------------
 
   // No `java.util.Random` variant here, unlike the traversals above -- but not because the
-  // generator does nothing. `ConnectedComponents.components` returns a pair, and the two halves
-  // differ: the `Connexions` discovery tree varies with adjacency order (#143 made the generator
-  // reach it), while the component map does not, since ids are handed out as `unvisited.head`
-  // walks a Set.
+  // generator does nothing. `ConnectedComponents.components` returns three views and they differ:
+  // the `connexions` discovery tree varies with adjacency order (#143 made the generator reach
+  // it), while `map` and `partition` do not.
   //
-  // This method returns only the map. So there is nothing here for a caller's generator to
+  // This method returns only the id map. So there is nothing here for a caller's generator to
   // change, and an overload taking one would be a lever connected to nothing -- which is a
   // statement about what this method exposes, not about what `components` computes. If the
   // facade ever exposes the tree, the overload comes with it.
   def connectedComponents[V](scalaGraph: AbstractGraph[V]): JavaMap[V, JavaInteger] =
     given scala.util.Random = scala.util.Random()
 
-    val (_, componentMap) = ConnectedComponents.components[V, Unit](scalaGraph)
+    val componentMap = ConnectedComponents.components[V, Unit](scalaGraph).map
     val javaMap = new JavaLinkedHashMap[V, JavaInteger]()
     componentMap.foreach { case (v, id) => javaMap.put(v, id) }
     JavaCollections.unmodifiableMap(javaMap)

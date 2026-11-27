@@ -58,8 +58,9 @@ import scala.util.{Random, Try}
  * '''Adding a method? The rule is: does adjacency order reach what this method returns?'''
  *
  *  - '''Yes — give it the pair.''' `bfs`, `dfs`, `dfsAll`, `bfsUntil`, `dijkstraDouble`,
- *    `dijkstraCustom`, `primDouble`, `primCustom`, `kosaraju`, and since 1.14.0 `bellmanFordDouble`
- *    and `bellmanFordCustom`. For Dijkstra, Prim and Bellman-Ford the numbers do not vary —
+ *    `dijkstraCustom`, `primDouble`, `primCustom`, `kosaraju`, since 1.14.0 `bellmanFordDouble`
+ *    and `bellmanFordCustom`, and since 1.15.0 `aStarDouble` and `aStarCustom`. For Dijkstra,
+ *    Prim and Bellman-Ford the numbers do not vary —
  *    distances are distances, a minimum spanning tree is minimum — but which of several
  *    equal-cost trees or paths comes back does.
  *  - '''No, because nothing varies.''' `kruskal` and `boruvka` consult only `graph.edges` and
@@ -417,6 +418,93 @@ private[java] object JavaFacadeBridge:
       def combine(x: E, y: E): E = combineFn.apply(x, y)
     val weightedGraph = materialiseWeighted[V, E](edges)
     val result = ShortestPaths.dijkstra[V, E](weightedGraph, start)
+    edgeResultToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // A* — Option 1: Double weights
+  // ---------------------------------------------------------------------------
+
+  /**
+   * A* from `start` to `goal`, guided by `heuristic`.
+   *
+   * The heuristic must be CONSISTENT, not merely admissible: `h(v) <= cost(v, w) + h(w)` for
+   * every edge. An inconsistent one returns a suboptimal path with nothing thrown, because the
+   * engine will not re-open a settled vertex. Manhattan distance on a unit grid is consistent;
+   * `v -> 0.0` is consistent and makes this Dijkstra.
+   *
+   * The map returned covers only the region A* settled, which is the point of using it — it is
+   * not the full single-source tree `dijkstraDouble` gives.
+   */
+  def aStarDouble[V](
+                            @unused scalaGraph: AbstractGraph[V],
+                            edges: JavaList[WeightedEdge[V, Double]],
+                            start: V,
+                            goal: V,
+                            // java.lang.Double, not Scala's: as a Java generic argument the
+                            // latter erases to Object, and the Java caller's Function<V, Double>
+                            // then will not match. The same erasure is why the Java side casts
+                            // `weightedEdges()` to a raw List.
+                            heuristic: JavaFunction[V, java.lang.Double]
+                    ): JavaMap[V, WeightedEdge[V, Double]] =
+    aStarDouble(scalaGraph, edges, start, goal, heuristic, java.util.Random())
+
+  def aStarDouble[V](
+                            @unused scalaGraph: AbstractGraph[V],
+                            edges: JavaList[WeightedEdge[V, Double]],
+                            start: V,
+                            goal: V,
+                            heuristic: JavaFunction[V, java.lang.Double],
+                            jr: java.util.Random
+                    ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Random = Random(jr)
+
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    val weightedGraph = materialiseWeighted[V, Double](edges)
+    val result = ShortestPaths.aStar[V, Double](weightedGraph, start, goal, v => heuristic.apply(v).doubleValue())
+    edgeResultToJavaMap(result)
+
+  // ---------------------------------------------------------------------------
+  // A* — Option 3: custom type, combine + zero + comparator
+  // ---------------------------------------------------------------------------
+
+  /**
+   * As `dijkstraCustom`, with a goal and a heuristic. The same consistency requirement applies,
+   * and `combineFn` is what adds `h(v)` to the cost so far, so it must agree with the comparator.
+   */
+  def aStarCustom[V, E](
+                               @unused scalaGraph: AbstractGraph[V],
+                               edges: JavaList[WeightedEdge[V, E]],
+                               start: V,
+                               goal: V,
+                               heuristic: JavaFunction[V, E],
+                               combineFn: JavaBinaryOperator[E],
+                               zero: E,
+                               comparator: JavaComparator[E]
+                       ): JavaMap[V, WeightedEdge[V, E]] =
+    aStarCustom(scalaGraph, edges, start, goal, heuristic, combineFn, zero, comparator, java.util.Random())
+
+  def aStarCustom[V, E](
+                               @unused scalaGraph: AbstractGraph[V],
+                               edges: JavaList[WeightedEdge[V, E]],
+                               start: V,
+                               goal: V,
+                               heuristic: JavaFunction[V, E],
+                               combineFn: JavaBinaryOperator[E],
+                               zero: E,
+                               comparator: JavaComparator[E],
+                               jr: java.util.Random
+                       ): JavaMap[V, WeightedEdge[V, E]] =
+    given Random = Random(jr)
+
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    given Monoid[E] with
+      def empty: E = zero
+
+      def combine(x: E, y: E): E = combineFn.apply(x, y)
+    val weightedGraph = materialiseWeighted[V, E](edges)
+    val result = ShortestPaths.aStar[V, E](weightedGraph, start, goal, v => heuristic.apply(v))
     edgeResultToJavaMap(result)
 
   // ---------------------------------------------------------------------------

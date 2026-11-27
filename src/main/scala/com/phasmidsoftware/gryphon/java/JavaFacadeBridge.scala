@@ -76,13 +76,20 @@ import scala.util.{Random, Try}
  *    takes no `using` clause, so no generator can reach it. Repeated calls within a run agree;
  *    a different run may memoize a different valid order.
  *
- *    An overload would not fix this and must not be added as though it did. For
+ *    '''A `Random` overload would not fix this and must not be added as though it did.''' For
  *    `acyclicShortestPaths` the only order a generator could reach is the edge order within a
  *    vertex, and that is inert: each edge writes its own key, so two can compete only as
  *    parallel edges to one target, which `fromTriplets` refuses to build (#57). Measured on a
  *    diamond with two equal-cost paths, forty seeds give one result. Shipping the pair anyway
  *    would repeat exactly the mistake 1.13.0 corrected — an API that reads as a reproducibility
- *    guarantee and is not one. See #158.
+ *    guarantee and is not one.
+ *
+ *    '''What 1.15.0 added instead is an ORDER overload, which is a different thing.'''
+ *    `acyclicShortestPaths*` now also accept the topological order itself, so a Java caller who
+ *    wants a reproducible answer computes one with `topologicalSort(graph, random)` — which is
+ *    seedable — and passes it in. That names the mechanism rather than implying one: the order is
+ *    what decides the answer, so the order is the parameter, and it is validated on arrival
+ *    rather than trusted. The generator pair is still absent here, and still should be. See #158.
  *  - '''How two of these got into the wrong column, and how to avoid repeating it.''' Through
  *    1.13.x this list said `bellmanFord` and `acyclicShortestPaths` relax over all edges and so
  *    could not be affected by adjacency order. False: both call `filteredAdjacencies` per
@@ -733,6 +740,24 @@ private[java] object JavaFacadeBridge:
 
     edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, Double](materialiseWeighted(edges), start))
 
+  /**
+   * As above, relaxing in the order the caller supplies rather than the graph's cached one.
+   *
+   * This is the reproducible form (#158). Compute `order` with `topologicalSort(graph, random)`,
+   * which IS seedable, and the whole result becomes a function of inputs the caller controls.
+   * The order is a plain vertex list, so it carries across the graph instance this bridge
+   * materialises; it is validated against that graph, and an order that is not topological
+   * throws rather than quietly producing a wrong answer.
+   */
+  def acyclicShortestPathsDouble[V](
+                                           edges: JavaList[WeightedEdge[V, Double]],
+                                           start: V,
+                                           order: JavaList[V]
+                                   ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
+
+    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, Double](materialiseWeighted(edges), start, order.asScala.toSeq))
+
   // ---------------------------------------------------------------------------
   // Acyclic shortest paths — Option 3: custom type
   // ---------------------------------------------------------------------------
@@ -751,6 +776,23 @@ private[java] object JavaFacadeBridge:
 
       def combine(x: E, y: E): E = combineFn.apply(x, y)
     edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, E](materialiseWeighted(edges), start))
+
+  /** As above, relaxing in the caller's order rather than the graph's cached one — see #158. */
+  def acyclicShortestPathsCustom[V, E](
+                                              edges: JavaList[WeightedEdge[V, E]],
+                                              start: V,
+                                              order: JavaList[V],
+                                              combineFn: JavaBinaryOperator[E],
+                                              zero: E,
+                                              comparator: JavaComparator[E]
+                                      ): JavaMap[V, WeightedEdge[V, E]] =
+    given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
+
+    given Monoid[E] with
+      def empty: E = zero
+
+      def combine(x: E, y: E): E = combineFn.apply(x, y)
+    edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, E](materialiseWeighted(edges), start, order.asScala.toSeq))
 
   // ---------------------------------------------------------------------------
   // Graph properties

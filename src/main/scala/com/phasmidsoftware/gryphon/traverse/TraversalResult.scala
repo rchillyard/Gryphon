@@ -1,17 +1,60 @@
 package com.phasmidsoftware.gryphon.traverse
 
+import cats.kernel.Monoid
+
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, UndirectedEdge}
 import com.phasmidsoftware.gryphon.core
 import com.phasmidsoftware.gryphon.core.{Connexion, Edge, GraphException}
 import scala.util.Random
 
 /**
- * A trait that defines the behavior of traversal over vertices and edges within a graph-like structure.
+ * A collection of results addressed by some key, where '''the key type is a member rather than a
+ * parameter'''.
  *
- * @tparam V the type representing a vertex in the graph.
- * @tparam T the resulting type after traversing a vertex or an edge.
+ * That distinction is the whole reason this trait exists, and it is worth stating plainly because
+ * it is not obvious.
+ *
+ * [[TraversalResult]] takes its key as a type PARAMETER, which means every subtype must name it.
+ * The two branches of the hierarchy name it differently -- vertex-keyed results are
+ * `TraversalResult[V, T]`, positional ones are `TraversalResult[Int, T]` -- so a trait wanting to
+ * span both has nothing to write in that position. A third parameter would do it, at the cost of
+ * one that carries no usable meaning: a caller holding the abstraction gets a `keySet` whose
+ * element type they cannot act on.
+ *
+ * A type MEMBER can be left abstract by a supertype and fixed by each subtype. So this trait
+ * spans both branches with no extra parameter, and [[MSTResult]] -- which has one shape keyed by
+ * vertex and another by position -- can be written with just `[V, E]`.
+ *
+ * Note what this is NOT: `MSTResult` is not a subtype of `TraversalResult`. They are siblings
+ * sharing this ancestor. Making it a true subtype would mean moving the key out of
+ * `TraversalResult`'s parameters altogether, which is a change to 61 use sites rather than one
+ * new trait, and is deferred rather than ruled out.
+ *
+ * @tparam T the result associated with each key.
  */
-trait TraversalResult[V, T] {
+trait KeyedResult[T] {
+
+  /**
+    * The type this result is addressed by: a vertex for the vertex-keyed branch, an `Int`
+    * position for the edge-keyed one.
+    */
+  type Key
+
+  /** @return how many entries this result holds. */
+  def size: Int
+
+  /** @return every key this result holds an entry for. */
+  def keySet: Set[Key]
+
+  /** @param k the key. @return the entry for `k`, if any. */
+  def vertexTraverse(k: Key): Option[T]
+}
+
+trait TraversalResult[V, T] extends KeyedResult[T] {
+
+  /** Fixed to the vertex type: this branch is addressed by vertex. */
+  type Key = V
+
   /**
    * Returns the number of key-value pairs in the map.
    *
@@ -258,6 +301,108 @@ abstract class AbstractVertexTraversalResult[V, T](map: Map[V, T]) extends Trave
  * @tparam T the type of results for the edge traversal.
  * @param ts a list of elements of type `T` representing the computed results of edge traversal.
  */
+/**
+  * What the three minimum-spanning-tree algorithms agree on.
+  *
+  * They do NOT agree on a representation, and this trait exists because forcing them to would
+  * lose something real:
+  *
+  *  - `MST.prim` grows outwards from a start vertex, so its natural answer is a '''parent map''':
+  *    each vertex against the edge that attached it. It is vertex-keyed.
+  *  - `MST.kruskal` and `MST.boruvka` need no start vertex and produce an '''edge list''' whose order
+  *    means something -- ascending weight for Kruskal, round order for Borůvka. It is positional,
+  *    with no meaningful vertex key: an edge joins two vertices and neither is privileged.
+  *
+  * 1.13.0 made that distinction deliberately, and it still holds. Normalising to one
+  * representation would mean either discarding Prim's parent structure or inventing a key for
+  * Kruskal that means nothing.
+  *
+  * ==So the shared thing is a view, not a representation==
+  *
+  * Every MST is a set of edges, whatever the algorithm recorded on the way. `edges` is that, and
+  * it is what lets one function take any of the three -- which was impossible before 1.15.0,
+  * because the two branches of [[TraversalResult]] are keyed differently and share no common
+  * result type.
+  *
+  * This is the same move [[AbstractComponentResult]] makes for the component algorithms: a
+  * contract over differing representations, rather than one representation imposed on both.
+  *
+  * ==Why it extends KeyedResult and not TraversalResult==
+  *
+  * Because it cannot. `TraversalResult` takes its key as a type parameter, and the two MST
+  * shapes fill it differently -- `MSTParentMap` is `TraversalResult[V, Edge[V, E]]`,
+  * `MSTEdgeList` is `TraversalResult[Int, Edge[V, E]]`. There is no single key to write.
+  *
+  * [[KeyedResult]] carries the key as a type MEMBER instead, which a supertype can leave abstract.
+  * So `MSTResult` is a '''sibling''' of `TraversalResult` rather than a subtype of it, and the
+  * practical effect is that `size`, `keySet` and `vertexTraverse` are available through this
+  * trait while `edges` and `totalWeight` are added to them.
+  *
+  * @tparam V the vertex type.
+  * @tparam E the edge-weight type.
+  */
+trait MSTResult[V, E] extends KeyedResult[Edge[V, E]] {
+
+  /**
+    * The edges of the spanning tree, however this result happens to store them.
+    *
+    * On a connected graph there are `V - 1` of them; on a disconnected one Kruskal and Borůvka
+    * give the spanning FOREST, while Prim gives only the tree containing its start vertex.
+    *
+    * @return the tree's edges.
+    */
+  def edges: Seq[Edge[V, E]]
+
+  /**
+    * The total weight, which is the one number every MST algorithm agrees on exactly.
+    *
+    * Which TREE you get can differ between algorithms, and between runs of Prim, when several
+    * tie for minimum. The total cannot: that is what makes it the right thing to assert in a
+    * test, and what the scale suite cross-checks all three against.
+    *
+    * '''Compare it with a tolerance, not with `==`, for a floating-point weight.''' This folds in
+    * the result's own edge order, and those orders differ between algorithms -- Kruskal's is by
+    * ascending weight, Prim's is the order vertices were attached. Addition of `Double` is not
+    * associative, so the same tree can total to different last bits depending on how it was
+    * found. Measured on an eight-vertex graph: three algorithms, three mathematically identical
+    * trees, two distinct `Double` totals.
+    *
+    * @param m combines the weights.
+    * @return the sum of the tree's edge weights.
+    */
+  def totalWeight(using m: Monoid[E]): E = m.combineAll(edges.map(_.attribute))
+}
+
+/**
+  * Prim's answer: each vertex against the edge that attached it to the growing tree.
+  *
+  * Named for the SHAPE rather than for Prim, following #171 -- another algorithm growing a tree
+  * outwards would return the same thing. The start vertex is absent, having no incoming edge.
+  *
+  * @param map each non-start vertex against its attaching edge.
+  */
+case class MSTParentMap[V, E](map: Map[V, Edge[V, E]])
+        extends AbstractVertexTraversalResult[V, Edge[V, E]](map) with MSTResult[V, E] {
+
+  def edges: Seq[Edge[V, E]] = map.values.toSeq
+
+  def unit(m: Map[V, Edge[V, E]]): TraversalResult[V, Edge[V, E]] = copy(map = m)
+}
+
+/**
+  * Kruskal's and Borůvka's answer: the tree's edges in the order they were added.
+  *
+  * Named for the shape, as above. The order is information -- ascending weight for Kruskal,
+  * round order for Borůvka -- which is why this is positional rather than keyed.
+  *
+  * @param edgeList the edges, in order of addition.
+  */
+case class MSTEdgeList[V, E](edgeList: List[Edge[V, E]])
+        extends AbstractEdgeTraversalResult[Edge[V, E]](edgeList) with MSTResult[V, E] {
+
+  def edges: Seq[Edge[V, E]] = edgeList
+}
+
 case class EdgeTraversalResult[V, E, T](ts: List[T]) extends AbstractEdgeTraversalResult[T](ts)
 
 /**

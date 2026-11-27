@@ -48,7 +48,7 @@ private[traverse] object Kruskal:
    *       where any spanning subset is an MST: forty seeds, one answer. Kruskal sorts
    *       `graph.edges`, which is not shuffled, and never consults an adjacency iterator.
    */
-  def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =
+  def mst[V, E: {Ordering}](graph: UndirectedGraph[V, E]): MSTEdgeList[V, E] =
     val vertices = graph.vertexMap.keySet.toSeq
 
     // Seed `ConnectivityLazy` (aka `WeightedUnionFind`) with all vertices as singleton components.
@@ -69,4 +69,4 @@ private[traverse] object Kruskal:
         else (wuf.connect(u, v), mst :+ edge)
     }
 
-    EdgeTraversalResult(mstEdges.toList)
+    MSTEdgeList(mstEdges.toList)

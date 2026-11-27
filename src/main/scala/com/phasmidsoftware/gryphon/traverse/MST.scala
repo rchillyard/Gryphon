@@ -2,7 +2,6 @@ package com.phasmidsoftware.gryphon.traverse
 
 import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.UndirectedGraph
-import com.phasmidsoftware.gryphon.core.Edge
 import scala.util.Random
 
 /**
@@ -49,8 +48,12 @@ object MST:
    *       The total weight does not vary -- a minimum spanning tree is minimum -- but which of
    *       several equal-weight trees comes back does.
    */
-  def prim[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E], start: V)(using random: Random = Random()): TraversalResult[V, Edge[V, E]] =
-    PrimTraversal[V, E]().run(graph)(start)
+  def prim[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E], start: V)(using random: Random = Random()): MSTParentMap[V, E] =
+    // Read back through the trait rather than casting the traversal's concrete result: PrimTraversal
+    // is shared with Dijkstra and returns the general vertex-keyed type, which is right for it.
+    // Turning that into an MST-specific result is this entry point's job, not the traversal's.
+    val result = PrimTraversal[V, E]().run(graph)(start)
+    MSTParentMap(result.keySet.flatMap(v => result.vertexTraverse(v).map(v -> _)).toMap)
 
   /**
    * Runs Kruskal's algorithm, returning the MST as an edge list in non-decreasing weight order.
@@ -66,7 +69,7 @@ object MST:
    *       subset is an MST: forty seeds, one answer. Kruskal sorts `graph.edges`, which is not
    *       shuffled, and never consults an adjacency iterator -- unlike `prim`, which varies.
    */
-  def kruskal[V, E: Ordering](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =
+  def kruskal[V, E: Ordering](graph: UndirectedGraph[V, E]): MSTEdgeList[V, E] =
     Kruskal.mst(graph)
 
   /**
@@ -81,5 +84,5 @@ object MST:
    * @return the MST edges, in round order.
    * @note Result: invariant. Measured as for `kruskal`, on fully tied weights.
    */
-  def boruvka[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =
+  def boruvka[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): MSTEdgeList[V, E] =
     Boruvka.mst(graph)

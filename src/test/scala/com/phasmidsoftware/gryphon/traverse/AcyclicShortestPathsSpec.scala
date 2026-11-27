@@ -316,15 +316,20 @@ class AcyclicShortestPathsSpec extends AnyFlatSpec with should.Matchers:
   // shortestPaths sorted again internally -- so following the façade's own advice cost two full
   // topological sorts. isCyclic is now derived from the cached order, and shortestPaths uses it.
   //
+  // 1.14.0 weighed replacing this with a seeded TopologicalSort.sort, so that a caller could pin
+  // which of several equal-cost paths AcyclicShortestPaths reports, and declined: that would cost
+  // every caller the saving #118 bought in order to serve the few who want reproducibility. The
+  // consequence is that this order cannot be seeded at all -- a val takes no `using` clause -- so
+  // AcyclicShortestPaths is stable per graph instance and arbitrary across instances, which its
+  // scaladoc now says in as many words. See #158.
+  //
   // There is a second effect worth pinning, and it is the reason the reference-equality assertion
-  // below is not pedantry. TopologicalSort.sort installs
-  // GraphNeighbours = graph.adjacentVertices(_), and adjacentVertices takes `using Random =
-  // Random()` with no Random in scope there -- so a fresh generator is built PER VERTEX and the
-  // order varies between calls. Every such order is valid, so nothing was ever wrong, but the
-  // method ignores a caller's seed, which is #67's defect surviving in a corner (#131). Caching
-  // therefore makes this MORE deterministic than before: one order per graph instead of a fresh
-  // one per call. If the lazy val were ever turned back into a def, these assertions would start
-  // failing intermittently rather than reliably, so they are worth having.
+  // below is not pedantry. Since #131 TopologicalSort.sort takes `using Random = Random()`, and
+  // this lazy val supplies none -- so each computation of it would draw a fresh generator and a
+  // different valid order. Caching is therefore what makes this deterministic at all: one order
+  // per graph instead of a fresh one per call. If the lazy val were ever turned back into a def,
+  // these assertions would start failing intermittently rather than reliably, so they are worth
+  // having.
 
   behavior of "DirectedGraph.topologicalOrder"
 

@@ -2,6 +2,7 @@ package com.phasmidsoftware.gryphon.traverse
 
 import com.phasmidsoftware.gryphon.adjunct.DirectedGraph
 import com.phasmidsoftware.visitor.core.{*, given}
+import scala.util.Random
 
 /**
  * Represents a "topological sort" of a directed acyclic graph, mapping each vertex to its
@@ -42,16 +43,33 @@ object TopologicalSort:
    *
    * Returns `None` if the graph is cyclic.
    *
+   * ==Which of the many valid orders you get==
+   *
+   * A DAG generally admits several topological orders, and which one comes back is decided by
+   * the order `adjacentVertices` yields each vertex's successors in — so it is decided by
+   * `random`. Pin a seed and the order is reproducible; supply none and the default builds a
+   * fresh generator, so it varies from call to call.
+   *
+   * Until 1.14.0 this method took no `Random` at all. The `given GraphNeighbours` below closed
+   * over `graph.adjacentVertices(v)` with nothing in scope, so the default applied *inside the
+   * closure* — a fresh generator per vertex, not even one per sort — and a caller's
+   * `given Random = Random(42)` did no work whatever. That is #131, and it is the reason
+   * `AcyclicShortestPaths` could not be pinned either (#154).
+   *
    * @param graph the directed graph to sort.
+   * @param random the generator deciding the adjacency order, and hence which valid topological
+   *               order is returned.
    * @tparam V the vertex attribute type.
    * @tparam E the edge attribute type.
    * @return `Some(Seq[V])` in topological order, or `None` if the graph is cyclic.
    */
-  def sort[V, E](graph: DirectedGraph[V, E]): Option[Seq[V]] =
+  def sort[V, E](graph: DirectedGraph[V, E])(using random: Random = Random()): Option[Seq[V]] =
     given Evaluable[V, V] with
       def evaluate(v: V): Option[V] = Some(v)
 
-    given GraphNeighbours[V] = (v: V) => graph.adjacentVertices(v)
+    // `(using random)` is explicit rather than left to resolution: the whole of #131 was that this
+    // line silently took a default, and an explicit argument cannot regress to one unnoticed.
+    given GraphNeighbours[V] = (v: V) => graph.adjacentVertices(v)(using random)
 
     // Run post-order DFS over all vertices, seeding each unvisited component in turn.
     //
@@ -93,13 +111,14 @@ object TopologicalSort:
    * `None` if the graph is cyclic.
    *
    * @param graph the directed graph to sort.
+   * @param random the generator deciding the adjacency order; see `sort`.
    * @tparam V the vertex attribute type.
    * @tparam E the edge attribute type.
    * @return `Some(TopologicalSort[V])` with each vertex mapped to its position,
    *         or `None` if the graph is cyclic.
    */
-  def traversal[V, E](graph: DirectedGraph[V, E]): Option[TopologicalSort[V]] =
-    sort(graph).map { topologicalOrder =>
+  def traversal[V, E](graph: DirectedGraph[V, E])(using random: Random = Random()): Option[TopologicalSort[V]] =
+    sort(graph)(using random).map { topologicalOrder =>
       val vertexOrder: Seq[(V, Int)] = topologicalOrder.zipWithIndex.map((v, i) => v -> i)
       TopologicalSort(vertexOrder.toMap)
     }

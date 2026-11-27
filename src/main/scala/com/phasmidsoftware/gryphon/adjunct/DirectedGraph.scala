@@ -3,7 +3,7 @@ package com.phasmidsoftware.gryphon.adjunct
 import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.core.*
 import com.phasmidsoftware.gryphon.traverse.{BellmanFord, TopologicalSort, VertexTraversalResult}
-import scala.util.Try
+import scala.util.{Random, Try}
 
 /**
  * Represents a directed graph structure that supports operations on vertexMap and edges.
@@ -62,21 +62,35 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
   /**
    * A topological order of this graph, or `None` if it is cyclic. Computed once per instance.
    *
-   * Cached because it was being computed twice on the ordinary path (#118). `isCyclic` is
+   * Cached because it was being computed twice on the ordinary path (#118): `isCyclic` is
    * `topologicalOrder.isEmpty`, and the façade's own scaladoc tells a Java caller to check
-   * `isDAG` before calling `AcyclicShortestPaths` — which then sorts again internally. A
-   * `lazy val` is safe here where a mutable cache would not be: a derived graph is a different
-   * object with its own uninitialised field, so there is nothing to invalidate, and it is not a
-   * constructor parameter so `equals`, `hashCode`, `copy` and `unapply` do not see it.
+   * `isDAG` before going on. A `lazy val` is safe here where a mutable cache would not be: a
+   * derived graph is a different object with its own uninitialised field, so there is nothing to
+   * invalidate, and it is not a constructor parameter so `equals`, `hashCode`, `copy` and
+   * `unapply` do not see it.
    *
-   * NOTE on which order you get. `TopologicalSort.sort` installs
-   * `GraphNeighbours[V] = graph.adjacentVertices(_)`, and `adjacentVertices` takes
-   * `using Random = Random()` with no `Random` in scope there — so a fresh generator is built
-   * per vertex and the DFS order varies from call to call. Every result is a valid topological
-   * order, so this is not a correctness problem, but it does mean the method is not reproducible
-   * under a caller's seed, which is the defect #67 fixed elsewhere and did not reach here.
-   * Caching therefore makes this MORE deterministic than before, not less: one order per graph
-   * instead of a fresh one per call. See #131.
+   * NOTE on which order you get, and on the one thing this member cannot do.
+   *
+   * A DAG generally admits several topological orders, and `TopologicalSort.sort` picks between
+   * them by adjacency order — which since 1.14.0 it takes a `Random` to decide (#131). A `val`
+   * cannot have a `using` clause, so '''this member is unseedable by construction''': it calls
+   * `sort` with no generator in scope, the default builds one, and the result is memoized.
+   *
+   * What that buys, and what it costs, are two sides of the same coin. Within one graph instance
+   * the order is fixed after the first read, so `isCyclic`, the Java façade's `topologicalSort`
+   * and `AcyclicShortestPaths` agree with each other and with every later call — that was #118.
+   * Across runs of the program it is arbitrary, and no seed a caller pins can change it.
+   *
+   * '''A caller who needs a reproducible order should not read this.''' Call
+   * `TopologicalSort.sort(graph)` with a `given Random` in scope instead: uncached, one sort per
+   * call, and settled entirely by the seed.
+   *
+   * That route is open to a Scala caller doing their own sort, and closed to everyone reached
+   * through this member — which is `isCyclic`, the façade's `topologicalSort`, and every result
+   * of `AcyclicShortestPaths`. Giving those a pinnable order means offering a seeded entry point
+   * that does not destroy the cache, and the trade was weighed in 1.14.0 and declined: sorting
+   * afresh to honour a seed would have cost every caller the saving #118 bought, to serve the
+   * few who want reproducibility. See #158 for what a better answer would look like.
    */
   lazy val topologicalOrder: Option[Seq[V]] = TopologicalSort.sort(this)
 
@@ -89,8 +103,13 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
   /**
    * Computes shortest paths from `start` using Bellman-Ford-Moore.
    * Returns None if a negative cycle is reachable from start.
+   *
+   * The distances do not depend on `random`; which of several equal-cost predecessors is
+   * recorded does. See `BellmanFord.shortestPaths`, and #154 — until 1.14.0 this method had no
+   * `Random` to pass on, so the generator was built inside the algorithm and could not be
+   * reached from here.
    */
-  def shortestPaths(start: V)(using Monoid[E], Ordering[E]): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
+  def shortestPaths(start: V)(using mo: Monoid[E], or: Ordering[E], random: Random = Random()): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     BellmanFord.shortestPaths(this, start)
 
   /** A directed graph admits directed edges only. */

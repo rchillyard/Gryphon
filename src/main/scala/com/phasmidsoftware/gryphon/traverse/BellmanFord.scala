@@ -8,6 +8,7 @@ import cats.kernel.Monoid
 import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge, DirectedGraph}
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
+import scala.util.Random
 
 /**
  * Computes shortest paths in a weighted directed graph using the
@@ -35,15 +36,29 @@ object BellmanFord:
   /**
    * Computes shortest paths from `start` to all reachable vertices in `graph`.
    *
+   * ==What the seed does, and what it does not==
+   *
+   * Not the costs. Relaxation visits every edge, so the distances are correct and identical
+   * whatever order the edges come in. What `random` decides is '''which of several equal-cost
+   * predecessors is recorded''', and hence which shortest path is reported when more than one is
+   * shortest. On a graph with a unique shortest path to every vertex the seed is invisible.
+   *
+   * That is the same variation Dijkstra and Prim have, and they have always taken a generator;
+   * until 1.14.0 this method did not, and `filteredAdjacencies` below fell to its own default —
+   * a fresh generator per vertex, unreachable from the call site. See #154, and #141, whose rule
+   * said relaxation-based algorithms were immune to adjacency order. They are not.
+   *
    * @param graph the directed graph (may contain cycles and negative weights).
    * @param start the source vertex.
+   * @param random the generator deciding adjacency order, and hence which of several equal-cost
+   *               paths is reported.
    * @tparam V the vertex type.
    * @tparam E the edge-weight type; must have `Monoid` and `Ordering`.
    * @return `Some(VertexTraversalResult)` mapping each reachable non-source vertex
    *         to its shortest-path incoming edge, or `None` if a negative cycle is
    *         reachable from `start`.
    */
-  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
+  def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     val em = implicitly[Monoid[E]]
     val eo = implicitly[Ordering[E]]
     val vertexCount = graph.order
@@ -97,7 +112,7 @@ object BellmanFord:
           Some(state) // nothing left to relax: the distances are final
         case Some((v, rest)) =>
           val popped = state.copy(queue = rest, onQueue = state.onQueue - v)
-          val relaxedAll = graph.filteredAdjacencies(_ => true)(v)
+          val relaxedAll = graph.filteredAdjacencies(_ => true)(v)(using random)
                   .flatMap(_.maybeEdge[E].collect { case e: AttributedDirectedEdge[V, E] => e })
                   .foldLeft(Option(popped)) {
                     case (None, _) => None // a negative cycle is already proved; stop

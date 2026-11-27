@@ -9,37 +9,37 @@ import scala.util.{Random, Success}
 /**
  * Does a caller's seed reach every traversal? Issues #131, #153, #154.
  *
- * Every test here is `ignore`, and each asserts behaviour the library does not yet have: that
- * `given Random = Random(n)` in scope settles the result. Today these methods take no `Random`,
- * so the given sits unused and the traversal builds a fresh generator per vertex.
+ * Three of the four methods are fixed in 1.14.0 and tested here. The fourth,
+ * `AcyclicShortestPaths`, turned out not to be fixable by adding a parameter, and the last two
+ * tests in this file are what establish that rather than assert it.
  *
- * **They compile, and they will pass unchanged once the fix lands.** That is the point of writing
- * them against the current signatures rather than the intended ones: a method that gains a
- * `(using Random = Random())` parameter starts picking up an in-scope given with no change at the
- * call site. So each of these is a working specification of its issue — delete the `ignore` and
- * watch it go green.
+ * These tests were written in 1.13.0 against the *unfixed* signatures and marked `ignore`: each
+ * asserted behaviour the library did not yet have, namely that `given Random = Random(n)` in scope
+ * settles the result. That worked because a method which gains a `(using Random = Random())`
+ * parameter starts picking up an in-scope given with no change at the call site — so the fix was
+ * applied, the `ignore`s were deleted, and the bodies below are unchanged from the day they were
+ * written. They are the specifications of their issues, now running.
  *
- * `ignore` rather than `pending`: ScalaTest's `pending` runs the body and reports a *failure* if
- * it throws, so a pending test whose assertions do not yet hold breaks the build. `pending` means
- * "not yet written", not "not yet implemented".
+ * ==The compiler agreed before the tests could==
  *
- * ==The compiler already agrees==
- *
- * Without the `@nowarn` below, every `given Random = r` here draws
+ * While the defect stood, this file carried `@nowarn("msg=unused local definition")`, because
+ * every `given Random = r` here drew
  *
  * {{{
  * [warn] unused local definition
  * }}}
  *
- * which is `-Wunused` observing that nothing consumes the generator. That warning '''is''' the
- * defect, stated by the compiler rather than by a test: the seed has nowhere to go. It is
- * suppressed only because `-Werror` would otherwise fail the build on a file whose whole purpose
- * is to record the problem.
+ * — `-Wunused` observing that nothing consumed the generator. That warning '''was''' the defect,
+ * stated by the compiler rather than by a test: the seed had nowhere to go. The `@nowarn` is gone
+ * now, and under `-Werror` its absence is itself an assertion. If anyone reverts one of these
+ * methods to taking no `Random`, the build fails on this file before a single test runs.
  *
- * When #131, #153 and #154 land, those methods will take the given implicitly, the warnings will
- * stop, and the `@nowarn` can come off along with the `ignore`s.
+ * ==Why `ignore` and not `pending`==
+ *
+ * Kept as a note for the next time this pattern is wanted. ScalaTest's `pending` runs the body and
+ * reports a *failure* if it throws, so a pending test whose assertions do not yet hold breaks the
+ * build. `pending` means "not yet written", not "not yet implemented".
  */
-@scala.annotation.nowarn("msg=unused local definition")
 class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
 
   // A source with five leaves. Shuffle-sensitive: whatever order the sort's loop picks its start
@@ -73,7 +73,7 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
 
   behavior of "a caller's seed"
 
-  ignore should "reach TopologicalSort.sort (#131)" in {
+  it should "reach TopologicalSort.sort (#131)" in {
     val g = star
     seedShouldControl { r =>
       given Random = r
@@ -81,7 +81,7 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
     }
   }
 
-  ignore should "reach Traversable.filteredAdjacentVertices (#153)" in {
+  it should "reach Traversable.filteredAdjacentVertices (#153)" in {
     val g = star
     seedShouldControl { r =>
       given Random = r
@@ -89,7 +89,7 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
     }
   }
 
-  ignore should "reach BellmanFord.shortestPaths (#154)" in {
+  it should "reach BellmanFord.shortestPaths (#154)" in {
     val g = diamondWeighted
     seedShouldControl { r =>
       given Random = r
@@ -97,7 +97,52 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
     }
   }
 
-  // AcyclicShortestPaths is deliberately absent. It varies for two independent reasons -- the
-  // order it relaxes in, from `topologicalOrder`, and the edge order within each vertex -- so a
-  // seed reaching only the second would not settle it. It becomes testable here once #131 is
-  // fixed as well; see the discussion on #154.
+  // --------------------------------------------------------------------------------------
+  // AcyclicShortestPaths: the exception, pinned as an exception.
+  //
+  // It was absent from this spec in 1.13.0 with a note saying it would become testable once
+  // #131 landed. It did not, and the note was wrong about why. The reasoning then was that it
+  // varies for two reasons -- the topological order and the edge order within a vertex -- so a
+  // seed reaching only the second could not settle it. The first half is right. The second is
+  // not: the edge order within a vertex settles NOTHING, because each edge writes its own key
+  // in the predecessor map. Two edges can only compete by running from one vertex to the same
+  // target at equal cost, and `fromTriplets` refuses to build such a graph (#57).
+  //
+  // So all of the variation comes from the memoized `DirectedGraph.topologicalOrder`, which a
+  // `lazy val` cannot take a generator for -- and `AcyclicShortestPaths` therefore has no
+  // `Random` parameter at all, because one would have been inert. The two tests below are what
+  // establish that, and they are the reason the method's scaladoc can state it as fact.
+  //
+  // There is no `given Random` anywhere in the two tests below, and that is not an omission.
+  // `AcyclicShortestPaths` takes no generator, so one written here would be consumed by nothing
+  // -- and `-Wunused` says so, which under `-Werror` fails the build. The compiler will not let
+  // this file pretend a seed is in play where none can be. These tests therefore assert the
+  // contract the scaladoc states, which is about graph instances rather than seeds.
+
+  it should "be unreachable in AcyclicShortestPaths, whose only reachable order decides nothing" in {
+    val g = diamondWeighted // one instance: the topological order is memoized on first use
+
+    // The order a vertex's adjacencies come in IS seedable, and on this fixture it really does
+    // vary -- vertex 0 has two of them. This is the order `relax` folds over.
+    val adjacencyOrders = (0 until 20).map(s => g.filteredAdjacencies(_ => true)(0)(using Random(s)).map(_.vertex).toList)
+    adjacencyOrders.distinct.size should be > 1
+
+    // And it changes nothing, because each edge writes its own key in the predecessor map. That
+    // is why the method has no `Random` parameter: there would be nothing for it to settle.
+    val results = (0 until 20).map(_ => AcyclicShortestPaths.shortestPaths[Int, Double](g, 0).map.view.mapValues(_.toString).toMap)
+    results.distinct.size shouldBe 1
+  }
+
+  it should "be beside the point for AcyclicShortestPaths, whose result varies between graph instances" in {
+    // Same graph, rebuilt each time, so each instance memoizes its own topological order. This
+    // is the variation a caller actually meets, and no seed reaches it -- which is exactly what
+    // the method's scaladoc warns about and what #158 would have to address.
+    val acrossInstances = (0 until 40).map { _ =>
+      AcyclicShortestPaths.shortestPaths[Int, Double](diamondWeighted, 0).map.view.mapValues(_.toString).toMap
+    }
+    acrossInstances.distinct.size should be > 1
+
+    // The costs, by contrast, are invariant -- which is why the scaladoc tells a caller who
+    // wants a stable assertion to make it about those.
+    acrossInstances.map(_.keySet).distinct.size shouldBe 1
+  }

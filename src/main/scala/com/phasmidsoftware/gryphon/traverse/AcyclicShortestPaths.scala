@@ -35,7 +35,11 @@ import com.phasmidsoftware.gryphon.adjunct.{AttributedDirectedEdge, DirectedEdge
  * generator could reach here is provably inert. `shortestPaths` explains why in full; #158
  * tracks what it would take to make this pinnable.
  */
-object AcyclicShortestPaths:
+// The implementation lives here; the entry point is on the problem object -- see #171.
+// Named for the algorithm because that is what it IS, and private because that is not
+// how a caller should reach it: `MST.kruskal`, `ShortestPaths.bellmanFord` and the rest
+// say which problem is being solved, which is the decision a caller actually makes.
+private[traverse] object AcyclicShortestPaths:
 
   /**
    * Computes shortest paths from `start` to all reachable vertices in `graph`.

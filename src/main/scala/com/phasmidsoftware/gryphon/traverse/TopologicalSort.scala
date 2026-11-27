@@ -8,7 +8,7 @@ import scala.util.Random
  * Represents a "topological sort" of a directed acyclic graph, mapping each vertex to its
  * position in topological order.
  * NOTE that it would also be possible to get the same effect using the Kosaraju algorithm
- * (see `Kosaraju.stronglyConnectedComponents`) especially if you're not sure that the directed
+ * (see `StronglyConnectedComponents.kosaraju`) especially if you're not sure that the directed
  * graph is in fact acyclic.
  * If you have significant doubt, it may be better to use Kosaraju instead.
  * A DAG will result in a topologically sorted set of SCCs, each of which holds only one vertex.

@@ -52,80 +52,80 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
   // Result structure
   // -------------------------------------------------------------------------
 
-  behavior of "Boruvka.mst — result structure"
+  behavior of "MST.boruvka — result structure"
 
   it should "produce exactly 7 MST edges (N-1 for 8 vertices)" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).size shouldBe 7
+      MST.boruvka(graph).size shouldBe 7
     }
 
   // -------------------------------------------------------------------------
   // MST weight
   // -------------------------------------------------------------------------
 
-  behavior of "Boruvka.mst — total weight"
+  behavior of "MST.boruvka — total weight"
 
   it should "produce MST with total weight 1.81" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
+      MST.boruvka(graph).map(_.attribute).sum shouldBe 1.81 +- 0.001
     }
 
   // -------------------------------------------------------------------------
   // MST edge set — same result as Kruskal
   // -------------------------------------------------------------------------
 
-  behavior of "Boruvka.mst — edge set"
+  behavior of "MST.boruvka — edge set"
 
   it should "include edge 0-7 with weight 0.16" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.16)
+      MST.boruvka(graph).map(_.attribute) should contain(0.16)
     }
 
   it should "include edge 2-3 with weight 0.17" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.17)
+      MST.boruvka(graph).map(_.attribute) should contain(0.17)
     }
 
   it should "include edge 1-7 with weight 0.19" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.19)
+      MST.boruvka(graph).map(_.attribute) should contain(0.19)
     }
 
   it should "include edge 0-2 with weight 0.26" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.26)
+      MST.boruvka(graph).map(_.attribute) should contain(0.26)
     }
 
   it should "include edge 5-7 with weight 0.28" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.28)
+      MST.boruvka(graph).map(_.attribute) should contain(0.28)
     }
 
   it should "include edge 4-5 with weight 0.35" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.35)
+      MST.boruvka(graph).map(_.attribute) should contain(0.35)
     }
 
   it should "include edge 6-2 with weight 0.40" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should contain(0.40)
+      MST.boruvka(graph).map(_.attribute) should contain(0.40)
     }
 
   it should "not include edge 1-3 with weight 0.29 (cycle)" in :
     withPrimGraph { graph =>
-      Boruvka.mst(graph).map(_.attribute) should not contain 0.29
+      MST.boruvka(graph).map(_.attribute) should not contain 0.29
     }
 
   // -------------------------------------------------------------------------
   // Agree with Kruskal
   // -------------------------------------------------------------------------
 
-  behavior of "Boruvka.mst — agreement with Kruskal"
+  behavior of "MST.boruvka — agreement with Kruskal"
 
   it should "produce the same MST edge weights as Kruskal" in :
     withPrimGraph { graph =>
-      val boruvkaWeights = Boruvka.mst(graph).map(_.attribute).toSet
-      val kruskalWeights = Kruskal.mst(graph).map(_.attribute).toSet
+      val boruvkaWeights = MST.boruvka(graph).map(_.attribute).toSet
+      val kruskalWeights = MST.kruskal(graph).map(_.attribute).toSet
       boruvkaWeights shouldBe kruskalWeights
     }
 
@@ -185,13 +185,13 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
   it should "return a spanning TREE, not a cycle, when a round's edges would close one" in :
     withTiedCycle { g =>
       g.order shouldBe 6
-      Boruvka.mst(g).size shouldBe 5 // 6 under the mutant
+      MST.boruvka(g).size shouldBe 5 // 6 under the mutant
     }
 
   it should "agree with Kruskal on total weight" in :
     withTiedCycle { g =>
-      Boruvka.mst(g).map(_.attribute).sum shouldBe 7.0 // 9.0 under the mutant
-      Boruvka.mst(g).map(_.attribute).sum shouldBe Kruskal.mst(g).map(_.attribute).sum
+      MST.boruvka(g).map(_.attribute).sum shouldBe 7.0 // 9.0 under the mutant
+      MST.boruvka(g).map(_.attribute).sum shouldBe MST.kruskal(g).map(_.attribute).sum
     }
 
   it should "choose every cheap edge and exactly two of the three expensive ones" in :
@@ -199,7 +199,7 @@ class BoruvkaSpec extends AnyFlatSpec with should.Matchers:
     // own cut. Exactly two of the three weight-2.0 crossing edges join them into a tree; the
     // third would close the cycle and is what the guard rejects.
     withTiedCycle { g =>
-      val weights = Boruvka.mst(g).map(_.attribute)
+      val weights = MST.boruvka(g).map(_.attribute)
       weights.count(_ == 1.0) shouldBe 3
       weights.count(_ == 2.0) shouldBe 2
     }

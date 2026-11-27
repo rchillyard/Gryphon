@@ -66,8 +66,8 @@ class ScaleCorrectnessSpec extends AnyFlatSpec with Matchers:
   // single expected number would only be a snapshot.
   it should "have three MST algorithms agree on the weight of the sparse graph" in {
     val g = ScaleGraphs.sparse
-    val kruskal = Kruskal.mst[Int, Double](g).toSeq
-    val boruvka = Boruvka.mst[Int, Double](g).toSeq
+    val kruskal = MST.kruskal[Int, Double](g).toSeq
+    val boruvka = MST.boruvka[Int, Double](g).toSeq
     val prim = MST.prim[Int, Double](g, 0)
 
     kruskal.size shouldBe V - 1 // a spanning tree of a connected graph
@@ -84,8 +84,8 @@ class ScaleCorrectnessSpec extends AnyFlatSpec with Matchers:
   // passing in reasonable time is a natural completion test for that issue.
   it should "have Kruskal and Boruvka agree on the weight of the dense graph" in {
     val g = ScaleGraphs.dense
-    val kruskal = Kruskal.mst[Int, Double](g).toSeq
-    val boruvka = Boruvka.mst[Int, Double](g).toSeq
+    val kruskal = MST.kruskal[Int, Double](g).toSeq
+    val boruvka = MST.boruvka[Int, Double](g).toSeq
     kruskal.size shouldBe V - 1
     boruvka.size shouldBe V - 1
     boruvka.map(_.attribute).sum shouldBe kruskal.map(_.attribute).sum +- 1e-9
@@ -123,11 +123,11 @@ class ScaleCorrectnessSpec extends AnyFlatSpec with Matchers:
   it should "have three shortest-path algorithms agree on the distances" in {
     for g <- Seq(ScaleGraphs.sparseDag, ScaleGraphs.denseDag) do
       val dijkstra = distances(ShortestPaths.dijkstra[Int, Double](g, 0))
-      val acyclic = distances(AcyclicShortestPaths.shortestPaths[Int, Double](g, 0))
+      val acyclic = distances(ShortestPaths.acyclic[Int, Double](g, 0))
       // Computed once, not once per vertex: walking every predecessor chain is O(V * depth), and
       // the fixtures contain a 1000-long path, so recomputing it inside the loop below would turn
       // a millisecond check into a minute-long one.
-      val bellman = distances(BellmanFord.shortestPaths[Int, Double](g, 0)
+      val bellman = distances(ShortestPaths.bellmanFord[Int, Double](g, 0)
               .getOrElse(fail("a DAG has no negative cycle, so this cannot be None")))
 
       // Vertex 0 is the source and absent from every result; the fixtures include the path
@@ -143,7 +143,7 @@ class ScaleCorrectnessSpec extends AnyFlatSpec with Matchers:
 
   it should "find 1000 singleton strongly connected components, a DAG having no others" in {
     for g <- Seq(ScaleGraphs.sparseDag, ScaleGraphs.denseDag) do
-      val sccs = Kosaraju.stronglyConnectedComponents[Int, Double](g)
+      val sccs = StronglyConnectedComponents.kosaraju[Int, Double](g)
       sccs.keySet shouldBe (0 until V).toSet
       // Grouping is invariant even though the numbering is not, so this is the safe assertion.
       sccs.groupBy((_, id) => id).values.map(_.keySet).toSet.size shouldBe V

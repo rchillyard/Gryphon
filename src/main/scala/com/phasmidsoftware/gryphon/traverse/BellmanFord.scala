@@ -31,7 +31,11 @@ import scala.util.Random
  * The edge-weight type `E` requires `Monoid` (zero + combine) and `Ordering`
  * (comparison) — consistent with `AcyclicShortestPaths`.
  */
-object BellmanFord:
+// The implementation lives here; the entry point is on the problem object -- see #171.
+// Named for the algorithm because that is what it IS, and private because that is not
+// how a caller should reach it: `MST.kruskal`, `ShortestPaths.bellmanFord` and the rest
+// say which problem is being solved, which is the decision a caller actually makes.
+private[traverse] object BellmanFord:
 
   /**
    * Computes shortest paths from `start` to all reachable vertices in `graph`.

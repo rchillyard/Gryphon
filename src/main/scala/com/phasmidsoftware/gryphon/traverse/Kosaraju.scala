@@ -9,12 +9,8 @@ import com.phasmidsoftware.visitor.core.{*, given}
 import scala.annotation.tailrec
 import scala.util.Random
 
-/**
- * Type alias for the result of a strongly-connected-components analysis.
- * Maps every vertex to an integer SCC id (0, 1, 2, ...).
- * Vertices sharing the same id belong to the same SCC.
- */
-type SCCResult[V] = Map[V, Int]
+// SCCResult moved to StronglyConnectedComponents.scala in 1.15.0: it is the result of the
+// PROBLEM, not of this algorithm, so it belongs beside the entry point rather than here (#171).
 
 /**
  * Computes strongly connected components of a directed graph using the Kosaraju-Sharir algorithm.
@@ -39,7 +35,11 @@ type SCCResult[V] = Map[V, Int]
  * When applied to a Directed Acyclic Graph (DAG), the result is a topologically sorted
  * set of SCCs, each of which holds only one vertex.
  */
-object Kosaraju {
+// The implementation lives here; the entry point is on the problem object -- see #171.
+// Named for the algorithm because that is what it IS, and private because that is not
+// how a caller should reach it: `MST.kruskal`, `ShortestPaths.bellmanFord` and the rest
+// say which problem is being solved, which is the decision a caller actually makes.
+private[traverse] object Kosaraju {
 
   /**
    * Computes the strongly connected components (SCCs) of a directed graph using Kosaraju's algorithm.

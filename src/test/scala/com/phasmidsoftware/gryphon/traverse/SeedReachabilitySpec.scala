@@ -89,11 +89,11 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
     }
   }
 
-  it should "reach BellmanFord.shortestPaths (#154)" in {
+  it should "reach ShortestPaths.bellmanFord (#154)" in {
     val g = diamondWeighted
     seedShouldControl { r =>
       given Random = r
-      BellmanFord.shortestPaths[Int, Double](g, 0).map(_.map.view.mapValues(_.toString).toMap)
+      ShortestPaths.bellmanFord[Int, Double](g, 0).map(_.map.view.mapValues(_.toString).toMap)
     }
   }
 
@@ -129,7 +129,7 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
 
     // And it changes nothing, because each edge writes its own key in the predecessor map. That
     // is why the method has no `Random` parameter: there would be nothing for it to settle.
-    val results = (0 until 20).map(_ => AcyclicShortestPaths.shortestPaths[Int, Double](g, 0).map.view.mapValues(_.toString).toMap)
+    val results = (0 until 20).map(_ => ShortestPaths.acyclic[Int, Double](g, 0).map.view.mapValues(_.toString).toMap)
     results.distinct.size shouldBe 1
   }
 
@@ -138,7 +138,7 @@ class SeedReachabilitySpec extends AnyFlatSpec with Matchers:
     // is the variation a caller actually meets, and no seed reaches it -- which is exactly what
     // the method's scaladoc warns about and what #158 would have to address.
     val acrossInstances = (0 until 40).map { _ =>
-      AcyclicShortestPaths.shortestPaths[Int, Double](diamondWeighted, 0).map.view.mapValues(_.toString).toMap
+      ShortestPaths.acyclic[Int, Double](diamondWeighted, 0).map.view.mapValues(_.toString).toMap
     }
     acrossInstances.distinct.size should be > 1
 

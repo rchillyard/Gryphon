@@ -65,7 +65,7 @@ object TraversalResult {
    *
    * One implementation serves all of them, because they share the shape rather than the type:
    * `Connexions` from `getConnexions`, the `VertexTraversalResult` from `ShortestPaths.dijkstra`,
-   * and the one from `AcyclicShortestPaths.shortestPaths` and `longestPaths`.
+   * and the one from `ShortestPaths.acyclic` and `longestPaths`.
    *
    * @param result the parent map to walk.
    * @param target the vertex to walk back from.
@@ -163,7 +163,7 @@ abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResu
    * precondition of #130.
    *
    * Before it, the branch offered only `size`, `keySet` (the indices) and `edgeTraverse(i)` —
-   * positional, O(n) into a `List`. Moving `Kruskal.mst` and `Boruvka.mst` onto it would then
+   * positional, O(n) into a `List`. Moving `MST.kruskal` and `MST.boruvka` onto it would then
    * have cost every caller the `mst.map(_.attribute).sum` they all write: 46 sites in the test
    * suite alone needed `map`, `exists` or `head`. Adding `.toSeq` at each of them would have been
    * churn advertising an awkward type. `Seq` gives all of those directly — and `sorted`, which
@@ -171,7 +171,7 @@ abstract class AbstractEdgeTraversalResult[T](ts: List[T]) extends TraversalResu
    * is the only basis on which it was worth making.
    *
    * It also makes #130 very nearly source-compatible: a caller who had a `Seq[Edge[V, E]]` from
-   * `Kruskal.mst` keeps every operation they were using. Only the declared type changed.
+   * `MST.kruskal` keeps every operation they were using. Only the declared type changed.
    */
   def iterator: Iterator[T] = ts.iterator
 

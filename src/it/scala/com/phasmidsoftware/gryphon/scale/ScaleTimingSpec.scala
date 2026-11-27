@@ -46,8 +46,8 @@ class ScaleTimingSpec extends AnyFlatSpec with Matchers:
       time(s"$name isConnected")(g.isConnected)
       time(s"$name isCyclic")(g.isCyclic)
       time(s"$name isBipartite")(g.isBipartite)
-      time(s"$name Kruskal.mst")(Kruskal.mst[Int, Double](g).toSeq.size)
-      time(s"$name Boruvka.mst")(Boruvka.mst[Int, Double](g).toSeq.size)
+      time(s"$name MST.kruskal")(MST.kruskal[Int, Double](g).toSeq.size)
+      time(s"$name MST.boruvka")(MST.boruvka[Int, Double](g).toSeq.size)
       time(s"$name ConnectedComponents")(ConnectedComponents.components[Int, Double](g).partition.size)
     succeed
   }
@@ -76,9 +76,9 @@ class ScaleTimingSpec extends AnyFlatSpec with Matchers:
       info(s"--- $name: ${g.order} vertices, ${g.size} edges ---")
       time(s"$name topologicalOrder")(g.topologicalOrder.map(_.size))
       time(s"$name TopologicalSort.sort")(TopologicalSort.sort(g).map(_.size))
-      time(s"$name BellmanFord")(BellmanFord.shortestPaths[Int, Double](g, 0).map(_.size))
-      time(s"$name AcyclicShortestPaths")(AcyclicShortestPaths.shortestPaths[Int, Double](g, 0).size)
-      time(s"$name Kosaraju")(Kosaraju.stronglyConnectedComponents[Int, Double](g).size)
+      time(s"$name BellmanFord")(ShortestPaths.bellmanFord[Int, Double](g, 0).map(_.size))
+      time(s"$name AcyclicShortestPaths")(ShortestPaths.acyclic[Int, Double](g, 0).size)
+      time(s"$name Kosaraju")(StronglyConnectedComponents.kosaraju[Int, Double](g).size)
       time(s"$name ShortestPaths.dijkstra")(ShortestPaths.dijkstra[Int, Double](g, 0).keySet.size)
     succeed
   }

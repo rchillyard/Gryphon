@@ -85,23 +85,23 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "return Some for a graph with no negative cycle" in :
     withNegativeGraph { graph =>
-      BellmanFord.shortestPaths(graph, 0) shouldBe defined
+      ShortestPaths.bellmanFord(graph, 0) shouldBe defined
     }
 
   it should "return None for a graph with a negative cycle" in :
     withNegativeCycleGraph { graph =>
-      BellmanFord.shortestPaths(graph, 0) shouldBe None
+      ShortestPaths.bellmanFord(graph, 0) shouldBe None
     }
 
   it should "not include the source vertex in the result" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(0) shouldBe None
     }
 
   it should "include all reachable non-source vertices" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.map.keySet shouldBe Set(1, 2, 3)
     }
 
@@ -113,19 +113,19 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "find shortest path to vertex 1 via edge weight 1.0" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(1).map(_.attribute) shouldBe Some(1.0)
     }
 
   it should "find shortest path to vertex 2 via 0->1->2 (edge weight -2.0, not 0->2 weight 4.0)" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(2).map(_.attribute) shouldBe Some(-2.0)
     }
 
   it should "find shortest path to vertex 3 via 0->1->2->3 (edge weight 1.0)" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(3).map(_.attribute) shouldBe Some(1.0)
     }
 
@@ -137,7 +137,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give vertex 1 predecessor edge from 0" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(1) match
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 0
@@ -148,7 +148,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give vertex 2 predecessor edge from 1 (not from 0)" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(2) match
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 1
@@ -159,7 +159,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "give vertex 3 predecessor edge from 2" in :
     withNegativeGraph { graph =>
-      val result = BellmanFord.shortestPaths(graph, 0).get
+      val result = ShortestPaths.bellmanFord(graph, 0).get
       result.vertexTraverse(3) match
         case Some(e: AttributedDirectedEdge[Double, Int] @unchecked) =>
           e.white shouldBe 2
@@ -176,7 +176,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "return None when source can reach a negative cycle" in :
     withNegativeCycleGraph { graph =>
-      BellmanFord.shortestPaths(graph, 0) shouldBe None
+      ShortestPaths.bellmanFord(graph, 0) shouldBe None
     }
 
   it should "return Some when source cannot reach the negative cycle" in :
@@ -188,7 +188,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
-        BellmanFord.shortestPaths(g, 0) shouldBe defined
+        ShortestPaths.bellmanFord(g, 0) shouldBe defined
       case other => fail(s"unexpected: $other")
 
   // -------------------------------------------------------------------------
@@ -199,7 +199,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "produce the same predecessor edges as Dijkstra on dijkstra.graph" in :
     withDijkstraGraph { graph =>
-      val bf = BellmanFord.shortestPaths(graph, 0).get
+      val bf = ShortestPaths.bellmanFord(graph, 0).get
       val dj = ShortestPaths.dijkstra(graph, 0)
       // Both should agree on the incoming edge for every vertex
       graph.vertexMap.keySet.foreach { v =>
@@ -211,7 +211,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
 
   it should "return Some for dijkstra.graph (no negative weights)" in :
     withDijkstraGraph { graph =>
-      BellmanFord.shortestPaths(graph, 0) shouldBe defined
+      ShortestPaths.bellmanFord(graph, 0) shouldBe defined
     }
 
   // -------------------------------------------------------------------------
@@ -227,7 +227,7 @@ class BellmanFordSpec extends AnyFlatSpec with should.Matchers:
     )
     triplesToTryGraph[Int, Double](Vertex.createWithSet)(triplets) match
       case Success(g: DirectedGraph[Int, Double] @unchecked) =>
-        val result = BellmanFord.shortestPaths(g, 0).get
+        val result = ShortestPaths.bellmanFord(g, 0).get
         result.map.keySet shouldBe Set(1)
         result.vertexTraverse(2) shouldBe None
         result.vertexTraverse(3) shouldBe None

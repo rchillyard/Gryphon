@@ -71,14 +71,14 @@ class InvarianceSpec extends AnyFlatSpec with Matchers:
   // The claim #156 singled out as needing measurement rather than assumption. Both algorithms
   // read the edge list, which is not shuffled, and never an adjacency iterator -- so "MST
   // algorithm" does not predict the answer, and Prim below is the contrast that proves it.
-  it should "hold for Kruskal.mst, even with every weight tied" in {
+  it should "hold for MST.kruskal, even with every weight tied" in {
     val g = tiedCycle
-    distinctOverSeeds(_ => Kruskal.mst[Int, Double](g).toSeq) shouldBe 1
+    distinctOverSeeds(_ => MST.kruskal[Int, Double](g).toSeq) shouldBe 1
   }
 
-  it should "hold for Boruvka.mst, even with every weight tied" in {
+  it should "hold for MST.boruvka, even with every weight tied" in {
     val g = tiedCycle
-    distinctOverSeeds(_ => Boruvka.mst[Int, Double](g).toSeq) shouldBe 1
+    distinctOverSeeds(_ => MST.boruvka[Int, Double](g).toSeq) shouldBe 1
   }
 
   it should "hold for the graph predicates and counts" in {
@@ -95,7 +95,7 @@ class InvarianceSpec extends AnyFlatSpec with Matchers:
     val g = singletonSccs
     val numberings = seeds.map { s =>
       given Random = Random(s)
-      Kosaraju.stronglyConnectedComponents[Int, Double](g)
+      StronglyConnectedComponents.kosaraju[Int, Double](g)
     }
     // Grouping: a property of the graph.
     numberings.map(m => m.groupBy((_, id) => id).values.map(_.keySet).toSet).distinct.size shouldBe 1

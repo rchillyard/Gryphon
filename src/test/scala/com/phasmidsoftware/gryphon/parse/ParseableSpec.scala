@@ -114,12 +114,12 @@ class ParseableSpec extends AnyFlatSpec with Matchers {
 
   it should "parse edge weights as Long from longs.graph" in :
     import com.phasmidsoftware.gryphon.builder.GraphBuilder
-    import com.phasmidsoftware.gryphon.traverse.Kruskal
+    import com.phasmidsoftware.gryphon.traverse.MST
     given Ordering[Long] = Ordering.Long
 
     GraphBuilder.undirected[Int, Long].fromResource("longs.graph") match
       case scala.util.Success(g) =>
-        val mst = Kruskal.mst(g)
+        val mst = MST.kruskal(g)
         mst.size shouldBe 3
         mst.map(_.attribute).sum shouldBe 450L  // 100 + 150 + 200
       case scala.util.Failure(x) =>

@@ -138,6 +138,7 @@ trait Graph[V] extends Traversable[V]:
    * @param random the generator determining adjacency order (implicit).
    * @tparam E the edge attribute type.
    * @return the adjacent edges, as a `Seq`.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def adjacentEdges[E](v: V)(using random: Random = Random()): Seq[Edge[V, E]] =
     filteredAdjacencies(_ => true)(v)
@@ -177,6 +178,7 @@ abstract class AbstractGraph[V](vertexMap: VertexMap[V]) extends Graph[V]:
    * Retrieves an iterator over all adjacencies in the graph.
    *
    * @return an iterator of `Adjacency[V]` across all vertices.
+   * @note Result: invariant.
    */
   def adjacencies: Iterator[Adjacency[V]] = for
     vv <- vertexMap.vertices.iterator
@@ -244,6 +246,7 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    *           needs no cast.
    * @return this graph as an `EdgeList`, the concrete type rather than `SerializableGraph`, so a
    *         caller keeps `edges` and `pairs` without having to cast back down.
+   * @note Result: invariant.
    */
   def unbuild[Z >: EdgeType]: EdgeList[V, E, Z] = EdgeList(edges.toSeq)
 
@@ -272,6 +275,7 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
   /**
    * Returns the number of self-loops in the graph
    * (edges where both endpoints are the same vertex).
+   * @note Result: invariant.
    */
   def numberOfSelfLoops: Int =
     edges.count(e => e.white == e.black)
@@ -288,6 +292,7 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    *
    * @param v the vertex.
    * @return the number of edges arriving at `v`.
+   * @note Result: invariant.
    */
   def inDegree(v: V): Int
 
@@ -297,5 +302,6 @@ trait EdgeGraph[V, E] extends Graph[V] with EdgeTraversable[V, E]:
    *
    * @param v the vertex.
    * @return the number of edges leaving `v`.
+   * @note Result: invariant.
    */
   def outDegree(v: V): Int

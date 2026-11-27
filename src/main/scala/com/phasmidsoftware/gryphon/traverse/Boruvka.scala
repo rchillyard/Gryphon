@@ -37,6 +37,7 @@ object Boruvka:
    * @tparam V the vertex attribute type.
    * @tparam E the edge weight type; must have `Monoid` and `Ordering`.
    * @return a `Seq[Edge[V, E]]` — the MST edges in order of addition, consistent with `Kruskal.mst`.
+   * @note Result: invariant. Measured as for `Kruskal.mst`, on fully tied weights.
    */
   @nowarn("msg=unused implicit parameter") // E needs a Monoid, as for Kruskal.mst, although Borůvka only compares weights
   def mst[V, E: {Monoid, Ordering}](graph: UndirectedGraph[V, E]): AbstractEdgeTraversalResult[Edge[V, E]] =

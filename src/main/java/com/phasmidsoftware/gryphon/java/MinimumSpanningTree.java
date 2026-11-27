@@ -25,6 +25,20 @@ import java.util.Random;
  * <p><b>Kruskal result:</b> {@code List<WeightedEdge<V, E>>} in non-decreasing
  * order according to the supplied comparator.</p>
  *
+ * <p><b>Reproducibility differs between the three algorithms, and not as you might guess.</b>
+ * The total weight never varies — a minimum spanning tree is minimum — but when several
+ * distinct trees tie for minimum, which one comes back can differ.</p>
+ *
+ * <ul>
+ *   <li><b>{@code prim} varies.</b> It walks adjacencies, which are deliberately shuffled, so
+ *       pass a {@code java.util.Random} to pin it.</li>
+ *   <li><b>{@code kruskal} and {@code boruvka} do not vary</b>, and need no generator. Both
+ *       read the edge list rather than any adjacency iterator, and that list is not shuffled.
+ *       This was measured rather than assumed, on a cycle whose edge weights are <em>all</em>
+ *       equal — the hardest case, where any spanning subset is a valid MST: forty seeds give
+ *       one answer.</li>
+ * </ul>
+ *
  * <p><b>Option 1 example</b> (Double weights):
  * <pre>{@code
  * WeightedGraph<Integer, Double> g = WeightedGraph.undirected();

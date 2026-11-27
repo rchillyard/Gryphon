@@ -57,6 +57,8 @@ object BellmanFord:
    * @return `Some(VertexTraversalResult)` mapping each reachable non-source vertex
    *         to its shortest-path incoming edge, or `None` if a negative cycle is
    *         reachable from `start`.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
+   *       The distances do not vary; which of several equal-cost predecessors is recorded does.
    */
   def shortestPaths[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     val em = implicitly[Monoid[E]]

@@ -92,6 +92,8 @@ object ConnectedComponents:
    * @return a `ConnectedResult[V, E]`. Read `partition` for the components themselves, `map` for
    *         the vertex-to-id labelling, `connexions` for the discovery tree.
    * @throws com.phasmidsoftware.gryphon.core.GraphException if `graph` is not a `Graph[V]`.
+   * @note Result: `partition` and `map` are invariant; `connexions` varies with adjacency order.
+   *       Prefer `partition` when comparing runs -- see the note on `ConnectedResult`.
    */
   // The generator reaches `getConnexions` from 1.13.0. Until then this parameter was annotated
   // `@unused` and was exactly that: the DFS inside each component built its own `Random` from

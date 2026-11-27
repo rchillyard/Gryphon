@@ -39,12 +39,14 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
   /**
    * Returns the in-degree of `v`: the number of arcs whose head is `v`.
    * A self-loop counts once, towards both the in-degree and the out-degree.
+   * @note Result: invariant.
    */
   def inDegree(v: V): Int = edges.count(_.black == v)
 
   /**
    * Returns the out-degree of `v`: the number of arcs whose tail is `v`.
    * A self-loop counts once, towards both the in-degree and the out-degree.
+   * @note Result: invariant.
    */
   def outDegree(v: V): Int = edges.count(_.white == v)
 
@@ -56,6 +58,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    * cannot be established.
    *
    * @return true if the graph is cyclic, false otherwise.
+   * @note Result: invariant.
    */
   def isCyclic: Boolean = topologicalOrder.isEmpty
 
@@ -108,6 +111,7 @@ case class DirectedGraph[V, E](vertexMap: VertexMap[V])
    * recorded does. See `BellmanFord.shortestPaths`, and #154 — until 1.14.0 this method had no
    * `Random` to pass on, so the generator was built inside the algorithm and could not be
    * reached from here.
+   * @note Result: varies with adjacency order; pin a seed with `given Random` to fix it.
    */
   def shortestPaths(start: V)(using mo: Monoid[E], or: Ordering[E], random: Random = Random()): Option[VertexTraversalResult[V, DirectedEdge[V, E]]] =
     BellmanFord.shortestPaths(this, start)

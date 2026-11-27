@@ -66,16 +66,21 @@ class ScaleCorrectnessSpec extends AnyFlatSpec with Matchers:
   // single expected number would only be a snapshot.
   it should "have three MST algorithms agree on the weight of the sparse graph" in {
     val g = ScaleGraphs.sparse
-    val kruskal = MST.kruskal[Int, Double](g).toSeq
-    val boruvka = MST.boruvka[Int, Double](g).toSeq
-    val prim = MST.prim[Int, Double](g, 0)
 
-    kruskal.size shouldBe V - 1 // a spanning tree of a connected graph
-    boruvka.size shouldBe V - 1
+    // One list rather than three near-identical blocks. Before MSTAlgorithm this could not be
+    // written: prim took a start vertex the other two did not, and all three returned types with
+    // no useful supertype, so the comparison had to be spelled out per algorithm -- including
+    // reaching into Prim's parent map by hand to total its edges.
+    val algorithms: List[MSTAlgorithm[Int, Double]] = List(
+      KruskalAlgorithm[Int, Double](), BoruvkaAlgorithm[Int, Double](), PrimAlgorithm[Int, Double](0))
+    val results = algorithms.map(_.apply(g))
 
-    val kruskalWeight = kruskal.map(_.attribute).sum
-    boruvka.map(_.attribute).sum shouldBe kruskalWeight +- 1e-9
-    prim.keySet.toSeq.flatMap(prim.vertexTraverse).map(_.attribute).sum shouldBe kruskalWeight +- 1e-9
+    results.foreach(_.edges.size shouldBe V - 1) // a spanning tree of a connected graph
+
+    // Tolerance, not equality: totalWeight folds in each result's own edge order and Double
+    // addition is not associative, so identical trees can total to different last bits.
+    val first = results.head.totalWeight
+    results.foreach(_.totalWeight shouldBe first +- 1e-9)
   }
 
   // The dense graph gets Kruskal and Boruvka only. Prim takes over two minutes on it (#164),

@@ -488,12 +488,13 @@ public class ShortestPaths {
      * runs of your program it is arbitrary. <b>If you are asserting a particular predecessor in
      * a test, hold one graph object; otherwise assert on the costs.</b></p>
      *
-     * <p>Why an overload would not help: the topological order lives in a lazily computed field
-     * that cannot take a generator, and the one order a generator could reach — the order a
-     * vertex's outgoing edges are relaxed in — decides nothing, since each edge updates its own
-     * entry. Two edges could only compete by running from one vertex to the same target at
-     * equal cost, and the graph builder rejects such a graph. Adding the overload would read as
-     * a guarantee it could not keep.</p>
+     * <p><b>Both of those can now be pinned, with two handles.</b> Pass a topological order to
+     * {@link #acyclic(WeightedGraph, Object, java.util.List)} and the vertex order is yours;
+     * pass a {@code Random} and the order a vertex's outgoing edges are relaxed in is yours
+     * too. The second was believed not to matter — two edges can compete only as parallel edges
+     * to one target at equal cost, and the builder was thought to reject such a graph. It does
+     * not: {@code fromTriplets} builds parallel edges, and with the topological order held fixed
+     * the recorded predecessor still varied two ways over two hundred calls (#184).</p>
      *
      * @param <V>   the vertex type.
      * @param graph a directed acyclic {@code WeightedGraph<V, Double>}.

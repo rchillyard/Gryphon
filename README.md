@@ -1328,9 +1328,10 @@ across a sequence of traversals makes the whole computation reproducible, which 
 per-call seed could not express.
 
 The pairs exist on `dfs`, `bfs`, `dfsAll`, `bfsUntil`, `dijkstra`, `prim`, `kosaraju`,
-and — since 1.14.0 — `bellmanFord`. Kruskal and Borůvka need no generator: they consult
-`graph.edges` and never an adjacency iterator, and `ConnectedComponents.componentIds`
-assigns ids by walking the vertex set, which is not shuffled.
+`bellmanFord` (1.14.0), and — since 1.15.0 — `aStar` and `acyclic`/`longestAcyclic`.
+Kruskal and Borůvka need no generator: they consult `graph.edges` and never an adjacency
+iterator, and `ConnectedComponents.componentIds` assigns ids by walking the vertex set,
+which is not shuffled.
 
 `bellmanFord` was added late, by correcting a claim this section used to make: that
 relaxation-based algorithms relax over all edges and so could not be affected by
@@ -1346,14 +1347,18 @@ measured, not reasoned about** — see the note after the table.
 
 | | methods |
 |---|---|
-| **Invariant** — same answer always | `order`, `size`, `edges`, `adjacencies`, `get`, `degree`, `inDegree`, `outDegree`, `maxDegree`, `meanDegree`, `numberOfSelfLoops`, `unbuild`, `isCyclic`, `isConnected`, `isBipartite`, `isDAG`, **`Kruskal.mst`**, **`Boruvka.mst`**, `ConnectedResult.partition`, `ConnectedResult.map` |
-| **Varies — a seed pins it** | `adjacentVertices`, `filteredAdjacentVertices`, `filteredAdjacencies`, `adjacentEdges`, `dfs`, `dfsAll`, `bfs`, `vertexMappedTraversalDfs`/`Bfs`, `getConnexions`, `MST.prim`, `ShortestPaths.dijkstra`, `BellmanFord.shortestPaths`, `Kosaraju`, `TopologicalSort.sort`, `ConnectedResult.connexions` |
-| **Varies — and no seed reaches it** | `DirectedGraph.topologicalOrder`, `ShortestPaths.acyclic`/`longestAcyclic`, and the Java façade's `TopologicalSort.sort` and `ShortestPaths.acyclic` |
+| **Invariant** — same answer always | `order`, `size`, `edges`, `adjacencies`, `get`, `degree`, `inDegree`, `outDegree`, `maxDegree`, `meanDegree`, `numberOfSelfLoops`, `unbuild`, `isCyclic`, `isConnected`, `isBipartite`, `isDAG`, **`MST.kruskal`**, **`MST.boruvka`**, `ConnectedResult.partition`, `ConnectedResult.map`, `SCCResult.partition` |
+| **Varies — a seed pins it** | `adjacentVertices`, `filteredAdjacentVertices`, `filteredAdjacencies`, `adjacentEdges`, `dfs`, `dfsAll`, `bfs`, `vertexMappedTraversalDfs`/`Bfs`, `getConnexions`, `MST.prim`, `ShortestPaths.dijkstra`, `ShortestPaths.aStar`, `ShortestPaths.bellmanFord`, `StronglyConnectedComponents.kosaraju` (its `map`, not its `partition`), `TopologicalSort.sort`, `ConnectedResult.connexions` |
+| **Varies — a seed pins only half of it** | `ShortestPaths.acyclic`/`longestAcyclic`. Two orders decide the answer and they need separate handles: pass a **topological order** and a **`Random`**, and the result is fully determined |
+| **Varies — and no seed reaches it** | `DirectedGraph.topologicalOrder` itself, and the Java façade's `TopologicalSort.sort`, both of which read the memoized `lazy val` |
 
-The third category exists because all four read `DirectedGraph.topologicalOrder`, a memoized
-`lazy val`, and a `val` takes no `using` clause. They are stable for one graph object and
-arbitrary across graph objects and across runs. Issue #158 holds what it would take to change
-that.
+The last category exists because a memoized `lazy val` takes no `using` clause. Those two are
+stable for one graph object and arbitrary across graph objects and across runs.
+
+The one above it was that category until 1.15.0. `acyclic` escaped it in two steps, and the
+second was a correction rather than a feature: #158 gave it the topological order as a
+parameter, and #184 found that the edge order *within* a vertex decides something too — which
+the library had asserted for three releases that it could not.
 
 Two entries are worth dwelling on, because the obvious guess is wrong in both directions.
 
@@ -1374,30 +1379,53 @@ Compare `groupBy` of the result, never the ids.
 > calls. A method that takes a `Random` is not thereby variable, and one that takes none is not
 > thereby invariant.
 
-#### Two methods that vary and cannot be pinned
+#### Pinning the acyclic shortest paths takes two handles, not one
 
-**`acyclic` and `topologicalSort` have no pair, and "no pair" does not mean "does not
-vary" for these two.** Both take their order from the graph's memoized topological
-order, which is computed on first use and reused. So:
+**Through 1.14.0 these could not be pinned at all**, and this section argued at length
+that they never would be. Both halves of that argument needed correcting.
 
-- Repeated calls on **one graph object** agree.
-- A **rebuilt or re-parsed** graph is a different object and may memoize a different
-  valid order, and so report a different — equally short — path.
-- Across **runs of your program** it is arbitrary.
+`acyclic` and `longestAcyclic` take their relaxation order from the graph's memoized
+topological order, computed on first use and reused. That part was right: repeated calls
+on **one graph object** agree, a **rebuilt or re-parsed** graph may memoize a different
+valid order and report a different — equally short — path, and across **runs** it is
+arbitrary.
 
-If you are asserting a particular predecessor in a test, hold one graph object;
-otherwise assert on the costs, which do not vary.
+**#158 made the order a parameter**, which is the honest fix: the order is what decides
+the answer, so the order is what you pass.
 
-An overload would not fix this. The memoized order lives in a lazily computed field that
-cannot take a generator, and for `acyclic` the one order a generator *could* reach — the
-order a vertex's outgoing edges are relaxed in — settles nothing, since each edge writes
-its own entry in the predecessor map. Two edges could compete only by running from one
-vertex to the same target at equal cost, and the builder rejects such a graph. Measured
-on a diamond with both equal-cost paths present, forty seeds give one result.
+```scala
+given Random = Random(42)
+ShortestPaths.acyclic(dag, 0, TopologicalSort.sort(dag).get)
+```
 
-So the pair is withheld deliberately: offering it would read as a reproducibility
-guarantee it could not keep, which is the mistake 1.13.0 corrected. Making these pinnable
-means offering a seeded route past the cache, and that is issue #158.
+`TopologicalSort.sort` *is* seedable. The supplied order is validated — not topological,
+and it throws rather than quietly returning a wrong answer, which it otherwise would,
+since the relaxation would read a vertex before its predecessors were final.
+
+**#184 found that was not sufficient**, and that this section's reasoning was wrong in its
+premise. The argument ran: the only other order a generator could reach is the order a
+vertex's outgoing edges are relaxed in; two edges compete only as parallel edges to one
+target at equal cost; and the builder refuses to build those. **It does not.**
+`fromTriplets` builds parallel edges happily — #57, which was cited for this, is about
+triplet *orientation*, not parallel edges. With the topological order held fixed, the
+recorded predecessor still varied **two ways over two hundred calls**.
+
+So these methods take a `Random` as well. The order-taking overloads **require** it rather
+than defaulting it: a form whose whole purpose is reproducibility should not fall back on a
+generator its caller cannot reach.
+
+> **How the original claim survived three releases.** It was measured — on a diamond with
+> two equal-cost paths, forty seeds, one result. A diamond has no parallel edges, so it
+> could not have varied whatever the seed. With plain `Double` the variation is invisible
+> anyway, parallel equal-cost edges being equal objects; it takes a cost type whose
+> `Ordering` ignores a field to see it at all. **A fixture incapable of varying proves
+> nothing**, and that is the trap this README's own table warns about two sections above —
+> while naming the diamond as one of its good fixtures.
+
+The Java façade's `acyclicShortestPaths*` gain the generator pair accordingly, and leave the
+third column. `TopologicalSort.sort` on the Java side stays there: it reads the memoized
+order rather than running the algorithm (#139), so a Java caller can reuse an order but
+cannot yet generate a fresh reproducible one. Scala can.
 
 A Scala caller doing their own sort is not affected: `TopologicalSort.sort(graph)` with a
 `given Random` in scope is uncached and settled entirely by the seed.
@@ -1534,8 +1562,21 @@ something every caller had to do and could get wrong. `ConnectedComponents` has 
 
 `ConnectedResult` is unaffected at the call site: `partition` simply moved up to the supertype.
 
-No other source changes are needed and MiMa is otherwise clean: nothing else in Gryphon's API
-changed shape.
+**Two signatures changed shape**, both source-compatible but not binary-compatible, so
+dependent code must be recompiled rather than edited:
+
+- `MST.prim` now returns `MSTParentMap` and `MST.kruskal`/`boruvka` return `MSTEdgeList`,
+  all three sharing `MSTResult` (#177). `MSTEdgeList` is still a `Seq` and `MSTParentMap`
+  still has its `map`, so call sites are unaffected — 794 tests needed no edit.
+- `AcyclicShortestPaths.shortestPaths` and `longestPaths` gain a `(using Random)` (#184).
+  The parameter has a default, so existing calls still compile.
+
+Both are covered by filters in `src/main/mima-filters/1.14.0.backwards.excludes`.
+
+**The order-taking overloads require a generator.** `ShortestPaths.acyclic(g, s, order)` and
+`longestAcyclic(g, s, order)` take a `Random` with **no** default — Scala forbids defaults on
+two overloads of one name, and the forced choice is the right one here. If you call them, put
+a `given Random` in scope.
 
 **One behaviour changed, and it is silent.** `Graph.dfs` and `Graph.dfsAll` return a different
 map than they did in 1.14.x — the DFS tree rather than a discovery map. Nothing in the type

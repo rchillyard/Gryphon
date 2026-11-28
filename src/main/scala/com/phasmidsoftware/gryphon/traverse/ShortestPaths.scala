@@ -186,7 +186,9 @@ object ShortestPaths:
    * @tparam E the edge-weight type; must have `Monoid` and `Ordering`.
    * @return the longest-path tree; the start vertex is absent.
    * @throws IllegalArgumentException if `graph` contains a cycle.
-   * @note Result: as for `acyclic` -- varies between graph instances and cannot be pinned (#158).
+   * @note Result: as for `acyclic` -- varies between graph instances. Pin it with the
+   *       three-argument overload, which takes the topological order (#158), together with the
+   *       `Random` that settles the edge order within a vertex (#184).
    */
   def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): VertexTraversalResult[V, DirectedEdge[V, E]] =
     AcyclicShortestPaths.longestPaths(graph, start)(using summon[Monoid[E]], summon[Ordering[E]], random)

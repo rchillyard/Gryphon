@@ -87,3 +87,21 @@ ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.gryphon.travers
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.Kruskal.mst(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,scala.math.Ordering)com.phasmidsoftware.gryphon.traverse.AbstractEdgeTraversalResult")
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.Boruvka.mst(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,cats.kernel.Monoid,scala.math.Ordering)com.phasmidsoftware.gryphon.traverse.AbstractEdgeTraversalResult")
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.gryphon.traverse.MST.prim(com.phasmidsoftware.gryphon.adjunct.UndirectedGraph,java.lang.Object,cats.kernel.Monoid,scala.math.Ordering,scala.util.Random)com.phasmidsoftware.gryphon.traverse.TraversalResult")
+
+#
+# #184: AcyclicShortestPaths.shortestPaths and longestPaths gain a `(using Random)`.
+#
+# Source-compatible -- the parameter has a default, so existing calls still compile -- but it
+# changes the erased signature, so dependent code must be recompiled rather than edited. The same
+# shape of break as the four methods 1.14.0 gave a generator to.
+#
+# The parameter is there because the claim that it would be inert was false. It rested on parallel
+# edges being unbuildable, which rested on a misreading of #57; `fromTriplets` builds them, and
+# where two tie on cost the adjacency order decides which is recorded. Measured with the
+# topological order held fixed: two answers over two hundred calls.
+#
+# The corresponding `ShortestPaths.acyclic` and `longestAcyclic` entries are already covered by
+# the ClassNoLongerCheckedProblem filters above, from the #171 move.
+#
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.shortestPaths")
+ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.gryphon.traverse.AcyclicShortestPaths.longestPaths")

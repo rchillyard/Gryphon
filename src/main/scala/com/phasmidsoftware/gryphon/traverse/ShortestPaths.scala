@@ -141,8 +141,8 @@ object ShortestPaths:
    *       take a generator for. Stable for one graph instance. See #158, and the fuller
    *       explanation on `AcyclicShortestPaths.shortestPaths`.
    */
-  def acyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    AcyclicShortestPaths.shortestPaths(graph, start)
+  def acyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    AcyclicShortestPaths.shortestPaths(graph, start)(using summon[Monoid[E]], summon[Ordering[E]], random)
 
   /**
    * Runs the acyclic shortest-paths algorithm, relaxing in the order the caller supplies.
@@ -169,8 +169,8 @@ object ShortestPaths:
    * @note Result: a function of `graph`, `start` and `order` -- fully reproducible, which the
    *       two-argument form cannot promise.
    */
-  def acyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    AcyclicShortestPaths.shortestPaths(graph, start, order)
+  def acyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V])(using random: Random): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    AcyclicShortestPaths.shortestPaths(graph, start, order)(using summon[Monoid[E]], summon[Ordering[E]], random)
 
   /**
    * Runs the acyclic LONGEST-paths algorithm, which is `acyclic` with the ordering reversed.
@@ -188,8 +188,8 @@ object ShortestPaths:
    * @throws IllegalArgumentException if `graph` contains a cycle.
    * @note Result: as for `acyclic` -- varies between graph instances and cannot be pinned (#158).
    */
-  def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    AcyclicShortestPaths.longestPaths(graph, start)
+  def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V)(using random: Random = Random()): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    AcyclicShortestPaths.longestPaths(graph, start)(using summon[Monoid[E]], summon[Ordering[E]], random)
 
   /**
    * Runs the acyclic LONGEST-paths algorithm, relaxing in the order the caller supplies.
@@ -205,8 +205,8 @@ object ShortestPaths:
    * @throws IllegalArgumentException if `order` is not a topological order of `graph`.
    * @note Result: a function of `graph`, `start` and `order` -- fully reproducible.
    */
-  def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V]): VertexTraversalResult[V, DirectedEdge[V, E]] =
-    AcyclicShortestPaths.longestPaths(graph, start, order)
+  def longestAcyclic[V, E: {Monoid, Ordering}](graph: DirectedGraph[V, E], start: V, order: Seq[V])(using random: Random): VertexTraversalResult[V, DirectedEdge[V, E]] =
+    AcyclicShortestPaths.longestPaths(graph, start, order)(using summon[Monoid[E]], summon[Ordering[E]], random)
 
 // undiscoveredEdges and undiscoveredVertices were here, duplicating the methods of the same
 // names on Graph with the receiver moved into a parameter. Nothing called them: not src/main,

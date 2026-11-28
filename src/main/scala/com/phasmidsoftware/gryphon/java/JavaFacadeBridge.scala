@@ -78,11 +78,11 @@ import scala.util.{Random, Try}
  *
  *    '''A `Random` overload would not fix this and must not be added as though it did.''' For
  *    `acyclicShortestPaths` the only order a generator could reach is the edge order within a
- *    vertex, and that is inert: each edge writes its own key, so two can compete only as
- *    parallel edges to one target, which `fromTriplets` refuses to build (#57). Measured on a
- *    diamond with two equal-cost paths, forty seeds give one result. Shipping the pair anyway
- *    would repeat exactly the mistake 1.13.0 corrected — an API that reads as a reproducibility
- *    guarantee and is not one.
+ *    vertex — and that is '''not''' inert, though it was believed to be until #184. Two edges
+ *    compete only as parallel edges to one target, which was thought unbuildable on a misreading
+ *    of #57; `fromTriplets` builds them happily. The old measurement used a diamond, which has no
+ *    parallel edges and so could not have varied. So these methods DO take the generator pair,
+ *    as of 1.15.0, and the third column below is about the topological order alone.
  *
  *    '''What 1.15.0 added instead is an ORDER overload, which is a different thing.'''
  *    `acyclicShortestPaths*` now also accept the topological order itself, so a Java caller who
@@ -725,8 +725,8 @@ private[java] object JavaFacadeBridge:
    * memoized `DirectedGraph.topologicalOrder`, so it is fixed per graph instance and arbitrary
    * across runs. A `java.util.Random` overload would not settle it, because a `lazy val` takes
    * no generator and the one order a generator could reach -- the edge order within a vertex --
-   * is inert here: parallel edges to a single target are the only shape it could decide, and
-   * `fromTriplets` refuses to build those (#57). Measured: forty seeds, one result.
+   * is NOT inert here, contrary to what this said before #184: parallel edges to a single target
+   * are the shape it decides, and `fromTriplets` builds those. Hence the generator pair.
    *
    * Offering the overload anyway would repeat the mistake 1.13.0 corrected, of giving a Java
    * caller an API that reads as a reproducibility guarantee and is not one. See #158, and the
@@ -736,6 +736,23 @@ private[java] object JavaFacadeBridge:
                                            edges: JavaList[WeightedEdge[V, Double]],
                                            start: V
                                    ): JavaMap[V, WeightedEdge[V, Double]] =
+    acyclicShortestPathsDouble(edges, start, java.util.Random())
+
+  /**
+   * As above, drawing the edge order within each vertex from `jr`.
+   *
+   * These methods took no generator until 1.15.0, on the grounds that the only order one could
+   * reach was inert. That was wrong: it rested on parallel edges being unbuildable, and they are
+   * not -- `fromTriplets` builds them happily. Where two parallel edges tie on cost, which is
+   * recorded depends on adjacency order, so a generator does reach the result. See #184.
+   */
+  def acyclicShortestPathsDouble[V](
+                                           edges: JavaList[WeightedEdge[V, Double]],
+                                           start: V,
+                                           jr: java.util.Random
+                                   ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Random = Random(jr)
+
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
     edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, Double](materialiseWeighted(edges), start))
@@ -754,6 +771,20 @@ private[java] object JavaFacadeBridge:
                                            start: V,
                                            order: JavaList[V]
                                    ): JavaMap[V, WeightedEdge[V, Double]] =
+    acyclicShortestPathsDouble(edges, start, order, java.util.Random())
+
+  /**
+   * The fully pinned form: your topological order, and your generator for the edge order within
+   * each vertex. Both are needed, and #158 shipped only the first -- see #184.
+   */
+  def acyclicShortestPathsDouble[V](
+                                           edges: JavaList[WeightedEdge[V, Double]],
+                                           start: V,
+                                           order: JavaList[V],
+                                           jr: java.util.Random
+                                   ): JavaMap[V, WeightedEdge[V, Double]] =
+    given Random = Random(jr)
+
     given Ordering[Double] = scala.math.Ordering.Double.TotalOrdering
 
     edgeResultToJavaMap(com.phasmidsoftware.gryphon.traverse.ShortestPaths.acyclic[V, Double](materialiseWeighted(edges), start, order.asScala.toSeq))
@@ -769,6 +800,19 @@ private[java] object JavaFacadeBridge:
                                               zero: E,
                                               comparator: JavaComparator[E]
                                       ): JavaMap[V, WeightedEdge[V, E]] =
+    acyclicShortestPathsCustom(edges, start, combineFn, zero, comparator, java.util.Random())
+
+  /** As above, drawing the edge order within each vertex from `jr` — see #184. */
+  def acyclicShortestPathsCustom[V, E](
+                                              edges: JavaList[WeightedEdge[V, E]],
+                                              start: V,
+                                              combineFn: JavaBinaryOperator[E],
+                                              zero: E,
+                                              comparator: JavaComparator[E],
+                                              jr: java.util.Random
+                                      ): JavaMap[V, WeightedEdge[V, E]] =
+    given Random = Random(jr)
+
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     given Monoid[E] with
@@ -786,6 +830,21 @@ private[java] object JavaFacadeBridge:
                                               zero: E,
                                               comparator: JavaComparator[E]
                                       ): JavaMap[V, WeightedEdge[V, E]] =
+    // No givens here: this overload only forwards, and -Werror reports any it does not use.
+    acyclicShortestPathsCustom(edges, start, order, combineFn, zero, comparator, java.util.Random())
+
+  /** Your order and your generator: the fully pinned custom form — see #184. */
+  def acyclicShortestPathsCustom[V, E](
+                                              edges: JavaList[WeightedEdge[V, E]],
+                                              start: V,
+                                              order: JavaList[V],
+                                              combineFn: JavaBinaryOperator[E],
+                                              zero: E,
+                                              comparator: JavaComparator[E],
+                                              jr: java.util.Random
+                                      ): JavaMap[V, WeightedEdge[V, E]] =
+    given Random = Random(jr)
+
     given Ordering[E] = Ordering.comparatorToOrdering(using comparator)
 
     given Monoid[E] with

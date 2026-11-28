@@ -247,3 +247,34 @@ class CycleSpec extends AnyFlatSpec with should.Matchers:
         g.isCyclic shouldBe true
       case other =>
         fail(s"unexpected: $other")
+
+  // The two shapes the 1.15.0 implementation handles differently from the DFS it replaced, and
+  // which nothing here asserted before. `isCyclic` now asks whether the graph has more edges than
+  // a forest of its component count could, so these are the cases where the arithmetic has to be
+  // right rather than the walk.
+
+  it should "return true for a self-loop, which is a cycle of length one" in :
+    // One vertex, one edge: 1 > 1 - 1, so the count catches it with no special case. The DFS it
+    // replaced caught this too, by way of `parent` being None at the root.
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 0, None, Undirected),
+      Triplet(1, 2, None, Undirected)
+    )
+    undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
+        g.isCyclic shouldBe true
+      case other =>
+        fail(s"unexpected: $other")
+
+  it should "return false for isolated vertices with no edges at all" in :
+    // Every vertex its own component, so order == componentCount and the forest bound is zero
+    // edges -- which is what there are. The degenerate end of the same arithmetic.
+    val triplets: Seq[Triplet[Int, Unit, EdgeType]] = Seq(
+      Triplet(0, 1, None, Undirected)
+    )
+    undirectedTryGraph[Int, Unit](Vertex.createWithSet)(triplets) match
+      case Success(g: UndirectedGraph[Int, Unit] @unchecked) =>
+        g.isCyclic shouldBe false
+        g.size shouldBe g.order - 1 // a single tree: the forest bound, exactly met
+      case other =>
+        fail(s"unexpected: $other")
